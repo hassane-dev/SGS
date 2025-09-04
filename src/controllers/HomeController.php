@@ -18,9 +18,14 @@ class HomeController {
             }
             if (in_array(Auth::get('role'), ['admin_local', 'super_admin_national'])) {
                 $navLinks[] = '<a href="/users" class="text-blue-500 hover:underline">Gérer les Utilisateurs</a>';
+                $navLinks[] = '<a href="/eleves" class="text-blue-500 hover:underline">Gérer les Élèves</a>';
                 $navLinks[] = '<a href="/cycles" class="text-blue-500 hover:underline">Gérer les Cycles</a>';
                 $navLinks[] = '<a href="/classes" class="text-blue-500 hover:underline">Gérer les Classes</a>';
                 $navLinks[] = '<a href="/matieres" class="text-blue-500 hover:underline">Gérer les Matières</a>';
+            }
+
+            if (Auth::get('role') === 'enseignant') {
+                $navLinks[] = '<a href="/notes" class="text-blue-500 hover:underline">Saisir les Notes</a>';
             }
 
             $navLinks[] = '<a href="/logout" class="text-blue-500 hover:underline">Déconnexion</a>';
