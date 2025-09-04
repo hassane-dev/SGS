@@ -141,7 +141,8 @@ CREATE TABLE `notes_devoirs` (
     `date_devoir` DATE,
     FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
-    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE
+    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
+    UNIQUE KEY `unique_grade` (`eleve_id`, `classe_id`, `matiere_id`)
 );
 
 -- Table for exam grades
@@ -154,7 +155,8 @@ CREATE TABLE `notes_compositions` (
     `date_composition` DATE,
     FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
-    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE
+    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
+    UNIQUE KEY `unique_grade` (`eleve_id`, `classe_id`, `matiere_id`)
 );
 
 -- Table for entrance exams

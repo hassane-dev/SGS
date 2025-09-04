@@ -69,6 +69,28 @@ $router->register('/users/edit', 'UserController', 'edit');
 $router->register('/users/update', 'UserController', 'update');
 $router->register('/users/destroy', 'UserController', 'destroy');
 
+// Eleves CRUD
+$router->register('/eleves', 'EleveController', 'index');
+$router->register('/eleves/create', 'EleveController', 'create');
+$router->register('/eleves/store', 'EleveController', 'store');
+$router->register('/eleves/edit', 'EleveController', 'edit');
+$router->register('/eleves/update', 'EleveController', 'update');
+$router->register('/eleves/destroy', 'EleveController', 'destroy');
+
+// Inscriptions
+$router->register('/inscriptions/show', 'InscriptionController', 'showForm');
+$router->register('/inscriptions/enroll', 'InscriptionController', 'enroll');
+
+// Notes
+$router->register('/notes', 'NoteController', 'index');
+$router->register('/notes/enter', 'NoteController', 'enter');
+$router->register('/notes/save', 'NoteController', 'save');
+
+// Paiements
+$router->register('/paiements', 'PaiementController', 'index');
+$router->register('/paiements/create', 'PaiementController', 'create');
+$router->register('/paiements/store', 'PaiementController', 'store');
+
 
 // Get the requested URI
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
