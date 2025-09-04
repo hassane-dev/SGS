@@ -68,5 +68,82 @@ class User {
         $stmt = $db->prepare($sql);
         $stmt->execute(['password' => $password]);
     }
+
+    // --- Full CRUD Methods ---
+
+    public static function findAll($lycee_id = null) {
+        $db = Database::getInstance();
+        $sql = "SELECT id_user, nom, prenom, email, role, actif, lycee_id FROM utilisateurs";
+        if ($lycee_id !== null) {
+            $sql .= " WHERE lycee_id = :lycee_id";
+        }
+        $sql .= " ORDER BY nom, prenom ASC";
+
+        $stmt = $db->prepare($sql);
+        if ($lycee_id !== null) {
+            $stmt->execute(['lycee_id' => $lycee_id]);
+        } else {
+            $stmt->execute();
+        }
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public static function findById($id) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT id_user, nom, prenom, email, role, actif, lycee_id FROM utilisateurs WHERE id_user = :id");
+        $stmt->execute(['id' => $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public static function save($data) {
+        $isUpdate = !empty($data['id_user']);
+
+        if ($isUpdate) {
+            $sql = "UPDATE utilisateurs SET nom = :nom, prenom = :prenom, email = :email, role = :role, actif = :actif, lycee_id = :lycee_id";
+            // Only update password if a new one is provided
+            if (!empty($data['mot_de_passe'])) {
+                $sql .= ", mot_de_passe = :mot_de_passe";
+            }
+            $sql .= " WHERE id_user = :id_user";
+        } else {
+            $sql = "INSERT INTO utilisateurs (nom, prenom, email, mot_de_passe, role, actif, lycee_id)
+                    VALUES (:nom, :prenom, :email, :mot_de_passe, :role, :actif, :lycee_id)";
+        }
+
+        $db = Database::getInstance();
+        $stmt = $db->prepare($sql);
+
+        $params = [
+            'nom' => $data['nom'],
+            'prenom' => $data['prenom'],
+            'email' => $data['email'],
+            'role' => $data['role'],
+            'actif' => $data['actif'] ?? 0,
+            'lycee_id' => $data['lycee_id'] ?: null,
+        ];
+
+        if (!empty($data['mot_de_passe'])) {
+            $params['mot_de_passe'] = password_hash($data['mot_de_passe'], PASSWORD_DEFAULT);
+        }
+
+        if ($isUpdate) {
+            $params['id_user'] = $data['id_user'];
+        } else {
+            // Password is required for new users
+            if (empty($data['mot_de_passe'])) return false;
+        }
+
+        return $stmt->execute($params);
+    }
+
+    public static function delete($id) {
+        // Prevent deleting the main super user
+        if ($id == 1) {
+            return false;
+        }
+        $db = Database::getInstance();
+        $stmt = $db->prepare("DELETE FROM utilisateurs WHERE id_user = :id");
+        return $stmt->execute(['id' => $id]);
+    }
 }
 ?>

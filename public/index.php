@@ -21,11 +21,53 @@ spl_autoload_register(function ($class_name) {
 $router = new Router();
 
 // Register routes
-// For now, let's create a placeholder for the home page and the settings page
 $router->register('/', 'HomeController', 'index');
-$router->register('/settings', 'SettingsController', 'index');
 $router->register('/login', 'AuthController', 'login');
 $router->register('/logout', 'AuthController', 'logout');
+
+// Settings
+$router->register('/settings', 'SettingsController', 'index');
+
+// Lycees CRUD
+$router->register('/lycees', 'LyceeController', 'index');
+$router->register('/lycees/create', 'LyceeController', 'create');
+$router->register('/lycees/store', 'LyceeController', 'store');
+$router->register('/lycees/edit', 'LyceeController', 'edit');
+$router->register('/lycees/update', 'LyceeController', 'update');
+$router->register('/lycees/destroy', 'LyceeController', 'destroy');
+
+// Cycles CRUD
+$router->register('/cycles', 'CycleController', 'index');
+$router->register('/cycles/create', 'CycleController', 'create');
+$router->register('/cycles/store', 'CycleController', 'store');
+$router->register('/cycles/edit', 'CycleController', 'edit');
+$router->register('/cycles/update', 'CycleController', 'update');
+$router->register('/cycles/destroy', 'CycleController', 'destroy');
+
+// Classes CRUD
+$router->register('/classes', 'ClasseController', 'index');
+$router->register('/classes/create', 'ClasseController', 'create');
+$router->register('/classes/store', 'ClasseController', 'store');
+$router->register('/classes/edit', 'ClasseController', 'edit');
+$router->register('/classes/update', 'ClasseController', 'update');
+$router->register('/classes/destroy', 'ClasseController', 'destroy');
+
+// Matieres CRUD
+$router->register('/matieres', 'MatiereController', 'index');
+$router->register('/matieres/create', 'MatiereController', 'create');
+$router->register('/matieres/store', 'MatiereController', 'store');
+$router->register('/matieres/edit', 'MatiereController', 'edit');
+$router->register('/matieres/update', 'MatiereController', 'update');
+$router->register('/matieres/destroy', 'MatiereController', 'destroy');
+$router->register('/matieres/assign', 'MatiereController', 'assign'); // GET to show form, POST to update
+
+// Users CRUD
+$router->register('/users', 'UserController', 'index');
+$router->register('/users/create', 'UserController', 'create');
+$router->register('/users/store', 'UserController', 'store');
+$router->register('/users/edit', 'UserController', 'edit');
+$router->register('/users/update', 'UserController', 'update');
+$router->register('/users/destroy', 'UserController', 'destroy');
 
 
 // Get the requested URI
