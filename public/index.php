@@ -74,6 +74,7 @@ $router->register('/eleves', 'EleveController', 'index');
 $router->register('/eleves/create', 'EleveController', 'create');
 $router->register('/eleves/store', 'EleveController', 'store');
 $router->register('/eleves/edit', 'EleveController', 'edit');
+$router->register('/eleves/details', 'EleveController', 'details');
 $router->register('/eleves/update', 'EleveController', 'update');
 $router->register('/eleves/destroy', 'EleveController', 'destroy');
 
@@ -90,6 +91,34 @@ $router->register('/notes/save', 'NoteController', 'save');
 $router->register('/paiements', 'PaiementController', 'index');
 $router->register('/paiements/create', 'PaiementController', 'create');
 $router->register('/paiements/store', 'PaiementController', 'store');
+
+// Bulletins
+$router->register('/bulletin/show', 'BulletinController', 'show');
+
+// Boutique
+$router->register('/boutique/articles', 'BoutiqueArticleController', 'index');
+$router->register('/boutique/articles/create', 'BoutiqueArticleController', 'create');
+$router->register('/boutique/articles/store', 'BoutiqueArticleController', 'store');
+$router->register('/boutique/articles/edit', 'BoutiqueArticleController', 'edit');
+$router->register('/boutique/articles/update', 'BoutiqueArticleController', 'update');
+$router->register('/boutique/articles/destroy', 'BoutiqueArticleController', 'destroy');
+$router->register('/boutique/achats', 'BoutiqueAchatController', 'index');
+$router->register('/boutique/achats/create', 'BoutiqueAchatController', 'create');
+$router->register('/boutique/achats/store', 'BoutiqueAchatController', 'store');
+
+// Tests d'Entrée
+$router->register('/tests_entree', 'TestEntreeController', 'index');
+$router->register('/tests_entree/create', 'TestEntreeController', 'create');
+$router->register('/tests_entree/store', 'TestEntreeController', 'store');
+$router->register('/tests_entree/destroy', 'TestEntreeController', 'destroy');
+
+// Licences
+$router->register('/licences', 'LicenceController', 'index');
+$router->register('/licences/create', 'LicenceController', 'create');
+$router->register('/licences/store', 'LicenceController', 'store');
+$router->register('/licences/edit', 'LicenceController', 'edit');
+$router->register('/licences/update', 'LicenceController', 'update');
+$router->register('/licences/destroy', 'LicenceController', 'destroy');
 
 
 // Get the requested URI

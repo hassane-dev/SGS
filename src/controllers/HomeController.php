@@ -22,10 +22,15 @@ class HomeController {
                 $navLinks[] = '<a href="/cycles" class="text-blue-500 hover:underline">Gérer les Cycles</a>';
                 $navLinks[] = '<a href="/classes" class="text-blue-500 hover:underline">Gérer les Classes</a>';
                 $navLinks[] = '<a href="/matieres" class="text-blue-500 hover:underline">Gérer les Matières</a>';
+                $navLinks[] = '<a href="/boutique/articles" class="text-blue-500 hover:underline">Gérer la Boutique</a>';
             }
 
             if (Auth::get('role') === 'enseignant') {
                 $navLinks[] = '<a href="/notes" class="text-blue-500 hover:underline">Saisir les Notes</a>';
+            }
+
+            if (Auth::get('role') === 'super_admin_createur') {
+                $navLinks[] = '<a href="/licences" class="text-red-500 hover:underline">Gérer les Licences</a>';
             }
 
             $navLinks[] = '<a href="/logout" class="text-blue-500 hover:underline">Déconnexion</a>';
