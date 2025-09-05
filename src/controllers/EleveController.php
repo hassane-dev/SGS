@@ -73,6 +73,19 @@ class EleveController {
         exit();
     }
 
+    public function details() {
+        $this->checkAdmin();
+        $eleve_id = $_GET['id'] ?? null;
+        if (!$eleve_id) {
+            header('Location: /eleves');
+            exit();
+        }
+        $eleve = Eleve::findById($eleve_id);
+        $etudes = Etude::findByEleveId($eleve_id);
+
+        require_once __DIR__ . '/../views/eleves/details.php';
+    }
+
     private function handlePhotoUpload($file) {
         if ($file['error'] !== UPLOAD_ERR_OK) {
             return null;

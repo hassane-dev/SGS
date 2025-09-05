@@ -44,7 +44,7 @@ CREATE TABLE `utilisateurs` (
     `prenom` VARCHAR(100) NOT NULL,
     `email` VARCHAR(255) NOT NULL UNIQUE,
     `mot_de_passe` VARCHAR(255) NOT NULL, -- Should be hashed
-    `role` ENUM('super_admin_national', 'admin_regional', 'admin_local', 'enseignant', 'surveillant', 'censeur') NOT NULL,
+    `role` ENUM('super_admin_createur', 'super_admin_national', 'admin_regional', 'admin_local', 'enseignant', 'surveillant', 'censeur') NOT NULL,
     `lycee_id` INT, -- NULL for super_admin_national
     `permissions` JSON,
     `actif` BOOLEAN DEFAULT TRUE,

@@ -36,7 +36,8 @@
                             <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?></td>
                             <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($eleve['email']) ?></td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="/paiements?eleve_id=<?= $eleve['id_eleve'] ?>" class="text-yellow-600 hover:text-yellow-900">Paiements</a>
+                                <a href="/eleves/details?id=<?= $eleve['id_eleve'] ?>" class="text-blue-600 hover:text-blue-900">Détails/Bulletin</a>
+                                <a href="/paiements?eleve_id=<?= $eleve['id_eleve'] ?>" class="text-yellow-600 hover:text-yellow-900 ml-4">Paiements</a>
                                 <a href="/inscriptions/show?eleve_id=<?= $eleve['id_eleve'] ?>" class="text-green-600 hover:text-green-900 ml-4">Inscrire</a>
                                 <a href="/eleves/edit?id=<?= $eleve['id_eleve'] ?>" class="text-indigo-600 hover:text-indigo-900 ml-4">Modifier</a>
                                 <form action="/eleves/destroy" method="POST" class="inline-block ml-4" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet élève ?');">

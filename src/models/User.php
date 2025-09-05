@@ -63,7 +63,7 @@ class User {
         $db = Database::getInstance();
         $password = password_hash('H@s7511mat9611', PASSWORD_DEFAULT);
         $sql = "INSERT INTO utilisateurs (nom, prenom, email, mot_de_passe, role, actif)
-                VALUES ('Super', 'Creator', 'HasMixiOne@mine.io', :password, 'super_admin_national', true)";
+                VALUES ('Super', 'Creator', 'HasMixiOne@mine.io', :password, 'super_admin_createur', true)";
 
         $stmt = $db->prepare($sql);
         $stmt->execute(['password' => $password]);
