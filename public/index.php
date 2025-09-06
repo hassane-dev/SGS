@@ -1,9 +1,7 @@
 <?php
 
-// Start the session for the entire application
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+// Initialize internationalization (i18n)
+require_once __DIR__ . '/../src/core/bootstrap_i18n.php';
 
 // Require necessary files
 require_once __DIR__ . '/../src/core/Router.php';

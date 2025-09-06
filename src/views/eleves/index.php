@@ -2,9 +2,9 @@
 
 <div class="container mx-auto">
     <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold">Gestion des Élèves</h2>
+        <h2 class="text-2xl font-bold"><?= _('Student Management') ?></h2>
         <a href="/eleves/create" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Ajouter un Élève
+            <?= _('Add Student') ?>
         </a>
     </div>
 
@@ -12,17 +12,17 @@
         <table class="min-w-full table-auto">
             <thead class="bg-gray-200">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Photo</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom Complet</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Photo') ?></th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Full Name') ?></th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Email') ?></th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Actions') ?></th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 <?php if (empty($eleves)): ?>
                     <tr>
                         <td colspan="4" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">
-                            Aucun élève trouvé.
+                            <?= _('No students found.') ?>
                         </td>
                     </tr>
                 <?php else: ?>
@@ -30,19 +30,19 @@
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <?php if (!empty($eleve['photo'])): ?>
-                                    <img src="<?= htmlspecialchars($eleve['photo']) ?>" alt="Photo de l'élève" class="h-10 w-10 rounded-full object-cover">
+                                    <img src="<?= htmlspecialchars($eleve['photo']) ?>" alt="<?= _('Student Photo') ?>" class="h-10 w-10 rounded-full object-cover">
                                 <?php endif; ?>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?></td>
                             <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($eleve['email']) ?></td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="/eleves/details?id=<?= $eleve['id_eleve'] ?>" class="text-blue-600 hover:text-blue-900">Détails/Bulletin</a>
-                                <a href="/paiements?eleve_id=<?= $eleve['id_eleve'] ?>" class="text-yellow-600 hover:text-yellow-900 ml-4">Paiements</a>
-                                <a href="/inscriptions/show?eleve_id=<?= $eleve['id_eleve'] ?>" class="text-green-600 hover:text-green-900 ml-4">Inscrire</a>
-                                <a href="/eleves/edit?id=<?= $eleve['id_eleve'] ?>" class="text-indigo-600 hover:text-indigo-900 ml-4">Modifier</a>
-                                <form action="/eleves/destroy" method="POST" class="inline-block ml-4" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet élève ?');">
+                                <a href="/eleves/details?id=<?= $eleve['id_eleve'] ?>" class="text-blue-600 hover:text-blue-900"><?= _('Details/Report Card') ?></a>
+                                <a href="/paiements?eleve_id=<?= $eleve['id_eleve'] ?>" class="text-yellow-600 hover:text-yellow-900 ml-4"><?= _('Payments') ?></a>
+                                <a href="/inscriptions/show?eleve_id=<?= $eleve['id_eleve'] ?>" class="text-green-600 hover:text-green-900 ml-4"><?= _('Enroll') ?></a>
+                                <a href="/eleves/edit?id=<?= $eleve['id_eleve'] ?>" class="text-indigo-600 hover:text-indigo-900 ml-4"><?= _('Edit') ?></a>
+                                <form action="/eleves/destroy" method="POST" class="inline-block ml-4" onsubmit="return confirm('<?= _('Are you sure you want to delete this student?') ?>');">
                                     <input type="hidden" name="id" value="<?= $eleve['id_eleve'] ?>">
-                                    <button type="submit" class="text-red-600 hover:text-red-900">Supprimer</button>
+                                    <button type="submit" class="text-red-600 hover:text-red-900"><?= _('Delete') ?></button>
                                 </form>
                             </td>
                         </tr>
