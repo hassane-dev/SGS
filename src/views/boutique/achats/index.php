@@ -3,11 +3,11 @@
 <div class="container mx-auto">
     <div class="flex justify-between items-center mb-6">
         <div>
-            <h2 class="text-2xl font-bold">Historique d'Achats</h2>
-            <p class="text-lg text-gray-600">Élève: <span class="font-semibold"><?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?></span></p>
+            <h2 class="text-2xl font-bold"><?= _('Purchase History') ?></h2>
+            <p class="text-lg text-gray-600"><?= _('Student') ?>: <span class="font-semibold"><?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?></span></p>
         </div>
         <a href="/boutique/achats/create?eleve_id=<?= $eleve['id_eleve'] ?>" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Nouvel Achat
+            <?= _('New Purchase') ?>
         </a>
     </div>
 
@@ -15,11 +15,11 @@
         <table class="min-w-full table-auto">
             <thead class="bg-gray-200">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Article</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix Unitaire</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Date') ?></th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Article') ?></th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Quantity') ?></th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Unit Price') ?></th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Total') ?></th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -36,7 +36,7 @@
         </table>
     </div>
     <div class="mt-4">
-        <a href="/eleves/details?id=<?= $eleve['id_eleve'] ?>" class="text-blue-500 hover:underline">&larr; Retour à la fiche de l'élève</a>
+        <a href="/eleves/details?id=<?= $eleve['id_eleve'] ?>" class="text-blue-500 hover:underline">&larr; <?= _('Back to student file') ?></a>
     </div>
 </div>
 

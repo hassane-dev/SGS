@@ -1,8 +1,8 @@
 <?php require_once __DIR__ . '/../layouts/header.php'; ?>
 
 <div class="max-w-2xl mx-auto">
-    <h2 class="text-2xl font-bold mb-2">Assigner les Matières</h2>
-    <p class="text-lg text-gray-600 mb-6">Pour la classe: <span class="font-semibold"><?= htmlspecialchars($classe['nom_classe']) ?></span></p>
+    <h2 class="text-2xl font-bold mb-2"><?= _('Assign Subjects') ?></h2>
+    <p class="text-lg text-gray-600 mb-6"><?= _('For class') ?>: <span class="font-semibold"><?= htmlspecialchars($classe['nom_classe']) ?></span></p>
 
     <div class="bg-white p-8 rounded-lg shadow-lg">
         <form action="/matieres/assign" method="POST">
@@ -20,9 +20,9 @@
             </div>
 
             <div class="mt-8 flex justify-end gap-4">
-                <a href="/classes" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Annuler</a>
+                <a href="/classes" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"><?= _('Cancel') ?></a>
                 <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    Enregistrer les Assignations
+                    <?= _('Save Assignments') ?>
                 </button>
             </div>
         </form>
