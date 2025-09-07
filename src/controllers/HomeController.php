@@ -25,6 +25,10 @@ class HomeController {
                 $navLinks[] = '<a href="/boutique/articles" class="text-blue-500 hover:underline">Gérer la Boutique</a>';
             }
 
+            if (Auth::can('manage_own_lycee_settings')) {
+                $navLinks[] = '<a href="/modele-carte/edit" class="text-teal-500 hover:underline">Éditeur de Carte</a>';
+            }
+
             if (Auth::get('role') === 'enseignant') {
                 $navLinks[] = '<a href="/notes" class="text-blue-500 hover:underline">Saisir les Notes</a>';
             }

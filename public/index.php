@@ -126,6 +126,10 @@ $router->register('/licences/edit', 'LicenceController', 'edit');
 $router->register('/licences/update', 'LicenceController', 'update');
 $router->register('/licences/destroy', 'LicenceController', 'destroy');
 
+// Card Template
+$router->register('/modele-carte/edit', 'ModeleCarteController', 'edit');
+$router->register('/carte/generer', 'CarteController', 'generer');
+
 
 // Get the requested URI
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

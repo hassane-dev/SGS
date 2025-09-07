@@ -268,3 +268,31 @@ CREATE TABLE `traductions` (
     `valeur` TEXT NOT NULL,
     UNIQUE KEY `unique_translation` (`langue_code`, `cle_traduction`)
 );
+
+-- =================================================================
+-- Template Tables
+-- =================================================================
+
+CREATE TABLE `modele_carte` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `lycee_id` INT NOT NULL,
+    `nom_modele` VARCHAR(255) NOT NULL,
+    `background` VARCHAR(255), -- Path to image or color code
+    `font_settings` JSON,
+    `layout_data` JSON, -- Stores positions of all elements
+    `qr_code_settings` JSON,
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+);
+
+CREATE TABLE `modele_bulletin` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `lycee_id` INT NOT NULL,
+    `nom_modele` VARCHAR(255) NOT NULL,
+    `format` ENUM('A4_portrait', 'A4_landscape') DEFAULT 'A4_portrait',
+    `background` VARCHAR(255), -- Path to watermark image or color
+    `font_settings` JSON,
+    `header_content` TEXT,
+    `footer_content` TEXT,
+    `qr_code_settings` JSON,
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+);
