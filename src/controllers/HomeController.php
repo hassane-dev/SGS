@@ -33,6 +33,10 @@ class HomeController {
                 $navLinks[] = '<a href="/licences" class="text-red-500 hover:underline">Gérer les Licences</a>';
             }
 
+            if (Auth::can('manage_roles')) {
+                $navLinks[] = '<a href="/roles" class="text-purple-500 hover:underline">Gérer les Rôles</a>';
+            }
+
             $navLinks[] = '<a href="/logout" class="text-blue-500 hover:underline">Déconnexion</a>';
 
             echo implode(' | ', $navLinks);

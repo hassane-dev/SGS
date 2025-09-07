@@ -4,8 +4,8 @@ require_once __DIR__ . '/../models/Lycee.php';
 
 class LyceeController {
 
-    private function checkAdmin() {
-        if (!Auth::check() || Auth::get('role') !== 'super_admin_national') {
+    private function checkAccess() {
+        if (!Auth::can('manage_all_lycees')) {
             http_response_code(403);
             echo "Accès Interdit. Vous devez être un super administrateur national.";
             exit();
@@ -13,18 +13,18 @@ class LyceeController {
     }
 
     public function index() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $lycees = Lycee::findAll();
         require_once __DIR__ . '/../views/lycees/index.php';
     }
 
     public function create() {
-        $this->checkAdmin();
+        $this->checkAccess();
         require_once __DIR__ . '/../views/lycees/create.php';
     }
 
     public function store() {
-        $this->checkAdmin();
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Lycee::save($_POST);
         }
@@ -33,7 +33,7 @@ class LyceeController {
     }
 
     public function edit() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: /lycees');
@@ -44,7 +44,7 @@ class LyceeController {
     }
 
     public function update() {
-        $this->checkAdmin();
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Lycee::save($_POST);
         }
@@ -53,7 +53,7 @@ class LyceeController {
     }
 
     public function destroy() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $id = $_POST['id'] ?? null;
         if ($id) {
             Lycee::delete($id);

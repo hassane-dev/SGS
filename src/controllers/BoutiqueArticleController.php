@@ -5,8 +5,8 @@ require_once __DIR__ . '/../models/Lycee.php';
 
 class BoutiqueArticleController {
 
-    private function checkAdmin() {
-        if (!Auth::check() || !in_array(Auth::get('role'), ['admin_local', 'super_admin_national'])) {
+    private function checkAccess() {
+        if (!Auth::can('manage_boutique')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();
@@ -14,8 +14,8 @@ class BoutiqueArticleController {
     }
 
     public function index() {
-        $this->checkAdmin();
-        $user_role = Auth::get('role');
+        $this->checkAccess();
+        $user_role = Auth::get('role_name');
         $lycee_id = ($user_role === 'admin_local') ? Auth::get('lycee_id') : null;
 
         $articles = BoutiqueArticle::findAll($lycee_id);
@@ -23,15 +23,15 @@ class BoutiqueArticleController {
     }
 
     public function create() {
-        $this->checkAdmin();
-        $lycees = (Auth::get('role') === 'super_admin_national') ? Lycee::findAll() : [];
+        $this->checkAccess();
+        $lycees = (Auth::can('manage_all_lycees')) ? Lycee::findAll() : [];
         require_once __DIR__ . '/../views/boutique/articles/create.php';
     }
 
     public function store() {
-        $this->checkAdmin();
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (Auth::get('role') === 'admin_local') {
+            if (Auth::get('role_name') === 'admin_local') {
                 $_POST['lycee_id'] = Auth::get('lycee_id');
             }
             BoutiqueArticle::save($_POST);
@@ -41,21 +41,21 @@ class BoutiqueArticleController {
     }
 
     public function edit() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: /boutique/articles');
             exit();
         }
         $article = BoutiqueArticle::findById($id);
-        $lycees = (Auth::get('role') === 'super_admin_national') ? Lycee::findAll() : [];
+        $lycees = (Auth::can('manage_all_lycees')) ? Lycee::findAll() : [];
         require_once __DIR__ . '/../views/boutique/articles/edit.php';
     }
 
     public function update() {
-        $this->checkAdmin();
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (Auth::get('role') === 'admin_local') {
+            if (Auth::get('role_name') === 'admin_local') {
                 $_POST['lycee_id'] = Auth::get('lycee_id');
             }
             BoutiqueArticle::save($_POST);
@@ -65,7 +65,7 @@ class BoutiqueArticleController {
     }
 
     public function destroy() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $id = $_POST['id'] ?? null;
         if ($id) {
             BoutiqueArticle::delete($id);

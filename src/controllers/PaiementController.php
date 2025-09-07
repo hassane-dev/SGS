@@ -5,9 +5,8 @@ require_once __DIR__ . '/../models/Eleve.php';
 
 class PaiementController {
 
-    private function checkAdmin() {
-        // For now, only admins can manage payments
-        if (!Auth::check() || !in_array(Auth::get('role'), ['admin_local', 'super_admin_national'])) {
+    private function checkAccess() {
+        if (!Auth::can('manage_paiements')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();
@@ -15,7 +14,7 @@ class PaiementController {
     }
 
     public function index() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $eleve_id = $_GET['eleve_id'] ?? null;
         if (!$eleve_id) {
             header('Location: /eleves');
@@ -27,7 +26,7 @@ class PaiementController {
     }
 
     public function create() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $eleve_id = $_GET['eleve_id'] ?? null;
         if (!$eleve_id) {
             header('Location: /eleves');
@@ -38,7 +37,7 @@ class PaiementController {
     }
 
     public function store() {
-        $this->checkAdmin();
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Paiement::create($_POST);
             // Redirect to the payment list for that student

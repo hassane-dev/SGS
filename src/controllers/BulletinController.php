@@ -5,8 +5,8 @@ require_once __DIR__ . '/../models/Bulletin.php';
 class BulletinController {
 
     private function checkAuth() {
-        // Allow teachers and admins to view bulletins
-        if (!Auth::check() || !in_array(Auth::get('role'), ['enseignant', 'admin_local', 'super_admin_national'])) {
+        // Allow users with 'view_bulletins' permission
+        if (!Auth::can('view_bulletins')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();

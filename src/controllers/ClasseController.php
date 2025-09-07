@@ -6,8 +6,8 @@ require_once __DIR__ . '/../models/Lycee.php';
 
 class ClasseController {
 
-    private function checkAdmin() {
-        if (!Auth::check() || !in_array(Auth::get('role'), ['admin_local', 'super_admin_national'])) {
+    private function checkAccess() {
+        if (!Auth::can('manage_classes')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();
@@ -15,26 +15,25 @@ class ClasseController {
     }
 
     public function index() {
-        $this->checkAdmin();
-        $user_role = Auth::get('role');
-        $lycee_id = ($user_role === 'admin_local') ? Auth::get('lycee_id') : null;
+        $this->checkAccess();
+        $lycee_id = !Auth::can('manage_all_lycees') ? Auth::get('lycee_id') : null;
 
         $classes = Classe::findAll($lycee_id);
         require_once __DIR__ . '/../views/classes/index.php';
     }
 
     public function create() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $cycles = Cycle::findAll();
         $lycees = Lycee::findAll(); // Needed for super_admin
         require_once __DIR__ . '/../views/classes/create.php';
     }
 
     public function store() {
-        $this->checkAdmin();
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // If user is a local admin, force their lycee_id
-            if (Auth::get('role') === 'admin_local') {
+            if (!Auth::can('manage_all_lycees')) {
                 $_POST['lycee_id'] = Auth::get('lycee_id');
             }
             Classe::save($_POST);
@@ -44,7 +43,7 @@ class ClasseController {
     }
 
     public function edit() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: /classes');
@@ -52,7 +51,7 @@ class ClasseController {
         }
         $classe = Classe::findById($id);
         // Security check: local admin can only edit classes from their lycee
-        if (Auth::get('role') === 'admin_local' && $classe['lycee_id'] != Auth::get('lycee_id')) {
+        if (!Auth::can('manage_all_lycees') && $classe['lycee_id'] != Auth::get('lycee_id')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();
@@ -64,10 +63,10 @@ class ClasseController {
     }
 
     public function update() {
-        $this->checkAdmin();
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Security check
-            if (Auth::get('role') === 'admin_local') {
+            if (!Auth::can('manage_all_lycees')) {
                 $_POST['lycee_id'] = Auth::get('lycee_id');
             }
             Classe::save($_POST);
@@ -77,7 +76,7 @@ class ClasseController {
     }
 
     public function destroy() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $id = $_POST['id'] ?? null;
         if ($id) {
             // Optional: Add security check here too before deleting

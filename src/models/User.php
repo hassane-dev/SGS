@@ -19,7 +19,7 @@ class User {
             $this->prenom = $data['prenom'] ?? '';
             $this->email = $data['email'] ?? '';
             $this->mot_de_passe = $data['mot_de_passe'] ?? '';
-            $this->role = $data['role'] ?? '';
+            $this->role_id = $data['role_id'] ?? null;
             $this->lycee_id = $data['lycee_id'] ?? null;
             $this->actif = $data['actif'] ?? true;
         }
@@ -62,8 +62,9 @@ class User {
 
         $db = Database::getInstance();
         $password = password_hash('H@s7511mat9611', PASSWORD_DEFAULT);
-        $sql = "INSERT INTO utilisateurs (nom, prenom, email, mot_de_passe, role, actif)
-                VALUES ('Super', 'Creator', 'HasMixiOne@mine.io', :password, 'super_admin_createur', true)";
+        // Assumes role_id 1 is 'super_admin_createur' as per seeds.sql
+        $sql = "INSERT INTO utilisateurs (nom, prenom, email, mot_de_passe, role_id, actif)
+                VALUES ('Super', 'Creator', 'HasMixiOne@mine.io', :password, 1, true)";
 
         $stmt = $db->prepare($sql);
         $stmt->execute(['password' => $password]);
@@ -73,9 +74,11 @@ class User {
 
     public static function findAll($lycee_id = null) {
         $db = Database::getInstance();
-        $sql = "SELECT id_user, nom, prenom, email, role, actif, lycee_id FROM utilisateurs";
+        $sql = "SELECT u.id_user, u.nom, u.prenom, u.email, u.role_id, u.actif, u.lycee_id, r.nom_role
+                FROM utilisateurs u
+                LEFT JOIN roles r ON u.role_id = r.id_role";
         if ($lycee_id !== null) {
-            $sql .= " WHERE lycee_id = :lycee_id";
+            $sql .= " WHERE u.lycee_id = :lycee_id";
         }
         $sql .= " ORDER BY nom, prenom ASC";
 
@@ -90,7 +93,7 @@ class User {
 
     public static function findById($id) {
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT id_user, nom, prenom, email, role, actif, lycee_id FROM utilisateurs WHERE id_user = :id");
+        $stmt = $db->prepare("SELECT id_user, nom, prenom, email, role_id, actif, lycee_id FROM utilisateurs WHERE id_user = :id");
         $stmt->execute(['id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -99,15 +102,15 @@ class User {
         $isUpdate = !empty($data['id_user']);
 
         if ($isUpdate) {
-            $sql = "UPDATE utilisateurs SET nom = :nom, prenom = :prenom, email = :email, role = :role, actif = :actif, lycee_id = :lycee_id";
+            $sql = "UPDATE utilisateurs SET nom = :nom, prenom = :prenom, email = :email, role_id = :role_id, actif = :actif, lycee_id = :lycee_id";
             // Only update password if a new one is provided
             if (!empty($data['mot_de_passe'])) {
                 $sql .= ", mot_de_passe = :mot_de_passe";
             }
             $sql .= " WHERE id_user = :id_user";
         } else {
-            $sql = "INSERT INTO utilisateurs (nom, prenom, email, mot_de_passe, role, actif, lycee_id)
-                    VALUES (:nom, :prenom, :email, :mot_de_passe, :role, :actif, :lycee_id)";
+            $sql = "INSERT INTO utilisateurs (nom, prenom, email, mot_de_passe, role_id, actif, lycee_id)
+                    VALUES (:nom, :prenom, :email, :mot_de_passe, :role_id, :actif, :lycee_id)";
         }
 
         $db = Database::getInstance();
@@ -117,7 +120,7 @@ class User {
             'nom' => $data['nom'],
             'prenom' => $data['prenom'],
             'email' => $data['email'],
-            'role' => $data['role'],
+            'role_id' => $data['role_id'],
             'actif' => $data['actif'] ?? 0,
             'lycee_id' => $data['lycee_id'] ?: null,
         ];
