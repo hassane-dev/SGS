@@ -4,9 +4,8 @@ require_once __DIR__ . '/../models/Cycle.php';
 
 class CycleController {
 
-    private function checkAdmin() {
-        // Allow local admins and national super admins
-        if (!Auth::check() || !in_array(Auth::get('role'), ['admin_local', 'super_admin_national'])) {
+    private function checkAccess() {
+        if (!Auth::can('manage_cycles')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();
@@ -14,7 +13,7 @@ class CycleController {
     }
 
     public function index() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $cycles = Cycle::findAll();
         // Pass a potential error message from delete action
         $error = $_GET['error'] ?? null;
@@ -22,12 +21,12 @@ class CycleController {
     }
 
     public function create() {
-        $this->checkAdmin();
+        $this->checkAccess();
         require_once __DIR__ . '/../views/cycles/create.php';
     }
 
     public function store() {
-        $this->checkAdmin();
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Cycle::save($_POST);
         }
@@ -36,7 +35,7 @@ class CycleController {
     }
 
     public function edit() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: /cycles');
@@ -47,7 +46,7 @@ class CycleController {
     }
 
     public function update() {
-        $this->checkAdmin();
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Cycle::save($_POST);
         }
@@ -56,7 +55,7 @@ class CycleController {
     }
 
     public function destroy() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $id = $_POST['id'] ?? null;
         if ($id) {
             $success = Cycle::delete($id);

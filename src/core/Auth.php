@@ -26,12 +26,18 @@ class Auth {
 
         if ($user && password_verify($password, $user->mot_de_passe)) {
             // Password is correct, store user data in session
+            $role = Role::findById($user->role_id);
+            $permissions = Role::getPermissions($user->role_id);
+
             $_SESSION['user'] = [
                 'id' => $user->id_user,
                 'nom' => $user->nom,
                 'prenom' => $user->prenom,
                 'email' => $user->email,
-                'role' => $user->role,
+                'role_id' => $user->role_id,
+                'role_name' => $role['nom_role'] ?? 'N/A',
+                'lycee_id' => $user->lycee_id,
+                'permissions' => $permissions,
             ];
             return true;
         }
@@ -77,6 +83,20 @@ class Auth {
     public static function get($key) {
         self::startSession();
         return $_SESSION['user'][$key] ?? null;
+    }
+
+    /**
+     * Check if the logged-in user has a specific permission.
+     * @param string $permission_name The name of the permission to check.
+     * @return bool
+     */
+    public static function can($permission_name) {
+        self::startSession();
+        $permissions = self::get('permissions');
+        if (is_array($permissions)) {
+            return in_array($permission_name, $permissions);
+        }
+        return false;
     }
 }
 ?>

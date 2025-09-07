@@ -6,8 +6,8 @@ class EleveController {
 
     const UPLOAD_DIR = '/uploads/photos/';
 
-    private function checkAdmin() {
-        if (!Auth::check() || !in_array(Auth::get('role'), ['admin_local', 'super_admin_national'])) {
+    private function checkAccess() {
+        if (!Auth::can('manage_eleves')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();
@@ -15,21 +15,20 @@ class EleveController {
     }
 
     public function index() {
-        $this->checkAdmin();
-        $user_role = Auth::get('role');
-        $lycee_id = ($user_role === 'admin_local') ? Auth::get('lycee_id') : null;
+        $this->checkAccess();
+        $lycee_id = !Auth::can('manage_all_lycees') ? Auth::get('lycee_id') : null;
 
         $eleves = Eleve::findAll($lycee_id);
         require_once __DIR__ . '/../views/eleves/index.php';
     }
 
     public function create() {
-        $this->checkAdmin();
+        $this->checkAccess();
         require_once __DIR__ . '/../views/eleves/create.php';
     }
 
     public function store() {
-        $this->checkAdmin();
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = $_POST;
             $data['photo'] = $this->handlePhotoUpload($_FILES['photo']);
@@ -40,7 +39,7 @@ class EleveController {
     }
 
     public function edit() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: /eleves');
@@ -51,7 +50,7 @@ class EleveController {
     }
 
     public function update() {
-        $this->checkAdmin();
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = $_POST;
             if (isset($_FILES['photo']) && $_FILES['photo']['error'] == UPLOAD_ERR_OK) {
@@ -64,7 +63,7 @@ class EleveController {
     }
 
     public function destroy() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $id = $_POST['id'] ?? null;
         if ($id) {
             Eleve::delete($id);

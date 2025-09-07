@@ -3,7 +3,7 @@
 -- =================================================================
 
 -- Drop tables if they exist to ensure a clean slate on execution
-DROP TABLE IF EXISTS `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `cycles`, `utilisateurs`, `lycees`, `parametres_generaux`;
+DROP TABLE IF EXISTS `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `cycles`, `utilisateurs`, `roles`, `lycees`, `parametres_generaux`;
 
 -- =================================================================
 -- General and Core Tables
@@ -37,6 +37,31 @@ CREATE TABLE `lycees` (
     `logo` VARCHAR(255)
 );
 
+-- =================================================================
+-- Roles and Permissions Tables
+-- =================================================================
+
+CREATE TABLE `roles` (
+    `id_role` INT AUTO_INCREMENT PRIMARY KEY,
+    `nom_role` VARCHAR(100) NOT NULL,
+    `lycee_id` INT, -- NULL for global roles
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+);
+
+CREATE TABLE `permissions` (
+    `id_permission` INT AUTO_INCREMENT PRIMARY KEY,
+    `nom_permission` VARCHAR(100) NOT NULL UNIQUE, -- e.g., 'manage_users', 'edit_settings'
+    `description` TEXT
+);
+
+CREATE TABLE `role_permissions` (
+    `role_id` INT NOT NULL,
+    `permission_id` INT NOT NULL,
+    PRIMARY KEY (`role_id`, `permission_id`),
+    FOREIGN KEY (`role_id`) REFERENCES `roles`(`id_role`) ON DELETE CASCADE,
+    FOREIGN KEY (`permission_id`) REFERENCES `permissions`(`id_permission`) ON DELETE CASCADE
+);
+
 -- Table for users
 CREATE TABLE `utilisateurs` (
     `id_user` INT AUTO_INCREMENT PRIMARY KEY,
@@ -44,12 +69,13 @@ CREATE TABLE `utilisateurs` (
     `prenom` VARCHAR(100) NOT NULL,
     `email` VARCHAR(255) NOT NULL UNIQUE,
     `mot_de_passe` VARCHAR(255) NOT NULL, -- Should be hashed
-    `role` ENUM('super_admin_createur', 'super_admin_national', 'admin_regional', 'admin_local', 'enseignant', 'surveillant', 'censeur') NOT NULL,
-    `lycee_id` INT, -- NULL for super_admin_national
-    `permissions` JSON,
+    `role_id` INT,
+    `lycee_id` INT, -- NULL for global roles
     `actif` BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE SET NULL
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE SET NULL,
+    FOREIGN KEY (`role_id`) REFERENCES `roles`(`id_role`) ON DELETE SET NULL
 );
+
 
 -- =================================================================
 -- Academic Structure Tables

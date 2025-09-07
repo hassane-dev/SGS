@@ -6,8 +6,8 @@ require_once __DIR__ . '/../models/Classe.php';
 
 class TestEntreeController {
 
-    private function checkAdmin() {
-        if (!Auth::check() || !in_array(Auth::get('role'), ['admin_local', 'super_admin_national'])) {
+    private function checkAccess() {
+        if (!Auth::can('manage_tests_entree')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();
@@ -15,7 +15,7 @@ class TestEntreeController {
     }
 
     public function index() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $eleve_id = $_GET['eleve_id'] ?? null;
         if (!$eleve_id) {
             header('Location: /eleves');
@@ -27,20 +27,20 @@ class TestEntreeController {
     }
 
     public function create() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $eleve_id = $_GET['eleve_id'] ?? null;
         if (!$eleve_id) {
             header('Location: /eleves');
             exit();
         }
         $eleve = Eleve::findById($eleve_id);
-        $lycee_id = Auth::get('role') === 'admin_local' ? Auth::get('lycee_id') : null;
+        $lycee_id = !Auth::can('manage_all_lycees') ? Auth::get('lycee_id') : null;
         $classes = Classe::findAll($lycee_id);
         require_once __DIR__ . '/../views/tests_entree/create.php';
     }
 
     public function store() {
-        $this->checkAdmin();
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             TestEntree::create($_POST);
             header('Location: /tests_entree?eleve_id=' . $_POST['eleve_id']);
@@ -51,7 +51,7 @@ class TestEntreeController {
     }
 
     public function destroy() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $id = $_POST['id'] ?? null;
         $eleve_id = $_POST['eleve_id'] ?? null;
         if ($id) {

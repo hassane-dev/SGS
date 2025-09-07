@@ -7,8 +7,8 @@ require_once __DIR__ . '/../models/Settings.php'; // To get current academic yea
 
 class InscriptionController {
 
-    private function checkAdmin() {
-        if (!Auth::check() || !in_array(Auth::get('role'), ['admin_local', 'super_admin_national'])) {
+    private function checkAccess() {
+        if (!Auth::can('manage_inscriptions')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();
@@ -16,7 +16,7 @@ class InscriptionController {
     }
 
     public function showForm() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $eleve_id = $_GET['eleve_id'] ?? null;
         if (!$eleve_id) {
             header('Location: /eleves');
@@ -25,12 +25,11 @@ class InscriptionController {
 
         $eleve = Eleve::findById($eleve_id);
 
-        $user_role = Auth::get('role');
-        $lycee_id = ($user_role === 'admin_local') ? Auth::get('lycee_id') : null;
+        $lycee_id = !Auth::can('manage_all_lycees') ? Auth::get('lycee_id') : null;
 
         // A super admin needs to know which lycee this student might belong to.
         // This is a simplification; a real app might need a more robust way to determine this.
-        if ($user_role === 'super_admin_national' && !$lycee_id) {
+        if (Auth::can('manage_all_lycees') && !$lycee_id) {
             // Find the lycee of the first class the student was in, if any.
             $enrollments = Etude::findByEleveId($eleve_id);
             if (!empty($enrollments)) {
@@ -52,7 +51,7 @@ class InscriptionController {
     }
 
     public function enroll() {
-        $this->checkAdmin();
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Etude::create($_POST);
         }

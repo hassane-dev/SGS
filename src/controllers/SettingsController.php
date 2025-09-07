@@ -6,8 +6,9 @@ class SettingsController {
 
     public function index() {
         // 1. Authentication Check
-        if (!Auth::check()) {
-            header('Location: /login');
+        if (!Auth::can('manage_own_lycee_settings')) {
+            http_response_code(403);
+            echo "Accès Interdit.";
             exit();
         }
 

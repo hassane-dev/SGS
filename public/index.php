@@ -110,6 +110,14 @@ $router->register('/tests_entree/create', 'TestEntreeController', 'create');
 $router->register('/tests_entree/store', 'TestEntreeController', 'store');
 $router->register('/tests_entree/destroy', 'TestEntreeController', 'destroy');
 
+// Roles & Permissions
+$router->register('/roles', 'RoleController', 'index');
+$router->register('/roles/create', 'RoleController', 'create');
+$router->register('/roles/store', 'RoleController', 'store');
+$router->register('/roles/edit', 'RoleController', 'edit');
+$router->register('/roles/update', 'RoleController', 'update');
+$router->register('/roles/destroy', 'RoleController', 'destroy');
+
 // Licences
 $router->register('/licences', 'LicenceController', 'index');
 $router->register('/licences/create', 'LicenceController', 'create');
