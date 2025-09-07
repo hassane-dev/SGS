@@ -16,6 +16,7 @@
         <div class="mb-4 flex space-x-4">
             <a href="/boutique/achats?eleve_id=<?= $eleve['id_eleve'] ?>" class="text-yellow-600 hover:underline"><?= _('Purchase History') ?> &rarr;</a>
             <a href="/tests_entree?eleve_id=<?= $eleve['id_eleve'] ?>" class="text-purple-600 hover:underline"><?= _('Entrance Tests') ?> &rarr;</a>
+            <a href="/carte/generer?eleve_id=<?= $eleve['id_eleve'] ?>" class="text-cyan-600 hover:underline"><?= _('Generate ID Card') ?> &rarr;</a>
         </div>
         <table class="min-w-full table-auto">
             <thead class="bg-gray-200">
