@@ -55,7 +55,7 @@
         const container = document.getElementById('card-container');
 
         // Set background
-        const background = "<?= $data['modele']['background'] ?>";
+        const background = "<?= htmlspecialchars($data['modele']['background'] ?? '', ENT_QUOTES, 'UTF-8') ?>";
         if (background) {
             if (background.startsWith('#') || background.startsWith('rgb')) {
                 container.style.backgroundColor = background;
