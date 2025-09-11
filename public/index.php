@@ -130,6 +130,12 @@ $router->register('/licences/destroy', 'LicenceController', 'destroy');
 $router->register('/modele-carte/edit', 'ModeleCarteController', 'edit');
 $router->register('/carte/generer', 'CarteController', 'generer');
 
+// Timetable
+$router->register('/emploi-du-temps', 'EmploiDuTempsController', 'index');
+$router->register('/emploi-du-temps/create', 'EmploiDuTempsController', 'create');
+$router->register('/emploi-du-temps/store', 'EmploiDuTempsController', 'store');
+$router->register('/emploi-du-temps/destroy', 'EmploiDuTempsController', 'destroy');
+
 
 // Get the requested URI
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
