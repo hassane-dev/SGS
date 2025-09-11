@@ -29,6 +29,10 @@ class HomeController {
                 $navLinks[] = '<a href="/modele-carte/edit" class="text-teal-500 hover:underline">Éditeur de Carte</a>';
             }
 
+            if (Auth::can('manage_classes')) { // Reuse permission
+                $navLinks[] = '<a href="/emploi-du-temps" class="text-orange-500 hover:underline">Emploi du Temps</a>';
+            }
+
             if (Auth::get('role') === 'enseignant') {
                 $navLinks[] = '<a href="/notes" class="text-blue-500 hover:underline">Saisir les Notes</a>';
             }
