@@ -91,26 +91,6 @@ class User {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public static function findByRole($role_name, $lycee_id = null) {
-        $db = Database::getInstance();
-        $sql = "SELECT u.*
-                FROM utilisateurs u
-                JOIN roles r ON u.role_id = r.id_role
-                WHERE r.nom_role = :role_name";
-
-        $params = ['role_name' => $role_name];
-
-        if ($lycee_id !== null) {
-            $sql .= " AND u.lycee_id = :lycee_id";
-            $params['lycee_id'] = $lycee_id;
-        }
-        $sql .= " ORDER BY u.nom, u.prenom ASC";
-
-        $stmt = $db->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
     public static function findById($id) {
         $db = Database::getInstance();
         $stmt = $db->prepare("SELECT id_user, nom, prenom, email, role_id, actif, lycee_id FROM utilisateurs WHERE id_user = :id");
