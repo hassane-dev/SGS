@@ -41,6 +41,10 @@ class HomeController {
                 $navLinks[] = '<a href="/roles" class="text-purple-500 hover:underline">Gérer les Rôles</a>';
             }
 
+            if (Auth::can('manage_timetable')) {
+                $navLinks[] = '<a href="/emploi-du-temps" class="text-blue-500 hover:underline">Gérer l\'Emploi du Temps</a>';
+            }
+
             $navLinks[] = '<a href="/logout" class="text-blue-500 hover:underline">Déconnexion</a>';
 
             echo implode(' | ', $navLinks);
