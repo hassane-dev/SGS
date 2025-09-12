@@ -3,6 +3,19 @@
 // Initialize internationalization (i18n)
 require_once __DIR__ . '/../src/core/bootstrap_i18n.php';
 
+// --- First Time Setup Check ---
+require_once __DIR__ . '/../src/models/User.php';
+$national_admin = User::findOneByRoleName('super_admin_national');
+if (!$national_admin) {
+    // If no national admin exists, we must run the setup process.
+    // We allow access only to the setup routes.
+    $uri = strtok($_SERVER['REQUEST_URI'], '?');
+    if (strpos($uri, '/setup') !== 0) {
+        header('Location: /setup');
+        exit();
+    }
+}
+
 // Require necessary files
 require_once __DIR__ . '/../src/core/Router.php';
 require_once __DIR__ . '/../src/core/Auth.php';
@@ -129,6 +142,11 @@ $router->register('/licences/destroy', 'LicenceController', 'destroy');
 // Card Template
 $router->register('/modele-carte/edit', 'ModeleCarteController', 'edit');
 $router->register('/carte/generer', 'CarteController', 'generer');
+
+// Setup
+$router->register('/setup', 'SetupController', 'index');
+$router->register('/setup/choice', 'SetupController', 'processChoice');
+$router->register('/setup/finish', 'SetupController', 'finish');
 
 // Timetable
 $router->register('/emploi-du-temps', 'EmploiDuTempsController', 'index');

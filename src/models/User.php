@@ -151,6 +151,18 @@ class User {
 
     // --- Teacher-specific methods ---
 
+    public static function findOneByRoleName($role_name) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("
+            SELECT u.* FROM utilisateurs u
+            JOIN roles r ON u.role_id = r.id_role
+            WHERE r.nom_role = :role_name
+            LIMIT 1
+        ");
+        $stmt->execute(['role_name' => $role_name]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     public static function getTeacherAssignments($teacher_id) {
         $db = Database::getInstance();
         $stmt = $db->prepare("
