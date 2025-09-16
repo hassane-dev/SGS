@@ -151,8 +151,26 @@ $router->register('/setup/finish', 'SetupController', 'finish');
 // Timetable
 $router->register('/emploi-du-temps', 'EmploiDuTempsController', 'index');
 $router->register('/emploi-du-temps/create', 'EmploiDuTempsController', 'create');
+$router->register('/contrats', 'TypeContratController', 'index');
+$router->register('/contrats/create', 'TypeContratController', 'create');
+$router->register('/contrats/store', 'TypeContratController', 'store');
+$router->register('/contrats/edit', 'TypeContratController', 'edit');
+$router->register('/contrats/update', 'TypeContratController', 'update');
+$router->register('/contrats/destroy', 'TypeContratController', 'destroy');
 $router->register('/emploi-du-temps/store', 'EmploiDuTempsController', 'store');
 $router->register('/emploi-du-temps/destroy', 'EmploiDuTempsController', 'destroy');
+
+// Salaires
+$router->register('/salaires', 'SalaireController', 'index');
+$router->register('/salaires/create', 'SalaireController', 'create');
+$router->register('/salaires/store', 'SalaireController', 'store');
+$router->register('/salaires/fiche', 'SalaireController', 'genererFiche');
+
+// Cahier de Texte
+$router->register('/cahier-texte', 'CahierTexteController', 'index');
+$router->register('/cahier-texte/create', 'CahierTexteController', 'create');
+$router->register('/cahier-texte/store', 'CahierTexteController', 'store');
+$router->register('/cahier-texte/destroy', 'CahierTexteController', 'destroy');
 
 
 // Get the requested URI

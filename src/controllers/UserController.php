@@ -24,6 +24,7 @@ class UserController {
     public function create() {
         $this->checkAccess();
         $lycees = (Auth::can('manage_all_lycees')) ? Lycee::findAll() : [];
+        $contrats = TypeContrat::findAll(Auth::get('lycee_id'));
         require_once __DIR__ . '/../views/users/create.php';
     }
 
@@ -61,6 +62,7 @@ class UserController {
         }
 
         $lycees = (Auth::can('manage_all_lycees')) ? Lycee::findAll() : [];
+        $contrats = TypeContrat::findAll(Auth::get('lycee_id'));
         require_once __DIR__ . '/../views/users/edit.php';
     }
 
