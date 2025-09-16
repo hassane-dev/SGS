@@ -54,6 +54,16 @@
                     <input type="hidden" name="lycee_id" value="<?= htmlspecialchars($user['lycee_id']) ?>">
                 <?php endif; ?>
 
+                <div>
+                    <label for="contrat_id" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Contract Type') ?></label>
+                    <select name="contrat_id" id="contrat_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
+                        <option value=""><?= _('-- None --') ?></option>
+                        <?php foreach ($contrats as $contrat): ?>
+                            <option value="<?= $contrat['id_contrat'] ?>" <?= $user['contrat_id'] == $contrat['id_contrat'] ? 'selected' : '' ?>><?= htmlspecialchars($contrat['libelle']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
                 <div class="md:col-span-2">
                      <label class="flex items-center">
                         <input type="checkbox" name="actif" value="1" <?= !empty($user['actif']) ? 'checked' : '' ?> class="form-checkbox h-5 w-5 text-blue-600">

@@ -3,7 +3,7 @@
 -- =================================================================
 
 -- Drop tables if they exist to ensure a clean slate on execution
-DROP TABLE IF EXISTS `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `lycees`, `parametres_generaux`;
+DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `lycees`, `parametres_generaux`;
 
 -- =================================================================
 -- General and Core Tables
@@ -71,10 +71,13 @@ CREATE TABLE `utilisateurs` (
     `mot_de_passe` VARCHAR(255) NOT NULL, -- Should be hashed
     `role_id` INT,
     `lycee_id` INT, -- NULL for global roles
+    `contrat_id` INT,
     `actif` BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE SET NULL,
     FOREIGN KEY (`role_id`) REFERENCES `roles`(`id_role`) ON DELETE SET NULL
 );
+
+-- Note: A foreign key for contrat_id will be added after the type_contrat table is defined.
 
 
 -- =================================================================
@@ -278,6 +281,50 @@ CREATE TABLE `traductions` (
     `cle_traduction` VARCHAR(255) NOT NULL,
     `valeur` TEXT NOT NULL,
     UNIQUE KEY `unique_translation` (`langue_code`, `cle_traduction`)
+);
+
+-- =================================================================
+-- Staff Management Tables
+-- =================================================================
+
+CREATE TABLE `type_contrat` (
+    `id_contrat` INT AUTO_INCREMENT PRIMARY KEY,
+    `libelle` VARCHAR(255) NOT NULL, -- e.g., 'Fonctionnaire', 'Contractuel'
+    `description` TEXT,
+    `lycee_id` INT, -- NULL for global contract types
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+);
+
+ALTER TABLE `utilisateurs` ADD FOREIGN KEY (`contrat_id`) REFERENCES `type_contrat`(`id_contrat`) ON DELETE SET NULL;
+
+CREATE TABLE `cahier_texte` (
+    `id_cahier` INT AUTO_INCREMENT PRIMARY KEY,
+    `professeur_id` INT NOT NULL,
+    `classe_id` INT NOT NULL,
+    `matiere_id` INT NOT NULL,
+    `date_cours` DATE NOT NULL,
+    `heure_debut` TIME,
+    `heure_fin` TIME,
+    `contenu_cours` TEXT,
+    `exercices` TEXT,
+    `lycee_id` INT NOT NULL,
+    FOREIGN KEY (`professeur_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
+    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
+    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+);
+
+CREATE TABLE `salaires` (
+    `id_salaire` INT AUTO_INCREMENT PRIMARY KEY,
+    `personnel_id` INT NOT NULL,
+    `mois` INT NOT NULL,
+    `annee` INT NOT NULL,
+    `montant_brut` DECIMAL(10, 2),
+    `montant_net` DECIMAL(10, 2),
+    `date_paiement` DATE,
+    `lycee_id` INT NOT NULL,
+    FOREIGN KEY (`personnel_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
 );
 
 -- =================================================================
