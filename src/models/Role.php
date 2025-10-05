@@ -76,27 +76,19 @@ class Role {
     public static function setPermissions($role_id, $permission_ids) {
         $db = Database::getInstance();
 
-        try {
-            $db->beginTransaction();
+        // This method must be called within a transaction managed by the caller.
+        // It will throw a PDOException on failure, which should be caught by the caller.
 
-            // First, remove all existing permissions for this role
-            $stmt_delete = $db->prepare("DELETE FROM role_permissions WHERE role_id = :role_id");
-            $stmt_delete->execute(['role_id' => $role_id]);
+        // First, remove all existing permissions for this role
+        $stmt_delete = $db->prepare("DELETE FROM role_permissions WHERE role_id = :role_id");
+        $stmt_delete->execute(['role_id' => $role_id]);
 
-            // Now, add the new permissions
-            if (!empty($permission_ids)) {
-                $stmt_insert = $db->prepare("INSERT INTO role_permissions (role_id, permission_id) VALUES (:role_id, :permission_id)");
-                foreach ($permission_ids as $permission_id) {
-                    $stmt_insert->execute(['role_id' => $role_id, 'permission_id' => $permission_id]);
-                }
+        // Now, add the new permissions
+        if (!empty($permission_ids)) {
+            $stmt_insert = $db->prepare("INSERT INTO role_permissions (role_id, permission_id) VALUES (:role_id, :permission_id)");
+            foreach ($permission_ids as $permission_id) {
+                $stmt_insert->execute(['role_id' => $role_id, 'permission_id' => $permission_id]);
             }
-
-            $db->commit();
-            return true;
-        } catch (PDOException $e) {
-            $db->rollBack();
-            error_log("Error in Role::setPermissions: " . $e->getMessage());
-            return false;
         }
     }
 }
