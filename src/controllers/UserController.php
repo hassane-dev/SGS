@@ -23,8 +23,12 @@ class UserController {
 
     public function create() {
         $this->checkAccess();
+        $lycee_id = Auth::get('lycee_id');
         $lycees = (Auth::can('manage_all_lycees')) ? Lycee::findAll() : [];
-        $contrats = TypeContrat::findAll(Auth::get('lycee_id'));
+        $contrats = TypeContrat::findAll($lycee_id);
+        $roles = Role::findAll($lycee_id); // Fetch roles
+        $user = []; // Empty user for the form
+        $is_edit = false;
         require_once __DIR__ . '/../views/users/create.php';
     }
 
@@ -62,8 +66,37 @@ class UserController {
         }
 
         $lycees = (Auth::can('manage_all_lycees')) ? Lycee::findAll() : [];
-        $contrats = TypeContrat::findAll(Auth::get('lycee_id'));
+        $contrats = TypeContrat::findAll($user['lycee_id']);
+        $roles = Role::findAll($user['lycee_id']);
+        $is_edit = true;
         require_once __DIR__ . '/../views/users/edit.php';
+    }
+
+    public function view() {
+        $this->checkAccess();
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            header('Location: /users');
+            exit();
+        }
+
+        $user = User::findById($id);
+        if (!$user) {
+            header('Location: /users');
+            exit();
+        }
+
+        // Security check
+        if (!Auth::can('manage_all_lycees') && $user['lycee_id'] != Auth::get('lycee_id')) {
+            http_response_code(403);
+            echo "Accès Interdit.";
+            exit();
+        }
+
+        $contrat = !empty($user['contrat_id']) ? TypeContrat::findById($user['contrat_id']) : null;
+        $role = !empty($user['role_id']) ? Role::findById($user['role_id']) : null;
+
+        require_once __DIR__ . '/../views/users/view.php';
     }
 
     public function update() {

@@ -2,9 +2,9 @@
 
 <div class="container mx-auto">
     <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold"><?= _('User Management') ?></h2>
+        <h2 class="text-2xl font-bold"><?= _('Gestion du personnel') ?></h2>
         <a href="/users/create" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            <?= _('Add User') ?>
+            <?= _('Ajouter un membre') ?>
         </a>
     </div>
 
@@ -12,10 +12,9 @@
         <table class="min-w-full table-auto">
             <thead class="bg-gray-200">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Name') ?></th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Email') ?></th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Role') ?></th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Status') ?></th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Nom') ?></th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Fonction') ?></th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Statut') ?></th>
                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Actions') ?></th>
                 </tr>
             </thead>
@@ -23,12 +22,11 @@
                 <?php foreach ($users as $user): ?>
                     <tr>
                         <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($user['prenom'] . ' ' . $user['nom']) ?></td>
-                        <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($user['email']) ?></td>
-                        <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($user['role']) ?></td>
+                        <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($user['fonction']) ?></td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <?php if ($user['actif']): ?>
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                    <?= _('Active') ?>
+                                    <?= _('Actif') ?>
                                 </span>
                             <?php else: ?>
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
@@ -37,11 +35,12 @@
                             <?php endif; ?>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="/users/view?id=<?= $user['id_user'] ?>" class="text-blue-600 hover:text-blue-900"><?= _('Voir') ?></a>
                             <?php if (Auth::get('id') != $user['id_user']): // Prevent self-action links ?>
-                                <a href="/users/edit?id=<?= $user['id_user'] ?>" class="text-indigo-600 hover:text-indigo-900"><?= _('Edit') ?></a>
-                                <form action="/users/destroy" method="POST" class="inline-block ml-4" onsubmit="return confirm('<?= _('Are you sure you want to delete this user?') ?>');">
+                                <a href="/users/edit?id=<?= $user['id_user'] ?>" class="text-indigo-600 hover:text-indigo-900 ml-4"><?= _('Modifier') ?></a>
+                                <form action="/users/destroy" method="POST" class="inline-block ml-4" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer ce membre ?') ?>');">
                                     <input type="hidden" name="id" value="<?= $user['id_user'] ?>">
-                                    <button type="submit" class="text-red-600 hover:text-red-900"><?= _('Delete') ?></button>
+                                    <button type="submit" class="text-red-600 hover:text-red-900"><?= _('Supprimer') ?></button>
                                 </form>
                             <?php endif; ?>
                         </td>
