@@ -33,8 +33,8 @@ class TypeContrat {
         $isUpdate = !empty($data['id_contrat']);
 
         $sql = $isUpdate
-            ? "UPDATE type_contrat SET libelle = :libelle, description = :description, lycee_id = :lycee_id WHERE id_contrat = :id_contrat"
-            : "INSERT INTO type_contrat (libelle, description, lycee_id) VALUES (:libelle, :description, :lycee_id)";
+            ? "UPDATE type_contrat SET libelle = :libelle, description = :description, type_paiement = :type_paiement, prise_en_charge = :prise_en_charge, lycee_id = :lycee_id WHERE id_contrat = :id_contrat"
+            : "INSERT INTO type_contrat (libelle, description, type_paiement, prise_en_charge, lycee_id) VALUES (:libelle, :description, :type_paiement, :prise_en_charge, :lycee_id)";
 
         $db = Database::getInstance();
         $stmt = $db->prepare($sql);
@@ -42,6 +42,8 @@ class TypeContrat {
         $params = [
             'libelle' => $data['libelle'],
             'description' => $data['description'] ?: null,
+            'type_paiement' => $data['type_paiement'] ?? 'fixe',
+            'prise_en_charge' => $data['prise_en_charge'] ?? 'Ecole',
             'lycee_id' => $data['lycee_id'] ?: null,
         ];
 

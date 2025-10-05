@@ -63,16 +63,25 @@ CREATE TABLE `role_permissions` (
 );
 
 -- Table for users
+-- Table for users (now serving as personnel table)
 CREATE TABLE `utilisateurs` (
     `id_user` INT AUTO_INCREMENT PRIMARY KEY,
     `nom` VARCHAR(100) NOT NULL,
     `prenom` VARCHAR(100) NOT NULL,
+    `sexe` ENUM('Homme', 'Femme'),
+    `date_naissance` DATE,
+    `lieu_naissance` VARCHAR(255),
+    `adresse` TEXT,
+    `telephone` VARCHAR(50),
     `email` VARCHAR(255) NOT NULL UNIQUE,
     `mot_de_passe` VARCHAR(255) NOT NULL, -- Should be hashed
+    `fonction` VARCHAR(100), -- e.g., enseignant, proviseur, surveillant
     `role_id` INT,
     `lycee_id` INT, -- NULL for global roles
     `contrat_id` INT,
+    `date_embauche` DATE,
     `actif` BOOLEAN DEFAULT TRUE,
+    `photo` VARCHAR(255),
     FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE SET NULL,
     FOREIGN KEY (`role_id`) REFERENCES `roles`(`id_role`) ON DELETE SET NULL
 );
@@ -291,38 +300,61 @@ CREATE TABLE `type_contrat` (
     `id_contrat` INT AUTO_INCREMENT PRIMARY KEY,
     `libelle` VARCHAR(255) NOT NULL, -- e.g., 'Fonctionnaire', 'Contractuel'
     `description` TEXT,
+    `type_paiement` ENUM('fixe', 'a_l_heure', 'aucun') NOT NULL DEFAULT 'fixe',
+    `prise_en_charge` ENUM('Etat', 'Ecole', 'Mixte') NOT NULL DEFAULT 'Ecole',
     `lycee_id` INT, -- NULL for global contract types
     FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
 );
 
 ALTER TABLE `utilisateurs` ADD FOREIGN KEY (`contrat_id`) REFERENCES `type_contrat`(`id_contrat`) ON DELETE SET NULL;
 
+CREATE TABLE `horaire_enseignant` (
+    `horaire_id` INT AUTO_INCREMENT PRIMARY KEY,
+    `personnel_id` INT NOT NULL,
+    `classe_id` INT NOT NULL,
+    `matiere_id` INT NOT NULL,
+    `jour` VARCHAR(20) NOT NULL,
+    `heure_debut` TIME NOT NULL,
+    `heure_fin` TIME NOT NULL,
+    `annee_id` VARCHAR(20),
+    `ecole_id` INT NOT NULL,
+    FOREIGN KEY (`personnel_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
+    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
+    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
+    FOREIGN KEY (`ecole_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+);
+
 CREATE TABLE `cahier_texte` (
-    `id_cahier` INT AUTO_INCREMENT PRIMARY KEY,
-    `professeur_id` INT NOT NULL,
+    `cahier_id` INT AUTO_INCREMENT PRIMARY KEY,
+    `personnel_id` INT NOT NULL,
     `classe_id` INT NOT NULL,
     `matiere_id` INT NOT NULL,
     `date_cours` DATE NOT NULL,
     `heure_debut` TIME,
     `heure_fin` TIME,
     `contenu_cours` TEXT,
-    `exercices` TEXT,
-    `lycee_id` INT NOT NULL,
-    FOREIGN KEY (`professeur_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
+    `travail_donne` TEXT,
+    `observation` TEXT,
+    `annee_id` VARCHAR(20),
+    `ecole_id` INT NOT NULL,
+    FOREIGN KEY (`personnel_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
     FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+    FOREIGN KEY (`ecole_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
 );
 
 CREATE TABLE `salaires` (
     `id_salaire` INT AUTO_INCREMENT PRIMARY KEY,
     `personnel_id` INT NOT NULL,
-    `mois` INT NOT NULL,
-    `annee` INT NOT NULL,
-    `montant_brut` DECIMAL(10, 2),
-    `montant_net` DECIMAL(10, 2),
+    `montant` DECIMAL(10, 2) NOT NULL,
+    `mode_paiement` ENUM('mensuel', 'horaire') NOT NULL,
+    `nb_heures_travaillees` DECIMAL(5, 2) DEFAULT NULL,
+    `periode_mois` INT NOT NULL,
+    `periode_annee` INT NOT NULL,
     `date_paiement` DATE,
+    `etat_paiement` ENUM('paye', 'non_paye') NOT NULL DEFAULT 'non_paye',
     `lycee_id` INT NOT NULL,
+    `annee_id` VARCHAR(20), -- To link with academic year
     FOREIGN KEY (`personnel_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
     FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
 );

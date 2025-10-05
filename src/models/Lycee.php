@@ -39,17 +39,17 @@ class Lycee {
     /**
      * Save a lycee (create or update).
      * @param array $data The lycee data.
-     * @return bool True on success, false on failure.
+     * @return int|false The ID of the saved lycee on success, false on failure.
      */
     public static function save($data) {
         $isUpdate = !empty($data['id_lycee']);
+        $db = Database::getInstance();
 
         $sql = $isUpdate
             ? "UPDATE lycees SET nom_lycee = :nom_lycee, type_lycee = :type_lycee, adresse = :adresse, ville = :ville, quartier = :quartier, telephone = :telephone, email = :email WHERE id_lycee = :id_lycee"
             : "INSERT INTO lycees (nom_lycee, type_lycee, adresse, ville, quartier, telephone, email) VALUES (:nom_lycee, :type_lycee, :adresse, :ville, :quartier, :telephone, :email)";
 
         try {
-            $db = Database::getInstance();
             $stmt = $db->prepare($sql);
 
             $params = [
@@ -66,7 +66,17 @@ class Lycee {
                 $params['id_lycee'] = $data['id_lycee'];
             }
 
-            return $stmt->execute($params);
+            $success = $stmt->execute($params);
+
+            if (!$success) {
+                return false;
+            }
+
+            if ($isUpdate) {
+                return $data['id_lycee'];
+            } else {
+                return $db->lastInsertId();
+            }
         } catch (PDOException $e) {
             error_log("Error in Lycee::save: " . $e->getMessage());
             return false;
