@@ -146,17 +146,17 @@ class User {
             'nom' => $data['nom'],
             'prenom' => $data['prenom'],
             'sexe' => $data['sexe'] ?? null,
-            'date_naissance' => $data['date_naissance'] ?: null,
+            'date_naissance' => $data['date_naissance'] ?? null,
             'lieu_naissance' => $data['lieu_naissance'] ?? null,
             'adresse' => $data['adresse'] ?? null,
             'telephone' => $data['telephone'] ?? null,
             'email' => $data['email'],
             'fonction' => $data['fonction'] ?? null,
             'role_id' => $data['role_id'],
-            'lycee_id' => $data['lycee_id'] ?: null,
-            'contrat_id' => $data['contrat_id'] ?: null,
-            'date_embauche' => $data['date_embauche'] ?: null,
-            'actif' => $data['actif'] ?? 0,
+            'lycee_id' => $data['lycee_id'] ?? null,
+            'contrat_id' => $data['contrat_id'] ?? null,
+            'date_embauche' => $data['date_embauche'] ?? null,
+            'actif' => $data['actif'] ?? 1, // Default to active
             'photo' => $data['photo'] ?? null,
         ];
 
