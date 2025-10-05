@@ -21,6 +21,9 @@ class TypeContratController {
 
     public function create() {
         $this->checkAccess();
+        $lycees = Auth::can('manage_all_lycees') ? Lycee::findAll() : [];
+        $contrat = [];
+        $is_edit = false;
         require_once __DIR__ . '/../views/type_contrat/create.php';
     }
 
@@ -40,7 +43,12 @@ class TypeContratController {
         $this->checkAccess();
         $id = $_GET['id'] ?? null;
         if (!$id) { header('Location: /contrats'); exit(); }
+
         $contrat = TypeContrat::findById($id);
+        if (!$contrat) { header('Location: /contrats'); exit(); }
+
+        $lycees = Auth::can('manage_all_lycees') ? Lycee::findAll() : [];
+        $is_edit = true;
         require_once __DIR__ . '/../views/type_contrat/edit.php';
     }
 
