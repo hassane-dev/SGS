@@ -4,17 +4,41 @@ require_once __DIR__ . '/../config/database.php';
 
 class CahierTexte {
 
-    public static function findAllByPersonnel($personnel_id, $ecole_id) {
+    public static function findAllByPersonnel($personnel_id, $ecole_id, $filters = []) {
         $db = Database::getInstance();
-        $stmt = $db->prepare("
-            SELECT ct.*, c.nom_classe, m.nom_matiere
+        $sql = "
+            SELECT ct.*, c.nom_classe, c.serie, m.nom_matiere, u.nom as nom_personnel, u.prenom as prenom_personnel
             FROM cahier_texte ct
-            JOIN classes c ON ct.classe_id = c.id_classe
-            JOIN matieres m ON ct.matiere_id = m.id_matiere
-            WHERE ct.personnel_id = :personnel_id AND ct.ecole_id = :ecole_id
-            ORDER BY ct.date_cours DESC
-        ");
-        $stmt->execute(['personnel_id' => $personnel_id, 'ecole_id' => $ecole_id]);
+            LEFT JOIN classes c ON ct.classe_id = c.id_classe
+            LEFT JOIN matieres m ON ct.matiere_id = m.id_matiere
+            LEFT JOIN utilisateurs u ON ct.personnel_id = u.id_user
+            WHERE ct.ecole_id = :ecole_id
+        ";
+        $params = ['ecole_id' => $ecole_id];
+
+        if ($personnel_id !== null) {
+            $sql .= " AND ct.personnel_id = :personnel_id";
+            $params['personnel_id'] = $personnel_id;
+        }
+
+        // Admin filters
+        if (!empty($filters['personnel_id_filter'])) {
+            $sql .= " AND ct.personnel_id = :personnel_id_filter";
+            $params['personnel_id_filter'] = $filters['personnel_id_filter'];
+        }
+        if (!empty($filters['classe_id_filter'])) {
+            $sql .= " AND ct.classe_id = :classe_id_filter";
+            $params['classe_id_filter'] = $filters['classe_id_filter'];
+        }
+        if (!empty($filters['date_filter'])) {
+            $sql .= " AND ct.date_cours = :date_filter";
+            $params['date_filter'] = $filters['date_filter'];
+        }
+
+        $sql .= " ORDER BY ct.date_cours DESC, ct.heure_debut DESC";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

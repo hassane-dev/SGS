@@ -146,17 +146,17 @@ class User {
             'nom' => $data['nom'],
             'prenom' => $data['prenom'],
             'sexe' => $data['sexe'] ?? null,
-            'date_naissance' => $data['date_naissance'] ?: null,
+            'date_naissance' => $data['date_naissance'] ?? null,
             'lieu_naissance' => $data['lieu_naissance'] ?? null,
             'adresse' => $data['adresse'] ?? null,
             'telephone' => $data['telephone'] ?? null,
             'email' => $data['email'],
             'fonction' => $data['fonction'] ?? null,
             'role_id' => $data['role_id'],
-            'lycee_id' => $data['lycee_id'] ?: null,
-            'contrat_id' => $data['contrat_id'] ?: null,
-            'date_embauche' => $data['date_embauche'] ?: null,
-            'actif' => $data['actif'] ?? 0,
+            'lycee_id' => $data['lycee_id'] ?? null,
+            'contrat_id' => $data['contrat_id'] ?? null,
+            'date_embauche' => $data['date_embauche'] ?? null,
+            'actif' => $data['actif'] ?? 1, // Default to active
             'photo' => $data['photo'] ?? null,
         ];
 
@@ -187,6 +187,18 @@ class User {
     }
 
     // --- Teacher-specific methods ---
+
+    public static function findAllByRoleName($role_name, $lycee_id) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("
+            SELECT u.id_user, u.nom, u.prenom FROM utilisateurs u
+            JOIN roles r ON u.role_id = r.id_role
+            WHERE r.nom_role = :role_name AND u.lycee_id = :lycee_id
+            ORDER BY u.nom, u.prenom
+        ");
+        $stmt->execute(['role_name' => $role_name, 'lycee_id' => $lycee_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     public static function findOneByRoleName($role_name) {
         $db = Database::getInstance();
