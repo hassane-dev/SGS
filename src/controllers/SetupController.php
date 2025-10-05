@@ -61,13 +61,16 @@ class SetupController {
         try {
             $db->beginTransaction();
 
-            // 1. Create the Lycee
+            // 1. Create the Lycee and get its ID
             $lycee_data = [
                 'nom_lycee' => $data['nom_lycee'],
                 'type_lycee' => $data['type_lycee'],
             ];
-            Lycee::save($lycee_data);
-            $lycee_id = $db->lastInsertId();
+            $lycee_id = Lycee::save($lycee_data);
+
+            if (!$lycee_id) {
+                throw new Exception("Failed to create the lycee.");
+            }
 
             // 2. Create a specific admin role for this Lycee
             $role_data = [

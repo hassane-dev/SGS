@@ -12,7 +12,7 @@ class Salaire {
         if ($lycee_id !== null) {
             $sql .= " WHERE s.lycee_id = :lycee_id";
         }
-        $sql .= " ORDER BY s.annee DESC, s.mois DESC";
+        $sql .= " ORDER BY s.periode_annee DESC, s.periode_mois DESC";
 
         $stmt = $db->prepare($sql);
         if ($lycee_id !== null) {
@@ -35,21 +35,53 @@ class Salaire {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public static function create($data) {
+    public static function save($data) {
+        $isUpdate = !empty($data['id_salaire']);
         $db = Database::getInstance();
-        $sql = "INSERT INTO salaires (personnel_id, mois, annee, montant_brut, montant_net, date_paiement, lycee_id)
-                VALUES (:personnel_id, :mois, :annee, :montant_brut, :montant_net, :date_paiement, :lycee_id)";
+
+        if ($isUpdate) {
+            $sql = "UPDATE salaires SET
+                        personnel_id = :personnel_id, montant = :montant, mode_paiement = :mode_paiement,
+                        nb_heures_travaillees = :nb_heures_travaillees, periode_mois = :periode_mois,
+                        periode_annee = :periode_annee, date_paiement = :date_paiement,
+                        etat_paiement = :etat_paiement, lycee_id = :lycee_id, annee_id = :annee_id
+                    WHERE id_salaire = :id_salaire";
+        } else {
+            $sql = "INSERT INTO salaires (
+                        personnel_id, montant, mode_paiement, nb_heures_travaillees, periode_mois,
+                        periode_annee, date_paiement, etat_paiement, lycee_id, annee_id
+                    ) VALUES (
+                        :personnel_id, :montant, :mode_paiement, :nb_heures_travaillees, :periode_mois,
+                        :periode_annee, :date_paiement, :etat_paiement, :lycee_id, :annee_id
+                    )";
+        }
 
         $stmt = $db->prepare($sql);
-        return $stmt->execute([
+
+        $params = [
             'personnel_id' => $data['personnel_id'],
-            'mois' => $data['mois'],
-            'annee' => $data['annee'],
-            'montant_brut' => $data['montant_brut'] ?: null,
-            'montant_net' => $data['montant_net'] ?: null,
-            'date_paiement' => $data['date_paiement'] ?: null,
+            'montant' => $data['montant'],
+            'mode_paiement' => $data['mode_paiement'],
+            'nb_heures_travaillees' => $data['nb_heures_travaillees'] ?? null,
+            'periode_mois' => $data['periode_mois'],
+            'periode_annee' => $data['periode_annee'],
+            'date_paiement' => $data['date_paiement'] ?? null,
+            'etat_paiement' => $data['etat_paiement'] ?? 'non_paye',
             'lycee_id' => $data['lycee_id'],
-        ]);
+            'annee_id' => $data['annee_id'] ?? null,
+        ];
+
+        if ($isUpdate) {
+            $params['id_salaire'] = $data['id_salaire'];
+        }
+
+        return $stmt->execute($params);
+    }
+
+    public static function delete($id) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("DELETE FROM salaires WHERE id_salaire = :id");
+        return $stmt->execute(['id' => $id]);
     }
 }
 ?>
