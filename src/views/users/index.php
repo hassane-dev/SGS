@@ -1,46 +1,42 @@
 <?php require_once __DIR__ . '/../layouts/header.php'; ?>
 
-<div class="container mx-auto">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold"><?= _('Gestion du personnel') ?></h2>
-        <a href="/users/create" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            <?= _('Ajouter un membre') ?>
-        </a>
-    </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fs-2 fw-bold"><?= _('Gestion du personnel') ?></h2>
+    <a href="/users/create" class="btn btn-primary">
+        <?= _('Ajouter un membre') ?>
+    </a>
+</div>
 
-    <div class="bg-white shadow-md rounded">
-        <table class="min-w-full table-auto">
-            <thead class="bg-gray-200">
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead class="table-light">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Nom') ?></th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Fonction') ?></th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Statut') ?></th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Actions') ?></th>
+                    <th scope="col"><?= _('Nom') ?></th>
+                    <th scope="col"><?= _('Fonction') ?></th>
+                    <th scope="col"><?= _('Statut') ?></th>
+                    <th scope="col" class="text-end"><?= _('Actions') ?></th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody>
                 <?php foreach ($users as $user): ?>
                     <tr>
-                        <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($user['prenom'] . ' ' . $user['nom']) ?></td>
-                        <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($user['fonction']) ?></td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td><?= htmlspecialchars($user['prenom'] . ' ' . $user['nom']) ?></td>
+                        <td><?= htmlspecialchars($user['fonction']) ?></td>
+                        <td>
                             <?php if ($user['actif']): ?>
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                    <?= _('Actif') ?>
-                                </span>
+                                <span class="badge bg-success"><?= _('Actif') ?></span>
                             <?php else: ?>
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                    <?= _('Inactive') ?>
-                                </span>
+                                <span class="badge bg-danger"><?= _('Inactif') ?></span>
                             <?php endif; ?>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <a href="/users/view?id=<?= $user['id_user'] ?>" class="text-blue-600 hover:text-blue-900"><?= _('Voir') ?></a>
+                        <td class="text-end">
+                            <a href="/users/view?id=<?= $user['id_user'] ?>" class="btn btn-sm btn-outline-info"><?= _('Voir') ?></a>
                             <?php if (Auth::get('id') != $user['id_user']): // Prevent self-action links ?>
-                                <a href="/users/edit?id=<?= $user['id_user'] ?>" class="text-indigo-600 hover:text-indigo-900 ml-4"><?= _('Modifier') ?></a>
-                                <form action="/users/destroy" method="POST" class="inline-block ml-4" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer ce membre ?') ?>');">
+                                <a href="/users/edit?id=<?= $user['id_user'] ?>" class="btn btn-sm btn-outline-primary ms-2"><?= _('Modifier') ?></a>
+                                <form action="/users/destroy" method="POST" class="d-inline ms-2" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer ce membre ?') ?>');">
                                     <input type="hidden" name="id" value="<?= $user['id_user'] ?>">
-                                    <button type="submit" class="text-red-600 hover:text-red-900"><?= _('Supprimer') ?></button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><?= _('Supprimer') ?></button>
                                 </form>
                             <?php endif; ?>
                         </td>
