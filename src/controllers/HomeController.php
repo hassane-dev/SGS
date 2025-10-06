@@ -8,7 +8,7 @@ class HomeController {
         require_once __DIR__ . '/../views/layouts/header.php';
         echo "<h1>Welcome to the Dashboard</h1>";
         if (Auth::check()) {
-            echo "<p>You are logged in as " . htmlspecialchars(Auth::get('email')) . " (" . htmlspecialchars(Auth::get('role')) . ").</p>";
+            echo "<p>You are logged in as " . htmlspecialchars(Auth::get('email') ?? '') . " (" . htmlspecialchars(Auth::get('role') ?? 'N/A') . ").</p>";
 
             $navLinks = [];
             $navLinks[] = '<a href="/settings" class="text-blue-500 hover:underline">Paramètres</a>';

@@ -57,9 +57,10 @@ class Database {
     private function __clone() { }
 
     /**
-     * Private wakeup method to prevent unserializing of the instance.
+     * Public wakeup method to prevent unserializing of the instance.
+     * Must be public.
      */
-    private function __wakeup() { }
+    public function __wakeup() { }
 }
 
 ?>
