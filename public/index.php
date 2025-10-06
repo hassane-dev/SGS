@@ -4,10 +4,12 @@
 require_once __DIR__ . '/../src/core/bootstrap_i18n.php';
 
 // --- First Time Setup Check ---
-require_once __DIR__ . '/../src/models/User.php';
-$national_admin = User::findOneByRoleName('super_admin_national');
-if (!$national_admin) {
-    // If no national admin exists, we must run the setup process.
+// A more robust check is to see if any school has been created.
+// If the lycees table is empty, we assume it's a fresh install.
+require_once __DIR__ . '/../src/models/Lycee.php';
+$lycees = Lycee::findAll();
+if (empty($lycees)) {
+    // If no school exists, we must run the setup process.
     // We allow access only to the setup routes.
     $uri = strtok($_SERVER['REQUEST_URI'], '?');
     if (strpos($uri, '/setup') !== 0) {
