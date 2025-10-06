@@ -18,6 +18,26 @@ if (empty($lycees)) {
     }
 }
 
+// --- Auto-seed the database if needed ---
+// This runs only if the setup is complete but the default data is missing.
+require_once __DIR__ . '/../src/config/database.php';
+require_once __DIR__ . '/../src/models/Role.php';
+try {
+    $roles = Role::findAll();
+    if (empty($roles)) {
+        // The roles table is empty, so we need to seed the database.
+        $db = Database::getInstance();
+        $sql = file_get_contents(__DIR__ . '/../db/seeds.sql');
+        if ($sql) {
+            $db->exec($sql);
+        }
+    }
+} catch (Exception $e) {
+    // If tables don't exist yet (e.g., before setup), this will fail.
+    // We can safely ignore this error here.
+}
+
+
 // Require necessary files
 require_once __DIR__ . '/../src/core/Router.php';
 require_once __DIR__ . '/../src/core/Auth.php';
@@ -78,6 +98,7 @@ $router->register('/matieres/assign', 'MatiereController', 'assign'); // GET to 
 $router->register('/users', 'UserController', 'index');
 $router->register('/users/create', 'UserController', 'create');
 $router->register('/users/store', 'UserController', 'store');
+$router->register('/users/view', 'UserController', 'view');
 $router->register('/users/edit', 'UserController', 'edit');
 $router->register('/users/update', 'UserController', 'update');
 $router->register('/users/destroy', 'UserController', 'destroy');

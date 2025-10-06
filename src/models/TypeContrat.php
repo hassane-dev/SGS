@@ -41,10 +41,10 @@ class TypeContrat {
 
         $params = [
             'libelle' => $data['libelle'],
-            'description' => $data['description'] ?: null,
+            'description' => $data['description'] ?? null,
             'type_paiement' => $data['type_paiement'] ?? 'fixe',
             'prise_en_charge' => $data['prise_en_charge'] ?? 'Ecole',
-            'lycee_id' => $data['lycee_id'] ?: null,
+            'lycee_id' => $data['lycee_id'] ?? null,
         ];
 
         if ($isUpdate) {
