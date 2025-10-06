@@ -63,6 +63,12 @@ class CahierTexteController {
             $data['personnel_id'] = Auth::get('id');
             $data['ecole_id'] = Auth::get('lycee_id');
 
+            // Split the combined class_subject value
+            if (!empty($data['class_subject'])) {
+                list($data['classe_id'], $data['matiere_id']) = explode('-', $data['class_subject']);
+                unset($data['class_subject']);
+            }
+
             CahierTexte::save($data);
         }
         header('Location: /cahier-texte');
@@ -105,6 +111,12 @@ class CahierTexteController {
             // Preserve original author and school
             $data['personnel_id'] = $entry['personnel_id'];
             $data['ecole_id'] = $entry['ecole_id'];
+
+            // Split the combined class_subject value
+            if (!empty($data['class_subject'])) {
+                list($data['classe_id'], $data['matiere_id']) = explode('-', $data['class_subject']);
+                unset($data['class_subject']);
+            }
 
             CahierTexte::save($data);
         }
