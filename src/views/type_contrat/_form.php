@@ -34,6 +34,24 @@
             </select>
         </div>
 
+        <!-- Champ pour le montant fixe -->
+        <div class="col-md-6" id="montant_fixe_wrapper">
+            <label for="montant_fixe" class="form-label fw-bold"><?= _('Montant Fixe Mensuel') ?></label>
+            <div class="input-group">
+                <input type="number" step="0.01" name="montant_fixe" id="montant_fixe" class="form-control" value="<?= htmlspecialchars($contrat['montant_fixe'] ?? '') ?>">
+                <span class="input-group-text">XAF</span>
+            </div>
+        </div>
+
+        <!-- Champ pour le taux horaire -->
+        <div class="col-md-6" id="taux_horaire_wrapper">
+            <label for="taux_horaire" class="form-label fw-bold"><?= _('Taux Horaire') ?></label>
+            <div class="input-group">
+                <input type="number" step="0.01" name="taux_horaire" id="taux_horaire" class="form-control" value="<?= htmlspecialchars($contrat['taux_horaire'] ?? '') ?>">
+                 <span class="input-group-text">XAF</span>
+            </div>
+        </div>
+
         <div class="col-12">
             <label for="description" class="form-label fw-bold"><?= _('Description') ?></label>
             <textarea name="description" id="description" rows="4" class="form-control"><?= htmlspecialchars($contrat['description'] ?? '') ?></textarea>
@@ -68,3 +86,36 @@
         </button>
     </div>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const typePaiementEl = document.getElementById('type_paiement');
+    const montantFixeWrapper = document.getElementById('montant_fixe_wrapper');
+    const tauxHoraireWrapper = document.getElementById('taux_horaire_wrapper');
+    const montantFixeInput = document.getElementById('montant_fixe');
+    const tauxHoraireInput = document.getElementById('taux_horaire');
+
+    function toggleSalaryFields() {
+        const typePaiement = typePaiementEl.value;
+
+        montantFixeWrapper.style.display = 'none';
+        tauxHoraireWrapper.style.display = 'none';
+        montantFixeInput.required = false;
+        tauxHoraireInput.required = false;
+
+        if (typePaiement === 'fixe') {
+            montantFixeWrapper.style.display = 'block';
+            montantFixeInput.required = true;
+        } else if (typePaiement === 'a_l_heure') {
+            tauxHoraireWrapper.style.display = 'block';
+            tauxHoraireInput.required = true;
+        }
+    }
+
+    // Call on page load to set initial state
+    toggleSalaryFields();
+
+    // Add event listener
+    typePaiementEl.addEventListener('change', toggleSalaryFields);
+});
+</script>
