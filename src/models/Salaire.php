@@ -83,5 +83,78 @@ class Salaire {
         $stmt = $db->prepare("DELETE FROM salaires WHERE id_salaire = :id");
         return $stmt->execute(['id' => $id]);
     }
+
+    public static function genererSalaires($lycee_id, $annee, $mois) {
+        $db = Database::getInstance();
+
+        // 1. Find all eligible personnel who don't already have a salary for this period
+        $sql = "SELECT
+                    u.id_user, u.lycee_id, tc.type_paiement, tc.montant_fixe, tc.taux_horaire
+                FROM
+                    utilisateurs u
+                JOIN
+                    type_contrat tc ON u.contrat_id = tc.id_contrat
+                LEFT JOIN
+                    salaires s ON u.id_user = s.personnel_id AND s.periode_annee = :annee AND s.periode_mois = :mois AND s.lycee_id = :lycee_id
+                WHERE
+                    u.lycee_id = :lycee_id
+                    AND u.actif = 1
+                    AND (tc.prise_en_charge = 'Ecole' OR tc.prise_en_charge = 'Mixte')
+                    AND tc.type_paiement != 'aucun'
+                    AND s.id_salaire IS NULL";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute(['lycee_id' => $lycee_id, 'annee' => $annee, 'mois' => $mois]);
+        $personnels = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $salairesCrees = 0;
+
+        foreach ($personnels as $personnel) {
+            $salaireData = [
+                'personnel_id' => $personnel['id_user'],
+                'periode_annee' => $annee,
+                'periode_mois' => $mois,
+                'lycee_id' => $personnel['lycee_id'],
+                'etat_paiement' => 'non_paye',
+                'nb_heures_travaillees' => null
+            ];
+
+            if ($personnel['type_paiement'] == 'fixe') {
+                $salaireData['montant'] = $personnel['montant_fixe'];
+                $salaireData['mode_paiement'] = 'mensuel';
+
+            } elseif ($personnel['type_paiement'] == 'a_l_heure') {
+                // Calculate total hours from cahier_texte
+                $heuresStmt = $db->prepare("
+                    SELECT SUM(TIME_TO_SEC(TIMEDIFF(heure_fin, heure_debut))) / 3600 AS total_heures
+                    FROM cahier_texte
+                    WHERE personnel_id = :personnel_id
+                      AND ecole_id = :ecole_id
+                      AND YEAR(date_cours) = :annee
+                      AND MONTH(date_cours) = :mois
+                ");
+                $heuresStmt->execute([
+                    'personnel_id' => $personnel['id_user'],
+                    'ecole_id' => $lycee_id,
+                    'annee' => $annee,
+                    'mois' => $mois
+                ]);
+                $resultatHeures = $heuresStmt->fetch(PDO::FETCH_ASSOC);
+                $heuresTravaillees = $resultatHeures['total_heures'] ?? 0;
+
+                $salaireData['montant'] = $heuresTravaillees * $personnel['taux_horaire'];
+                $salaireData['mode_paiement'] = 'horaire';
+                $salaireData['nb_heures_travaillees'] = $heuresTravaillees;
+            }
+
+            // Insert the new salary record using the existing save method
+            if (isset($salaireData['montant'])) {
+                self::save($salaireData);
+                $salairesCrees++;
+            }
+        }
+
+        return $salairesCrees;
+    }
 }
 ?>

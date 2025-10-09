@@ -9,6 +9,19 @@ DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temp
 -- General and Core Tables
 -- =================================================================
 
+-- Table for high schools (Lycees)
+CREATE TABLE `lycees` (
+    `id_lycee` INT AUTO_INCREMENT PRIMARY KEY,
+    `nom_lycee` VARCHAR(255) NOT NULL,
+    `type_lycee` ENUM('public', 'prive', 'parapublic') NOT NULL,
+    `adresse` TEXT,
+    `ville` VARCHAR(100),
+    `quartier` VARCHAR(100),
+    `telephone` VARCHAR(50),
+    `email` VARCHAR(255) UNIQUE,
+    `logo` VARCHAR(255)
+);
+
 -- Table for general application settings (scoped per Lycee)
 CREATE TABLE `parametres_generaux` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -22,19 +35,6 @@ CREATE TABLE `parametres_generaux` (
     `biometrie_actif` BOOLEAN DEFAULT FALSE,
     `confidentialite_nationale` BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
-);
-
--- Table for high schools (Lycees)
-CREATE TABLE `lycees` (
-    `id_lycee` INT AUTO_INCREMENT PRIMARY KEY,
-    `nom_lycee` VARCHAR(255) NOT NULL,
-    `type_lycee` ENUM('public', 'prive', 'parapublic') NOT NULL,
-    `adresse` TEXT,
-    `ville` VARCHAR(100),
-    `quartier` VARCHAR(100),
-    `telephone` VARCHAR(50),
-    `email` VARCHAR(255) UNIQUE,
-    `logo` VARCHAR(255)
 );
 
 -- =================================================================
@@ -301,6 +301,8 @@ CREATE TABLE `type_contrat` (
     `libelle` VARCHAR(255) NOT NULL, -- e.g., 'Fonctionnaire', 'Contractuel'
     `description` TEXT,
     `type_paiement` ENUM('fixe', 'a_l_heure', 'aucun') NOT NULL DEFAULT 'fixe',
+    `montant_fixe` DECIMAL(10, 2) DEFAULT NULL,
+    `taux_horaire` DECIMAL(10, 2) DEFAULT NULL,
     `prise_en_charge` ENUM('Etat', 'Ecole', 'Mixte') NOT NULL DEFAULT 'Ecole',
     `lycee_id` INT, -- NULL for global contract types
     FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
