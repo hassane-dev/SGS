@@ -16,100 +16,80 @@ INSERT INTO `roles` (`id_role`, `nom_role`, `lycee_id`) VALUES
 (5, 'surveillant', NULL),
 (6, 'enseignant', NULL),
 (7, 'comptable', NULL),
-(8, 'eleve', NULL)
-ON DUPLICATE KEY UPDATE nom_role=VALUES(nom_role);
+(8, 'eleve', NULL);
 
 -- --------------------------------------------------------
--- Clear Old Permissions before seeding new ones
+-- Default Permissions
+-- A list of actions that can be performed in the system.
 -- --------------------------------------------------------
-DELETE FROM `role_permissions`;
-DELETE FROM `permissions`;
 
--- --------------------------------------------------------
--- New Granular Permissions
--- --------------------------------------------------------
-INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`) VALUES
--- Dashboard
-(1, 'dashboard', 'view', 'Can view the main dashboard'),
-
--- Users (Personnel)
-(10, 'user', 'create', 'Can create new users'),
-(11, 'user', 'view_all', 'Can view a list of all users within their scope'),
-(12, 'user', 'view_one', 'Can view the detailed profile of a single user'),
-(13, 'user', 'edit', 'Can edit user information'),
-(14, 'user', 'delete', 'Can delete users'),
-
--- Roles
-(20, 'role', 'create', 'Can create new roles'),
-(21, 'role', 'view_all', 'Can view all roles'),
-(22, 'role', 'edit', 'Can edit roles and assign permissions'),
-(23, 'role', 'delete', 'Can delete roles'),
-
--- Lycees (Schools) & System
-(30, 'lycee', 'create', 'Can create new schools (super admin)'),
-(31, 'lycee', 'view_all', 'Can view all schools (super admin)'),
-(32, 'lycee', 'edit', 'Can edit school information (super admin)'),
-(33, 'lycee', 'delete', 'Can delete schools (super admin)'),
-(34, 'system', 'view_all_lycees', 'Special permission to bypass lycee_id scope checks'),
-
--- Academic Structure
-(40, 'class', 'manage', 'Can manage classes, cycles, and rooms'),
-(41, 'matiere', 'manage', 'Can manage subjects and their coefficients'),
-
--- Students
-(50, 'eleve', 'create', 'Can create new student profiles'),
-(51, 'eleve', 'view_all', 'Can view all student profiles'),
-(52, 'eleve', 'edit', 'Can edit student profiles'),
-(53, 'eleve', 'delete', 'Can delete student profiles'),
-(54, 'inscription', 'manage', 'Can enroll students in classes'),
-
--- Academics
-(60, 'note', 'manage', 'Can enter and manage student grades'),
-(61, 'cahier_texte', 'view_all', 'Can view all digital logbook entries'),
-(62, 'cahier_texte', 'edit_all', 'Can edit any digital logbook entry'),
-(63, 'cahier_texte', 'create_own', 'Can fill their own digital logbook entries'),
-(64, 'cahier_texte', 'edit_own', 'Can edit their own digital logbook entries'),
-
--- Finance
-(70, 'paiement', 'manage', 'Can manage student payments'),
-(71, 'salaire', 'manage', 'Can manage staff payroll records'),
-(72, 'salaire', 'generate', 'Can generate monthly salaries for all eligible staff'),
-
--- Settings
-(80, 'setting', 'edit', 'Can edit school-specific settings');
+INSERT INTO `permissions` (`id_permission`, `nom_permission`, `description`) VALUES
+(1, 'manage_users', 'Can create, edit, and delete users.'),
+(2, 'manage_roles', 'Can manage roles and their permissions.'),
+(3, 'manage_lycees', 'Can manage schools (for national admins).'),
+(4, 'manage_all_lycees', 'Global permission to see data from all schools.'),
+(5, 'manage_classes', 'Can manage classes, cycles, and rooms.'),
+(6, 'manage_matieres', 'Can manage subjects and coefficients.'),
+(7, 'manage_eleves', 'Can manage student profiles.'),
+(8, 'manage_inscriptions', 'Can enroll students in classes.'),
+(9, 'manage_notes', 'Can enter and manage student grades.'),
+(10, 'manage_cahier_texte', 'Can view and manage all digital logbook entries.'),
+(11, 'fill_cahier_texte', 'Can fill their own digital logbook entries (for teachers).'),
+(12, 'manage_paiements', 'Can manage student payments.'),
+(13, 'manage_salaires', 'Can manage staff payroll.'),
+(14, 'manage_settings', 'Can edit school-specific settings.'),
+(15, 'view_dashboard', 'Can view the main dashboard.');
 
 -- --------------------------------------------------------
 -- Role-Permission Assignments
+-- Linking roles to their allowed permissions.
 -- --------------------------------------------------------
 
--- Super Admins (Creator & National) get all permissions
-INSERT INTO `role_permissions` (`role_id`, `permission_id`)
-SELECT r.id_role, p.id_permission
-FROM roles r, permissions p
-WHERE r.nom_role IN ('super_admin_createur', 'super_admin_national');
-
--- Admin Local
+-- Super Admin (Creator and National) has all permissions
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(3, 1), (3, 10), (3, 11), (3, 12), (3, 13), (3, 14), (3, 20), (3, 21), (3, 22), (3, 23),
-(3, 40), (3, 41), (3, 50), (3, 51), (3, 52), (3, 53), (3, 54), (3, 60), (3, 61), (3, 62),
-(3, 70), (3, 71), (3, 72), (3, 80);
+(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11), (1, 12), (1, 13), (1, 14), (1, 15),
+(2, 1), (2, 2), (2, 3), (2, 4), (2, 5), (2, 6), (2, 7), (2, 8), (2, 9), (2, 10), (2, 11), (2, 12), (2, 13), (2, 14), (2, 15);
+
+-- Local Admin (Template) has most permissions, but not global ones
+INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
+(3, 1), -- manage_users
+(3, 2), -- manage_roles
+(3, 5), -- manage_classes
+(3, 6), -- manage_matieres
+(3, 7), -- manage_eleves
+(3, 8), -- manage_inscriptions
+(3, 9), -- manage_notes
+(3, 10), -- manage_cahier_texte
+(3, 12), -- manage_paiements
+(3, 13), -- manage_salaires
+(3, 14), -- manage_settings
+(3, 15); -- view_dashboard
 
 -- Censeur (Academic Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(4, 1), (4, 40), (4, 41), (4, 51), (4, 60), (4, 61);
+(4, 5), -- manage_classes
+(4, 6), -- manage_matieres
+(4, 9), -- manage_notes
+(4, 10), -- manage_cahier_texte
+(4, 15); -- view_dashboard
 
 -- Surveillant (Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(5, 1), (5, 51); -- Can view dashboard and list of students. Scoping will limit this further.
+(5, 7), -- manage_eleves (e.g., view profiles)
+(5, 15); -- view_dashboard
 
 -- Enseignant (Teacher)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(6, 1), (6, 60), (6, 63), (6, 64); -- Dashboard, manage notes, fill own cahier de texte
+(6, 9), -- manage_notes (for their classes)
+(6, 11), -- fill_cahier_texte
+(6, 15); -- view_dashboard
 
 -- Comptable (Accountant)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(7, 1), (7, 70), (7, 71), (7, 72); -- Dashboard, manage payments, manage salaries
+(7, 12), -- manage_paiements
+(7, 13), -- manage_salaires
+(7, 15); -- view_dashboard
 
--- Eleve (Student)
+-- Eleve (Student) - can only view their own things, handled in code
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(8, 1); -- Can view dashboard
+(8, 15); -- view_dashboard (e.g., a student dashboard)

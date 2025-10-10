@@ -171,6 +171,15 @@ $router->register('/setup', 'SetupController', 'index');
 $router->register('/setup/choice', 'SetupController', 'processChoice');
 $router->register('/setup/finish', 'SetupController', 'finish');
 
+// Academic Years
+$router->register('/annees-academiques', 'AnneeAcademiqueController', 'index');
+$router->register('/annees-academiques/create', 'AnneeAcademiqueController', 'create');
+$router->register('/annees-academiques/store', 'AnneeAcademiqueController', 'store');
+$router->register('/annees-academiques/edit', 'AnneeAcademiqueController', 'edit');
+$router->register('/annees-academiques/update', 'AnneeAcademiqueController', 'update');
+$router->register('/annees-academiques/destroy', 'AnneeAcademiqueController', 'destroy');
+$router->register('/annees-academiques/activate', 'AnneeAcademiqueController', 'activate');
+
 // Timetable
 $router->register('/emploi-du-temps', 'EmploiDuTempsController', 'index');
 $router->register('/emploi-du-temps/create', 'EmploiDuTempsController', 'create');

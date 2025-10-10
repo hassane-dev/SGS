@@ -1,43 +1,41 @@
-<?php require_once __DIR__ . '/../layouts/header_centered.php'; ?>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
 
-<div class="col-md-8 col-lg-6">
-    <div class="card shadow-sm">
-        <div class="card-body p-5">
-            <h1 class="h2 fw-bold mb-4"><?= _('Configuration Multi-écoles') ?></h1>
+<div class="max-w-2xl mx-auto mt-10">
+    <div class="bg-white p-8 rounded-lg shadow-lg">
+        <h1 class="text-3xl font-bold mb-6"><?= _('Setup: Multi-School') ?></h1>
 
-            <form action="/setup/finish" method="POST">
-                <input type="hidden" name="install_mode" value="multi">
+        <form action="/setup/finish" method="POST">
+            <input type="hidden" name="install_mode" value="multi">
 
-                <fieldset>
-                    <legend class="h5 fw-bold border-bottom pb-2 mb-3"><?= _('Compte de l\'Administrateur National') ?></legend>
-                    <p class="text-muted mb-3"><?= _('Ce compte aura les droits de créer et de gérer toutes les écoles du système.') ?></p>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="prenom" class="form-label"><?= _('Prénom') ?></label>
-                            <input type="text" name="prenom" id="prenom" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="nom" class="form-label"><?= _('Nom') ?></label>
-                            <input type="text" name="nom" id="nom" class="form-control" required>
-                        </div>
-                        <div class="col-12">
-                            <label for="email" class="form-label"><?= _('Email') ?></label>
-                            <input type="email" name="email" id="email" class="form-control" required>
-                        </div>
-                        <div class="col-12">
-                            <label for="mot_de_passe" class="form-label"><?= _('Mot de passe') ?></label>
-                            <input type="password" name="mot_de_passe" id="mot_de_passe" class="form-control" required>
-                        </div>
+            <fieldset class="border p-4 rounded-md">
+                <legend class="text-xl font-semibold px-2"><?= _('National Administrator Account') ?></legend>
+                <p class="text-sm text-gray-600 mb-4"><?= _('This account will have the rights to create and manage all high schools.') ?></p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label for="prenom" class="block text-sm font-bold mb-2"><?= _('First Name') ?></label>
+                        <input type="text" name="prenom" id="prenom" class="shadow border rounded w-full py-2 px-3" required>
                     </div>
-                </fieldset>
-
-                <div class="d-grid mt-4">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        <?= _('Terminer la configuration') ?>
-                    </button>
+                    <div>
+                        <label for="nom" class="block text-sm font-bold mb-2"><?= _('Last Name') ?></label>
+                        <input type="text" name="nom" id="nom" class="shadow border rounded w-full py-2 px-3" required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="email" class="block text-sm font-bold mb-2"><?= _('Email') ?></label>
+                        <input type="email" name="email" id="email" class="shadow border rounded w-full py-2 px-3" required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="mot_de_passe" class="block text-sm font-bold mb-2"><?= _('Password') ?></label>
+                        <input type="password" name="mot_de_passe" id="mot_de_passe" class="shadow border rounded w-full py-2 px-3" required>
+                    </div>
                 </div>
-            </form>
-        </div>
+            </fieldset>
+
+            <div class="mt-8">
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded">
+                    <?= _('Complete Setup') ?>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 

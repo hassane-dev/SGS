@@ -3,11 +3,20 @@
 -- =================================================================
 
 -- Drop tables if they exist to ensure a clean slate on execution
-DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `lycees`, `parametres_generaux`;
+DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `lycees`, `parametres_generaux`, `annees_academiques`;
 
 -- =================================================================
 -- General and Core Tables
 -- =================================================================
+
+-- Table for Academic Years
+CREATE TABLE `annees_academiques` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `libelle` VARCHAR(100) NOT NULL UNIQUE, -- e.g., "2024-2025"
+    `date_debut` DATE NOT NULL,
+    `date_fin` DATE NOT NULL,
+    `est_active` BOOLEAN NOT NULL DEFAULT FALSE
+);
 
 -- Table for general application settings (scoped per Lycee)
 CREATE TABLE `parametres_generaux` (
@@ -15,13 +24,14 @@ CREATE TABLE `parametres_generaux` (
     `lycee_id` INT,
     `nom_lycee` VARCHAR(255) NOT NULL,
     `type_lycee` ENUM('public', 'prive', 'parapublic') NOT NULL,
-    `annee_academique` VARCHAR(20) NOT NULL,
+    `annee_academique_id` INT,
     `nombre_devoirs_par_trimestre` INT DEFAULT 2,
     `modalite_paiement` ENUM('avant_inscription', 'apres_test', 'fractionne') NOT NULL,
     `multilingue_actif` BOOLEAN DEFAULT TRUE,
     `biometrie_actif` BOOLEAN DEFAULT FALSE,
     `confidentialite_nationale` BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
 );
 
 -- Table for high schools (Lycees)
@@ -50,10 +60,8 @@ CREATE TABLE `roles` (
 
 CREATE TABLE `permissions` (
     `id_permission` INT AUTO_INCREMENT PRIMARY KEY,
-    `resource` VARCHAR(100) NOT NULL, -- e.g., 'user', 'class', 'cahier_texte'
-    `action` VARCHAR(100) NOT NULL, -- e.g., 'create', 'view', 'edit', 'delete'
-    `description` TEXT,
-    UNIQUE KEY `unique_permission` (`resource`, `action`)
+    `nom_permission` VARCHAR(100) NOT NULL UNIQUE, -- e.g., 'manage_users', 'edit_settings'
+    `description` TEXT
 );
 
 CREATE TABLE `role_permissions` (
