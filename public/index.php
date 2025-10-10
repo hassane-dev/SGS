@@ -102,6 +102,12 @@ $router->register('/users/view', 'UserController', 'view');
 $router->register('/users/edit', 'UserController', 'edit');
 $router->register('/users/update', 'UserController', 'update');
 $router->register('/users/destroy', 'UserController', 'destroy');
+$router->register('/users/assign', 'UserController', 'assignTeaches');
+$router->register('/users/update-assignments', 'UserController', 'updateTeacherAssignments');
+
+// Personnel Assignments
+$router->register('/personnel-assignments/store', 'PersonnelAssignmentController', 'store');
+$router->register('/personnel-assignments/destroy', 'PersonnelAssignmentController', 'destroy');
 
 // Eleves CRUD
 $router->register('/eleves', 'EleveController', 'index');

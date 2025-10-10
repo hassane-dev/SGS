@@ -6,29 +6,22 @@ class EleveController {
 
     const UPLOAD_DIR = '/uploads/photos/';
 
-    private function checkAccess() {
-        if (!Auth::can('manage_eleves')) {
-            http_response_code(403);
-            echo "Accès Interdit.";
-            exit();
-        }
-    }
 
     public function index() {
-        $this->checkAccess();
-        $lycee_id = !Auth::can('manage_all_lycees') ? Auth::get('lycee_id') : null;
+        if (!Auth::can('eleve', 'view_all')) { http_response_code(403); echo "Accès Interdit."; exit(); }
+        $lycee_id = !Auth::can('system', 'view_all_lycees') ? Auth::get('lycee_id') : null;
 
         $eleves = Eleve::findAll($lycee_id);
         require_once __DIR__ . '/../views/eleves/index.php';
     }
 
     public function create() {
-        $this->checkAccess();
+        if (!Auth::can('eleve', 'create')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         require_once __DIR__ . '/../views/eleves/create.php';
     }
 
     public function store() {
-        $this->checkAccess();
+        if (!Auth::can('eleve', 'create')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = $_POST;
             $data['photo'] = $this->handlePhotoUpload($_FILES['photo']);
@@ -39,7 +32,7 @@ class EleveController {
     }
 
     public function edit() {
-        $this->checkAccess();
+        if (!Auth::can('eleve', 'edit')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: /eleves');
@@ -50,7 +43,7 @@ class EleveController {
     }
 
     public function update() {
-        $this->checkAccess();
+        if (!Auth::can('eleve', 'edit')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = $_POST;
             if (isset($_FILES['photo']) && $_FILES['photo']['error'] == UPLOAD_ERR_OK) {
@@ -63,7 +56,7 @@ class EleveController {
     }
 
     public function destroy() {
-        $this->checkAccess();
+        if (!Auth::can('eleve', 'delete')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         $id = $_POST['id'] ?? null;
         if ($id) {
             Eleve::delete($id);
@@ -73,7 +66,8 @@ class EleveController {
     }
 
     public function details() {
-        $this->checkAdmin();
+        // Anyone who can view student lists can see details. Scoping should apply here if needed.
+        if (!Auth::can('eleve', 'view_all')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         $eleve_id = $_GET['id'] ?? null;
         if (!$eleve_id) {
             header('Location: /eleves');
