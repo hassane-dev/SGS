@@ -7,10 +7,18 @@ require_once __DIR__ . '/../models/Matiere.php';
 
 class NoteController {
 
+    private function checkAccess() {
+        // This module is primarily for teachers
+        if (!Auth::can('manage_notes')) {
+            http_response_code(403);
+            echo "Accès Interdit. Vous devez être un enseignant.";
+            exit();
+        }
+    }
 
     // Show the list of classes/subjects for the logged-in teacher
     public function index() {
-        if (!Auth::can('note', 'manage')) { http_response_code(403); echo "Accès Interdit."; exit(); }
+        $this->checkAccess();
         $teacher_id = Auth::get('id');
         $assignments = User::getTeacherAssignments($teacher_id);
         require_once __DIR__ . '/../views/notes/teacher_classes.php';
@@ -18,7 +26,7 @@ class NoteController {
 
     // Show the grade entry form
     public function enter() {
-        if (!Auth::can('note', 'manage')) { http_response_code(403); echo "Accès Interdit."; exit(); }
+        $this->checkAccess();
         $class_id = $_GET['class_id'] ?? null;
         $matiere_id = $_GET['matiere_id'] ?? null;
         $type = $_GET['type'] ?? 'devoir'; // 'devoir' or 'composition'
@@ -53,7 +61,7 @@ class NoteController {
 
     // Save the grades from the form
     public function save() {
-        if (!Auth::can('note', 'manage')) { http_response_code(403); echo "Accès Interdit."; exit(); }
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $class_id = $_POST['class_id'] ?? null;
             $matiere_id = $_POST['matiere_id'] ?? null;

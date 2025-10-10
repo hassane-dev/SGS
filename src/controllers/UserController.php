@@ -7,6 +7,13 @@ require_once __DIR__ . '/../models/TypeContrat.php';
 
 class UserController {
 
+    private function checkAccess() {
+        if (!Auth::can('manage_users')) {
+            http_response_code(403);
+            echo "Accès Interdit.";
+            exit();
+        }
+    }
 
     private function handlePhotoUpload($file) {
         if (isset($file) && $file['error'] === UPLOAD_ERR_OK) {
@@ -31,33 +38,16 @@ class UserController {
     }
 
     public function index() {
-        if (!Auth::can('user', 'view_all')) {
-            http_response_code(403);
-            echo "Accès Interdit.";
-            exit();
-        }
-
-        $currentUser = Auth::user();
-        $lycee_id = !Auth::can('system', 'view_all_lycees') ? $currentUser['lycee_id'] : null;
-
-        // Apply data scoping for supervisors
-        if ($currentUser['role_name'] === 'surveillant') {
-            $users = User::findTeachersBySupervisor($currentUser['id']);
-        } else {
-            $users = User::findAll($lycee_id);
-        }
-
+        $this->checkAccess();
+        $lycee_id = !Auth::can('manage_all_lycees') ? Auth::get('lycee_id') : null;
+        $users = User::findAll($lycee_id);
         require_once __DIR__ . '/../views/users/index.php';
     }
 
     public function create() {
-        if (!Auth::can('user', 'create')) {
-            http_response_code(403);
-            echo "Accès Interdit.";
-            exit();
-        }
+        $this->checkAccess();
         $lycee_id = Auth::get('lycee_id');
-        $lycees = (Auth::can('system', 'view_all_lycees')) ? Lycee::findAll() : [];
+        $lycees = (Auth::can('manage_all_lycees')) ? Lycee::findAll() : [];
         $contrats = TypeContrat::findAll($lycee_id);
         $roles = Role::findAll($lycee_id);
         $user = [];
@@ -66,14 +56,10 @@ class UserController {
     }
 
     public function store() {
-        if (!Auth::can('user', 'create')) {
-            http_response_code(403);
-            echo "Accès Interdit.";
-            exit();
-        }
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = $_POST;
-            if (!Auth::can('system', 'view_all_lycees')) {
+            if (!Auth::can('manage_all_lycees')) {
                 $data['lycee_id'] = Auth::get('lycee_id');
             }
 
@@ -95,19 +81,27 @@ class UserController {
             exit();
         }
 
+        // A user can edit their own profile, OR an admin can edit users.
+        if ($id != Auth::get('id') && !Auth::can('manage_users')) {
+            http_response_code(403);
+            echo "Accès Interdit.";
+            exit();
+        }
+
         $user = User::findById($id);
         if (!$user) {
             header('Location: /users');
             exit();
         }
 
-        if (!Auth::can('user', 'edit', $user)) {
+        // Admin scope check: can only edit users in their school unless they are a super admin
+        if ($id != Auth::get('id') && !Auth::can('manage_all_lycees') && $user['lycee_id'] != Auth::get('lycee_id')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();
         }
 
-        $lycees = (Auth::can('system', 'view_all_lycees')) ? Lycee::findAll() : [];
+        $lycees = (Auth::can('manage_all_lycees')) ? Lycee::findAll() : [];
         $contrats = TypeContrat::findAll($user['lycee_id']);
         $roles = Role::findAll($user['lycee_id']);
         $is_edit = true;
@@ -115,6 +109,7 @@ class UserController {
     }
 
     public function view() {
+        $this->checkAccess();
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: /users');
@@ -127,7 +122,7 @@ class UserController {
             exit();
         }
 
-        if (!Auth::can('user', 'view_one', $user)) {
+        if (!Auth::can('manage_all_lycees') && $user['lycee_id'] != Auth::get('lycee_id')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();
@@ -135,42 +130,21 @@ class UserController {
 
         $contrat = !empty($user['contrat_id']) ? TypeContrat::findById($user['contrat_id']) : null;
         $role = !empty($user['role_id']) ? Role::findById($user['role_id']) : null;
-
-        // --- New data for assignments ---
-        $assignments = [];
-        $assignable_classes = [];
-        // Only fetch assignment data if the role is relevant (e.g., surveillant)
-        // and the admin has permission to edit users.
-        if ($role && $role['nom_role'] === 'surveillant' && Auth::can('user', 'edit')) {
-            require_once __DIR__ . '/../models/PersonnelAssignment.php';
-            require_once __DIR__ . '/../models/Classe.php';
-            $assignments = PersonnelAssignment::findByPersonnelId($id);
-            $assignable_classes = Classe::findAll($user['lycee_id']);
-        }
-        // --- End new data ---
-
         require_once __DIR__ . '/../views/users/view.php';
     }
 
     public function update() {
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = $_POST;
-            $user = User::findById($data['id_user']);
-
-            if (!$user || !Auth::can('user', 'edit', $user)) {
-                 http_response_code(403);
-                 echo "Accès Interdit.";
-                 exit();
-            }
-
-            if (!Auth::can('system', 'view_all_lycees') && isset($data['lycee_id'])) {
-                // Prevent non-super-admins from changing the lycee_id
-                $data['lycee_id'] = $user['lycee_id'];
+            if (!Auth::can('manage_all_lycees')) {
+                $data['lycee_id'] = Auth::get('lycee_id');
             }
 
             if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
-                if ($user && !empty($user['photo'])) {
-                    $oldPhotoPath = __DIR__ . '/../../public' . $user['photo'];
+                $currentUser = User::findById($data['id_user']);
+                if ($currentUser && !empty($currentUser['photo'])) {
+                    $oldPhotoPath = __DIR__ . '/../../public' . $currentUser['photo'];
                     if (file_exists($oldPhotoPath)) {
                         unlink($oldPhotoPath);
                     }
@@ -188,91 +162,19 @@ class UserController {
     }
 
     public function destroy() {
+        $this->checkAccess();
         $id = $_POST['id'] ?? null;
-        if (!$id) {
-            header('Location: /users');
-            exit();
-        }
-
-        $user = User::findById($id);
-        if (!$user || !Auth::can('user', 'delete', $user) || $id == Auth::get('id')) {
-            http_response_code(403);
-            echo "Accès Interdit.";
-            exit();
-        }
-
-        if ($user && !empty($user['photo'])) {
-            $photoPath = __DIR__ . '/../../public' . $user['photo'];
-            if (file_exists($photoPath)) {
-                unlink($photoPath);
+        if ($id && $id != Auth::get('id')) {
+            $user = User::findById($id);
+            if ($user && !empty($user['photo'])) {
+                $photoPath = __DIR__ . '/../../public' . $user['photo'];
+                if (file_exists($photoPath)) {
+                    unlink($photoPath);
+                }
             }
+            User::delete($id);
         }
-        User::delete($id);
-
         header('Location: /users');
-        exit();
-    }
-
-    public function assignTeaches() {
-        if (!Auth::can('user', 'edit')) { http_response_code(403); echo "Accès Interdit."; exit(); }
-
-        $teacher_id = $_GET['id'] ?? null;
-        if (!$teacher_id) {
-            header('Location: /users');
-            exit();
-        }
-
-        $teacher = User::findById($teacher_id);
-        if (!$teacher) {
-            header('Location: /users');
-            exit();
-        }
-
-        // Security check
-        if (!Auth::can('system', 'view_all_lycees') && $teacher['lycee_id'] != Auth::get('lycee_id')) {
-            http_response_code(403); echo "Accès Interdit."; exit();
-        }
-
-        $classes = Classe::findAll($teacher['lycee_id']);
-        $matieres = Matiere::findAll();
-        $assignments = User::getTeacherAssignments($teacher_id);
-
-        require_once __DIR__ . '/../views/users/assign_teaches.php';
-    }
-
-    public function updateTeacherAssignments() {
-        if (!Auth::can('user', 'edit')) { http_response_code(403); echo "Accès Interdit."; exit(); }
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $teacher_id = $_POST['teacher_id'] ?? null;
-            $new_assignments = $_POST['assignments'] ?? [];
-
-            if (!$teacher_id) {
-                header('Location: /users');
-                exit();
-            }
-
-            $current_assignments_raw = User::getTeacherAssignments($teacher_id);
-            $current_assignments = [];
-            foreach ($current_assignments_raw as $assignment) {
-                $current_assignments[] = $assignment['id_classe'] . '-' . $assignment['id_matiere'];
-            }
-
-            $to_add = array_diff($new_assignments, $current_assignments);
-            $to_remove = array_diff($current_assignments, $new_assignments);
-
-            foreach ($to_add as $assignment_str) {
-                list($class_id, $matiere_id) = explode('-', $assignment_str);
-                User::assignTeacherToClass($teacher_id, $class_id, $matiere_id);
-            }
-
-            foreach ($to_remove as $assignment_str) {
-                list($class_id, $matiere_id) = explode('-', $assignment_str);
-                User::unassignTeacherFromClass($teacher_id, $class_id, $matiere_id);
-            }
-        }
-
-        header('Location: /users/assign?id=' . $teacher_id);
         exit();
     }
 }

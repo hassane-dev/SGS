@@ -4,20 +4,27 @@ require_once __DIR__ . '/../models/Lycee.php';
 
 class LyceeController {
 
+    private function checkAccess() {
+        if (!Auth::can('manage_all_lycees')) {
+            http_response_code(403);
+            echo "Accès Interdit. Vous devez être un super administrateur national.";
+            exit();
+        }
+    }
 
     public function index() {
-        if (!Auth::can('lycee', 'view_all')) { http_response_code(403); echo "Accès Interdit."; exit(); }
+        $this->checkAccess();
         $lycees = Lycee::findAll();
         require_once __DIR__ . '/../views/lycees/index.php';
     }
 
     public function create() {
-        if (!Auth::can('lycee', 'create')) { http_response_code(403); echo "Accès Interdit."; exit(); }
+        $this->checkAccess();
         require_once __DIR__ . '/../views/lycees/create.php';
     }
 
     public function store() {
-        if (!Auth::can('lycee', 'create')) { http_response_code(403); echo "Accès Interdit."; exit(); }
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Lycee::save($_POST);
         }
@@ -26,7 +33,7 @@ class LyceeController {
     }
 
     public function edit() {
-        if (!Auth::can('lycee', 'edit')) { http_response_code(403); echo "Accès Interdit."; exit(); }
+        $this->checkAccess();
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: /lycees');
@@ -37,7 +44,7 @@ class LyceeController {
     }
 
     public function update() {
-        if (!Auth::can('lycee', 'edit')) { http_response_code(403); echo "Accès Interdit."; exit(); }
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Lycee::save($_POST);
         }
@@ -46,7 +53,7 @@ class LyceeController {
     }
 
     public function destroy() {
-        if (!Auth::can('lycee', 'delete')) { http_response_code(403); echo "Accès Interdit."; exit(); }
+        $this->checkAccess();
         $id = $_POST['id'] ?? null;
         if ($id) {
             Lycee::delete($id);
