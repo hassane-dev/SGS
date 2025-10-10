@@ -80,20 +80,16 @@ class SetupController {
             Role::save($role_data);
             $role_id = $db->lastInsertId();
 
-            // 3. Assign permissions to this new role (copy from template role 3)
+            // 3. Assign permissions to this new role (e.g., copy from template role 3)
             $template_permissions = Role::getPermissions(3); // Get perms from admin_local template
             $perm_ids = [];
-            if (is_array($template_permissions)) {
-                foreach ($template_permissions as $resource => $actions) {
-                    foreach ($actions as $action) {
-                        $stmt = $db->prepare("SELECT id_permission FROM permissions WHERE resource = :resource AND action = :action");
-                        $stmt->execute(['resource' => $resource, 'action' => $action]);
-                        $p_id = $stmt->fetchColumn();
-                        if ($p_id) {
-                            $perm_ids[] = $p_id;
-                        }
-                    }
-                }
+            foreach($template_permissions as $p_name) {
+                // This is inefficient, a better way would be a direct SQL copy or a findByName method
+                // For now, this will work.
+                $stmt = $db->prepare("SELECT id_permission FROM permissions WHERE nom_permission = :p_name");
+                $stmt->execute(['p_name' => $p_name]);
+                $p_id = $stmt->fetchColumn();
+                if ($p_id) $perm_ids[] = $p_id;
             }
             Role::setPermissions($role_id, $perm_ids);
 
