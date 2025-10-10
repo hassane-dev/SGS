@@ -6,17 +6,9 @@ require_once __DIR__ . '/../models/Lycee.php';
 
 class RoleController {
 
-    private function checkAccess() {
-        // Only creator and national admin can manage roles in general
-        if (!Auth::can('manage_roles')) {
-            http_response_code(403);
-            echo "Accès Interdit.";
-            exit();
-        }
-    }
 
     public function index() {
-        $this->checkAccess();
+        if (!Auth::can('role', 'view_all')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         $user_lycee_id = Auth::get('lycee_id');
         // Local admins see global roles + their own lycee's roles
         $roles = Role::findAll($user_lycee_id);
@@ -24,17 +16,17 @@ class RoleController {
     }
 
     public function create() {
-        $this->checkAccess();
+        if (!Auth::can('role', 'create')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         $permissions = Permission::findAll();
-        $lycees = (Auth::get('role_name') === 'super_admin_createur' || Auth::get('role_name') === 'super_admin_national') ? Lycee::findAll() : [];
+        $lycees = (Auth::can('system', 'view_all_lycees')) ? Lycee::findAll() : [];
         require_once __DIR__ . '/../views/roles/create.php';
     }
 
     public function store() {
-        $this->checkAccess();
+        if (!Auth::can('role', 'create')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Local admins can only create roles for their own lycee
-            if (Auth::get('role_name') === 'admin_local') {
+            if (!Auth::can('system', 'view_all_lycees')) {
                 $_POST['lycee_id'] = Auth::get('lycee_id');
             }
             Role::save($_POST);
@@ -44,7 +36,7 @@ class RoleController {
     }
 
     public function edit() {
-        $this->checkAccess();
+        if (!Auth::can('role', 'edit')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         $id = $_GET['id'] ?? null;
         if (!$id) { header('Location: /roles'); exit(); }
 
@@ -52,26 +44,26 @@ class RoleController {
         if (!$role) { header('Location: /roles'); exit(); }
 
         // Security check for local admins
-        if (Auth::get('role_name') === 'admin_local' && $role['lycee_id'] != Auth::get('lycee_id')) {
+        if (!Auth::can('system', 'view_all_lycees') && $role['lycee_id'] != Auth::get('lycee_id')) {
              http_response_code(403); echo "Accès Interdit."; exit();
         }
 
         $permissions = Permission::findAll();
         $role_permissions = Role::getPermissions($id);
-        $lycees = (Auth::get('role_name') !== 'admin_local') ? Lycee::findAll() : [];
+        $lycees = (Auth::can('system', 'view_all_lycees')) ? Lycee::findAll() : [];
 
         require_once __DIR__ . '/../views/roles/edit.php';
     }
 
     public function update() {
-        $this->checkAccess();
+        if (!Auth::can('role', 'edit')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $role_id = $_POST['id_role'];
             $permission_ids = $_POST['permissions'] ?? [];
 
             // Security check for local admins
             $role = Role::findById($role_id);
-            if (Auth::get('role_name') === 'admin_local' && $role['lycee_id'] != Auth::get('lycee_id')) {
+            if (!Auth::can('system', 'view_all_lycees') && $role['lycee_id'] != Auth::get('lycee_id')) {
                 http_response_code(403); echo "Accès Interdit."; exit();
             }
 
@@ -83,9 +75,13 @@ class RoleController {
     }
 
     public function destroy() {
-        $this->checkAccess();
+        if (!Auth::can('role', 'delete')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         $id = $_POST['id'] ?? null;
         if ($id) {
+            $role = Role::findById($id);
+            if (!Auth::can('system', 'view_all_lycees') && $role['lycee_id'] != Auth::get('lycee_id')) {
+                 http_response_code(403); echo "Accès Interdit."; exit();
+            }
             Role::delete($id);
         }
         header('Location: /roles');

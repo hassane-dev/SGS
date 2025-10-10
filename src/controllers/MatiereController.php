@@ -5,30 +5,23 @@ require_once __DIR__ . '/../models/Classe.php';
 
 class MatiereController {
 
-    private function checkAccess() {
-        if (!Auth::can('manage_matieres')) {
-            http_response_code(403);
-            echo "Accès Interdit.";
-            exit();
-        }
-    }
 
     // --- Standard CRUD for Matieres ---
 
     public function index() {
-        $this->checkAccess();
+        if (!Auth::can('matiere', 'manage')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         $matieres = Matiere::findAll();
         $error = $_GET['error'] ?? null;
         require_once __DIR__ . '/../views/matieres/index.php';
     }
 
     public function create() {
-        $this->checkAccess();
+        if (!Auth::can('matiere', 'manage')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         require_once __DIR__ . '/../views/matieres/create.php';
     }
 
     public function store() {
-        $this->checkAccess();
+        if (!Auth::can('matiere', 'manage')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Matiere::save($_POST);
         }
@@ -37,7 +30,7 @@ class MatiereController {
     }
 
     public function edit() {
-        $this->checkAccess();
+        if (!Auth::can('matiere', 'manage')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: /matieres');
@@ -48,7 +41,7 @@ class MatiereController {
     }
 
     public function update() {
-        $this->checkAccess();
+        if (!Auth::can('matiere', 'manage')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Matiere::save($_POST);
         }
@@ -57,7 +50,7 @@ class MatiereController {
     }
 
     public function destroy() {
-        $this->checkAccess();
+        if (!Auth::can('matiere', 'manage')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         $id = $_POST['id'] ?? null;
         if ($id) {
             $success = Matiere::delete($id);
@@ -73,7 +66,7 @@ class MatiereController {
     // --- Association with Classes ---
 
     public function assign() {
-        $this->checkAccess();
+        if (!Auth::can('matiere', 'manage')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         $class_id = $_GET['class_id'] ?? null;
         if (!$class_id) {
             header('Location: /classes');
@@ -91,7 +84,7 @@ class MatiereController {
     }
 
     public function updateAssignments() {
-        $this->checkAccess();
+        if (!Auth::can('matiere', 'manage')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         $class_id = $_POST['class_id'] ?? null;
         $assigned_ids = $_POST['matieres'] ?? [];
 

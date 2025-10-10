@@ -5,16 +5,9 @@ require_once __DIR__ . '/../models/Eleve.php';
 
 class PaiementController {
 
-    private function checkAccess() {
-        if (!Auth::can('manage_paiements')) {
-            http_response_code(403);
-            echo "Accès Interdit.";
-            exit();
-        }
-    }
 
     public function index() {
-        $this->checkAccess();
+        if (!Auth::can('paiement', 'manage')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         $eleve_id = $_GET['eleve_id'] ?? null;
         if (!$eleve_id) {
             header('Location: /eleves');
@@ -26,7 +19,7 @@ class PaiementController {
     }
 
     public function create() {
-        $this->checkAccess();
+        if (!Auth::can('paiement', 'manage')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         $eleve_id = $_GET['eleve_id'] ?? null;
         if (!$eleve_id) {
             header('Location: /eleves');
@@ -37,7 +30,7 @@ class PaiementController {
     }
 
     public function store() {
-        $this->checkAccess();
+        if (!Auth::can('paiement', 'manage')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Paiement::create($_POST);
             // Redirect to the payment list for that student

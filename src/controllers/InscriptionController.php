@@ -7,16 +7,9 @@ require_once __DIR__ . '/../models/Settings.php'; // To get current academic yea
 
 class InscriptionController {
 
-    private function checkAccess() {
-        if (!Auth::can('manage_inscriptions')) {
-            http_response_code(403);
-            echo "Accès Interdit.";
-            exit();
-        }
-    }
 
     public function showForm() {
-        $this->checkAccess();
+        if (!Auth::can('inscription', 'manage')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         $eleve_id = $_GET['eleve_id'] ?? null;
         if (!$eleve_id) {
             header('Location: /eleves');
@@ -25,11 +18,11 @@ class InscriptionController {
 
         $eleve = Eleve::findById($eleve_id);
 
-        $lycee_id = !Auth::can('manage_all_lycees') ? Auth::get('lycee_id') : null;
+        $lycee_id = !Auth::can('system', 'view_all_lycees') ? Auth::get('lycee_id') : null;
 
         // A super admin needs to know which lycee this student might belong to.
         // This is a simplification; a real app might need a more robust way to determine this.
-        if (Auth::can('manage_all_lycees') && !$lycee_id) {
+        if (Auth::can('system', 'view_all_lycees') && !$lycee_id) {
             // Find the lycee of the first class the student was in, if any.
             $enrollments = Etude::findByEleveId($eleve_id);
             if (!empty($enrollments)) {
@@ -51,7 +44,7 @@ class InscriptionController {
     }
 
     public function enroll() {
-        $this->checkAccess();
+        if (!Auth::can('inscription', 'manage')) { http_response_code(403); echo "Accès Interdit."; exit(); }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Etude::create($_POST);
         }
