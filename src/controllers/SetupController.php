@@ -105,12 +105,52 @@ class SetupController {
             ];
             User::save($user_data);
 
-            // 5. Save general settings
+            // 3. Assign permissions to this new role (copy from template role 3)
+            $template_permissions = Role::getPermissions(3); // Get perms from admin_local template
+            $perm_ids = [];
+            if (is_array($template_permissions)) {
+                foreach ($template_permissions as $resource => $actions) {
+                    foreach ($actions as $action) {
+                        $stmt = $db->prepare("SELECT id_permission FROM permissions WHERE resource = :resource AND action = :action");
+                        $stmt->execute(['resource' => $resource, 'action' => $action]);
+                        $p_id = $stmt->fetchColumn();
+                        if ($p_id) {
+                            $perm_ids[] = $p_id;
+                        }
+                    }
+                }
+            }
+            Role::setPermissions($role_id, $perm_ids);
+
+            // 4. Create the admin user for the Lycee
+            $user_data = [
+                'nom' => $data['admin_nom'],
+                'prenom' => $data['admin_prenom'],
+                'email' => $data['admin_email'],
+                'mot_de_passe' => $data['admin_pass'],
+                'role_id' => $role_id,
+                'lycee_id' => $lycee_id,
+                'actif' => 1
+            ];
+            User::save($user_data);
+
+            // 5. Create and activate the first academic year
+            require_once __DIR__ . '/../models/AnneeAcademique.php';
+            $annee_data = [
+                'libelle' => $data['annee_academique'],
+                'date_debut' => date('Y-m-d', strtotime('first day of September this year')),
+                'date_fin' => date('Y-m-d', strtotime('last day of June next year'))
+            ];
+            AnneeAcademique::save($annee_data);
+            $annee_id = $db->lastInsertId();
+            AnneeAcademique::setActive($annee_id);
+
+            // 6. Save general settings
             $settings_data = [
                 'lycee_id' => $lycee_id,
                 'nom_lycee' => $data['nom_lycee'],
                 'type_lycee' => $data['type_lycee'],
-                'annee_academique' => $data['annee_academique'],
+                'annee_academique_id' => $annee_id,
                 'modalite_paiement' => 'avant_inscription', // Default
             ];
             ParametresGeneraux::save($settings_data);
