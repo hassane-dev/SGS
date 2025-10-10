@@ -50,8 +50,10 @@ CREATE TABLE `roles` (
 
 CREATE TABLE `permissions` (
     `id_permission` INT AUTO_INCREMENT PRIMARY KEY,
-    `nom_permission` VARCHAR(100) NOT NULL UNIQUE, -- e.g., 'manage_users', 'edit_settings'
-    `description` TEXT
+    `resource` VARCHAR(100) NOT NULL, -- e.g., 'user', 'class', 'cahier_texte'
+    `action` VARCHAR(100) NOT NULL, -- e.g., 'create', 'view', 'edit', 'delete'
+    `description` TEXT,
+    UNIQUE KEY `unique_permission` (`resource`, `action`)
 );
 
 CREATE TABLE `role_permissions` (

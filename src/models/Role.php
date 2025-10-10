@@ -64,13 +64,22 @@ class Role {
     public static function getPermissions($role_id) {
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            SELECT p.nom_permission
+            SELECT p.resource, p.action
             FROM permissions p
             JOIN role_permissions rp ON p.id_permission = rp.permission_id
             WHERE rp.role_id = :role_id
         ");
         $stmt->execute(['role_id' => $role_id]);
-        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $permissions = [];
+        foreach ($results as $row) {
+            if (!isset($permissions[$row['resource']])) {
+                $permissions[$row['resource']] = [];
+            }
+            $permissions[$row['resource']][] = $row['action'];
+        }
+        return $permissions;
     }
 
     public static function setPermissions($role_id, $permission_ids) {
