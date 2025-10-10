@@ -1,7 +1,6 @@
 <?php
 
 require_once __DIR__ . '/../models/User.php';
-require_once __DIR__ . '/../models/Role.php';
 
 class Auth {
 
@@ -28,7 +27,6 @@ class Auth {
         if ($user && password_verify($password, $user->mot_de_passe)) {
             // Password is correct, store user data in session
             $role = Role::findById($user->role_id);
-            // Get permissions in the new structured format: ['resource' => ['action1', 'action2']]
             $permissions = Role::getPermissions($user->role_id);
 
             $_SESSION['user'] = [
@@ -88,58 +86,17 @@ class Auth {
     }
 
     /**
-     * Check if the logged-in user has a specific permission for a resource.
-     * This is the new, more powerful authorization method.
-     *
-     * @param string $resource The resource being accessed (e.g., 'user', 'class').
-     * @param string $action The action being performed (e.g., 'create', 'view_one').
-     * @param mixed|null $target The specific object being accessed (for data scoping).
+     * Check if the logged-in user has a specific permission.
+     * @param string $permission_name The name of the permission to check.
      * @return bool
      */
-    public static function can($resource, $action, $target = null) {
+    public static function can($permission_name) {
         self::startSession();
         $permissions = self::get('permissions');
-        $currentUser = self::user();
-
-        // 1. Basic Permission Check
-        if (!isset($permissions[$resource]) || !in_array($action, $permissions[$resource])) {
-            return false;
+        if (is_array($permissions)) {
+            return in_array($permission_name, $permissions);
         }
-
-        // 2. Data Scoping Logic
-        if ($target !== null) {
-            // --- SCOPING RULE: User can always view or edit themselves ---
-            if ($resource === 'user' && ($action === 'view_one' || $action === 'edit')) {
-                if ($target['id_user'] == $currentUser['id']) {
-                    return true;
-                }
-            }
-
-            // --- Global Override for other scoping rules ---
-            if (isset($permissions['system']) && in_array('view_all_lycees', $permissions['system'])) {
-                return true;
-            }
-
-            // --- SCOPING RULE: Supervisor viewing a Teacher ---
-            if ($resource === 'user' && ($action === 'view_one' || $action === 'edit')) {
-                if ($currentUser['role_name'] === 'surveillant') {
-                    // We need the full user object to get the role
-                    $targetUser = User::findById($target['id_user']);
-                    $targetRole = Role::findById($targetUser['role_id']);
-                    if ($targetRole && $targetRole['nom_role'] === 'enseignant') {
-                        return User::isTeacherVisibleToSupervisor($target['id_user'], $currentUser['id']);
-                    }
-                }
-            }
-
-            // --- Add other scoping rules here in the future ---
-
-            // If a target is provided but no specific scoping rule matches, deny access by default.
-            return false;
-        }
-
-        // 3. If no target is provided, and basic permission was granted, allow access.
-        return true;
+        return false;
     }
 }
 ?>

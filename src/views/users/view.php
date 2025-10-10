@@ -57,54 +57,6 @@
                 </div>
             </div>
 
-            <?php if ($role && $role['nom_role'] === 'surveillant' && !empty($assignable_classes)): ?>
-            <!-- Assignment Management -->
-            <div class="mt-4 pt-3 border-top">
-                <h4 class="fw-bold mb-3"><?= _('Gestion des Assignations (Supervision)') ?></h4>
-                <div class="card bg-light border">
-                    <div class="card-body">
-                        <!-- Existing Assignments -->
-                        <h6 class="fw-bold mb-2"><?= _('Classes actuellement supervisées') ?></h6>
-                        <?php if (empty($assignments)): ?>
-                            <p class="text-muted"><?= _('Aucune classe assignée pour le moment.') ?></p>
-                        <?php else: ?>
-                            <ul class="list-group mb-3">
-                                <?php foreach ($assignments as $assignment): ?>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <?= htmlspecialchars($assignment['target_name']) ?>
-                                        <form action="/personnel-assignments/destroy" method="POST" onsubmit="return confirm('<?= _('Retirer cette assignation ?') ?>');">
-                                            <input type="hidden" name="id_assignment" value="<?= $assignment['id_assignment'] ?>">
-                                            <input type="hidden" name="personnel_id" value="<?= $user['id_user'] ?>">
-                                            <button type="submit" class="btn btn-danger btn-sm">&times;</button>
-                                        </form>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
-                        <?php endif; ?>
-
-                        <!-- Add Assignment Form -->
-                        <h6 class="fw-bold mt-4 mb-2"><?= _('Assigner une nouvelle classe') ?></h6>
-                        <form action="/personnel-assignments/store" method="POST" class="row g-2 align-items-end">
-                            <input type="hidden" name="personnel_id" value="<?= $user['id_user'] ?>">
-                            <input type="hidden" name="assignment_type" value="supervises_class">
-                            <div class="col-md-8">
-                                <label for="target_id" class="form-label visually-hidden"><?= _('Classe') ?></label>
-                                <select name="target_id" id="target_id" class="form-select" required>
-                                    <option value=""><?= _('-- Sélectionner une classe --') ?></option>
-                                    <?php foreach ($assignable_classes as $classe): ?>
-                                        <option value="<?= $classe['id_classe'] ?>"><?= htmlspecialchars($classe['nom_classe']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <button type="submit" class="btn btn-primary w-100"><?= _('Assigner') ?></button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <?php endif; ?>
-
             <!-- Action Buttons -->
             <div class="mt-4 pt-3 border-top d-flex justify-content-end">
                  <?php if (Auth::get('id') != $user['id_user']): ?>

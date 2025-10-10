@@ -6,16 +6,21 @@ require_once __DIR__ . '/../models/Classe.php';
 
 class CahierTexteController {
 
+    private function checkAccess() {
+        // Allow access if user is a teacher or has permission to manage logbooks
+        if (Auth::get('role_name') === 'enseignant' || Auth::can('manage_cahier_texte')) {
+            return true;
+        }
+        http_response_code(403);
+        echo "Accès Interdit.";
+        exit();
+    }
 
     public function index() {
-        // A user must be able to view all entries or create their own to see this page.
-        if (!Auth::can('cahier_texte', 'view_all') && !Auth::can('cahier_texte', 'create_own')) {
-            http_response_code(403); echo "Accès Interdit."; exit();
-        }
-
+        $this->checkAccess();
         $user_id = Auth::get('id');
         $lycee_id = Auth::get('lycee_id');
-        $is_admin = Auth::can('cahier_texte', 'view_all');
+        $is_admin = Auth::can('manage_cahier_texte');
 
         $filters = [
             'personnel_id_filter' => $_GET['personnel_id'] ?? null,
@@ -28,10 +33,13 @@ class CahierTexteController {
         $classes = [];
 
         if ($is_admin) {
+            // Admin view: fetch all entries for the school with potential filters
             $entries = CahierTexte::findAllByPersonnel(null, $lycee_id, $filters);
+            // Fetch data for filters
             $teachers = User::findAllByRoleName('enseignant', $lycee_id);
             $classes = Classe::findAll($lycee_id);
         } else {
+            // Teacher view: fetch only their own entries
             $entries = CahierTexte::findAllByPersonnel($user_id, $lycee_id);
         }
 
@@ -39,8 +47,7 @@ class CahierTexteController {
     }
 
     public function create() {
-        if (!Auth::can('cahier_texte', 'create_own')) { http_response_code(403); echo "Accès Interdit."; exit(); }
-
+        $this->checkAccess();
         $professeur_id = Auth::get('id');
         $assignments = User::getTeacherAssignments($professeur_id);
 
@@ -50,13 +57,13 @@ class CahierTexteController {
     }
 
     public function store() {
-        if (!Auth::can('cahier_texte', 'create_own')) { http_response_code(403); echo "Accès Interdit."; exit(); }
-
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = $_POST;
             $data['personnel_id'] = Auth::get('id');
             $data['ecole_id'] = Auth::get('lycee_id');
 
+            // Split the combined class_subject value
             if (!empty($data['class_subject'])) {
                 list($data['classe_id'], $data['matiere_id']) = explode('-', $data['class_subject']);
                 unset($data['class_subject']);
@@ -69,19 +76,17 @@ class CahierTexteController {
     }
 
     public function edit() {
+        $this->checkAccess();
         $id = $_GET['id'] ?? null;
         if (!$id) { header('Location: /cahier-texte'); exit(); }
 
         $entry = CahierTexte::findById($id);
-        if (!$entry) { header('Location: /cahier-texte'); exit(); }
 
-        // Security check: must be able to edit own entries OR all entries.
-        if (!Auth::can('cahier_texte', 'edit_own') && !Auth::can('cahier_texte', 'edit_all')) {
-             http_response_code(403); echo "Accès Interdit."; exit();
-        }
-        // Scope check: if user CANNOT edit all, they must be the owner.
-        if (!Auth::can('cahier_texte', 'edit_all') && $entry['personnel_id'] != Auth::get('id')) {
-            http_response_code(403); echo "Accès Interdit."; exit();
+        // Security check: Teacher can only edit their own entries
+        if (Auth::get('role_name') === 'enseignant' && $entry['personnel_id'] != Auth::get('id')) {
+            http_response_code(403);
+            echo "Accès Interdit.";
+            exit();
         }
 
         $professeur_id = $entry['personnel_id'];
@@ -91,19 +96,23 @@ class CahierTexteController {
     }
 
     public function update() {
+        $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = $_POST;
             $entry = CahierTexte::findById($data['cahier_id']);
-            if (!$entry) { header('Location: /cahier-texte'); exit(); }
 
             // Security check
-            if (!Auth::can('cahier_texte', 'edit_all') && $entry['personnel_id'] != Auth::get('id')) {
-                 http_response_code(403); echo "Accès Interdit."; exit();
+            if (Auth::get('role_name') === 'enseignant' && $entry['personnel_id'] != Auth::get('id')) {
+                 http_response_code(403);
+                 echo "Accès Interdit.";
+                 exit();
             }
 
+            // Preserve original author and school
             $data['personnel_id'] = $entry['personnel_id'];
             $data['ecole_id'] = $entry['ecole_id'];
 
+            // Split the combined class_subject value
             if (!empty($data['class_subject'])) {
                 list($data['classe_id'], $data['matiere_id']) = explode('-', $data['class_subject']);
                 unset($data['class_subject']);
@@ -116,18 +125,18 @@ class CahierTexteController {
     }
 
     public function destroy() {
+        $this->checkAccess();
         $id = $_POST['id'] ?? null;
-        if (!$id) { header('Location: /cahier-texte'); exit(); }
-
-        $entry = CahierTexte::findById($id);
-        if (!$entry) { header('Location: /cahier-texte'); exit(); }
-
-        // Let's assume only admins can delete for now. This can be a new permission later.
-        if (!Auth::can('cahier_texte', 'edit_all')) {
-             http_response_code(403); echo "Accès Interdit."; exit();
+        if ($id) {
+            $entry = CahierTexte::findById($id);
+            // Security check
+            if (Auth::get('role_name') === 'enseignant' && $entry['personnel_id'] != Auth::get('id')) {
+                 http_response_code(403);
+                 echo "Accès Interdit.";
+                 exit();
+            }
+            CahierTexte::delete($id);
         }
-
-        CahierTexte::delete($id);
         header('Location: /cahier-texte');
         exit();
     }
