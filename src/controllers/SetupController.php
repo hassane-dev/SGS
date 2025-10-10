@@ -72,19 +72,19 @@ class SetupController {
                 throw new Exception("Failed to create the lycee.");
             }
 
-            // 2. Create a specific admin role for this Lycee
+            // 2. Seed the database with default roles and permissions
+            $seed_sql = file_get_contents(__DIR__ . '/../../db/seeds.sql');
+            if ($seed_sql) {
+                $db->exec($seed_sql);
+            }
+
+            // 3. Create a specific admin role for this Lycee
             $role_data = [
                 'nom_role' => 'Admin - ' . $data['nom_lycee'],
                 'lycee_id' => $lycee_id
             ];
             Role::save($role_data);
             $role_id = $db->lastInsertId();
-
-            // 3. Seed the database with default roles and permissions
-            $seed_sql = file_get_contents(__DIR__ . '/../../db/seeds.sql');
-            if ($seed_sql) {
-                $db->exec($seed_sql);
-            }
 
             // 4. Assign permissions to this new role (copy from template role 3)
             $template_permissions = Role::getPermissions(3); // Get perms from admin_local template
