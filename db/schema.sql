@@ -3,25 +3,19 @@
 -- =================================================================
 
 -- Drop tables if they exist to ensure a clean slate on execution
-DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `lycees`, `parametres_generaux`;
+DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `lycees`, `parametres_generaux`, `annees_academiques`, `personnel_assignments`;
 
 -- =================================================================
 -- General and Core Tables
 -- =================================================================
 
--- Table for general application settings (scoped per Lycee)
-CREATE TABLE `parametres_generaux` (
+-- Table for Academic Years
+CREATE TABLE `annees_academiques` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `lycee_id` INT,
-    `nom_lycee` VARCHAR(255) NOT NULL,
-    `type_lycee` ENUM('public', 'prive', 'parapublic') NOT NULL,
-    `annee_academique` VARCHAR(20) NOT NULL,
-    `nombre_devoirs_par_trimestre` INT DEFAULT 2,
-    `modalite_paiement` ENUM('avant_inscription', 'apres_test', 'fractionne') NOT NULL,
-    `multilingue_actif` BOOLEAN DEFAULT TRUE,
-    `biometrie_actif` BOOLEAN DEFAULT FALSE,
-    `confidentialite_nationale` BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+    `libelle` VARCHAR(100) NOT NULL UNIQUE, -- e.g., "2024-2025"
+    `date_debut` DATE NOT NULL,
+    `date_fin` DATE NOT NULL,
+    `est_active` BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- Table for high schools (Lycees)
@@ -37,6 +31,23 @@ CREATE TABLE `lycees` (
     `logo` VARCHAR(255)
 );
 
+-- Table for general application settings (scoped per Lycee)
+CREATE TABLE `parametres_generaux` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `lycee_id` INT,
+    `nom_lycee` VARCHAR(255) NOT NULL,
+    `type_lycee` ENUM('public', 'prive', 'parapublic') NOT NULL,
+    `annee_academique_id` INT,
+    `nombre_devoirs_par_trimestre` INT DEFAULT 2,
+    `modalite_paiement` ENUM('avant_inscription', 'apres_test', 'fractionne') NOT NULL,
+    `multilingue_actif` BOOLEAN DEFAULT TRUE,
+    `biometrie_actif` BOOLEAN DEFAULT FALSE,
+    `confidentialite_nationale` BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
+);
+
+
 -- =================================================================
 -- Roles and Permissions Tables
 -- =================================================================
@@ -50,8 +61,10 @@ CREATE TABLE `roles` (
 
 CREATE TABLE `permissions` (
     `id_permission` INT AUTO_INCREMENT PRIMARY KEY,
-    `nom_permission` VARCHAR(100) NOT NULL UNIQUE, -- e.g., 'manage_users', 'edit_settings'
-    `description` TEXT
+    `resource` VARCHAR(100) NOT NULL, -- e.g., 'user', 'class', 'cahier_texte'
+    `action` VARCHAR(100) NOT NULL, -- e.g., 'create', 'view', 'edit', 'delete'
+    `description` TEXT,
+    UNIQUE KEY `unique_permission` (`resource`, `action`)
 );
 
 CREATE TABLE `role_permissions` (
@@ -174,10 +187,11 @@ CREATE TABLE `etudes` (
     `id_etude` INT AUTO_INCREMENT PRIMARY KEY,
     `eleve_id` INT NOT NULL,
     `classe_id` INT NOT NULL,
-    `annee_academique` VARCHAR(20) NOT NULL,
+    `annee_academique_id` INT,
     `actif` BOOLEAN DEFAULT FALSE, -- Activated upon full payment/validation
     FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
-    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE
+    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
 );
 
 -- Table for homework grades
@@ -186,12 +200,13 @@ CREATE TABLE `notes_devoirs` (
     `eleve_id` INT NOT NULL,
     `classe_id` INT NOT NULL,
     `matiere_id` INT NOT NULL,
+    `annee_academique_id` INT,
     `note` DECIMAL(5, 2),
     `date_devoir` DATE,
     FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
     FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
-    UNIQUE KEY `unique_grade` (`eleve_id`, `classe_id`, `matiere_id`)
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
 );
 
 -- Table for exam grades
@@ -200,12 +215,13 @@ CREATE TABLE `notes_compositions` (
     `eleve_id` INT NOT NULL,
     `classe_id` INT NOT NULL,
     `matiere_id` INT NOT NULL,
+    `annee_academique_id` INT,
     `note` DECIMAL(5, 2),
     `date_composition` DATE,
     FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
     FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
-    UNIQUE KEY `unique_grade` (`eleve_id`, `classe_id`, `matiere_id`)
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
 );
 
 -- Table for entrance exams
@@ -228,11 +244,13 @@ CREATE TABLE `tests_entree` (
 CREATE TABLE `paiements` (
     `id_paiement` INT AUTO_INCREMENT PRIMARY KEY,
     `eleve_id` INT NOT NULL,
+    `annee_academique_id` INT,
     `type_paiement` ENUM('inscription', 'mensualite', 'assurance', 'boutique') NOT NULL,
     `montant` DECIMAL(10, 2) NOT NULL,
     `statut` ENUM('paye', 'partiel', 'non_paye') NOT NULL,
     `date_paiement` DATETIME NOT NULL,
-    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE
+    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
 );
 
 -- Table for shop articles
@@ -260,11 +278,12 @@ CREATE TABLE `boutique_achats` (
 CREATE TABLE `cartes_scolaires` (
     `id_carte` INT AUTO_INCREMENT PRIMARY KEY,
     `eleve_id` INT NOT NULL,
-    `annee_academique` VARCHAR(20) NOT NULL,
+    `annee_academique_id` INT,
     `layout` JSON, -- To store positions of text, images, etc.
     `qr_code_data` TEXT,
     `date_emission` DATE,
-    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE
+    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
 );
 
 
@@ -316,12 +335,13 @@ CREATE TABLE `horaire_enseignant` (
     `jour` VARCHAR(20) NOT NULL,
     `heure_debut` TIME NOT NULL,
     `heure_fin` TIME NOT NULL,
-    `annee_id` VARCHAR(20),
+    `annee_id` INT,
     `ecole_id` INT NOT NULL,
     FOREIGN KEY (`personnel_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
     FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
-    FOREIGN KEY (`ecole_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+    FOREIGN KEY (`ecole_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
 );
 
 CREATE TABLE `cahier_texte` (
@@ -335,12 +355,24 @@ CREATE TABLE `cahier_texte` (
     `contenu_cours` TEXT,
     `travail_donne` TEXT,
     `observation` TEXT,
-    `annee_id` VARCHAR(20),
+    `annee_id` INT,
     `ecole_id` INT NOT NULL,
     FOREIGN KEY (`personnel_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
     FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
-    FOREIGN KEY (`ecole_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+    FOREIGN KEY (`ecole_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
+);
+
+CREATE TABLE `personnel_assignments` (
+    `id_assignment` INT AUTO_INCREMENT PRIMARY KEY,
+    `personnel_id` INT NOT NULL,
+    `assignment_type` VARCHAR(100) NOT NULL, -- e.g., 'supervises_class', 'teaches_class_in_matiere'
+    `target_id` INT NOT NULL, -- The ID of the resource being assigned (e.g., class_id, matiere_id)
+    `lycee_id` INT NOT NULL,
+    FOREIGN KEY (`personnel_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    UNIQUE KEY `unique_assignment` (`personnel_id`, `assignment_type`, `target_id`)
 );
 
 CREATE TABLE `salaires` (
@@ -354,9 +386,10 @@ CREATE TABLE `salaires` (
     `date_paiement` DATE,
     `etat_paiement` ENUM('paye', 'non_paye') NOT NULL DEFAULT 'non_paye',
     `lycee_id` INT NOT NULL,
-    `annee_id` VARCHAR(20), -- To link with academic year
+    `annee_academique_id` INT,
     FOREIGN KEY (`personnel_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
 );
 
 -- =================================================================
@@ -400,10 +433,11 @@ CREATE TABLE `emploi_du_temps` (
   `heure_debut` TIME NOT NULL,
   `heure_fin` TIME NOT NULL,
   `salle_id` INT NOT NULL,
-  `annee_academique` VARCHAR(20) NOT NULL,
+  `annee_academique_id` INT,
   `modifiable` TINYINT(1) DEFAULT 1,
   FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
   FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
   FOREIGN KEY (`professeur_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
-  FOREIGN KEY (`salle_id`) REFERENCES `salles`(`id_salle`) ON DELETE CASCADE
+  FOREIGN KEY (`salle_id`) REFERENCES `salles`(`id_salle`) ON DELETE CASCADE,
+  FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
 );

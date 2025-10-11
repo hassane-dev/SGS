@@ -31,7 +31,11 @@ class SettingsController {
         // 3. Fetch current settings for the view
         $settings = Settings::getByLyceeId($lycee_id);
 
-        // 4. Display the view
+        // 4. Fetch all academic years for the dropdown
+        require_once __DIR__ . '/../models/AnneeAcademique.php';
+        $annees_academiques = AnneeAcademique::findAll();
+
+        // 5. Display the view
         require_once __DIR__ . '/../views/settings/index.php';
     }
 }
