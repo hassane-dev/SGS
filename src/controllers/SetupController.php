@@ -24,6 +24,13 @@ class SetupController {
     }
 
     public function finish() {
+        // Final check to prevent re-running setup if users already exist.
+        $userCheck = User::findOneByRoleName('super_admin_createur');
+        if ($userCheck) {
+            header('Location: /login');
+            exit();
+        }
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: /setup');
             exit();
