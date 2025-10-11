@@ -55,6 +55,8 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 -- Academic Structure
 (40, 'class', 'manage', 'Can manage classes, cycles, and rooms'),
 (41, 'matiere', 'manage', 'Can manage subjects and their coefficients'),
+(42, 'annee_academique', 'manage', 'Can manage academic years'),
+
 
 -- Students
 (50, 'eleve', 'create', 'Can create new student profiles'),
@@ -73,7 +75,6 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 -- Finance
 (70, 'paiement', 'manage', 'Can manage student payments'),
 (71, 'salaire', 'manage', 'Can manage staff payroll records'),
-(72, 'salaire', 'generate', 'Can generate monthly salaries for all eligible staff'),
 
 -- Settings
 (80, 'setting', 'edit', 'Can edit school-specific settings');
@@ -92,7 +93,7 @@ WHERE r.nom_role IN ('super_admin_createur', 'super_admin_national');
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (3, 1), (3, 10), (3, 11), (3, 12), (3, 13), (3, 14), (3, 20), (3, 21), (3, 22), (3, 23),
 (3, 40), (3, 41), (3, 50), (3, 51), (3, 52), (3, 53), (3, 54), (3, 60), (3, 61), (3, 62),
-(3, 70), (3, 71), (3, 72), (3, 80);
+(3, 70), (3, 71), (3, 80);
 
 -- Censeur (Academic Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
@@ -100,7 +101,7 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 
 -- Surveillant (Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(5, 1), (5, 51); -- Can view dashboard and list of students. Scoping will limit this further.
+(5, 1), (5, 11), (5, 12);
 
 -- Enseignant (Teacher)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
@@ -108,7 +109,7 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 
 -- Comptable (Accountant)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(7, 1), (7, 70), (7, 71), (7, 72); -- Dashboard, manage payments, manage salaries
+(7, 1), (7, 70), (7, 71); -- Dashboard, manage payments, manage salaries
 
 -- Eleve (Student)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
