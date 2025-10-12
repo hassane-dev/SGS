@@ -8,12 +8,20 @@ require_once __DIR__ . '/../src/core/bootstrap_i18n.php';
 // If the lycees table is empty, we assume it's a fresh install.
 require_once __DIR__ . '/../src/models/Lycee.php';
 $lycees = Lycee::findAll();
+$uri = strtok($_SERVER['REQUEST_URI'], '?');
+
 if (empty($lycees)) {
     // If no school exists, we must run the setup process.
-    // We allow access only to the setup routes.
-    $uri = strtok($_SERVER['REQUEST_URI'], '?');
+    // We only allow access to the setup routes.
     if (strpos($uri, '/setup') !== 0) {
         header('Location: /setup');
+        exit();
+    }
+} else {
+    // If schools exist, the setup is complete.
+    // Block any further access to the setup routes.
+    if (strpos($uri, '/setup') === 0) {
+        header('Location: /login');
         exit();
     }
 }
