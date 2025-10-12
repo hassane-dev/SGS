@@ -109,10 +109,14 @@ class SetupController {
             ]);
 
             // 6. Create and activate the first academic year
+            // Bug Fix: Parse the start year from the user input instead of using the current year
+            $start_year = explode('-', $data['annee_academique'])[0];
+            $end_year = (int)$start_year + 1;
+
             AnneeAcademique::save([
                 'libelle' => $data['annee_academique'],
-                'date_debut' => date('Y-09-01'),
-                'date_fin' => date('Y') + 1 . '-06-30'
+                'date_debut' => $start_year . '-09-01',
+                'date_fin' => $end_year . '-06-30'
             ]);
             $annee_id = $db->lastInsertId();
             AnneeAcademique::setActive($annee_id);

@@ -5,6 +5,7 @@
 // 1. Set up the environment
 // Override the default database user for testing purposes
 define('DB_USER', 'jules');
+define('DB_PASS', '');
 
 require_once __DIR__ . '/../src/config/database.php';
 require_once __DIR__ . '/../src/models/Lycee.php';

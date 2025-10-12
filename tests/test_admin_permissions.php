@@ -4,6 +4,7 @@
 
 // 1. Set up the environment
 define('DB_USER', 'jules'); // Override for testing
+define('DB_PASS', '');
 require_once __DIR__ . '/../src/config/database.php';
 require_once __DIR__ . '/../src/models/User.php';
 require_once __DIR__ . '/../src/models/Lycee.php';
