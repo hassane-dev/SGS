@@ -92,7 +92,7 @@ WHERE r.nom_role IN ('super_admin_createur', 'super_admin_national');
 -- Admin Local
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (3, 1), (3, 10), (3, 11), (3, 12), (3, 13), (3, 14), (3, 20), (3, 21), (3, 22), (3, 23),
-(3, 40), (3, 41), (3, 50), (3, 51), (3, 52), (3, 53), (3, 54), (3, 60), (3, 61), (3, 62),
+(3, 40), (3, 41), (3, 42), (3, 50), (3, 51), (3, 52), (3, 53), (3, 54), (3, 60), (3, 61), (3, 62),
 (3, 70), (3, 71), (3, 80);
 
 -- Censeur (Academic Supervisor)
