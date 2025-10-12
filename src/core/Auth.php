@@ -29,6 +29,9 @@ class Auth {
             $role = Role::findById($user->role_id);
             $permissions = Role::getPermissions($user->role_id);
 
+            // Regenerate session ID to prevent session fixation
+            session_regenerate_id(true);
+
             $_SESSION['user'] = [
                 'id' => $user->id_user,
                 'nom' => $user->nom,
@@ -98,5 +101,6 @@ class Auth {
         }
         return false;
     }
+
 }
 ?>
