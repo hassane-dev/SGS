@@ -55,16 +55,18 @@ class AnneeAcademique {
 
     public static function setActive($id) {
         $db = Database::getInstance();
+        $db->beginTransaction();
         try {
             // Deactivate all other years
             $db->query("UPDATE annees_academiques SET est_active = 0");
             // Activate the selected year
             $stmt = $db->prepare("UPDATE annees_academiques SET est_active = 1 WHERE id = :id");
             $stmt->execute(['id' => $id]);
+            $db->commit();
             return true;
         } catch (Exception $e) {
-            // Re-throw the exception to be caught by the parent transaction
-            throw $e;
+            $db->rollBack();
+            return false;
         }
     }
 }
