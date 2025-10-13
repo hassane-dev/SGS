@@ -8,7 +8,7 @@ require_once __DIR__ . '/../models/TypeContrat.php';
 class UserController {
 
     private function checkAccess() {
-        if (!Auth::can('manage_users')) {
+        if (!Auth::can('user_manage')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();
