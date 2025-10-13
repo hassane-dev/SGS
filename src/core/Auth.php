@@ -29,9 +29,6 @@ class Auth {
             $role = Role::findById($user->role_id);
             $permissions = Role::getPermissions($user->role_id);
 
-            // Regenerate session ID to prevent session fixation
-            session_regenerate_id(true);
-
             $_SESSION['user'] = [
                 'id' => $user->id_user,
                 'nom' => $user->nom,
@@ -93,14 +90,17 @@ class Auth {
      * @param string $permission_name The name of the permission to check.
      * @return bool
      */
-    public static function can($permission_name) {
+    public static function can($permission_string) {
         self::startSession();
         $permissions = self::get('permissions');
-        if (is_array($permissions)) {
-            return in_array($permission_name, $permissions);
-        }
-        return false;
-    }
 
+        if (!is_array($permissions) || strpos($permission_string, '_') === false) {
+            return false;
+        }
+
+        list($resource, $action) = explode('_', $permission_string, 2);
+
+        return isset($permissions[$resource]) && in_array($action, $permissions[$resource]);
+    }
 }
 ?>

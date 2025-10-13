@@ -8,15 +8,15 @@ class HomeController {
         require_once __DIR__ . '/../views/layouts/header.php';
         echo "<h1>Welcome to the Dashboard</h1>";
         if (Auth::check()) {
-            echo "<p>You are logged in as " . htmlspecialchars(Auth::get('email') ?? '') . " (" . htmlspecialchars(Auth::get('role_name') ?? 'N/A') . ").</p>";
+            echo "<p>You are logged in as " . htmlspecialchars(Auth::get('email') ?? '') . " (" . htmlspecialchars(Auth::get('role') ?? 'N/A') . ").</p>";
 
             $navLinks = [];
             $navLinks[] = '<a href="/settings" class="text-blue-500 hover:underline">Paramètres</a>';
 
-            if (Auth::get('role_name') === 'super_admin_national') {
+            if (Auth::get('role') === 'super_admin_national') {
                 $navLinks[] = '<a href="/lycees" class="text-blue-500 hover:underline">Gérer les Lycées</a>';
             }
-            if (in_array(Auth::get('role_name'), ['admin_local', 'super_admin_national'])) {
+            if (in_array(Auth::get('role'), ['admin_local', 'super_admin_national'])) {
                 $navLinks[] = '<a href="/users" class="text-blue-500 hover:underline">Gérer les Utilisateurs</a>';
                 $navLinks[] = '<a href="/eleves" class="text-blue-500 hover:underline">Gérer les Élèves</a>';
                 $navLinks[] = '<a href="/cycles" class="text-blue-500 hover:underline">Gérer les Cycles</a>';
@@ -38,7 +38,7 @@ class HomeController {
                 $navLinks[] = '<a href="/cahier-texte" class="text-green-500 hover:underline">Cahier de Texte</a>';
             }
 
-            if (Auth::get('role_name') === 'super_admin_createur') {
+            if (Auth::get('role') === 'super_admin_createur') {
                 $navLinks[] = '<a href="/licences" class="text-red-500 hover:underline">Gérer les Licences</a>';
             }
 
