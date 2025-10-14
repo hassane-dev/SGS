@@ -11,14 +11,18 @@ class Eleve {
      */
     public static function findAll($lycee_id = null) {
         $db = Database::getInstance();
-        $sql = "SELECT * FROM eleves";
-        $params = [];
+        $sql = "SELECT e.*, GROUP_CONCAT(c.nom_classe SEPARATOR ', ') as classes
+                FROM eleves e
+                LEFT JOIN etudes et ON e.id_eleve = et.eleve_id
+                LEFT JOIN classes c ON et.classe_id = c.id_classe";
 
+        $params = [];
         if ($lycee_id !== null) {
-            $sql .= " WHERE lycee_id = :lycee_id";
+            $sql .= " WHERE e.lycee_id = :lycee_id";
             $params['lycee_id'] = $lycee_id;
         }
-        $sql .= " ORDER BY nom, prenom ASC";
+
+        $sql .= " GROUP BY e.id_eleve ORDER BY e.nom, e.prenom ASC";
 
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
@@ -41,52 +45,47 @@ class Eleve {
         $db = Database::getInstance();
         $isUpdate = !empty($data['id_eleve']);
 
-        // List of all fields managed by this save method
-        $params = [
-            'lycee_id' => $data['lycee_id'],
-            'nom' => $data['nom'],
-            'prenom' => $data['prenom'],
-            'date_naissance' => $data['date_naissance'] ?? null,
-            'lieu_naissance' => $data['lieu_naissance'] ?? null,
-            'nationalite' => $data['nationalite'] ?? null,
-            'sexe' => $data['sexe'] ?? null,
-            'quartier' => $data['quartier'] ?? null,
-            'tel_parent' => $data['tel_parent'] ?? null,
-            'nom_pere' => $data['nom_pere'] ?? null,
-            'nom_mere' => $data['nom_mere'] ?? null,
-            'profession_pere' => $data['profession_pere'] ?? null,
-            'profession_mere' => $data['profession_mere'] ?? null,
-            'email' => $data['email'] ?? null,
-            'telephone' => $data['telephone'] ?? null,
-        ];
+        // Base fields
+        $fields = ['lycee_id', 'nom', 'prenom', 'date_naissance', 'lieu_naissance', 'nationalite', 'sexe', 'quartier', 'tel_parent', 'nom_pere', 'nom_mere', 'profession_pere', 'profession_mere', 'email', 'telephone', 'statut'];
 
-        // Handle photo separately to avoid overwriting it with null on update
+        $params = [];
+        foreach ($fields as $field) {
+            $params[$field] = $data[$field] ?? null;
+        }
+
+        // Set default status for new students
+        if (!$isUpdate) {
+            $params['statut'] = 'en_attente';
+        }
+
+        // Handle photo upload only if a new photo is provided
         if (!empty($data['photo'])) {
+            $fields[] = 'photo';
             $params['photo'] = $data['photo'];
         }
 
         if ($isUpdate) {
-            $params['id_eleve'] = $data['id_eleve'];
             $setClauses = [];
-            foreach ($params as $key => $value) {
-                // Don't include the primary key in the SET clause
-                if ($key !== 'id_eleve') {
-                    $setClauses[] = "$key = :$key";
-                }
+            foreach ($fields as $field) {
+                $setClauses[] = "`$field` = :$field";
             }
             $sql = "UPDATE eleves SET " . implode(', ', $setClauses) . " WHERE id_eleve = :id_eleve";
+            $params['id_eleve'] = $data['id_eleve'];
         } else {
-            // For an insert, ensure photo is part of the params array, even if null
-            if (!isset($params['photo'])) {
-                $params['photo'] = null;
-            }
-            $columns = implode(', ', array_keys($params));
-            $placeholders = ':' . implode(', :', array_keys($params));
+            $columns = implode(', ', array_map(fn($f) => "`$f`", $fields));
+            $placeholders = ':' . implode(', :', $fields);
             $sql = "INSERT INTO eleves ($columns) VALUES ($placeholders)";
         }
 
         $stmt = $db->prepare($sql);
         return $stmt->execute($params);
+    }
+
+    public static function findByStatus($statut, $lycee_id) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT * FROM eleves WHERE statut = :statut AND lycee_id = :lycee_id ORDER BY nom, prenom ASC");
+        $stmt->execute(['statut' => $statut, 'lycee_id' => $lycee_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public static function delete($id) {

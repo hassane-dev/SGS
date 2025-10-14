@@ -106,6 +106,21 @@
     </div>
 </div>
 
+<hr>
+
+<div class="form-group mt-3">
+    <label for="classe_id">Classe d'Inscription</label>
+    <select class="form-control" id="classe_id" name="classe_id" required>
+        <option value="">-- Sélectionner une classe --</option>
+        <?php foreach ($classes as $classe): ?>
+            <option value="<?= $classe['id_classe'] ?>" <?= (isset($eleve['classe_id']) && $eleve['classe_id'] == $classe['id_classe']) ? 'selected' : '' ?>>
+                <?= htmlspecialchars($classe['nom_classe']) ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+    <small class="form-text text-muted">L'élève sera pré-inscrit dans cette classe en attente de la validation du paiement.</small>
+</div>
+
 <div class="form-group mt-3">
     <label for="photo">Photo</label>
     <input type="file" class="form-control-file" id="photo" name="photo">

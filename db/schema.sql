@@ -190,6 +190,7 @@ CREATE TABLE `eleves` (
     `photo` VARCHAR(255),
     `email` VARCHAR(255) UNIQUE,
     `telephone` VARCHAR(50),
+    `statut` VARCHAR(50) NOT NULL DEFAULT 'en_attente',
     FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
 );
 
@@ -469,6 +470,22 @@ CREATE TABLE `modele_bulletin` (
     `header_content` TEXT,
     `footer_content` TEXT,
     `qr_code_settings` JSON,
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+);
+
+-- =================================================================
+-- Application Logic Tables
+-- =================================================================
+
+CREATE TABLE `notifications` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT NOT NULL,
+    `lycee_id` INT NOT NULL,
+    `message` TEXT NOT NULL,
+    `link` VARCHAR(255),
+    `is_read` BOOLEAN NOT NULL DEFAULT FALSE,
+    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
     FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
 );
 

@@ -80,5 +80,26 @@ class Etude {
         $stmt = $db->prepare("UPDATE etudes SET actif = 1 WHERE id_etude = :id_etude");
         return $stmt->execute(['id_etude' => $id_etude]);
     }
+
+    /**
+     * Find a student's pending (inactive) enrollment for a given academic year.
+     * @param int $eleve_id
+     * @param int $annee_academique_id
+     * @return array|false
+     */
+    public static function findPendingEnrollment($eleve_id, $annee_academique_id) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("
+            SELECT et.*, c.nom_classe, c.niveau, c.serie
+            FROM etudes et
+            JOIN classes c ON et.classe_id = c.id_classe
+            WHERE et.eleve_id = :eleve_id
+            AND et.annee_academique_id = :annee_academique_id
+            AND et.actif = 0
+            LIMIT 1
+        ");
+        $stmt->execute(['eleve_id' => $eleve_id, 'annee_academique_id' => $annee_academique_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }
 ?>

@@ -120,9 +120,25 @@ $router->register('/eleves/details', 'EleveController', 'details');
 $router->register('/eleves/update', 'EleveController', 'update');
 $router->register('/eleves/destroy', 'EleveController', 'destroy');
 
-// Inscriptions
-$router->register('/inscriptions/show', 'InscriptionController', 'showForm');
-$router->register('/inscriptions/enroll', 'InscriptionController', 'enroll');
+// Obsolete inscription routes, the flow now starts from EleveController
+// $router->register('/inscriptions/show-form', 'InscriptionController', 'showForm');
+// $router->register('/inscriptions/enroll', 'InscriptionController', 'enroll');
+
+// Frais (Fee management)
+$router->register('/frais', 'FraisController', 'index');
+$router->register('/frais/store', 'FraisController', 'store');
+
+// Comptable (Accountant) flow
+$router->register('/comptable/pending', 'ComptableController', 'listPending');
+$router->register('/comptable/validate-form', 'ComptableController', 'showValidationForm');
+$router->register('/comptable/validate', 'ComptableController', 'processValidation');
+
+// Mensualites (Monthly Payments)
+$router->register('/mensualites/show-form', 'MensualiteController', 'showForm');
+$router->register('/mensualites/store', 'MensualiteController', 'store');
+
+// Recus (Receipts)
+$router->register('/recu/inscription', 'RecuController', 'showInscriptionRecu');
 
 // Notes
 $router->register('/notes', 'NoteController', 'index');
@@ -130,9 +146,10 @@ $router->register('/notes/enter', 'NoteController', 'enter');
 $router->register('/notes/save', 'NoteController', 'save');
 
 // Paiements
-$router->register('/paiements', 'PaiementController', 'index');
-$router->register('/paiements/create', 'PaiementController', 'create');
-$router->register('/paiements/store', 'PaiementController', 'store');
+// Obsolete payment routes, replaced by Inscription and Mensualite flows
+// $router->register('/paiements', 'PaiementController', 'index');
+// $router->register('/paiements/create', 'PaiementController', 'create');
+// $router->register('/paiements/store', 'PaiementController', 'store');
 
 // Bulletins
 $router->register('/bulletin/show', 'BulletinController', 'show');

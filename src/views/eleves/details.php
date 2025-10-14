@@ -9,7 +9,6 @@ ob_start();
             <h1>Détails de l'Élève</h1>
         </div>
         <div class="col-md-4 text-right">
-            <a href="/inscriptions/show-form?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-primary">Inscrire à une Classe</a>
             <a href="/mensualites/show-form?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-success">Payer Mensualité</a>
         </div>
     </div>
