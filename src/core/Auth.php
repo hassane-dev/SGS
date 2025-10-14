@@ -29,6 +29,8 @@ class Auth {
             $role = Role::findById($user->role_id);
             $permissions = Role::getPermissions($user->role_id);
 
+            $lycee_info = $user->lycee_id ? Lycee::findById($user->lycee_id) : null;
+
             $_SESSION['user'] = [
                 'id' => $user->id_user,
                 'nom' => $user->nom,
@@ -37,6 +39,8 @@ class Auth {
                 'role_id' => $user->role_id,
                 'role_name' => $role['nom_role'] ?? 'N/A',
                 'lycee_id' => $user->lycee_id,
+                'lycee_name' => $lycee_info['nom_lycee'] ?? null,
+                'lycee_logo' => $lycee_info['logo'] ?? null,
                 'permissions' => $permissions,
             ];
             return true;

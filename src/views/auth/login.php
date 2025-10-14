@@ -1,25 +1,29 @@
-<?php require_once __DIR__ . '/../layouts/header_centered.php'; ?>
-<div class="col-md-6 col-lg-4">
-    <div class="card shadow-sm">
-        <div class="card-body p-4">
-            <h2 class="card-title text-center fw-bold h3 mb-4"><?= _('Connexion') ?></h2>
-            <?php if (isset($_GET['error'])): ?>
-                <div class="alert alert-danger" role="alert"><?= _('Email ou mot de passe incorrect.') ?></div>
-            <?php endif; ?>
-            <form action="/login" method="POST">
-                <div class="mb-3">
-                    <label for="email" class="form-label"><?= _('Email') ?></label>
-                    <input type="email" name="email" id="email" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label for="password" class="form-label"><?= _('Mot de passe') ?></label>
-                    <input type="password" name="password" id="password" class="form-control" required>
-                </div>
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-primary btn-lg"><?= _('Se connecter') ?></button>
-                </div>
-            </form>
-        </div>
+<?php
+$title = "Connexion";
+ob_start();
+?>
+
+<h3 class="card-title text-center mb-4">Connexion</h3>
+
+<?php if (isset($_GET['error'])): ?>
+    <div class="alert alert-danger">Email ou mot de passe incorrect.</div>
+<?php endif; ?>
+
+<form action="/auth/authenticate" method="POST">
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" name="email" required>
     </div>
-</div>
-<?php require_once __DIR__ . '/../layouts/footer.php'; ?>
+    <div class="mb-3">
+        <label for="password" class="form-label">Mot de passe</label>
+        <input type="password" class="form-control" id="password" name="password" required>
+    </div>
+    <div class="d-grid">
+        <button type="submit" class="btn btn-primary">Se Connecter</button>
+    </div>
+</form>
+
+<?php
+$content = ob_get_clean();
+require_once __DIR__ . '/../layouts/centered.php';
+?>
