@@ -5,31 +5,23 @@ require_once __DIR__ . '/../config/database.php';
 class Eleve {
 
     /**
-     * Find all students. Can be filtered by lycee.
-     * This will require a join through etudes and classes.
+     * Find all students, optionally filtered by lycee_id.
      * @param int|null $lycee_id
      * @return array
      */
     public static function findAll($lycee_id = null) {
         $db = Database::getInstance();
-        // This is a simplified query. A real one might need to check the current academic year.
-        // For now, we list all students that have ever been in a class of a given lycee.
-        $sql = "SELECT DISTINCT e.*
-                FROM eleves e";
+        $sql = "SELECT * FROM eleves";
+        $params = [];
 
         if ($lycee_id !== null) {
-            $sql .= " JOIN etudes et ON e.id_eleve = et.eleve_id
-                      JOIN classes c ON et.classe_id = c.id_classe
-                      WHERE c.lycee_id = :lycee_id";
+            $sql .= " WHERE lycee_id = :lycee_id";
+            $params['lycee_id'] = $lycee_id;
         }
-        $sql .= " ORDER BY e.nom, e.prenom ASC";
+        $sql .= " ORDER BY nom, prenom ASC";
 
         $stmt = $db->prepare($sql);
-        if ($lycee_id !== null) {
-            $stmt->execute(['lycee_id' => $lycee_id]);
-        } else {
-            $stmt->execute();
-        }
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -40,41 +32,60 @@ class Eleve {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Save a student's data (create or update).
+     * @param array $data
+     * @return bool
+     */
     public static function save($data) {
+        $db = Database::getInstance();
         $isUpdate = !empty($data['id_eleve']);
 
-        $sql = $isUpdate
-            ? "UPDATE eleves SET nom = :nom, prenom = :prenom, date_naissance = :date_naissance, email = :email, telephone = :telephone"
-            : "INSERT INTO eleves (nom, prenom, date_naissance, email, telephone) VALUES (:nom, :prenom, :date_naissance, :email, :telephone)";
-
-        if ($isUpdate) {
-            if (!empty($data['photo'])) {
-                $sql .= ", photo = :photo";
-            }
-            $sql .= " WHERE id_eleve = :id_eleve";
-        } else {
-            if (!empty($data['photo'])) {
-                $sql = "INSERT INTO eleves (nom, prenom, date_naissance, email, telephone, photo) VALUES (:nom, :prenom, :date_naissance, :email, :telephone, :photo)";
-            }
-        }
-
-        $db = Database::getInstance();
-        $stmt = $db->prepare($sql);
-
+        // List of all fields managed by this save method
         $params = [
+            'lycee_id' => $data['lycee_id'],
             'nom' => $data['nom'],
             'prenom' => $data['prenom'],
-            'date_naissance' => $data['date_naissance'] ?: null,
-            'email' => $data['email'] ?: null,
-            'telephone' => $data['telephone'] ?: null,
+            'date_naissance' => $data['date_naissance'] ?? null,
+            'lieu_naissance' => $data['lieu_naissance'] ?? null,
+            'nationalite' => $data['nationalite'] ?? null,
+            'sexe' => $data['sexe'] ?? null,
+            'quartier' => $data['quartier'] ?? null,
+            'tel_parent' => $data['tel_parent'] ?? null,
+            'nom_pere' => $data['nom_pere'] ?? null,
+            'nom_mere' => $data['nom_mere'] ?? null,
+            'profession_pere' => $data['profession_pere'] ?? null,
+            'profession_mere' => $data['profession_mere'] ?? null,
+            'email' => $data['email'] ?? null,
+            'telephone' => $data['telephone'] ?? null,
         ];
+
+        // Handle photo separately to avoid overwriting it with null on update
         if (!empty($data['photo'])) {
             $params['photo'] = $data['photo'];
         }
+
         if ($isUpdate) {
             $params['id_eleve'] = $data['id_eleve'];
+            $setClauses = [];
+            foreach ($params as $key => $value) {
+                // Don't include the primary key in the SET clause
+                if ($key !== 'id_eleve') {
+                    $setClauses[] = "$key = :$key";
+                }
+            }
+            $sql = "UPDATE eleves SET " . implode(', ', $setClauses) . " WHERE id_eleve = :id_eleve";
+        } else {
+            // For an insert, ensure photo is part of the params array, even if null
+            if (!isset($params['photo'])) {
+                $params['photo'] = null;
+            }
+            $columns = implode(', ', array_keys($params));
+            $placeholders = ':' . implode(', :', array_keys($params));
+            $sql = "INSERT INTO eleves ($columns) VALUES ($placeholders)";
         }
 
+        $stmt = $db->prepare($sql);
         return $stmt->execute($params);
     }
 
@@ -82,8 +93,7 @@ class Eleve {
         // Before deleting, we might want to remove the photo file from the server
         $eleve = self::findById($id);
         if ($eleve && !empty($eleve['photo'])) {
-            // Assuming photos are in public/uploads/photos/
-            $photo_path = __DIR__ . '/../../public/' . $eleve['photo'];
+            $photo_path = __DIR__ . '/../../public' . $eleve['photo'];
             if (file_exists($photo_path)) {
                 unlink($photo_path);
             }

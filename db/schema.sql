@@ -174,12 +174,23 @@ CREATE TABLE `enseignant_matieres` (
 -- Table for students' personal data
 CREATE TABLE `eleves` (
     `id_eleve` INT AUTO_INCREMENT PRIMARY KEY,
+    `lycee_id` INT NOT NULL,
     `nom` VARCHAR(100) NOT NULL,
     `prenom` VARCHAR(100) NOT NULL,
     `date_naissance` DATE,
+    `lieu_naissance` VARCHAR(255),
+    `nationalite` VARCHAR(100),
+    `sexe` ENUM('Masculin', 'Féminin'),
+    `quartier` VARCHAR(255),
+    `tel_parent` VARCHAR(50),
+    `nom_pere` VARCHAR(255),
+    `nom_mere` VARCHAR(255),
+    `profession_pere` VARCHAR(255),
+    `profession_mere` VARCHAR(255),
     `photo` VARCHAR(255),
     `email` VARCHAR(255) UNIQUE,
-    `telephone` VARCHAR(50)
+    `telephone` VARCHAR(50),
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
 );
 
 -- Table linking students to classes for a specific academic year
@@ -187,10 +198,12 @@ CREATE TABLE `etudes` (
     `id_etude` INT AUTO_INCREMENT PRIMARY KEY,
     `eleve_id` INT NOT NULL,
     `classe_id` INT NOT NULL,
+    `lycee_id` INT NOT NULL,
     `annee_academique_id` INT,
     `actif` BOOLEAN DEFAULT FALSE, -- Activated upon full payment/validation
     FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
 );
 
@@ -241,16 +254,55 @@ CREATE TABLE `tests_entree` (
 -- =================================================================
 
 -- Table for payments
-CREATE TABLE `paiements` (
-    `id_paiement` INT AUTO_INCREMENT PRIMARY KEY,
+-- Table for initial enrollment fees
+CREATE TABLE `inscriptions` (
+    `id_inscription` INT AUTO_INCREMENT PRIMARY KEY,
     `eleve_id` INT NOT NULL,
+    `classe_id` INT NOT NULL,
+    `lycee_id` INT NOT NULL,
     `annee_academique_id` INT,
-    `type_paiement` ENUM('inscription', 'mensualite', 'assurance', 'boutique') NOT NULL,
-    `montant` DECIMAL(10, 2) NOT NULL,
-    `statut` ENUM('paye', 'partiel', 'non_paye') NOT NULL,
-    `date_paiement` DATETIME NOT NULL,
+    `montant_total` DECIMAL(10, 2) NOT NULL,
+    `montant_verse` DECIMAL(10, 2) NOT NULL,
+    `reste_a_payer` DECIMAL(10, 2) NOT NULL,
+    `details_frais` JSON,
+    `user_id` INT,
+    `date_inscription` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
-    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
+    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL,
+    FOREIGN KEY (`user_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL
+);
+
+-- Table for monthly/sequential payments
+CREATE TABLE `mensualites` (
+    `id_mensualite` INT AUTO_INCREMENT PRIMARY KEY,
+    `eleve_id` INT NOT NULL,
+    `lycee_id` INT NOT NULL,
+    `annee_academique_id` INT,
+    `mois_ou_sequence` VARCHAR(50) NOT NULL, -- e.g., 'Octobre', 'Trimestre 1'
+    `montant_verse` DECIMAL(10, 2) NOT NULL,
+    `date_paiement` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `user_id` INT,
+    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL,
+    FOREIGN KEY (`user_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL
+);
+
+-- Table for defining school fees (tuition, etc.)
+CREATE TABLE `frais` (
+    `id_frais` INT AUTO_INCREMENT PRIMARY KEY,
+    `lycee_id` INT NOT NULL,
+    `niveau` VARCHAR(50) NOT NULL,
+    `serie` VARCHAR(50),
+    `frais_inscription` DECIMAL(10, 2) NOT NULL,
+    `frais_mensuel` DECIMAL(10, 2) NOT NULL,
+    `autres_frais` JSON, -- For additional fixed fees like uniform, insurance, etc.
+    `annee_academique_id` INT,
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL,
+    UNIQUE KEY `unique_frais` (`lycee_id`, `niveau`, `serie`, `annee_academique_id`)
 );
 
 -- Table for shop articles

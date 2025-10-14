@@ -52,6 +52,20 @@ class Database {
     }
 
     /**
+     * Sets a mock database instance for testing purposes.
+     * @param PDO $pdo The mock PDO connection.
+     */
+    public static function setInstance(?PDO $pdo) {
+        if ($pdo === null) {
+            self::$instance = null;
+            return;
+        }
+        $mock = new stdClass();
+        $mock->conn = $pdo;
+        self::$instance = $mock;
+    }
+
+    /**
      * Private clone method to prevent cloning of the instance.
      */
     private function __clone() { }

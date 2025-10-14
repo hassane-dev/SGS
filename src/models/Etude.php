@@ -48,14 +48,24 @@ class Etude {
      */
     public static function create($data) {
         $db = Database::getInstance();
-        $sql = "INSERT INTO etudes (eleve_id, classe_id, annee_academique, actif)
-                VALUES (:eleve_id, :classe_id, :annee_academique, :actif)";
+        // We need to get the lycee_id from the classe to ensure data integrity
+        $stmt_classe = $db->prepare("SELECT lycee_id FROM classes WHERE id_classe = :classe_id");
+        $stmt_classe->execute(['classe_id' => $data['classe_id']]);
+        $classe = $stmt_classe->fetch(PDO::FETCH_ASSOC);
+        if (!$classe) {
+            // Or handle this error more gracefully
+            throw new Exception("Classe non trouvée.");
+        }
+
+        $sql = "INSERT INTO etudes (eleve_id, classe_id, lycee_id, annee_academique_id, actif)
+                VALUES (:eleve_id, :classe_id, :lycee_id, :annee_academique_id, :actif)";
 
         $stmt = $db->prepare($sql);
         return $stmt->execute([
             'eleve_id' => $data['eleve_id'],
             'classe_id' => $data['classe_id'],
-            'annee_academique' => $data['annee_academique'],
+            'lycee_id' => $classe['lycee_id'],
+            'annee_academique_id' => $data['annee_academique_id'],
             'actif' => $data['actif'] ?? 0, // Default to inactive
         ]);
     }
