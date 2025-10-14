@@ -81,11 +81,19 @@ class Classe {
         }
     }
 
-    public static function delete($id) {
+    public static function delete($id, $lycee_id = null) {
         try {
             $db = Database::getInstance();
-            $stmt = $db->prepare("DELETE FROM classes WHERE id_classe = :id");
-            return $stmt->execute(['id' => $id]);
+            $sql = "DELETE FROM classes WHERE id_classe = :id";
+            $params = ['id' => $id];
+
+            if ($lycee_id !== null) {
+                $sql .= " AND lycee_id = :lycee_id";
+                $params['lycee_id'] = $lycee_id;
+            }
+
+            $stmt = $db->prepare($sql);
+            return $stmt->execute($params);
         } catch (PDOException $e) {
             error_log("Error in Classe::delete: " . $e->getMessage());
             return false;

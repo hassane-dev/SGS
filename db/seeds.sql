@@ -54,9 +54,12 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (34, 'system', 'view_all_lycees', 'Special permission to bypass lycee_id scope checks'),
 
 -- Academic Structure
-(40, 'class', 'manage', 'Can manage classes, cycles, and rooms'),
-(41, 'matiere', 'manage', 'Can manage subjects and their coefficients'),
-(42, 'annee_academique', 'manage', 'Can manage academic years'),
+(40, 'class', 'view', 'Can view the list of classes'),
+(41, 'class', 'create', 'Can create new classes'),
+(42, 'class', 'edit', 'Can edit existing classes'),
+(43, 'class', 'delete', 'Can delete classes'),
+(44, 'matiere', 'manage', 'Can manage subjects and their coefficients'),
+(45, 'annee_academique', 'manage', 'Can manage academic years'),
 
 
 -- Students
@@ -91,9 +94,11 @@ FROM roles r, permissions p
 WHERE r.nom_role IN ('super_admin_createur', 'super_admin_national');
 
 -- Admin Local
+-- Note: Permission 40 for 'class.manage' is replaced by 40, 41, 42, 43.
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (3, 1), (3, 10), (3, 11), (3, 12), (3, 13), (3, 14), (3, 15), (3, 20), (3, 21), (3, 22), (3, 23),
-(3, 40), (3, 41), (3, 42), (3, 50), (3, 51), (3, 52), (3, 53), (3, 54), (3, 60), (3, 61), (3, 62),
+(3, 40), (3, 41), (3, 42), (3, 43), (3, 44), (3, 45),
+(3, 50), (3, 51), (3, 52), (3, 53), (3, 54), (3, 60), (3, 61), (3, 62),
 (3, 70), (3, 71), (3, 80);
 
 -- Censeur (Academic Supervisor)
