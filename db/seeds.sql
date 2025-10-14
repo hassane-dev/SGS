@@ -77,8 +77,9 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (64, 'cahier_texte', 'edit_own', 'Can edit their own digital logbook entries'),
 
 -- Finance
-(70, 'paiement', 'manage', 'Can manage student payments'),
+(70, 'paiement', 'manage', 'Can manage and validate student payments'),
 (71, 'salaire', 'manage', 'Can manage staff payroll records'),
+(72, 'frais', 'manage', 'Can manage the fee structure (frais)'),
 
 -- Settings
 (80, 'setting', 'edit', 'Can edit school-specific settings');
@@ -99,11 +100,11 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (3, 1), (3, 10), (3, 11), (3, 12), (3, 13), (3, 14), (3, 15), (3, 20), (3, 21), (3, 22), (3, 23),
 (3, 40), (3, 41), (3, 42), (3, 43), (3, 44), (3, 45),
 (3, 50), (3, 51), (3, 52), (3, 53), (3, 54), (3, 60), (3, 61), (3, 62),
-(3, 70), (3, 71), (3, 80);
+(3, 70), (3, 71), (3, 72), (3, 80);
 
 -- Censeur (Academic Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(4, 1), (4, 40), (4, 41), (4, 51), (4, 60), (4, 61);
+(4, 1), (4, 40), (4, 51), (4, 60), (4, 61);
 
 -- Surveillant (Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
@@ -111,11 +112,11 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 
 -- Enseignant (Teacher)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(6, 1), (6, 60), (6, 63), (6, 64); -- Dashboard, manage notes, fill own cahier de texte
+(6, 1), (6, 60), (6, 63), (6, 64);
 
 -- Comptable (Accountant)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(7, 1), (7, 70), (7, 71); -- Dashboard, manage payments, manage salaries
+(7, 1), (7, 70), (7, 71);
 
 -- Eleve (Student)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES

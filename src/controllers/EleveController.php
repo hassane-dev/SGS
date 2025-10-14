@@ -24,26 +24,62 @@ class EleveController {
 
     public function create() {
         $this->checkAccess();
+        $lycee_id = Auth::get('lycee_id');
+        $classes = Classe::findAll($lycee_id);
         require_once __DIR__ . '/../views/eleves/create.php';
     }
 
     public function store() {
         $this->checkAccess();
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = $_POST;
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /eleves/create');
+            exit();
+        }
 
-            // Assign lycee_id from the authenticated user
-            if (!isset($data['lycee_id']) || !Auth::can('manage_all_lycees')) {
-                $data['lycee_id'] = Auth::get('lycee_id');
-            }
+        $data = $_POST;
+        $db = Database::getInstance();
 
+        try {
+            $db->beginTransaction();
+
+            // 1. Handle photo upload
             if (isset($_FILES['photo']) && $_FILES['photo']['error'] == UPLOAD_ERR_OK) {
                 $data['photo'] = $this->handlePhotoUpload($_FILES['photo']);
             }
 
+            // 2. Save student data
+            if (!Auth::can('manage_all_lycees')) {
+                $data['lycee_id'] = Auth::get('lycee_id');
+            }
             Eleve::save($data);
+            $eleve_id = $db->lastInsertId();
+
+            // 3. Pre-enroll the student in the selected class
+            $activeYear = AnneeAcademique::findActive();
+            Etude::create([
+                'eleve_id' => $eleve_id,
+                'classe_id' => $data['classe_id'],
+                'annee_academique_id' => $activeYear['id'],
+                'actif' => 0 // Inactive until payment validation
+            ]);
+
+            // 4. Notify accountants
+            $eleve = Eleve::findById($eleve_id);
+            $message = "Nouvelle pré-inscription pour " . $eleve['prenom'] . " " . $eleve['nom'] . ".";
+            $link = "/comptable/validate-form?eleve_id=" . $eleve_id;
+            Notification::notifyAccountants($data['lycee_id'], $message, $link);
+
+            $db->commit();
+
+        } catch (Exception $e) {
+            $db->rollBack();
+            error_log("Student creation failed: " . $e->getMessage());
+            // Redirect back with an error message
+            header('Location: /eleves/create?error=1');
+            exit();
         }
-        header('Location: /eleves');
+
+        header('Location: /eleves?success=1');
         exit();
     }
 
@@ -55,6 +91,8 @@ class EleveController {
             exit();
         }
         $eleve = Eleve::findById($id);
+        $lycee_id = $eleve['lycee_id'];
+        $classes = Classe::findAll($lycee_id);
         require_once __DIR__ . '/../views/eleves/edit.php';
     }
 
