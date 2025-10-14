@@ -5,7 +5,7 @@ require_once __DIR__ . '/../models/Lycee.php';
 class LyceeController {
 
     private function checkAccess() {
-        if (!Auth::can('manage_all_lycees')) {
+        if (!Auth::can('system_view_all_lycees')) {
             http_response_code(403);
             echo "Accès Interdit. Vous devez être un super administrateur national.";
             exit();
