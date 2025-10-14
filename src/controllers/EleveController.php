@@ -31,7 +31,16 @@ class EleveController {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = $_POST;
-            $data['photo'] = $this->handlePhotoUpload($_FILES['photo']);
+
+            // Assign lycee_id from the authenticated user
+            if (!isset($data['lycee_id']) || !Auth::can('manage_all_lycees')) {
+                $data['lycee_id'] = Auth::get('lycee_id');
+            }
+
+            if (isset($_FILES['photo']) && $_FILES['photo']['error'] == UPLOAD_ERR_OK) {
+                $data['photo'] = $this->handlePhotoUpload($_FILES['photo']);
+            }
+
             Eleve::save($data);
         }
         header('Location: /eleves');
@@ -73,7 +82,7 @@ class EleveController {
     }
 
     public function details() {
-        $this->checkAdmin();
+        $this->checkAccess();
         $eleve_id = $_GET['id'] ?? null;
         if (!$eleve_id) {
             header('Location: /eleves');
@@ -81,6 +90,8 @@ class EleveController {
         }
         $eleve = Eleve::findById($eleve_id);
         $etudes = Etude::findByEleveId($eleve_id);
+        $inscriptions = Inscription::findByEleveId($eleve_id);
+        $mensualites = Mensualite::findByEleveId($eleve_id);
 
         require_once __DIR__ . '/../views/eleves/details.php';
     }

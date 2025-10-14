@@ -1,64 +1,99 @@
-<?php require_once __DIR__ . '/../layouts/header.php'; ?>
+<?php
+$title = "Détails de l'Élève";
+ob_start();
+?>
 
-<div class="container mx-auto">
-    <div class="flex items-center mb-6">
-        <?php if (!empty($eleve['photo'])): ?>
-            <img src="<?= htmlspecialchars($eleve['photo']) ?>" alt="<?= _('Student Photo') ?>" class="h-20 w-20 rounded-full object-cover mr-4">
-        <?php endif; ?>
-        <div>
-            <h2 class="text-2xl font-bold"><?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?></h2>
-            <p class="text-gray-600"><?= htmlspecialchars($eleve['email']) ?></p>
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>Détails de l'Élève</h1>
+        </div>
+        <div class="col-md-4 text-right">
+            <a href="/inscriptions/show-form?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-primary">Inscrire à une Classe</a>
+            <a href="/mensualites/show-form?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-success">Payer Mensualité</a>
         </div>
     </div>
 
-    <div class="bg-white shadow-md rounded p-6">
-        <h3 class="text-xl font-bold mb-4"><?= _('Enrollment History') ?></h3>
-        <div class="mb-4 flex space-x-4">
-            <a href="/boutique/achats?eleve_id=<?= $eleve['id_eleve'] ?>" class="text-yellow-600 hover:underline"><?= _('Purchase History') ?> &rarr;</a>
-            <a href="/tests_entree?eleve_id=<?= $eleve['id_eleve'] ?>" class="text-purple-600 hover:underline"><?= _('Entrance Tests') ?> &rarr;</a>
-            <a href="/carte/generer?eleve_id=<?= $eleve['id_eleve'] ?>" class="text-cyan-600 hover:underline"><?= _('Generate ID Card') ?> &rarr;</a>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4>Informations Personnelles</h4>
         </div>
-        <table class="min-w-full table-auto">
-            <thead class="bg-gray-200">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Academic Year') ?></th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Class') ?></th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Status') ?></th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Actions') ?></th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                <?php if (empty($etudes)): ?>
+        <div class="card-body">
+            <p><strong>Nom & Prénom:</strong> <?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?></p>
+            <p><strong>Date de Naissance:</strong> <?= htmlspecialchars($eleve['date_naissance']) ?></p>
+            <p><strong>Lieu de Naissance:</strong> <?= htmlspecialchars($eleve['lieu_naissance']) ?></p>
+            <p><strong>Sexe:</strong> <?= htmlspecialchars($eleve['sexe']) ?></p>
+            <p><strong>Nationalité:</strong> <?= htmlspecialchars($eleve['nationalite']) ?></p>
+            <p><strong>Adresse:</strong> <?= htmlspecialchars($eleve['quartier']) ?></p>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4>Historique des Inscriptions</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
                     <tr>
-                        <td colspan="4" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">
-                            <?= _('No enrollments found.') ?>
-                        </td>
+                        <th>Année Académique</th>
+                        <th>Classe</th>
+                        <th>Montant Total</th>
+                        <th>Montant Versé</th>
+                        <th>Reste à Payer</th>
+                        <th>Date</th>
                     </tr>
-                <?php else: ?>
-                    <?php foreach ($etudes as $etude): ?>
+                </thead>
+                <tbody>
+                    <?php foreach ($inscriptions as $inscription): ?>
                         <tr>
-                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($etude['annee_academique']) ?></td>
-                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($etude['nom_classe'] . ' (' . $etude['serie'] . ')') ?></td>
-                             <td class="px-6 py-4 whitespace-nowrap">
-                                <?php if ($etude['actif']): ?>
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"><?= _('Active') ?></span>
-                                <?php else: ?>
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800"><?= _('Inactive') ?></span>
-                                <?php endif; ?>
+                            <td><?= htmlspecialchars($inscription['annee_academique']) ?></td>
+                            <td><?= htmlspecialchars($inscription['nom_classe']) ?></td>
+                            <td><?= htmlspecialchars(number_format($inscription['montant_total'], 2)) ?></td>
+                            <td><?= htmlspecialchars(number_format($inscription['montant_verse'], 2)) ?></td>
+                            <td class="<?= $inscription['reste_a_payer'] > 0 ? 'text-danger' : 'text-success' ?>">
+                                <?= htmlspecialchars(number_format($inscription['reste_a_payer'], 2)) ?>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="/bulletin/show?etude_id=<?= $etude['id_etude'] ?>" class="text-blue-600 hover:text-blue-900"><?= _('View Report Card') ?></a>
-                            </td>
+                            <td><?= htmlspecialchars(date('d/m/Y', strtotime($inscription['date_inscription']))) ?></td>
                         </tr>
                     <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <div class="mt-4">
-        <a href="/eleves" class="text-blue-500 hover:underline">&larr; <?= _('Back to student list') ?></a>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4>Historique des Paiements Mensuels</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Année Académique</th>
+                        <th>Mois/Séquence</th>
+                        <th>Montant Versé</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($mensualites as $mensualite): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($mensualite['annee_academique']) ?></td>
+                            <td><?= htmlspecialchars($mensualite['mois_ou_sequence']) ?></td>
+                            <td><?= htmlspecialchars(number_format($mensualite['montant_verse'], 2)) ?></td>
+                            <td><?= htmlspecialchars(date('d/m/Y', strtotime($mensualite['date_paiement']))) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
+
+    <a href="/eleves" class="btn btn-secondary mt-4">Retour à la liste</a>
 </div>
 
-<?php require_once __DIR__ . '/../layouts/footer.php'; ?>
+<?php
+$content = ob_get_clean();
+require_once __DIR__ . '/../layouts/header.php';
+?>

@@ -3,7 +3,10 @@
 require_once __DIR__ . '/../models/Eleve.php';
 require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Etude.php';
-require_once __DIR__ . '/../models/Settings.php'; // To get current academic year
+require_once __DIR__ . '/../models/Frais.php';
+require_once __DIR__ . '/../models/Inscription.php';
+require_once __DIR__ . '/../models/AnneeAcademique.php';
+require_once __DIR__ . '/../core/Auth.php';
 
 class InscriptionController {
 
@@ -24,39 +27,83 @@ class InscriptionController {
         }
 
         $eleve = Eleve::findById($eleve_id);
+        // An admin can only enroll a student in their own lycee
+        $classes = Classe::findAll($eleve['lycee_id']);
+        $activeYear = AnneeAcademique::findActive();
 
-        $lycee_id = !Auth::can('manage_all_lycees') ? Auth::get('lycee_id') : null;
-
-        // A super admin needs to know which lycee this student might belong to.
-        // This is a simplification; a real app might need a more robust way to determine this.
-        if (Auth::can('manage_all_lycees') && !$lycee_id) {
-            // Find the lycee of the first class the student was in, if any.
-            $enrollments = Etude::findByEleveId($eleve_id);
-            if (!empty($enrollments)) {
-                $first_enrollment_classe = Classe::findById($enrollments[0]['classe_id']);
-                $lycee_id = $first_enrollment_classe['lycee_id'];
-            } else {
-                // If the student is new, the super admin must choose a lycee.
-                // For now, we'll just show all classes which is not ideal.
-            }
+        if (!$activeYear) {
+            // Handle case where no academic year is active
+            die("Aucune année académique active. Veuillez en activer une.");
         }
-
-        $classes = Classe::findAll($lycee_id);
-
-        // Get the current academic year from settings (assuming lycee_id 1 for now)
-        $settings = Settings::getByLyceeId($lycee_id ?? 1);
-        $annee_academique = $settings['annee_academique'] ?? date('Y') . '-' . (date('Y') + 1);
 
         require_once __DIR__ . '/../views/inscriptions/enroll.php';
     }
 
     public function enroll() {
         $this->checkAccess();
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            Etude::create($_POST);
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /eleves');
+            exit();
         }
-        // Redirect back to the main student list
-        header('Location: /eleves');
+
+        $eleve_id = $_POST['eleve_id'];
+        $classe_id = $_POST['classe_id'];
+        $montant_verse = $_POST['montant_verse'];
+
+        $eleve = Eleve::findById($eleve_id);
+        $activeYear = AnneeAcademique::findActive();
+
+        // 1. Get applicable fees
+        $frais = Frais::getForClasse($classe_id, $activeYear['id']);
+        if (!$frais) {
+            die("La grille tarifaire pour cette classe n'a pas été définie pour l'année en cours.");
+        }
+
+        $montant_total = $frais['frais_inscription'];
+        $details_frais = ['frais_inscription' => $frais['frais_inscription']];
+
+        if (!empty($frais['autres_frais'])) {
+            $autres_frais = json_decode($frais['autres_frais'], true);
+            foreach($autres_frais as $key => $value) {
+                $montant_total += $value;
+                $details_frais[$key] = $value;
+            }
+        }
+
+        $db = Database::getInstance();
+        try {
+            $db->beginTransaction();
+
+            // 2. Create the academic record (etude)
+            Etude::create([
+                'eleve_id' => $eleve_id,
+                'classe_id' => $classe_id,
+                'annee_academique_id' => $activeYear['id'],
+                'actif' => 1 // Enrollment makes the student active in the class
+            ]);
+
+            // 3. Create the financial record (inscription)
+            Inscription::create([
+                'eleve_id' => $eleve_id,
+                'classe_id' => $classe_id,
+                'lycee_id' => $eleve['lycee_id'],
+                'annee_academique_id' => $activeYear['id'],
+                'montant_total' => $montant_total,
+                'montant_verse' => $montant_verse,
+                'reste_a_payer' => $montant_total - $montant_verse,
+                'details_frais' => $details_frais,
+                'user_id' => Auth::get('id_user')
+            ]);
+
+            $db->commit();
+        } catch (Exception $e) {
+            $db->rollBack();
+            // Log the error and show a user-friendly message
+            error_log($e->getMessage());
+            die("Une erreur est survenue lors de l'inscription. Veuillez réessayer.");
+        }
+
+        header('Location: /eleves/details?id=' . $eleve_id);
         exit();
     }
 }
