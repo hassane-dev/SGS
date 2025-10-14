@@ -3,9 +3,11 @@
 <div class="container mx-auto">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold"><?= _('Class Management') ?></h2>
+        <?php if (Auth::can('create_classes')): ?>
         <a href="/classes/create" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
             <?= _('Add Class') ?>
         </a>
+        <?php endif; ?>
     </div>
 
     <div class="bg-white shadow-md rounded">
@@ -36,12 +38,15 @@
                                 <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($classe['nom_lycee']) ?></td>
                             <?php endif; ?>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="/matieres/assign?class_id=<?= $classe['id_classe'] ?>" class="text-green-600 hover:text-green-900"><?= _('Assign Subjects') ?></a>
-                                <a href="/classes/edit?id=<?= $classe['id_classe'] ?>" class="text-indigo-600 hover:text-indigo-900 ml-4"><?= _('Edit') ?></a>
+                                <?php if (Auth::can('edit_classes')): ?>
+                                    <a href="/classes/edit?id=<?= $classe['id_classe'] ?>" class="text-indigo-600 hover:text-indigo-900 ml-4"><?= _('Edit') ?></a>
+                                <?php endif; ?>
+                                <?php if (Auth::can('delete_classes')): ?>
                                 <form action="/classes/destroy" method="POST" class="inline-block ml-4" onsubmit="return confirm('<?= _('Are you sure you want to delete this class?') ?>');">
                                     <input type="hidden" name="id" value="<?= $classe['id_classe'] ?>">
                                     <button type="submit" class="text-red-600 hover:text-red-900"><?= _('Delete') ?></button>
                                 </form>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>

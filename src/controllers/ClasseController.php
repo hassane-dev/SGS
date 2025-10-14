@@ -3,37 +3,31 @@
 require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Cycle.php';
 require_once __DIR__ . '/../models/Lycee.php';
+require_once __DIR__ . '/../core/Auth.php';
 
 class ClasseController {
 
-    private function checkAccess() {
-        if (!Auth::can('manage_classes')) {
-            http_response_code(403);
-            echo "Accès Interdit.";
-            exit();
-        }
-    }
-
     public function index() {
-        $this->checkAccess();
-        $lycee_id = !Auth::can('manage_all_lycees') ? Auth::get('lycee_id') : null;
+        if (!Auth::can('view_classes')) { $this->forbidden(); }
 
+        $lycee_id = !Auth::can('view_all_lycees') ? Auth::get('lycee_id') : null;
         $classes = Classe::findAll($lycee_id);
         require_once __DIR__ . '/../views/classes/index.php';
     }
 
     public function create() {
-        $this->checkAccess();
+        if (!Auth::can('create_classes')) { $this->forbidden(); }
+
         $cycles = Cycle::findAll();
-        $lycees = Lycee::findAll(); // Needed for super_admin
+        $lycees = Auth::can('view_all_lycees') ? Lycee::findAll() : [];
         require_once __DIR__ . '/../views/classes/create.php';
     }
 
     public function store() {
-        $this->checkAccess();
+        if (!Auth::can('create_classes')) { $this->forbidden(); }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // If user is a local admin, force their lycee_id
-            if (!Auth::can('manage_all_lycees')) {
+            if (!Auth::can('view_all_lycees')) {
                 $_POST['lycee_id'] = Auth::get('lycee_id');
             }
             Classe::save($_POST);
@@ -43,32 +37,31 @@ class ClasseController {
     }
 
     public function edit() {
-        $this->checkAccess();
+        if (!Auth::can('edit_classes')) { $this->forbidden(); }
+
         $id = $_GET['id'] ?? null;
-        if (!$id) {
-            header('Location: /classes');
-            exit();
-        }
+        if (!$id) { header('Location: /classes'); exit(); }
+
         $classe = Classe::findById($id);
-        // Security check: local admin can only edit classes from their lycee
-        if (!Auth::can('manage_all_lycees') && $classe['lycee_id'] != Auth::get('lycee_id')) {
-            http_response_code(403);
-            echo "Accès Interdit.";
-            exit();
+        if (!Auth::can('view_all_lycees') && $classe['lycee_id'] != Auth::get('lycee_id')) {
+            $this->forbidden();
         }
 
         $cycles = Cycle::findAll();
-        $lycees = Lycee::findAll();
+        $lycees = Auth::can('view_all_lycees') ? Lycee::findAll() : [];
         require_once __DIR__ . '/../views/classes/edit.php';
     }
 
     public function update() {
-        $this->checkAccess();
+        if (!Auth::can('edit_classes')) { $this->forbidden(); }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Security check
-            if (!Auth::can('manage_all_lycees')) {
-                $_POST['lycee_id'] = Auth::get('lycee_id');
+            $classe = Classe::findById($_POST['id_classe']);
+            if (!Auth::can('view_all_lycees') && $classe['lycee_id'] != Auth::get('lycee_id')) {
+                $this->forbidden();
             }
+            // Ensure lycee_id is not maliciously changed
+            $_POST['lycee_id'] = $classe['lycee_id'];
             Classe::save($_POST);
         }
         header('Location: /classes');
@@ -76,13 +69,25 @@ class ClasseController {
     }
 
     public function destroy() {
-        $this->checkAccess();
+        if (!Auth::can('delete_classes')) { $this->forbidden(); }
+
         $id = $_POST['id'] ?? null;
         if ($id) {
-            // Optional: Add security check here too before deleting
-            Classe::delete($id);
+            $classe = Classe::findById($id);
+            if ($classe) {
+                if (!Auth::can('view_all_lycees') && $classe['lycee_id'] != Auth::get('lycee_id')) {
+                    $this->forbidden();
+                }
+                Classe::delete($id, $classe['lycee_id']);
+            }
         }
         header('Location: /classes');
+        exit();
+    }
+
+    private function forbidden() {
+        http_response_code(403);
+        echo "Accès Interdit.";
         exit();
     }
 }
