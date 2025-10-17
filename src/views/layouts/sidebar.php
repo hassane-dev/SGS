@@ -40,6 +40,9 @@
                 <?php if (Auth::can('manage_roles')): ?>
                     <a class="nav-link text-white" href="/roles"><i class="fas fa-user-tag"></i> Gérer les Rôles</a>
                 <?php endif; ?>
+                <?php if (Auth::can('manage_permissions')): ?>
+                    <a class="nav-link text-white" href="/permissions"><i class="fas fa-key"></i> Gérer les Permissions</a>
+                <?php endif; ?>
                  <?php if (Auth::can('manage_frais')): ?>
                     <a class="nav-link text-white" href="/frais"><i class="fas fa-cogs"></i> Grille Tarifaire</a>
                 <?php endif; ?>
