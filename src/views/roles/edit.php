@@ -1,28 +1,30 @@
-<?php require_once __DIR__ . '/../layouts/header.php'; ?>
+<h1 class="mb-4">Modifier le Rôle : <?= htmlspecialchars($role['nom_role']) ?></h1>
 
-<div class="max-w-4xl mx-auto">
-    <h2 class="text-2xl font-bold mb-6"><?= _('Edit Role') ?>: <?= htmlspecialchars($role['nom_role']) ?></h2>
+<form action="/roles/update" method="POST">
+    <input type="hidden" name="id_role" value="<?= htmlspecialchars($role['id_role']) ?>">
 
-    <div class="bg-white p-8 rounded-lg shadow-lg">
-        <form action="/roles/update" method="POST">
-            <input type="hidden" name="id_role" value="<?= htmlspecialchars($role['id_role']) ?>">
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Role Details -->
-                <div class="md:col-span-1">
-                    <h3 class="text-lg font-semibold mb-4 border-b pb-2"><?= _('Role Details') ?></h3>
-                    <div>
-                        <label for="nom_role" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Role Name') ?></label>
-                        <input type="text" name="nom_role" id="nom_role" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" value="<?= htmlspecialchars($role['nom_role']) ?>" required>
+    <div class="row">
+        <!-- Colonne des détails du rôle -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    Détails du Rôle
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="nom_role" class="form-label">Nom du rôle</label>
+                        <input type="text" name="nom_role" id="nom_role" class="form-control" value="<?= htmlspecialchars($role['nom_role']) ?>" required>
                     </div>
 
                     <?php if (Auth::can('manage_all_lycees')): ?>
-                    <div class="mt-4">
-                        <label for="lycee_id" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Scope') ?></label>
-                        <select name="lycee_id" id="lycee_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
-                            <option value="" <?= !$role['lycee_id'] ? 'selected' : '' ?>><?= _('Global Role') ?></option>
+                    <div class="mb-3">
+                        <label for="lycee_id" class="form-label">Portée</label>
+                        <select name="lycee_id" id="lycee_id" class="form-select">
+                            <option value="" <?= !$role['lycee_id'] ? 'selected' : '' ?>>Rôle Global</option>
                             <?php foreach ($lycees as $lycee): ?>
-                                <option value="<?= $lycee['id_lycee'] ?>" <?= $role['lycee_id'] == $lycee['id_lycee'] ? 'selected' : '' ?>><?= _('Specific to') ?>: <?= htmlspecialchars($lycee['nom_lycee']) ?></option>
+                                <option value="<?= $lycee['id_lycee'] ?>" <?= $role['lycee_id'] == $lycee['id_lycee'] ? 'selected' : '' ?>>
+                                    Spécifique à : <?= htmlspecialchars($lycee['nom_lycee']) ?>
+                                </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -30,32 +32,50 @@
                         <input type="hidden" name="lycee_id" value="<?= htmlspecialchars($role['lycee_id']) ?>">
                     <?php endif; ?>
                 </div>
+            </div>
+        </div>
 
-                <!-- Permissions -->
-                <div class="md:col-span-2">
-                    <h3 class="text-lg font-semibold mb-4 border-b pb-2"><?= _('Permissions') ?></h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <?php foreach ($permissions as $permission): ?>
-                            <label class="flex items-center p-2 rounded-lg border hover:bg-gray-100">
-                                <input type="checkbox" name="permissions[]" value="<?= $permission['id_permission'] ?>"
-                                    class="form-checkbox h-5 w-5 text-blue-600"
-                                    <?= in_array($permission['nom_permission'], $role_permissions) ? 'checked' : '' ?>>
-                                <span class="ml-3 text-gray-700"><?= htmlspecialchars($permission['nom_permission']) ?></span>
-                            </label>
-                        <?php endforeach; ?>
-                    </div>
+        <!-- Colonne des permissions -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    Permissions
+                </div>
+                <div class="card-body">
+                    <?php
+                        // Grouper les permissions par ressource
+                        $grouped_permissions = [];
+                        foreach ($all_permissions as $p) {
+                            $grouped_permissions[$p['resource']][] = $p;
+                        }
+                        ksort($grouped_permissions);
+                    ?>
+
+                    <?php foreach ($grouped_permissions as $resource => $permissions): ?>
+                        <div class="mb-3">
+                            <h5 class="text-capitalize border-bottom pb-2 mb-2"><?= htmlspecialchars($resource) ?></h5>
+                            <div class="row">
+                                <?php foreach ($permissions as $p): ?>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="permissions[]" value="<?= $p['id_permission'] ?>" id="perm_<?= $p['id_permission'] ?>"
+                                                <?= in_array($p['id_permission'], $role_permission_ids) ? 'checked' : '' ?>>
+                                            <label class="form-check-label" for="perm_<?= $p['id_permission'] ?>">
+                                                <?= htmlspecialchars($p['action']) ?>
+                                            </label>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
-
-
-            <div class="mt-8 flex justify-end gap-4">
-                <a href="/roles" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"><?= _('Cancel') ?></a>
-                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    <?= _('Update') ?>
-                </button>
-            </div>
-        </form>
+        </div>
     </div>
-</div>
 
-<?php require_once __DIR__ . '/../layouts/footer.php'; ?>
+    <div class="mt-4 text-end">
+        <a href="/roles" class="btn btn-secondary">Annuler</a>
+        <button type="submit" class="btn btn-primary">Mettre à jour</button>
+    </div>
+</form>
