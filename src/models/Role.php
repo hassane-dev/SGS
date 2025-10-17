@@ -82,13 +82,6 @@ class Role {
         return $permissions;
     }
 
-    public static function getPermissionIds(int $role_id): array {
-        $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT permission_id FROM role_permissions WHERE role_id = :role_id");
-        $stmt->execute(['role_id' => $role_id]);
-        return $stmt->fetchAll(PDO::FETCH_COLUMN);
-    }
-
     public static function setPermissions($role_id, $permission_ids) {
         $db = Database::getInstance();
 

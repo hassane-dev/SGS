@@ -101,5 +101,18 @@ class Etude {
         $stmt->execute(['eleve_id' => $eleve_id, 'annee_academique_id' => $annee_academique_id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
+    public static function isEnrolled(int $eleve_id, int $annee_academique_id): bool {
+        $db = Database::getInstance();
+        $stmt = $db->prepare(
+            "SELECT COUNT(*) FROM etudes
+             WHERE eleve_id = :eleve_id AND annee_academique_id = :annee_academique_id"
+        );
+        $stmt->execute([
+            'eleve_id' => $eleve_id,
+            'annee_academique_id' => $annee_academique_id
+        ]);
+        return $stmt->fetchColumn() > 0;
+    }
 }
 ?>

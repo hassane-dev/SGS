@@ -45,7 +45,6 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (21, 'role', 'view_all', 'Can view all roles'),
 (22, 'role', 'edit', 'Can edit roles and assign permissions'),
 (23, 'role', 'delete', 'Can delete roles'),
-(24, 'permission', 'manage', 'Can manage permissions (add, edit, delete)'),
 
 -- Lycees (Schools) & System
 (30, 'lycee', 'create', 'Can create new schools (super admin)'),
@@ -69,6 +68,8 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (52, 'eleve', 'edit', 'Can edit student profiles'),
 (53, 'eleve', 'delete', 'Can delete student profiles'),
 (54, 'inscription', 'manage', 'Can enroll students in classes'),
+(55, 'eleve', 'inscrire', 'Can enroll a new student'),
+(56, 'eleve', 'reinscrire', 'Can re-enroll an existing student for a new academic year'),
 
 -- Academics
 (60, 'note', 'manage', 'Can enter and manage student grades'),
@@ -98,9 +99,9 @@ WHERE r.nom_role IN ('super_admin_createur', 'super_admin_national');
 -- Admin Local
 -- Note: Permission 40 for 'class.manage' is replaced by 40, 41, 42, 43.
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(3, 1), (3, 10), (3, 11), (3, 12), (3, 13), (3, 14), (3, 15), (3, 20), (3, 21), (3, 22), (3, 23), (3, 24),
+(3, 1), (3, 10), (3, 11), (3, 12), (3, 13), (3, 14), (3, 15), (3, 20), (3, 21), (3, 22), (3, 23),
 (3, 40), (3, 41), (3, 42), (3, 43), (3, 44), (3, 45),
-(3, 50), (3, 51), (3, 52), (3, 53), (3, 54), (3, 60), (3, 61), (3, 62),
+(3, 50), (3, 51), (3, 52), (3, 53), (3, 54), (3, 55), (3, 56), (3, 60), (3, 61), (3, 62),
 (3, 70), (3, 71), (3, 72), (3, 80);
 
 -- Censeur (Academic Supervisor)

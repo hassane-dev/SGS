@@ -4,7 +4,6 @@ require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Cycle.php';
 require_once __DIR__ . '/../models/Lycee.php';
 require_once __DIR__ . '/../core/Auth.php';
-require_once __DIR__ . '/../core/View.php';
 
 class ClasseController {
 
@@ -13,10 +12,7 @@ class ClasseController {
 
         $lycee_id = !Auth::can('view_all_lycees') ? Auth::get('lycee_id') : null;
         $classes = Classe::findAll($lycee_id);
-        View::render('classes/index', [
-            'title' => 'Liste des Classes',
-            'classes' => $classes
-        ]);
+        require_once __DIR__ . '/../views/classes/index.php';
     }
 
     public function create() {
@@ -24,11 +20,7 @@ class ClasseController {
 
         $cycles = Cycle::findAll();
         $lycees = Auth::can('view_all_lycees') ? Lycee::findAll() : [];
-        View::render('classes/create', [
-            'title' => 'Créer une Classe',
-            'cycles' => $cycles,
-            'lycees' => $lycees
-        ]);
+        require_once __DIR__ . '/../views/classes/create.php';
     }
 
     public function store() {
@@ -57,12 +49,7 @@ class ClasseController {
 
         $cycles = Cycle::findAll();
         $lycees = Auth::can('view_all_lycees') ? Lycee::findAll() : [];
-        View::render('classes/edit', [
-            'title' => 'Modifier la Classe',
-            'classe' => $classe,
-            'cycles' => $cycles,
-            'lycees' => $lycees
-        ]);
+        require_once __DIR__ . '/../views/classes/edit.php';
     }
 
     public function update() {

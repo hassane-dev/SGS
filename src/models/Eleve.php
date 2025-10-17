@@ -102,5 +102,16 @@ class Eleve {
         $stmt = $db->prepare("DELETE FROM eleves WHERE id_eleve = :id");
         return $stmt->execute(['id' => $id]);
     }
+
+    public static function search(string $term, int $lycee_id) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare(
+            "SELECT * FROM eleves
+             WHERE lycee_id = :lycee_id
+             AND (matricule LIKE :term OR nom LIKE :term OR prenom LIKE :term)"
+        );
+        $stmt->execute(['lycee_id' => $lycee_id, 'term' => '%' . $term . '%']);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>
