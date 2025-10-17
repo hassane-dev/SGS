@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/Eleve.php';
+require_once __DIR__ . '/../core/View.php';
 
 class EleveController {
 
@@ -19,14 +20,20 @@ class EleveController {
         $lycee_id = !Auth::can('manage_all_lycees') ? Auth::get('lycee_id') : null;
 
         $eleves = Eleve::findAll($lycee_id);
-        require_once __DIR__ . '/../views/eleves/index.php';
+        View::render('eleves/index', [
+            'title' => 'Liste des Élèves',
+            'eleves' => $eleves
+        ]);
     }
 
     public function create() {
         $this->checkAccess();
         $lycee_id = Auth::get('lycee_id');
         $classes = Classe::findAll($lycee_id);
-        require_once __DIR__ . '/../views/eleves/create.php';
+        View::render('eleves/create', [
+            'title' => 'Inscrire un nouvel Élève',
+            'classes' => $classes
+        ]);
     }
 
     public function store() {
@@ -93,7 +100,11 @@ class EleveController {
         $eleve = Eleve::findById($id);
         $lycee_id = $eleve['lycee_id'];
         $classes = Classe::findAll($lycee_id);
-        require_once __DIR__ . '/../views/eleves/edit.php';
+        View::render('eleves/edit', [
+            'title' => 'Modifier l\'Élève',
+            'eleve' => $eleve,
+            'classes' => $classes
+        ]);
     }
 
     public function update() {
@@ -131,7 +142,13 @@ class EleveController {
         $inscriptions = Inscription::findByEleveId($eleve_id);
         $mensualites = Mensualite::findByEleveId($eleve_id);
 
-        require_once __DIR__ . '/../views/eleves/details.php';
+        View::render('eleves/details', [
+            'title' => 'Détails de l\'Élève',
+            'eleve' => $eleve,
+            'etudes' => $etudes,
+            'inscriptions' => $inscriptions,
+            'mensualites' => $mensualites
+        ]);
     }
 
     private function handlePhotoUpload($file) {
@@ -154,4 +171,3 @@ class EleveController {
         return null;
     }
 }
-?>

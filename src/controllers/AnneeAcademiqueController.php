@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/AnneeAcademique.php';
+require_once __DIR__ . '/../core/View.php';
 
 class AnneeAcademiqueController {
 
@@ -16,12 +17,15 @@ class AnneeAcademiqueController {
     public function index() {
         $this->checkAccess();
         $annees = AnneeAcademique::findAll();
-        require_once __DIR__ . '/../views/annees_academiques/index.php';
+        View::render('annees_academiques/index', [
+            'title' => 'Années Académiques',
+            'annees' => $annees
+        ]);
     }
 
     public function create() {
         $this->checkAccess();
-        require_once __DIR__ . '/../views/annees_academiques/create.php';
+        View::render('annees_academiques/create', ['title' => 'Créer une Année Académique']);
     }
 
     public function store() {
@@ -38,7 +42,10 @@ class AnneeAcademiqueController {
         $id = $_GET['id'] ?? null;
         if (!$id) { header('Location: /annees-academiques'); exit(); }
         $annee = AnneeAcademique::findById($id);
-        require_once __DIR__ . '/../views/annees_academiques/edit.php';
+        View::render('annees_academiques/edit', [
+            'title' => 'Modifier l\'Année Académique',
+            'annee' => $annee
+        ]);
     }
 
     public function update() {
