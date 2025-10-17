@@ -6,20 +6,21 @@ require_once __DIR__ . '/../models/Role.php';
 require_once __DIR__ . '/../models/ParametresGeneraux.php';
 require_once __DIR__ . '/../models/Permission.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
+require_once __DIR__ . '/../core/View.php';
 
 
 class SetupController {
 
     public function index() {
-        require_once __DIR__ . '/../views/setup/step0_choice.php';
+        View::renderCentered('setup/step0_choice', ['title' => 'Installation']);
     }
 
     public function processChoice() {
         $mode = $_POST['install_mode'] ?? 'single';
         if ($mode === 'multi') {
-            require_once __DIR__ . '/../views/setup/step1_multi.php';
+            View::renderCentered('setup/step1_multi', ['title' => 'Installation Multi-Écoles']);
         } else {
-            require_once __DIR__ . '/../views/setup/step1_single.php';
+            View::renderCentered('setup/step1_single', ['title' => 'Installation Mono-École']);
         }
     }
 
@@ -43,7 +44,8 @@ class SetupController {
             $this->setupSingleSchool($_POST);
         }
 
-        require_once __DIR__ . '/../views/auth/login.php';
+        // Redirect to login after setup is complete
+        header('Location: /login?setup=complete');
         exit();
     }
 
