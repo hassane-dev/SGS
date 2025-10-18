@@ -3,32 +3,80 @@
 require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Cycle.php';
 require_once __DIR__ . '/../models/Lycee.php';
+require_once __DIR__ . '/../models/Matiere.php';
+require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../models/EnseignantMatiere.php';
 require_once __DIR__ . '/../core/Auth.php';
+require_once __DIR__ . '/../core/View.php';
 
 class ClasseController {
 
-    public function index() {
-        if (!Auth::can('view_classes')) { $this->forbidden(); }
+    private function checkAccess($permission) {
+        if (!Auth::can($permission)) {
+            http_response_code(403);
+            View::render('errors/403');
+            exit();
+        }
+    }
 
-        $lycee_id = !Auth::can('view_all_lycees') ? Auth::get('lycee_id') : null;
+    public function index() {
+        $this->checkAccess('class:view');
+        $lycee_id = !Auth::can('system:view_all_lycees') ? Auth::getLyceeId() : null;
         $classes = Classe::findAll($lycee_id);
-        require_once __DIR__ . '/../views/classes/index.php';
+        View::render('classes/index', [
+            'classes' => $classes,
+            'title' => 'Gestion des Classes'
+        ]);
+    }
+
+    public function show() {
+        $this->checkAccess('class:view');
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            header('Location: /classes');
+            exit();
+        }
+
+        $classe = Classe::findById($id);
+        if (!$classe) {
+            http_response_code(404);
+            View::render('errors/404');
+            exit();
+        }
+
+        $this->checkOwnership($classe['lycee_id']);
+
+        $assigned_matieres = Matiere::findByClassId($id);
+        $all_matieres = Matiere::findAll();
+        $enseignants = User::findTeachers($classe['lycee_id']);
+        $teacher_assignments = EnseignantMatiere::findAssignmentsForClass($id);
+
+        View::render('classes/show', [
+            'classe' => $classe,
+            'assigned_matieres' => $assigned_matieres,
+            'all_matieres' => $all_matieres,
+            'enseignants' => $enseignants,
+            'teacher_assignments' => $teacher_assignments,
+            'title' => 'Détails de la Classe'
+        ]);
     }
 
     public function create() {
-        if (!Auth::can('create_classes')) { $this->forbidden(); }
-
+        $this->checkAccess('class:create');
         $cycles = Cycle::findAll();
-        $lycees = Auth::can('view_all_lycees') ? Lycee::findAll() : [];
-        require_once __DIR__ . '/../views/classes/create.php';
+        $lycees = Auth::can('system:view_all_lycees') ? Lycee::findAll() : [];
+        View::render('classes/create', [
+            'cycles' => $cycles,
+            'lycees' => $lycees,
+            'title' => 'Nouvelle Classe'
+        ]);
     }
 
     public function store() {
-        if (!Auth::can('create_classes')) { $this->forbidden(); }
-
+        $this->checkAccess('class:create');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!Auth::can('view_all_lycees')) {
-                $_POST['lycee_id'] = Auth::get('lycee_id');
+            if (!Auth::can('system:view_all_lycees')) {
+                $_POST['lycee_id'] = Auth::getLyceeId();
             }
             Classe::save($_POST);
         }
@@ -37,30 +85,28 @@ class ClasseController {
     }
 
     public function edit() {
-        if (!Auth::can('edit_classes')) { $this->forbidden(); }
-
+        $this->checkAccess('class:edit');
         $id = $_GET['id'] ?? null;
         if (!$id) { header('Location: /classes'); exit(); }
 
         $classe = Classe::findById($id);
-        if (!Auth::can('view_all_lycees') && $classe['lycee_id'] != Auth::get('lycee_id')) {
-            $this->forbidden();
-        }
+        $this->checkOwnership($classe['lycee_id']);
 
         $cycles = Cycle::findAll();
-        $lycees = Auth::can('view_all_lycees') ? Lycee::findAll() : [];
-        require_once __DIR__ . '/../views/classes/edit.php';
+        $lycees = Auth::can('system:view_all_lycees') ? Lycee::findAll() : [];
+        View::render('classes/edit', [
+            'classe' => $classe,
+            'cycles' => $cycles,
+            'lycees' => $lycees,
+            'title' => 'Modifier la Classe'
+        ]);
     }
 
     public function update() {
-        if (!Auth::can('edit_classes')) { $this->forbidden(); }
-
+        $this->checkAccess('class:edit');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $classe = Classe::findById($_POST['id_classe']);
-            if (!Auth::can('view_all_lycees') && $classe['lycee_id'] != Auth::get('lycee_id')) {
-                $this->forbidden();
-            }
-            // Ensure lycee_id is not maliciously changed
+            $this->checkOwnership($classe['lycee_id']);
             $_POST['lycee_id'] = $classe['lycee_id'];
             Classe::save($_POST);
         }
@@ -69,15 +115,12 @@ class ClasseController {
     }
 
     public function destroy() {
-        if (!Auth::can('delete_classes')) { $this->forbidden(); }
-
+        $this->checkAccess('class:delete');
         $id = $_POST['id'] ?? null;
         if ($id) {
             $classe = Classe::findById($id);
             if ($classe) {
-                if (!Auth::can('view_all_lycees') && $classe['lycee_id'] != Auth::get('lycee_id')) {
-                    $this->forbidden();
-                }
+                $this->checkOwnership($classe['lycee_id']);
                 Classe::delete($id, $classe['lycee_id']);
             }
         }
@@ -85,10 +128,69 @@ class ClasseController {
         exit();
     }
 
-    private function forbidden() {
-        http_response_code(403);
-        echo "Accès Interdit.";
+    public function assignMatiere() {
+        $this->checkAccess('class:edit');
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $classe_id = $_POST['classe_id'];
+            $classe = Classe::findById($classe_id);
+            $this->checkOwnership($classe['lycee_id']);
+
+            Matiere::assignToClass($_POST);
+        }
+        header('Location: /classes/show?id=' . $classe_id);
         exit();
+    }
+
+    public function removeMatiere() {
+        $this->checkAccess('class:edit');
+        $classe_id = $_GET['classe_id'];
+        $classe_matiere_id = $_GET['id'];
+
+        $classe = Classe::findById($classe_id);
+        $this->checkOwnership($classe['lycee_id']);
+
+        Matiere::removeFromClass($classe_matiere_id);
+
+        header('Location: /classes/show?id=' . $classe_id);
+        exit();
+    }
+
+    public function assignEnseignant() {
+        $this->checkAccess('class:edit'); // Or a more specific permission
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $classe_id = $_POST['classe_id'];
+            $matiere_id = $_POST['matiere_id'];
+            $enseignant_id = $_POST['enseignant_id'];
+
+            $classe = Classe::findById($classe_id);
+            $this->checkOwnership($classe['lycee_id']);
+
+            EnseignantMatiere::assign($enseignant_id, $classe_id, $matiere_id);
+        }
+        header('Location: /classes/show?id=' . $classe_id);
+        exit();
+    }
+
+    public function unassignEnseignant() {
+        $this->checkAccess('class:edit'); // Or a more specific permission
+        $classe_id = $_GET['classe_id'];
+        $assignment_id = $_GET['assignment_id'];
+
+        $classe = Classe::findById($classe_id);
+        $this->checkOwnership($classe['lycee_id']);
+
+        EnseignantMatiere::unassign($assignment_id);
+
+        header('Location: /classes/show?id=' . $classe_id);
+        exit();
+    }
+
+    private function checkOwnership($resource_lycee_id) {
+        if (!Auth::can('system:view_all_lycees') && $resource_lycee_id != Auth::getLyceeId()) {
+            http_response_code(403);
+            View::render('errors/403');
+            exit();
+        }
     }
 }
 ?>

@@ -142,28 +142,102 @@ CREATE TABLE `classes` (
 CREATE TABLE `matieres` (
     `id_matiere` INT AUTO_INCREMENT PRIMARY KEY,
     `nom_matiere` VARCHAR(100) NOT NULL,
-    `coef` DECIMAL(4, 2)
+    `description` TEXT,
+    `type` VARCHAR(100), -- e.g., scientifique, littéraire, technique
+    `cycle_concerne` VARCHAR(100), -- e.g., CEG, Lycée
+    `statut` ENUM('principale', 'optionnelle') NOT NULL DEFAULT 'principale',
+    `lycee_id` INT NOT NULL,
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
 );
 
 -- Junction table for classes and subjects
 CREATE TABLE `classe_matieres` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
     `classe_id` INT NOT NULL,
     `matiere_id` INT NOT NULL,
-    PRIMARY KEY (`classe_id`, `matiere_id`),
+    `coefficient` DECIMAL(4, 2) NOT NULL,
+    `statut` ENUM('obligatoire', 'optionnelle') NOT NULL DEFAULT 'obligatoire',
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
-    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE
+    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
+    UNIQUE KEY `unique_classe_matiere` (`classe_id`, `matiere_id`)
 );
 
 -- Junction table for teachers, classes, and subjects
 CREATE TABLE `enseignant_matieres` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
     `enseignant_id` INT NOT NULL,
     `classe_id` INT NOT NULL,
     `matiere_id` INT NOT NULL,
+    `annee_academique_id` INT NOT NULL,
     `actif` BOOLEAN DEFAULT TRUE,
-    PRIMARY KEY (`enseignant_id`, `classe_id`, `matiere_id`),
     FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
-    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE
+    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
+    UNIQUE KEY `unique_enseignant_matiere_annee` (`enseignant_id`, `classe_id`, `matiere_id`, `annee_academique_id`)
+);
+
+
+-- =================================================================
+-- Academic Evaluation Tables
+-- =================================================================
+
+-- Table for academic sequences (e.g., Trimester, Semester)
+CREATE TABLE `sequences` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `lycee_id` INT NOT NULL,
+    `annee_academique_id` INT NOT NULL,
+    `nom` VARCHAR(255) NOT NULL, -- e.g., Séquence 1, Trimestre 2
+    `type` ENUM('trimestrielle', 'semestrielle') NOT NULL,
+    `date_debut` DATE NOT NULL,
+    `date_fin` DATE NOT NULL,
+    `statut` ENUM('ouverte', 'fermee') NOT NULL DEFAULT 'ouverte',
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE
+);
+
+-- Table for evaluation settings (homework and exams)
+CREATE TABLE `parametres_evaluations` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `lycee_id` INT NOT NULL,
+    `classe_id` INT NOT NULL,
+    `matiere_id` INT NOT NULL,
+    `sequence_id` INT NOT NULL,
+    `enseignant_id` INT NOT NULL,
+    `annee_academique_id` INT NOT NULL,
+    `date_ouverture_saisie` DATETIME NOT NULL,
+    `date_fermeture_saisie` DATETIME NOT NULL,
+    `commentaire` TEXT,
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
+    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
+    FOREIGN KEY (`sequence_id`) REFERENCES `sequences`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE
+);
+
+-- Table for grades (unified for homework and exams)
+CREATE TABLE `evaluations` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `lycee_id` INT NOT NULL,
+    `classe_id` INT NOT NULL,
+    `matiere_id` INT NOT NULL,
+    `enseignant_id` INT NOT NULL,
+    `eleve_id` INT NOT NULL,
+    `sequence_id` INT NOT NULL,
+    `annee_academique_id` INT NOT NULL,
+    `note` DECIMAL(5, 2) NOT NULL,
+    `coefficient` DECIMAL(4, 2) NOT NULL,
+    `appreciation` TEXT,
+    `date_saisie` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
+    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
+    FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
+    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
+    FOREIGN KEY (`sequence_id`) REFERENCES `sequences`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
+    UNIQUE KEY `unique_evaluation_note` (`eleve_id`, `matiere_id`, `sequence_id`, `annee_academique_id`)
 );
 
 
@@ -209,34 +283,7 @@ CREATE TABLE `etudes` (
 );
 
 -- Table for homework grades
-CREATE TABLE `notes_devoirs` (
-    `id_note` INT AUTO_INCREMENT PRIMARY KEY,
-    `eleve_id` INT NOT NULL,
-    `classe_id` INT NOT NULL,
-    `matiere_id` INT NOT NULL,
-    `annee_academique_id` INT,
-    `note` DECIMAL(5, 2),
-    `date_devoir` DATE,
-    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
-    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
-    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
-    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
-);
-
--- Table for exam grades
-CREATE TABLE `notes_compositions` (
-    `id_note` INT AUTO_INCREMENT PRIMARY KEY,
-    `eleve_id` INT NOT NULL,
-    `classe_id` INT NOT NULL,
-    `matiere_id` INT NOT NULL,
-    `annee_academique_id` INT,
-    `note` DECIMAL(5, 2),
-    `date_composition` DATE,
-    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
-    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
-    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
-    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
-);
+-- Note: The tables `notes_devoirs` and `notes_compositions` are now replaced by the `evaluations` table.
 
 -- Table for entrance exams
 CREATE TABLE `tests_entree` (

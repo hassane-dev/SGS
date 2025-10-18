@@ -58,8 +58,12 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (41, 'class', 'create', 'Can create new classes'),
 (42, 'class', 'edit', 'Can edit existing classes'),
 (43, 'class', 'delete', 'Can delete classes'),
-(44, 'matiere', 'manage', 'Can manage subjects and their coefficients'),
-(45, 'annee_academique', 'manage', 'Can manage academic years'),
+(44, 'matiere', 'view', 'Can view the list of subjects'),
+(45, 'matiere', 'create', 'Can create new subjects'),
+(46, 'matiere', 'edit', 'Can edit existing subjects'),
+(47, 'matiere', 'delete', 'Can delete subjects'),
+(48, 'annee_academique', 'manage', 'Can manage academic years'),
+(49, 'sequence', 'manage', 'Can manage academic sequences (trimesters, semesters)'),
 
 
 -- Students
@@ -72,11 +76,13 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (56, 'eleve', 'reinscrire', 'Can re-enroll an existing student for a new academic year'),
 
 -- Academics
-(60, 'note', 'manage', 'Can enter and manage student grades'),
-(61, 'cahier_texte', 'view_all', 'Can view all digital logbook entries'),
-(62, 'cahier_texte', 'edit_all', 'Can edit any digital logbook entry'),
-(63, 'cahier_texte', 'create_own', 'Can fill their own digital logbook entries'),
-(64, 'cahier_texte', 'edit_own', 'Can edit their own digital logbook entries'),
+(60, 'note', 'create_own', 'Can enter their own student grades'),
+(61, 'note', 'view_all', 'Can view all student grades'),
+(62, 'cahier_texte', 'view_all', 'Can view all digital logbook entries'),
+(63, 'cahier_texte', 'edit_all', 'Can edit any digital logbook entry'),
+(64, 'cahier_texte', 'create_own', 'Can fill their own digital logbook entries'),
+(65, 'cahier_texte', 'edit_own', 'Can edit their own digital logbook entries'),
+(66, 'evaluation', 'manage_settings', 'Can configure evaluation (grading) periods'),
 
 -- Finance
 (70, 'paiement', 'manage', 'Can manage and validate student payments'),
@@ -97,16 +103,22 @@ FROM roles r, permissions p
 WHERE r.nom_role IN ('super_admin_createur', 'super_admin_national');
 
 -- Admin Local
--- Note: Permission 40 for 'class.manage' is replaced by 40, 41, 42, 43.
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
+-- Dashboard & Users & Roles
 (3, 1), (3, 10), (3, 11), (3, 12), (3, 13), (3, 14), (3, 15), (3, 20), (3, 21), (3, 22), (3, 23),
-(3, 40), (3, 41), (3, 42), (3, 43), (3, 44), (3, 45),
-(3, 50), (3, 51), (3, 52), (3, 53), (3, 54), (3, 55), (3, 56), (3, 60), (3, 61), (3, 62),
+-- Academic Structure
+(3, 40), (3, 41), (3, 42), (3, 43), -- Classes
+(3, 44), (3, 45), (3, 46), (3, 47), -- Matieres
+(3, 48), -- Annees Academiques
+(3, 49), -- Sequences
+-- Students & Academics
+(3, 50), (3, 51), (3, 52), (3, 53), (3, 54), (3, 55), (3, 56), (3, 61), (3, 62), (3, 63), (3, 66),
+-- Finance & Settings
 (3, 70), (3, 71), (3, 72), (3, 80);
 
 -- Censeur (Academic Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(4, 1), (4, 40), (4, 51), (4, 60), (4, 61);
+(4, 1), (4, 40), (4, 51), (4, 61), (4, 62);
 
 -- Surveillant (Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
@@ -114,7 +126,7 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 
 -- Enseignant (Teacher)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(6, 1), (6, 60), (6, 63), (6, 64);
+(6, 1), (6, 60), (6, 64), (6, 65);
 
 -- Comptable (Accountant)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES

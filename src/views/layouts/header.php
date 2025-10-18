@@ -34,8 +34,26 @@
                         <?php endif; ?>
                     </ul>
                 </li>
+                <?php if (Auth::can('note:create_own')): ?>
                 <li class="nav-item">
-                    <a class="nav-link" href="/classes">Classes</a>
+                    <a class="nav-link" href="/evaluations/select_class">Saisir les Notes</a>
+                </li>
+                <?php endif; ?>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="pedagogieDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Pédagogie
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="pedagogieDropdown">
+                        <?php if (Auth::can('class:view')): ?>
+                            <li><a class="dropdown-item" href="/classes">Gestion des Classes</a></li>
+                        <?php endif; ?>
+                        <?php if (Auth::can('matiere:view')): ?>
+                            <li><a class="dropdown-item" href="/matieres">Gestion des Matières</a></li>
+                        <?php endif; ?>
+                        <?php if (Auth::can('sequence:manage')): ?>
+                            <li><a class="dropdown-item" href="/sequences">Gestion des Séquences</a></li>
+                        <?php endif; ?>
+                    </ul>
                 </li>
                 <?php if (Auth::can('manage_users')): ?>
                 <li class="nav-item">
