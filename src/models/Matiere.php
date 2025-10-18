@@ -1,13 +1,19 @@
 <?php
 
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../core/Auth.php';
 
 class Matiere {
 
     public static function findAll() {
         try {
             $db = Database::getInstance();
-            $stmt = $db->query("SELECT * FROM matieres ORDER BY nom_matiere ASC");
+            $lycee_id = Auth::getLyceeId();
+            if (!$lycee_id) {
+                return [];
+            }
+            $stmt = $db->prepare("SELECT * FROM matieres WHERE lycee_id = :lycee_id ORDER BY nom_matiere ASC");
+            $stmt->execute(['lycee_id' => $lycee_id]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Error in Matiere::findAll: " . $e->getMessage());
@@ -18,8 +24,12 @@ class Matiere {
     public static function findById($id) {
         try {
             $db = Database::getInstance();
-            $stmt = $db->prepare("SELECT * FROM matieres WHERE id_matiere = :id");
-            $stmt->execute(['id' => $id]);
+            $lycee_id = Auth::getLyceeId();
+            if (!$lycee_id) {
+                return false;
+            }
+            $stmt = $db->prepare("SELECT * FROM matieres WHERE id_matiere = :id AND lycee_id = :lycee_id");
+            $stmt->execute(['id' => $id, 'lycee_id' => $lycee_id]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Error in Matiere::findById: " . $e->getMessage());
@@ -29,10 +39,16 @@ class Matiere {
 
     public static function save($data) {
         $isUpdate = !empty($data['id_matiere']);
+        $lycee_id = Auth::getLyceeId();
+
+        if (!$lycee_id) {
+            error_log("Error in Matiere::save: Missing lycee_id");
+            return false;
+        }
 
         $sql = $isUpdate
-            ? "UPDATE matieres SET nom_matiere = :nom_matiere, coef = :coef WHERE id_matiere = :id_matiere"
-            : "INSERT INTO matieres (nom_matiere, coef) VALUES (:nom_matiere, :coef)";
+            ? "UPDATE matieres SET nom_matiere = :nom_matiere, description = :description, type = :type, cycle_concerne = :cycle_concerne, statut = :statut WHERE id_matiere = :id_matiere AND lycee_id = :lycee_id"
+            : "INSERT INTO matieres (nom_matiere, description, type, cycle_concerne, statut, lycee_id) VALUES (:nom_matiere, :description, :type, :cycle_concerne, :statut, :lycee_id)";
 
         try {
             $db = Database::getInstance();
@@ -40,7 +56,11 @@ class Matiere {
 
             $params = [
                 'nom_matiere' => $data['nom_matiere'],
-                'coef' => $data['coef'] ?: null,
+                'description' => $data['description'] ?? null,
+                'type' => $data['type'] ?? null,
+                'cycle_concerne' => $data['cycle_concerne'] ?? null,
+                'statut' => $data['statut'],
+                'lycee_id' => $lycee_id,
             ];
 
             if ($isUpdate) {
@@ -57,12 +77,17 @@ class Matiere {
     public static function delete($id) {
         try {
             $db = Database::getInstance();
-            $stmt = $db->prepare("DELETE FROM matieres WHERE id_matiere = :id");
-            return $stmt->execute(['id' => $id]);
+            $lycee_id = Auth::getLyceeId();
+            if (!$lycee_id) {
+                return false;
+            }
+            $stmt = $db->prepare("DELETE FROM matieres WHERE id_matiere = :id AND lycee_id = :lycee_id");
+            return $stmt->execute(['id' => $id, 'lycee_id' => $lycee_id]);
         } catch (PDOException $e) {
             error_log("Error in Matiere::delete: " . $e->getMessage());
+            // Foreign key constraint violation
             if ($e->getCode() == '23000') {
-                return false; // In use
+                return false;
             }
             return false;
         }
@@ -73,7 +98,8 @@ class Matiere {
     public static function findByClassId($class_id) {
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            SELECT m.* FROM matieres m
+            SELECT m.*, cm.coefficient, cm.statut as statut_classe
+            FROM matieres m
             JOIN classe_matieres cm ON m.id_matiere = cm.matiere_id
             WHERE cm.classe_id = :class_id
             ORDER BY m.nom_matiere ASC
@@ -82,17 +108,27 @@ class Matiere {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public static function assignToClass($class_id, $matiere_id) {
+    public static function assignToClass($data) {
         $db = Database::getInstance();
-        $stmt = $db->prepare("INSERT IGNORE INTO classe_matieres (classe_id, matiere_id) VALUES (:class_id, :matiere_id)");
-        return $stmt->execute(['class_id' => $class_id, 'matiere_id' => $matiere_id]);
+        $sql = "INSERT INTO classe_matieres (classe_id, matiere_id, coefficient, statut) VALUES (:classe_id, :matiere_id, :coefficient, :statut)";
+        try {
+            $stmt = $db->prepare($sql);
+            return $stmt->execute([
+                'classe_id' => $data['classe_id'],
+                'matiere_id' => $data['matiere_id'],
+                'coefficient' => $data['coefficient'],
+                'statut' => $data['statut']
+            ]);
+        } catch (PDOException $e) {
+            error_log("Error in Matiere::assignToClass: " . $e->getMessage());
+            return false;
+        }
     }
 
-    public static function removeFromClass($class_id, $matiere_id) {
+    public static function removeFromClass($classe_matiere_id) {
         $db = Database::getInstance();
-        $stmt = $db->prepare("DELETE FROM classe_matieres WHERE classe_id = :class_id AND matiere_id = :matiere_id");
-        return $stmt->execute(['class_id' => $class_id, 'matiere_id' => $matiere_id]);
+        $stmt = $db->prepare("DELETE FROM classe_matieres WHERE id = :id");
+        return $stmt->execute(['id' => $classe_matiere_id]);
     }
-
 }
 ?>

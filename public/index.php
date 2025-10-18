@@ -87,11 +87,16 @@ $router->register('/cycles/destroy', 'CycleController', 'destroy');
 
 // Classes CRUD
 $router->register('/classes', 'ClasseController', 'index');
+$router->register('/classes/show', 'ClasseController', 'show');
 $router->register('/classes/create', 'ClasseController', 'create');
 $router->register('/classes/store', 'ClasseController', 'store');
 $router->register('/classes/edit', 'ClasseController', 'edit');
 $router->register('/classes/update', 'ClasseController', 'update');
 $router->register('/classes/destroy', 'ClasseController', 'destroy');
+$router->register('/classes/assignMatiere', 'ClasseController', 'assignMatiere');
+$router->register('/classes/removeMatiere', 'ClasseController', 'removeMatiere');
+$router->register('/classes/assignEnseignant', 'ClasseController', 'assignEnseignant');
+$router->register('/classes/unassignEnseignant', 'ClasseController', 'unassignEnseignant');
 
 // Matieres CRUD
 $router->register('/matieres', 'MatiereController', 'index');
@@ -100,7 +105,18 @@ $router->register('/matieres/store', 'MatiereController', 'store');
 $router->register('/matieres/edit', 'MatiereController', 'edit');
 $router->register('/matieres/update', 'MatiereController', 'update');
 $router->register('/matieres/destroy', 'MatiereController', 'destroy');
-$router->register('/matieres/assign', 'MatiereController', 'assign'); // GET to show form, POST to update
+
+// Sequences CRUD
+$router->register('/sequences', 'SequenceController', 'index');
+$router->register('/sequences/create', 'SequenceController', 'create');
+$router->register('/sequences/store', 'SequenceController', 'store');
+$router->register('/sequences/edit', 'SequenceController', 'edit');
+$router->register('/sequences/update', 'SequenceController', 'update');
+$router->register('/sequences/destroy', 'SequenceController', 'destroy');
+
+// Evaluation Settings
+$router->register('/evaluations/settings', 'ParametresEvaluationController', 'index');
+$router->register('/evaluations/settings/save', 'ParametresEvaluationController', 'save');
 
 // Users CRUD
 $router->register('/users', 'UserController', 'index');
@@ -140,10 +156,11 @@ $router->register('/mensualites/store', 'MensualiteController', 'store');
 // Recus (Receipts)
 $router->register('/recu/inscription', 'RecuController', 'showInscriptionRecu');
 
-// Notes
-$router->register('/notes', 'NoteController', 'index');
-$router->register('/notes/enter', 'NoteController', 'enter');
-$router->register('/notes/save', 'NoteController', 'save');
+// Evaluations (Grades)
+$router->register('/evaluations/select_class', 'EvaluationController', 'selectClass');
+$router->register('/evaluations/select_evaluation', 'EvaluationController', 'selectEvaluation');
+$router->register('/evaluations/form', 'EvaluationController', 'showForm');
+$router->register('/evaluations/save', 'EvaluationController', 'save');
 
 // Paiements
 // Obsolete payment routes, replaced by Inscription and Mensualite flows

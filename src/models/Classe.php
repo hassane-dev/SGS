@@ -99,5 +99,12 @@ class Classe {
             return false;
         }
     }
+
+    public static function findMatiereDetails($classe_id, $matiere_id) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT * FROM classe_matieres WHERE classe_id = :classe_id AND matiere_id = :matiere_id");
+        $stmt->execute(['classe_id' => $classe_id, 'matiere_id' => $matiere_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }
 ?>

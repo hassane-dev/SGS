@@ -1,59 +1,67 @@
-<?php require_once __DIR__ . '/../layouts/header.php'; ?>
-
-<div class="container mx-auto">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold"><?= _('Class Management') ?></h2>
-        <?php if (Auth::can('create_classes')): ?>
-        <a href="/classes/create" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            <?= _('Add Class') ?>
-        </a>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Gestion des Classes</h1>
+        <?php if (Auth::can('class:create')): ?>
+            <a href="/classes/create" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouvelle Classe
+            </a>
         <?php endif; ?>
     </div>
 
-    <div class="bg-white shadow-md rounded">
-        <table class="min-w-full table-auto">
-            <thead class="bg-gray-200">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Class Name') ?></th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Cycle') ?></th>
-                    <?php if (Auth::get('role') === 'super_admin_national'): ?>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('High School') ?></th>
-                    <?php endif; ?>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Actions') ?></th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                <?php if (empty($classes)): ?>
-                    <tr>
-                        <td colspan="<?= Auth::get('role') === 'super_admin_national' ? '4' : '3' ?>" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">
-                            <?= _('No classes found.') ?>
-                        </td>
-                    </tr>
-                <?php else: ?>
-                    <?php foreach ($classes as $classe): ?>
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Liste des Classes</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
                         <tr>
-                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($classe['nom_classe']) ?> (<?= htmlspecialchars($classe['serie']) ?>)</td>
-                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($classe['nom_cycle']) ?></td>
-                            <?php if (Auth::get('role') === 'super_admin_national'): ?>
-                                <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($classe['nom_lycee']) ?></td>
+                            <th>Nom de la classe</th>
+                            <th>Niveau</th>
+                            <th>Série</th>
+                            <th>Cycle</th>
+                            <?php if (Auth::can('system:view_all_lycees')): ?>
+                                <th>Lycée</th>
                             <?php endif; ?>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <?php if (Auth::can('edit_classes')): ?>
-                                    <a href="/classes/edit?id=<?= $classe['id_classe'] ?>" class="text-indigo-600 hover:text-indigo-900 ml-4"><?= _('Edit') ?></a>
-                                <?php endif; ?>
-                                <?php if (Auth::can('delete_classes')): ?>
-                                <form action="/classes/destroy" method="POST" class="inline-block ml-4" onsubmit="return confirm('<?= _('Are you sure you want to delete this class?') ?>');">
-                                    <input type="hidden" name="id" value="<?= $classe['id_classe'] ?>">
-                                    <button type="submit" class="text-red-600 hover:text-red-900"><?= _('Delete') ?></button>
-                                </form>
-                                <?php endif; ?>
-                            </td>
+                            <th>Actions</th>
                         </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($classes as $classe): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($classe['nom_classe']) ?></td>
+                                <td><?= htmlspecialchars($classe['niveau']) ?></td>
+                                <td><?= htmlspecialchars($classe['serie'] ?? 'N/A') ?></td>
+                                <td><?= htmlspecialchars($classe['nom_cycle']) ?></td>
+                                <?php if (Auth::can('system:view_all_lycees')): ?>
+                                    <td><?= htmlspecialchars($classe['nom_lycee']) ?></td>
+                                <?php endif; ?>
+                                <td>
+                                    <?php if (Auth::can('class:view')): ?>
+                                        <a href="/classes/show?id=<?= $classe['id_classe'] ?>" class="btn btn-sm btn-info" title="Détails et matières">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    <?php endif; ?>
+                                    <?php if (Auth::can('class:edit')): ?>
+                                        <a href="/classes/edit?id=<?= $classe['id_classe'] ?>" class="btn btn-sm btn-warning" title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    <?php endif; ?>
+                                    <?php if (Auth::can('class:delete')): ?>
+                                        <form action="/classes/destroy" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette classe ?');">
+                                            <input type="hidden" name="id" value="<?= $classe['id_classe'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
-
-<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

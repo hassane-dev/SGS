@@ -87,18 +87,22 @@ class Auth {
 
     /**
      * Check if the logged-in user has a specific permission.
-     * @param string $permission_name The name of the permission to check.
+     * @param string $action The action to perform (e.g., 'create', 'view_all').
+     * @param string $resource The resource the action applies to (e.g., 'user', 'eleve').
      * @return bool
      */
-    public static function can($permission_string) {
+    public static function can(string $action, string $resource): bool {
         self::startSession();
         $permissions = self::get('permissions');
 
-        if (!is_array($permissions) || strpos($permission_string, '_') === false) {
+        if (!is_array($permissions)) {
             return false;
         }
 
-        list($resource, $action) = explode('_', $permission_string, 2);
+        // Check for wildcard permission, e.g., 'manage_all'
+        if (isset($permissions[$resource]) && in_array('*', $permissions[$resource])) {
+            return true;
+        }
 
         return isset($permissions[$resource]) && in_array($action, $permissions[$resource]);
     }

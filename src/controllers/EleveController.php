@@ -1,43 +1,28 @@
 <?php
 
 require_once __DIR__ . '/../models/Eleve.php';
-require_once __DIR__ . '/../core/View.php';
 
 class EleveController {
 
     const UPLOAD_DIR = '/uploads/photos/';
 
-    private function checkAccess() {
-        if (!Auth::can('manage_eleves')) {
-            http_response_code(403);
-            echo "Accès Interdit.";
-            exit();
-        }
-    }
-
     public function index() {
-        $this->checkAccess();
-        $lycee_id = !Auth::can('manage_all_lycees') ? Auth::get('lycee_id') : null;
+        if (!Auth::can('view_all', 'eleve')) { $this->forbidden(); }
+        $lycee_id = !Auth::can('view_all_lycees', 'system') ? Auth::get('lycee_id') : null;
 
         $eleves = Eleve::findAll($lycee_id);
-        View::render('eleves/index', [
-            'title' => 'Liste des Élèves',
-            'eleves' => $eleves
-        ]);
+        require_once __DIR__ . '/../views/eleves/index.php';
     }
 
     public function create() {
-        $this->checkAccess();
+        if (!Auth::can('inscrire', 'eleve')) { $this->forbidden(); }
         $lycee_id = Auth::get('lycee_id');
         $classes = Classe::findAll($lycee_id);
-        View::render('eleves/create', [
-            'title' => 'Inscrire un nouvel Élève',
-            'classes' => $classes
-        ]);
+        require_once __DIR__ . '/../views/eleves/create.php';
     }
 
     public function store() {
-        $this->checkAccess();
+        if (!Auth::can('inscrire', 'eleve')) { $this->forbidden(); }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: /eleves/create');
             exit();
@@ -91,7 +76,7 @@ class EleveController {
     }
 
     public function edit() {
-        $this->checkAccess();
+        if (!Auth::can('edit', 'eleve')) { $this->forbidden(); }
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: /eleves');
@@ -100,15 +85,11 @@ class EleveController {
         $eleve = Eleve::findById($id);
         $lycee_id = $eleve['lycee_id'];
         $classes = Classe::findAll($lycee_id);
-        View::render('eleves/edit', [
-            'title' => 'Modifier l\'Élève',
-            'eleve' => $eleve,
-            'classes' => $classes
-        ]);
+        require_once __DIR__ . '/../views/eleves/edit.php';
     }
 
     public function update() {
-        $this->checkAccess();
+        if (!Auth::can('edit', 'eleve')) { $this->forbidden(); }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = $_POST;
             if (isset($_FILES['photo']) && $_FILES['photo']['error'] == UPLOAD_ERR_OK) {
@@ -121,7 +102,7 @@ class EleveController {
     }
 
     public function destroy() {
-        $this->checkAccess();
+        if (!Auth::can('delete', 'eleve')) { $this->forbidden(); }
         $id = $_POST['id'] ?? null;
         if ($id) {
             Eleve::delete($id);
@@ -131,7 +112,7 @@ class EleveController {
     }
 
     public function details() {
-        $this->checkAccess();
+        if (!Auth::can('view_all', 'eleve')) { $this->forbidden(); }
         $eleve_id = $_GET['id'] ?? null;
         if (!$eleve_id) {
             header('Location: /eleves');
@@ -142,13 +123,13 @@ class EleveController {
         $inscriptions = Inscription::findByEleveId($eleve_id);
         $mensualites = Mensualite::findByEleveId($eleve_id);
 
-        View::render('eleves/details', [
-            'title' => 'Détails de l\'Élève',
-            'eleve' => $eleve,
-            'etudes' => $etudes,
-            'inscriptions' => $inscriptions,
-            'mensualites' => $mensualites
-        ]);
+        require_once __DIR__ . '/../views/eleves/details.php';
+    }
+
+    private function forbidden() {
+        http_response_code(403);
+        echo "Accès Interdit.";
+        exit();
     }
 
     private function handlePhotoUpload($file) {
@@ -171,3 +152,4 @@ class EleveController {
         return null;
     }
 }
+?>

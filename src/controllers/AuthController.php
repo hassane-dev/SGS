@@ -1,5 +1,4 @@
 <?php
-require_once __DIR__ . '/../core/View.php';
 
 class AuthController {
 
@@ -19,8 +18,8 @@ class AuthController {
                 exit();
             }
         } else {
-            // Display the login form using the centered layout
-            View::renderCentered('auth/login', ['title' => 'Connexion']);
+            // Display the login form
+            require_once __DIR__ . '/../views/auth/login.php';
         }
     }
 
@@ -30,3 +29,4 @@ class AuthController {
         exit();
     }
 }
+?>

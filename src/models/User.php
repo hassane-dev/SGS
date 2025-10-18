@@ -225,5 +225,60 @@ class User {
         $stmt->execute(['teacher_id' => $teacher_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public static function findTeachers($lycee_id) {
+        if (!$lycee_id) return [];
+
+        $db = Database::getInstance();
+        $sql = "
+            SELECT u.id_user, CONCAT(u.prenom, ' ', u.nom) as full_name
+            FROM utilisateurs u
+            JOIN roles r ON u.role_id = r.id_role
+            WHERE u.lycee_id = :lycee_id
+            AND r.nom_role = 'enseignant'
+            ORDER BY full_name ASC
+        ";
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->execute(['lycee_id' => $lycee_id]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error in User::findTeachers: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public static function findSubjectsTaughtByTeacher($enseignant_id) {
+        $active_year = AnneeAcademique::findActive();
+        if (!$active_year) return [];
+
+        $sql = "
+            SELECT
+                em.classe_id,
+                em.matiere_id,
+                c.nom_classe,
+                m.nom_matiere
+            FROM enseignant_matieres em
+            JOIN classes c ON em.classe_id = c.id_classe
+            JOIN matieres m ON em.matiere_id = m.id_matiere
+            WHERE em.enseignant_id = :enseignant_id
+            AND em.annee_academique_id = :annee_id
+            GROUP BY em.classe_id, em.matiere_id, c.nom_classe, m.nom_matiere
+            ORDER BY c.nom_classe, m.nom_matiere
+        ";
+
+        try {
+            $db = Database::getInstance();
+            $stmt = $db->prepare($sql);
+            $stmt->execute([
+                'enseignant_id' => $enseignant_id,
+                'annee_id' => $active_year['id']
+            ]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error in User::findSubjectsTaughtByTeacher: " . $e->getMessage());
+            return [];
+        }
+    }
 }
 ?>

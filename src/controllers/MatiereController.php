@@ -1,35 +1,46 @@
 <?php
 
 require_once __DIR__ . '/../models/Matiere.php';
-require_once __DIR__ . '/../models/Classe.php';
+require_once __DIR__ . '/../core/Auth.php';
+require_once __DIR__ . '/../core/View.php';
 
 class MatiereController {
 
-    private function checkAccess() {
-        if (!Auth::can('manage_matieres')) {
+    private function checkAccess($permission) {
+        if (!Auth::can($permission)) {
             http_response_code(403);
-            echo "Accès Interdit.";
+            View::render('errors/403');
             exit();
         }
     }
 
-    // --- Standard CRUD for Matieres ---
-
     public function index() {
-        $this->checkAccess();
+        $this->checkAccess('matiere:view');
         $matieres = Matiere::findAll();
-        $error = $_GET['error'] ?? null;
-        require_once __DIR__ . '/../views/matieres/index.php';
+        View::render('matieres/index', [
+            'matieres' => $matieres,
+            'title' => 'Gestion des Matières'
+        ]);
     }
 
     public function create() {
-        $this->checkAccess();
-        require_once __DIR__ . '/../views/matieres/create.php';
+        $this->checkAccess('matiere:create');
+        View::render('matieres/create', [
+            'title' => 'Nouvelle Matière'
+        ]);
     }
 
     public function store() {
-        $this->checkAccess();
+        $this->checkAccess('matiere:create');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Simple validation
+            if (empty($_POST['nom_matiere']) || empty($_POST['statut'])) {
+                 View::render('matieres/create', [
+                    'title' => 'Nouvelle Matière',
+                    'error' => 'Veuillez remplir tous les champs obligatoires.'
+                ]);
+                return;
+            }
             Matiere::save($_POST);
         }
         header('Location: /matieres');
@@ -37,19 +48,36 @@ class MatiereController {
     }
 
     public function edit() {
-        $this->checkAccess();
+        $this->checkAccess('matiere:edit');
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: /matieres');
             exit();
         }
         $matiere = Matiere::findById($id);
-        require_once __DIR__ . '/../views/matieres/edit.php';
+        if (!$matiere) {
+            http_response_code(404);
+            View::render('errors/404');
+            exit();
+        }
+        View::render('matieres/edit', [
+            'matiere' => $matiere,
+            'title' => 'Modifier la Matière'
+        ]);
     }
 
     public function update() {
-        $this->checkAccess();
+        $this->checkAccess('matiere:edit');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+             if (empty($_POST['nom_matiere']) || empty($_POST['statut'])) {
+                $matiere = Matiere::findById($_POST['id_matiere']);
+                View::render('matieres/edit', [
+                    'matiere' => $matiere,
+                    'title' => 'Modifier la Matière',
+                    'error' => 'Veuillez remplir tous les champs obligatoires.'
+                ]);
+                return;
+            }
             Matiere::save($_POST);
         }
         header('Location: /matieres');
@@ -57,66 +85,18 @@ class MatiereController {
     }
 
     public function destroy() {
-        $this->checkAccess();
+        $this->checkAccess('matiere:delete');
         $id = $_POST['id'] ?? null;
         if ($id) {
             $success = Matiere::delete($id);
             if (!$success) {
+                // This could be because the subject is in use.
+                // Redirect with an error message.
                 header('Location: /matieres?error=delete_failed');
                 exit();
             }
         }
         header('Location: /matieres');
-        exit();
-    }
-
-    // --- Association with Classes ---
-
-    public function assign() {
-        $this->checkAccess();
-        $class_id = $_GET['class_id'] ?? null;
-        if (!$class_id) {
-            header('Location: /classes');
-            exit();
-        }
-
-        $classe = Classe::findById($class_id);
-        $all_matieres = Matiere::findAll();
-        $assigned_matieres_raw = Matiere::findByClassId($class_id);
-
-        // Create an array of just the IDs for easy checking in the view
-        $assigned_matieres_ids = array_column($assigned_matieres_raw, 'id_matiere');
-
-        require_once __DIR__ . '/../views/matieres/assign.php';
-    }
-
-    public function updateAssignments() {
-        $this->checkAccess();
-        $class_id = $_POST['class_id'] ?? null;
-        $assigned_ids = $_POST['matieres'] ?? [];
-
-        if (!$class_id) {
-            header('Location: /classes');
-            exit();
-        }
-
-        // Get currently assigned subjects
-        $current_raw = Matiere::findByClassId($class_id);
-        $current_ids = array_column($current_raw, 'id_matiere');
-
-        // Subjects to add
-        $to_add = array_diff($assigned_ids, $current_ids);
-        foreach ($to_add as $matiere_id) {
-            Matiere::assignToClass($class_id, $matiere_id);
-        }
-
-        // Subjects to remove
-        $to_remove = array_diff($current_ids, $assigned_ids);
-        foreach ($to_remove as $matiere_id) {
-            Matiere::removeFromClass($class_id, $matiere_id);
-        }
-
-        header('Location: /classes');
         exit();
     }
 }
