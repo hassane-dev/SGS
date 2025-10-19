@@ -57,6 +57,9 @@
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="/bulletins">Générer les Bulletins</a></li>
                         <?php endif; ?>
+                        <?php if (Auth::can('bulletin_template:manage')): ?>
+                            <li><a class="dropdown-item" href="/modele-bulletin/edit">Personnaliser le Bulletin</a></li>
+                        <?php endif; ?>
                     </ul>
                 </li>
                 <?php if (Auth::can('manage_users')): ?>

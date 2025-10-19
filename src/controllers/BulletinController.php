@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../models/Bulletin.php';
 require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Sequence.php';
+require_once __DIR__ . '/../models/ModeleBulletin.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
 
@@ -73,8 +74,11 @@ class BulletinController {
             exit();
         }
 
+        $template = ModeleBulletin::findByLyceeId();
+
         View::render('bulletins/show', [
             'bulletin' => $bulletin_data,
+            'layout' => $template['layout_data'],
             'title' => 'Bulletin de ' . $bulletin_data['eleve']['prenom'] . ' ' . $bulletin_data['eleve']['nom']
         ]);
     }

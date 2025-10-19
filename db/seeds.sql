@@ -90,6 +90,7 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (72, 'frais', 'manage', 'Can manage the fee structure (frais)'),
 (75, 'bulletin', 'generate', 'Can generate and view report cards'),
 (76, 'bulletin', 'validate', 'Can validate report cards and add final appreciations'),
+(77, 'bulletin_template', 'manage', 'Can edit the report card template layout'),
 
 -- Settings
 (80, 'setting', 'edit', 'Can edit school-specific settings');
@@ -116,7 +117,7 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Students & Academics
 (3, 50), (3, 51), (3, 52), (3, 53), (3, 54), (3, 55), (3, 56), (3, 61), (3, 62), (3, 63), (3, 66),
 -- Finance & Settings
-(3, 70), (3, 71), (3, 72), (3, 75), (3, 76), (3, 80);
+(3, 70), (3, 71), (3, 72), (3, 75), (3, 76), (3, 77), (3, 80);
 
 -- Censeur (Academic Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
