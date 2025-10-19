@@ -240,6 +240,10 @@ $router->register('/bulletins/class_results', 'BulletinController', 'showClassRe
 $router->register('/bulletins/student', 'BulletinController', 'showStudentBulletin');
 $router->register('/bulletins/appreciation/save', 'BulletinController', 'saveAppreciation');
 
+// Bulletin Template Editor
+$router->register('/modele-bulletin/edit', 'ModeleBulletinController', 'edit');
+$router->register('/modele-bulletin/save', 'ModeleBulletinController', 'save');
+
 // Salaires
 $router->register('/salaires', 'SalaireController', 'index');
 $router->register('/salaires/create', 'SalaireController', 'create');
