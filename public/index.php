@@ -234,6 +234,12 @@ $router->register('/contrats/destroy', 'TypeContratController', 'destroy');
 $router->register('/emploi-du-temps/store', 'EmploiDuTempsController', 'store');
 $router->register('/emploi-du-temps/destroy', 'EmploiDuTempsController', 'destroy');
 
+// Bulletins (Report Cards)
+$router->register('/bulletins', 'BulletinController', 'index');
+$router->register('/bulletins/class_results', 'BulletinController', 'showClassResults');
+$router->register('/bulletins/student', 'BulletinController', 'showStudentBulletin');
+$router->register('/bulletins/appreciation/save', 'BulletinController', 'saveAppreciation');
+
 // Salaires
 $router->register('/salaires', 'SalaireController', 'index');
 $router->register('/salaires/create', 'SalaireController', 'create');

@@ -1,38 +1,93 @@
 <?php
 
 require_once __DIR__ . '/../models/Bulletin.php';
+require_once __DIR__ . '/../models/Classe.php';
+require_once __DIR__ . '/../models/Sequence.php';
+require_once __DIR__ . '/../core/Auth.php';
+require_once __DIR__ . '/../core/View.php';
 
 class BulletinController {
 
-    private function checkAuth() {
-        // Allow users with 'view_bulletins' permission
-        if (!Auth::can('view_bulletins')) {
+    private function checkAccess($permission = 'bulletin:generate') {
+        if (!Auth::can($permission)) {
             http_response_code(403);
-            echo "Accès Interdit.";
+            View::render('errors/403');
             exit();
         }
     }
 
-    public function show() {
-        $this->checkAuth();
-        $etude_id = $_GET['etude_id'] ?? null;
+    // Step 1: Show form to select class and sequence
+    public function index() {
+        $this->checkAccess();
 
-        if (!$etude_id) {
-            // Redirect somewhere sensible if no ID is provided
-            header('Location: /');
+        $classes = Classe::findAll(Auth::getLyceeId());
+        $sequences = Sequence::findAll();
+
+        View::render('bulletins/index', [
+            'classes' => $classes,
+            'sequences' => $sequences,
+            'title' => 'Génération des Bulletins'
+        ]);
+    }
+
+    // Step 2: Show the list of students with their average for the selected class/sequence
+    public function showClassResults() {
+        $this->checkAccess();
+
+        $classe_id = $_POST['classe_id'] ?? null;
+        $sequence_id = $_POST['sequence_id'] ?? null;
+
+        if (!$classe_id || !$sequence_id) {
+            header('Location: /bulletins');
             exit();
         }
 
-        $bulletin_data = Bulletin::generateForEtude($etude_id);
+        $classe = Classe::findById($classe_id);
+        $sequence = Sequence::findById($sequence_id);
+        $results = Bulletin::generateForClass($classe_id, $sequence_id);
+
+        View::render('bulletins/class_results', [
+            'classe' => $classe,
+            'sequence' => $sequence,
+            'results' => $results,
+            'title' => 'Résultats de la Classe'
+        ]);
+    }
+
+    // Step 3: Show the detailed report card for a single student
+    public function showStudentBulletin() {
+        $this->checkAccess(); // Or a more specific permission like 'bulletin:view'
+
+        $eleve_id = $_GET['eleve_id'] ?? null;
+        $sequence_id = $_GET['sequence_id'] ?? null;
+
+        if (!$eleve_id || !$sequence_id) {
+            header('Location: /bulletins');
+            exit();
+        }
+
+        $bulletin_data = Bulletin::generateForStudent($eleve_id, $sequence_id);
 
         if (!$bulletin_data) {
-            // Handle case where bulletin can't be generated
-            echo "Erreur: Impossible de générer le bulletin pour l'inscription ID {$etude_id}.";
+            View::render('errors/404', ['message' => 'Aucune donnée de bulletin trouvée pour cet élève et cette séquence.']);
             exit();
         }
 
-        require_once __DIR__ . '/../views/bulletins/show.php';
+        View::render('bulletins/show', [
+            'bulletin' => $bulletin_data,
+            'title' => 'Bulletin de ' . $bulletin_data['eleve']['prenom'] . ' ' . $bulletin_data['eleve']['nom']
+        ]);
     }
 
+    public function saveAppreciation() {
+        $this->checkAccess('bulletin:validate'); // A more specific permission for this action
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            Bulletin::saveAppreciation($_POST);
+        }
+
+        header('Location: /bulletins/student?eleve_id=' . $_POST['eleve_id'] . '&sequence_id=' . $_POST['sequence_id']);
+        exit();
+    }
 }
 ?>

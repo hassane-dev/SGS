@@ -53,6 +53,10 @@
                         <?php if (Auth::can('sequence:manage')): ?>
                             <li><a class="dropdown-item" href="/sequences">Gestion des Séquences</a></li>
                         <?php endif; ?>
+                        <?php if (Auth::can('bulletin:generate')): ?>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/bulletins">Générer les Bulletins</a></li>
+                        <?php endif; ?>
                     </ul>
                 </li>
                 <?php if (Auth::can('manage_users')): ?>

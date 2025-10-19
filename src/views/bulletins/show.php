@@ -1,103 +1,127 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Bulletin de Notes</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @media print {
-            body { -webkit-print-color-adjust: exact; }
-            .no-print { display: none; }
-        }
-        .table-bordered, .table-bordered th, .table-bordered td {
-            border: 1px solid black;
-        }
-    </style>
-</head>
-<body class="bg-gray-100">
-
-    <div class="container mx-auto my-8 p-8 bg-white shadow-lg" id="bulletin">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold"><?= htmlspecialchars($bulletin_data['info']['nom_lycee']) ?></h1>
-            <h2 class="text-xl"><?= _('Report Card') ?> - <?= _('Academic Year') ?> <?= htmlspecialchars($bulletin_data['info']['annee_academique']) ?></h2>
-        </div>
-
-        <!-- Student Info -->
-        <div class="mb-8 border p-4">
-            <p><strong><?= _('Full Name') ?>:</strong> <?= htmlspecialchars($bulletin_data['info']['nom'] . ' ' . $bulletin_data['info']['prenom']) ?></p>
-            <p><strong><?= _('Class') ?>:</strong> <?= htmlspecialchars($bulletin_data['info']['nom_classe'] . ' (' . $bulletin_data['info']['serie'] . ')') ?></p>
-            <p><strong><?= _('Date of Birth') ?>:</strong> <?= htmlspecialchars(date('d/m/Y', strtotime($bulletin_data['info']['date_naissance']))) ?></p>
-        </div>
-
-        <!-- Grades Table -->
-        <table class="w-full table-auto table-bordered">
-            <thead class="bg-gray-200">
-                <tr>
-                    <th class="p-2"><?= _('Subjects') ?></th>
-                    <th class="p-2"><?= _('Coeff.') ?></th>
-                    <th class="p-2"><?= _('Homework Avg.') ?></th>
-                    <th class="p-2"><?= _('Exam Grade') ?></th>
-                    <th class="p-2"><?= _('Subject Avg.') ?></th>
-                    <th class="p-2"><?= _('Total (Avg * Coeff)') ?></th>
-                    <th class="p-2"><?= _('Appreciation') ?></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($bulletin_data['results'] as $result): ?>
-                <tr>
-                    <td class="p-2"><?= htmlspecialchars($result['nom_matiere']) ?></td>
-                    <td class="p-2 text-center"><?= htmlspecialchars($result['coef']) ?></td>
-                    <td class="p-2 text-center"><?= $result['moyenne_devoirs'] !== null ? number_format($result['moyenne_devoirs'], 2) : 'N/A' ?></td>
-                    <td class="p-2 text-center"><?= $result['note_composition'] !== null ? number_format($result['note_composition'], 2) : 'N/A' ?></td>
-                    <td class="p-2 text-center font-bold"><?= $result['moyenne_matiere'] !== null ? number_format($result['moyenne_matiere'], 2) : 'N/A' ?></td>
-                    <td class="p-2 text-center"><?= $result['moyenne_matiere'] !== null ? number_format($result['moyenne_matiere'] * $result['coef'], 2) : 'N/A' ?></td>
-                    <td class="p-2"></td> <!-- Placeholder for teacher comments -->
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-
-        <!-- Summary -->
-        <div class="mt-8 flex justify-end">
-            <div class="w-1/2 border p-4">
-                <h3 class="text-lg font-bold mb-4"><?= _('Summary') ?></h3>
-                <div class="flex justify-between">
-                    <span><?= _('Overall Average') ?>:</span>
-                    <span class="font-bold text-xl"><?= number_format($bulletin_data['moyenne_generale'], 2) ?> / 20</span>
-                </div>
-                <div class="flex justify-between mt-2">
-                    <span><?= _('General Appreciation') ?>:</span>
-                    <span class="font-bold"></span> <!-- Placeholder -->
-                </div>
-                 <div class="flex justify-between mt-2">
-                    <span><?= _('Rank') ?>:</span>
-                    <span class="font-bold"></span> <!-- Placeholder -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Signatures -->
-        <div class="mt-16 flex justify-between text-center">
-            <div>
-                <p><?= _('Parent\'s Signature') ?></p>
-                <p class="mt-8">___________________</p>
-            </div>
-            <div>
-                <p><?= _('Headmaster\'s Signature') ?></p>
-                 <p class="mt-8">___________________</p>
-            </div>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Bulletin de Notes</h1>
+        <div>
+            <a href="#" class="btn btn-primary" onclick="window.print();">
+                <i class="fas fa-print"></i> Imprimer / PDF
+            </a>
+             <a href="/bulletins" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
         </div>
     </div>
 
-    <div class="text-center mt-8 no-print">
-        <button onclick="window.print()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            <?= _('Print Report Card') ?>
-        </button>
-        <a href="/eleves" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded ml-4">
-            <?= _('Back') ?>
-        </a>
-    </div>
+    <div class="card shadow mb-4">
+        <div class="card-body" id="bulletin-content">
+            <div class="bulletin-header text-center mb-4">
+                <h4>Lycée <?= htmlspecialchars($bulletin['eleve']['nom_lycee']) ?></h4>
+                <h5>Année Académique <?= htmlspecialchars($bulletin['eleve']['annee_academique']) ?></h5>
+                <h6>Bulletin de la Séquence : <?= htmlspecialchars($bulletin['sequence']['nom']) ?></h6>
+            </div>
 
-</body>
-</html>
+            <div class="student-info mb-4">
+                <p><strong>Nom & Prénom :</strong> <?= htmlspecialchars($bulletin['eleve']['prenom'] . ' ' . $bulletin['eleve']['nom']) ?></p>
+                <p><strong>Date de Naissance :</strong> <?= htmlspecialchars($bulletin['eleve']['date_naissance']) ?></p>
+                <p><strong>Classe :</strong> <?= htmlspecialchars($bulletin['eleve']['nom_classe']) ?></p>
+            </div>
+
+            <table class="table table-bordered">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Matières</th>
+                        <th>Note / 20</th>
+                        <th>Coefficient</th>
+                        <th>Total (Note x Coef)</th>
+                        <th>Appréciations de l'enseignant</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach($bulletin['matieres'] as $matiere): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($matiere['nom']) ?></td>
+                        <td><?= number_format($matiere['note'], 2) ?></td>
+                        <td><?= htmlspecialchars($matiere['coefficient']) ?></td>
+                        <td><?= number_format($matiere['total_points'], 2) ?></td>
+                        <td><?= htmlspecialchars($matiere['appreciation']) ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+                <tfoot class="font-weight-bold">
+                    <tr>
+                        <td>Totaux</td>
+                        <td></td>
+                        <td><?= htmlspecialchars($bulletin['total_coefficients']) ?></td>
+                        <td><?= number_format($bulletin['total_points'], 2) ?></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="summary mt-4">
+                <form action="/bulletins/appreciation/save" method="POST">
+                    <input type="hidden" name="eleve_id" value="<?= $bulletin['eleve']['id_eleve'] ?>">
+                    <input type="hidden" name="sequence_id" value="<?= $bulletin['sequence']['id'] ?>">
+                    <input type="hidden" name="moyenne_generale" value="<?= $bulletin['moyenne_generale'] ?>">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Moyenne Générale :</strong> <span class="h5"><?= number_format($bulletin['moyenne_generale'], 2) ?> / 20</span></p>
+
+                            <?php if (Auth::can('bulletin:validate')): ?>
+                                <div class="form-group">
+                                    <label for="rang"><strong>Rang de l'élève</strong></label>
+                                    <input type="text" name="rang" id="rang" class="form-control" value="<?= htmlspecialchars($bulletin['bulletin_record']['rang'] ?? '') ?>">
+                                </div>
+                            <?php else: ?>
+                                <p><strong>Rang :</strong> <?= htmlspecialchars($bulletin['bulletin_record']['rang'] ?? 'Non défini') ?></p>
+                            <?php endif; ?>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border p-3">
+                                <h5>Appréciation du Conseil de Classe</h5>
+                                <?php if (Auth::can('bulletin:validate')): ?>
+                                    <div class="form-group">
+                                        <textarea name="appreciation" class="form-control" rows="3"><?= htmlspecialchars($bulletin['bulletin_record']['appreciation'] ?? '') ?></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="statut"><strong>Statut du bulletin</strong></label>
+                                        <select name="statut" id="statut" class="form-control">
+                                            <option value="provisoire" <?= ($bulletin['bulletin_record']['statut'] ?? '') == 'provisoire' ? 'selected' : '' ?>>Provisoire</option>
+                                            <option value="valide" <?= ($bulletin['bulletin_record']['statut'] ?? '') == 'valide' ? 'selected' : '' ?>>Validé</option>
+                                            <option value="publie" <?= ($bulletin['bulletin_record']['statut'] ?? '') == 'publie' ? 'selected' : '' ?>>Publié</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-success mt-2">Enregistrer l'Appréciation</button>
+                                <?php else: ?>
+                                    <p><?= htmlspecialchars($bulletin['bulletin_record']['appreciation'] ?? 'Aucune appréciation.') ?></p>
+                                    <p><strong>Statut :</strong> <span class="badge badge-info"><?= ucfirst(htmlspecialchars($bulletin['bulletin_record']['statut'] ?? 'Provisoire')) ?></span></p>
+                                <?php endif; ?>
+                                <p class="mt-3"><strong>Le Chef d'établissement</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .card-body, .card-body * {
+        visibility: visible;
+    }
+    .card-body {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+    .btn {
+        display: none;
+    }
+}
+</style>
