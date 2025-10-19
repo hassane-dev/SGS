@@ -537,6 +537,29 @@ CREATE TABLE `notifications` (
 );
 
 -- =================================================================
+-- Report Card (Bulletin) Tables
+-- =================================================================
+
+CREATE TABLE `bulletins` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `eleve_id` INT NOT NULL,
+    `sequence_id` INT NOT NULL,
+    `annee_academique_id` INT NOT NULL,
+    `lycee_id` INT NOT NULL,
+    `moyenne_generale` DECIMAL(5, 2) NOT NULL,
+    `rang` VARCHAR(100),
+    `appreciation` TEXT,
+    `statut` ENUM('provisoire', 'valide', 'publie') NOT NULL DEFAULT 'provisoire',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
+    FOREIGN KEY (`sequence_id`) REFERENCES `sequences`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    UNIQUE KEY `unique_bulletin` (`eleve_id`, `sequence_id`)
+);
+
+-- =================================================================
 -- Timetable Tables
 -- =================================================================
 
