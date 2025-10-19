@@ -1,10 +1,19 @@
 <!DOCTYPE html>
-<html lang="fr">
+<?php
+// Determine language code and direction from the language setting
+$lang_code = explode('_', $lang)[0]; // 'fr_FR' becomes 'fr'
+$direction = $supported_languages[$lang]['dir'];
+?>
+<html lang="<?= $lang_code ?>" dir="<?= $direction ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $title ?? 'Gestion Scolaire' ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <?php if ($direction === 'rtl'): ?>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.rtl.min.css">
+    <?php else: ?>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <?php endif; ?>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
@@ -88,6 +97,18 @@
                 <?php endif; ?>
             </ul>
             <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-globe"></i> <?= $supported_languages[$lang]['name'] ?>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langDropdown">
+                        <?php foreach ($supported_languages as $code => $properties): ?>
+                            <?php if ($code !== $lang): ?>
+                                <li><a class="dropdown-item" href="?lang=<?= $code ?>"><?= $properties['name'] ?></a></li>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </ul>
+                </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <?= Auth::get('email') ?>

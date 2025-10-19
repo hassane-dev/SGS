@@ -6,11 +6,16 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// 1. Set the default language
+// 1. Define supported languages
+$supported_languages = [
+    'fr_FR' => ['name' => 'Français', 'dir' => 'ltr'],
+    'en_US' => ['name' => 'English', 'dir' => 'ltr'],
+    'ar'    => ['name' => 'العربية', 'dir' => 'rtl']
+];
 $default_lang = 'fr_FR';
 
 // 2. Check for language change in URL and update session
-if (isset($_GET['lang'])) {
+if (isset($_GET['lang']) && isset($supported_languages[$_GET['lang']])) {
     $_SESSION['lang'] = $_GET['lang'];
     // Redirect to the same page without the lang parameter to have a clean URL
     $redirect_url = strtok($_SERVER['REQUEST_URI'], '?');
@@ -20,6 +25,9 @@ if (isset($_GET['lang'])) {
 
 // 3. Determine the language to use
 $lang = $_SESSION['lang'] ?? $default_lang;
+if (!isset($supported_languages[$lang])) {
+    $lang = $default_lang;
+}
 
 // 4. Set up the gettext environment
 // The domain should match the name of your .mo file (e.g., messages.mo)

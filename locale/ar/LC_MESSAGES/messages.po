@@ -1,0 +1,941 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-05 08:28+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/views/cycles/edit.php:4
+msgid "Edit Cycle"
+msgstr ""
+
+#: src/views/cycles/edit.php:12 src/views/cycles/index.php:22
+#: src/views/cycles/create.php:11
+msgid "Cycle Name"
+msgstr ""
+
+#: src/views/cycles/edit.php:18 src/views/cycles/index.php:23
+#: src/views/cycles/create.php:17
+msgid "Start Level"
+msgstr ""
+
+#: src/views/cycles/edit.php:22 src/views/cycles/index.php:24
+#: src/views/cycles/create.php:21
+msgid "End Level"
+msgstr ""
+
+#: src/views/cycles/edit.php:30 src/views/cycles/create.php:29
+#: src/views/notes/grade_entry.php:42 src/views/tests_entree/create.php:36
+#: src/views/users/edit.php:67 src/views/users/create.php:64
+#: src/views/lycees/edit.php:55 src/views/lycees/create.php:53
+#: src/views/matieres/assign.php:23 src/views/matieres/edit.php:24
+#: src/views/matieres/create.php:23 src/views/eleves/edit.php:48
+#: src/views/eleves/create.php:42 src/views/paiements/create.php:40
+#: src/views/classes/edit.php:66 src/views/classes/create.php:61
+#: src/views/inscriptions/enroll.php:42 src/views/boutique/articles/edit.php:42
+#: src/views/boutique/articles/create.php:39
+#: src/views/boutique/achats/create.php:31 src/views/licences/edit.php:44
+#: src/views/licences/create.php:44
+msgid "Cancel"
+msgstr ""
+
+#: src/views/cycles/edit.php:32 src/views/users/edit.php:69
+#: src/views/lycees/edit.php:57 src/views/matieres/edit.php:26
+#: src/views/eleves/edit.php:50 src/views/classes/edit.php:68
+#: src/views/boutique/articles/edit.php:44 src/views/licences/edit.php:46
+msgid "Update"
+msgstr ""
+
+#: src/views/cycles/index.php:5
+msgid "Cycle Management"
+msgstr ""
+
+#: src/views/cycles/index.php:7
+msgid "Add Cycle"
+msgstr ""
+
+#: src/views/cycles/index.php:13 src/views/matieres/index.php:13
+#: src/views/auth/login.php:9
+msgid "Error!"
+msgstr ""
+
+#: src/views/cycles/index.php:14
+msgid "Cannot delete this cycle because it is used by one or more classes."
+msgstr ""
+
+#: src/views/cycles/index.php:25 src/views/notes/teacher_classes.php:14
+#: src/views/tests_entree/index.php:21 src/views/users/index.php:19
+#: src/views/lycees/index.php:18 src/views/matieres/index.php:24
+#: src/views/eleves/details.php:26 src/views/eleves/index.php:18
+#: src/views/classes/index.php:20 src/views/boutique/articles/index.php:18
+#: src/views/licences/index.php:20
+msgid "Actions"
+msgstr ""
+
+#: src/views/cycles/index.php:32
+msgid "No cycles found."
+msgstr ""
+
+#: src/views/cycles/index.php:42 src/views/users/index.php:41
+#: src/views/lycees/index.php:35 src/views/matieres/index.php:40
+#: src/views/eleves/index.php:42 src/views/classes/index.php:40
+#: src/views/boutique/articles/index.php:28 src/views/licences/index.php:38
+msgid "Edit"
+msgstr ""
+
+#: src/views/cycles/index.php:43
+msgid "Are you sure you want to delete this cycle?"
+msgstr ""
+
+#: src/views/cycles/index.php:45 src/views/tests_entree/index.php:41
+#: src/views/users/index.php:44 src/views/lycees/index.php:38
+#: src/views/matieres/index.php:43 src/views/eleves/index.php:45
+#: src/views/classes/index.php:43 src/views/boutique/articles/index.php:31
+#: src/views/licences/index.php:41
+msgid "Delete"
+msgstr ""
+
+#: src/views/cycles/create.php:4
+msgid "Add New Cycle"
+msgstr ""
+
+#: src/views/cycles/create.php:12
+msgid "Ex: High School"
+msgstr ""
+
+#: src/views/cycles/create.php:18 src/views/classes/create.php:31
+msgid "Ex: 1"
+msgstr ""
+
+#: src/views/cycles/create.php:22
+msgid "Ex: 3"
+msgstr ""
+
+#: src/views/cycles/create.php:31 src/views/users/create.php:66
+#: src/views/lycees/create.php:55 src/views/matieres/create.php:25
+#: src/views/eleves/create.php:44 src/views/classes/create.php:63
+#: src/views/boutique/articles/create.php:41
+msgid "Save"
+msgstr ""
+
+#: src/views/notes/grade_entry.php:4
+msgid "Grade Entry"
+msgstr ""
+
+#: src/views/notes/grade_entry.php:6 src/views/notes/teacher_classes.php:12
+#: src/views/bulletins/show.php:29 src/views/eleves/details.php:24
+#: src/views/inscriptions/enroll.php:19
+msgid "Class"
+msgstr ""
+
+#: src/views/notes/grade_entry.php:7 src/views/notes/teacher_classes.php:13
+msgid "Subject"
+msgstr ""
+
+#: src/views/notes/grade_entry.php:8 src/views/lycees/index.php:16
+#: src/views/paiements/index.php:19
+msgid "Type"
+msgstr ""
+
+#: src/views/notes/grade_entry.php:20
+msgid "Student Name"
+msgstr ""
+
+#: src/views/notes/grade_entry.php:21
+msgid "Grade"
+msgstr ""
+
+#: src/views/notes/grade_entry.php:44
+msgid "Save Grades"
+msgstr ""
+
+#: src/views/notes/teacher_classes.php:5
+msgid "My Classes and Subjects"
+msgstr ""
+
+#: src/views/notes/teacher_classes.php:21
+msgid "You are not assigned to any classes at the moment."
+msgstr ""
+
+#: src/views/notes/teacher_classes.php:30
+msgid "Enter Homework Grades"
+msgstr ""
+
+#: src/views/notes/teacher_classes.php:31
+msgid "Enter Exam Grades"
+msgstr ""
+
+#: src/views/settings/index.php:4
+msgid "General Settings"
+msgstr ""
+
+#: src/views/settings/index.php:18 src/views/lycees/edit.php:13
+#: src/views/lycees/index.php:15 src/views/lycees/create.php:11
+msgid "High School Name"
+msgstr ""
+
+#: src/views/settings/index.php:24 src/views/lycees/edit.php:18
+#: src/views/lycees/create.php:16
+msgid "High School Type"
+msgstr ""
+
+#: src/views/settings/index.php:26 src/views/lycees/edit.php:20
+#: src/views/lycees/create.php:18
+msgid "Public"
+msgstr ""
+
+#: src/views/settings/index.php:27 src/views/lycees/edit.php:21
+#: src/views/lycees/create.php:19
+msgid "Private"
+msgstr ""
+
+#: src/views/settings/index.php:28 src/views/lycees/edit.php:22
+#: src/views/lycees/create.php:20
+msgid "Parapublic"
+msgstr ""
+
+#: src/views/settings/index.php:34 src/views/bulletins/show.php:23
+#: src/views/eleves/details.php:23 src/views/inscriptions/enroll.php:14
+msgid "Academic Year"
+msgstr ""
+
+#: src/views/settings/index.php:40
+msgid "Homework per Term"
+msgstr ""
+
+#: src/views/settings/index.php:46
+msgid "Payment Method"
+msgstr ""
+
+#: src/views/settings/index.php:48
+msgid "Before registration"
+msgstr ""
+
+#: src/views/settings/index.php:49
+msgid "After entrance test"
+msgstr ""
+
+#: src/views/settings/index.php:50
+msgid "Installments"
+msgstr ""
+
+#: src/views/settings/index.php:58
+msgid "Multilingual"
+msgstr ""
+
+#: src/views/settings/index.php:62
+msgid "Biometrics"
+msgstr ""
+
+#: src/views/settings/index.php:66
+msgid "National Privacy"
+msgstr ""
+
+#: src/views/settings/index.php:73
+msgid "Save Settings"
+msgstr ""
+
+#: src/views/bulletins/show.php:23
+msgid "Report Card"
+msgstr ""
+
+#: src/views/bulletins/show.php:28 src/views/eleves/index.php:16
+msgid "Full Name"
+msgstr ""
+
+#: src/views/bulletins/show.php:30 src/views/eleves/edit.php:26
+#: src/views/eleves/create.php:25
+msgid "Date of Birth"
+msgstr ""
+
+#: src/views/bulletins/show.php:37
+msgid "Subjects"
+msgstr ""
+
+#: src/views/bulletins/show.php:38
+msgid "Coeff."
+msgstr ""
+
+#: src/views/bulletins/show.php:39
+msgid "Homework Avg."
+msgstr ""
+
+#: src/views/bulletins/show.php:40
+msgid "Exam Grade"
+msgstr ""
+
+#: src/views/bulletins/show.php:41
+msgid "Subject Avg."
+msgstr ""
+
+#: src/views/bulletins/show.php:42
+msgid "Total (Avg * Coeff)"
+msgstr ""
+
+#: src/views/bulletins/show.php:43
+msgid "Appreciation"
+msgstr ""
+
+#: src/views/bulletins/show.php:64
+msgid "Summary"
+msgstr ""
+
+#: src/views/bulletins/show.php:66
+msgid "Overall Average"
+msgstr ""
+
+#: src/views/bulletins/show.php:70
+msgid "General Appreciation"
+msgstr ""
+
+#: src/views/bulletins/show.php:74
+msgid "Rank"
+msgstr ""
+
+#: src/views/bulletins/show.php:83
+msgid "Parent's Signature"
+msgstr ""
+
+#: src/views/bulletins/show.php:87
+msgid "Headmaster's Signature"
+msgstr ""
+
+#: src/views/bulletins/show.php:95
+msgid "Print Report Card"
+msgstr ""
+
+#: src/views/bulletins/show.php:98
+msgid "Back"
+msgstr ""
+
+#: src/views/tests_entree/index.php:6
+msgid "Entrance Test Management"
+msgstr ""
+
+#: src/views/tests_entree/index.php:7 src/views/paiements/index.php:7
+#: src/views/inscriptions/enroll.php:5 src/views/boutique/achats/index.php:7
+msgid "Student"
+msgstr ""
+
+#: src/views/tests_entree/index.php:10
+msgid "New Test"
+msgstr ""
+
+#: src/views/tests_entree/index.php:18 src/views/tests_entree/create.php:29
+msgid "Test Date"
+msgstr ""
+
+#: src/views/tests_entree/index.php:19 src/views/tests_entree/create.php:14
+msgid "Target Class"
+msgstr ""
+
+#: src/views/tests_entree/index.php:20 src/views/tests_entree/create.php:24
+msgid "Score"
+msgstr ""
+
+#: src/views/tests_entree/index.php:28
+msgid "No entrance tests found for this student."
+msgstr ""
+
+#: src/views/tests_entree/index.php:38 src/views/boutique/articles/index.php:29
+#: src/views/licences/index.php:39
+msgid "Are you sure?"
+msgstr ""
+
+#: src/views/tests_entree/index.php:51 src/views/boutique/achats/index.php:39
+msgid "Back to student file"
+msgstr ""
+
+#: src/views/tests_entree/create.php:4
+msgid "Record Entrance Test"
+msgstr ""
+
+#: src/views/tests_entree/create.php:5 src/views/paiements/create.php:5
+#: src/views/boutique/achats/create.php:5
+msgid "For student"
+msgstr ""
+
+#: src/views/tests_entree/create.php:16 src/views/inscriptions/enroll.php:21
+msgid "-- Choose a class --"
+msgstr ""
+
+#: src/views/tests_entree/create.php:38
+msgid "Record Result"
+msgstr ""
+
+#: src/views/users/edit.php:4
+msgid "Edit User"
+msgstr ""
+
+#: src/views/users/edit.php:12 src/views/users/create.php:11
+#: src/views/eleves/edit.php:12 src/views/eleves/create.php:11
+msgid "First Name"
+msgstr ""
+
+#: src/views/users/edit.php:16 src/views/users/create.php:15
+#: src/views/eleves/edit.php:16 src/views/eleves/create.php:15
+msgid "Last Name"
+msgstr ""
+
+#: src/views/users/edit.php:21 src/views/users/index.php:16
+#: src/views/users/create.php:20 src/views/lycees/edit.php:27
+#: src/views/lycees/create.php:25 src/views/eleves/edit.php:21
+#: src/views/eleves/index.php:17 src/views/eleves/create.php:20
+#: src/views/auth/login.php:16
+msgid "Email"
+msgstr ""
+
+#: src/views/users/edit.php:26
+msgid "New Password"
+msgstr ""
+
+#: src/views/users/edit.php:27
+msgid "Leave blank to keep current password"
+msgstr ""
+
+#: src/views/users/edit.php:31 src/views/users/index.php:17
+#: src/views/users/create.php:30
+msgid "Role"
+msgstr ""
+
+#: src/views/users/edit.php:33 src/views/users/create.php:32
+msgid "Teacher"
+msgstr ""
+
+#: src/views/users/edit.php:34 src/views/users/create.php:33
+msgid "Supervisor"
+msgstr ""
+
+#: src/views/users/edit.php:35 src/views/users/create.php:34
+msgid "Censor"
+msgstr ""
+
+#: src/views/users/edit.php:37 src/views/users/create.php:36
+msgid "Local Administrator"
+msgstr ""
+
+#: src/views/users/edit.php:38 src/views/users/create.php:37
+msgid "Regional Administrator"
+msgstr ""
+
+#: src/views/users/edit.php:45 src/views/users/create.php:44
+#: src/views/classes/edit.php:50 src/views/classes/index.php:18
+#: src/views/classes/create.php:48 src/views/boutique/articles/edit.php:28
+#: src/views/boutique/articles/create.php:27 src/views/licences/edit.php:12
+#: src/views/licences/index.php:15 src/views/licences/create.php:11
+msgid "High School"
+msgstr ""
+
+#: src/views/users/edit.php:47 src/views/users/create.php:46
+msgid "-- None --"
+msgstr ""
+
+#: src/views/users/edit.php:60 src/views/users/create.php:57
+msgid "Account Active"
+msgstr ""
+
+#: src/views/users/index.php:5
+msgid "User Management"
+msgstr ""
+
+#: src/views/users/index.php:7
+msgid "Add User"
+msgstr ""
+
+#: src/views/users/index.php:15
+msgid "Name"
+msgstr ""
+
+#: src/views/users/index.php:18 src/views/eleves/details.php:25
+#: src/views/paiements/index.php:21 src/views/paiements/create.php:29
+#: src/views/licences/index.php:19
+msgid "Status"
+msgstr ""
+
+#: src/views/users/index.php:31 src/views/eleves/details.php:43
+#: src/views/licences/index.php:32
+msgid "Active"
+msgstr ""
+
+#: src/views/users/index.php:35 src/views/eleves/details.php:45
+#: src/views/licences/index.php:34
+msgid "Inactive"
+msgstr ""
+
+#: src/views/users/index.php:42
+msgid "Are you sure you want to delete this user?"
+msgstr ""
+
+#: src/views/users/create.php:4
+msgid "Add New User"
+msgstr ""
+
+#: src/views/users/create.php:25 src/views/auth/login.php:23
+msgid "Password"
+msgstr ""
+
+#: src/views/lycees/edit.php:4
+msgid "Edit High School"
+msgstr ""
+
+#: src/views/lycees/edit.php:32 src/views/lycees/create.php:30
+#: src/views/eleves/edit.php:31 src/views/eleves/create.php:30
+msgid "Phone"
+msgstr ""
+
+#: src/views/lycees/edit.php:37 src/views/lycees/create.php:35
+msgid "Address"
+msgstr ""
+
+#: src/views/lycees/edit.php:43 src/views/lycees/index.php:17
+#: src/views/lycees/create.php:41
+msgid "City"
+msgstr ""
+
+#: src/views/lycees/edit.php:47 src/views/lycees/create.php:45
+msgid "District"
+msgstr ""
+
+#: src/views/lycees/index.php:5
+msgid "High School Management"
+msgstr ""
+
+#: src/views/lycees/index.php:7
+msgid "Add High School"
+msgstr ""
+
+#: src/views/lycees/index.php:25
+msgid "No high schools found."
+msgstr ""
+
+#: src/views/lycees/index.php:36
+msgid "Are you sure you want to delete this high school?"
+msgstr ""
+
+#: src/views/lycees/create.php:4
+msgid "Add New High School"
+msgstr ""
+
+#: src/views/matieres/assign.php:4 src/views/classes/index.php:39
+msgid "Assign Subjects"
+msgstr ""
+
+#: src/views/matieres/assign.php:5
+msgid "For class"
+msgstr ""
+
+#: src/views/matieres/assign.php:25
+msgid "Save Assignments"
+msgstr ""
+
+#: src/views/matieres/edit.php:4
+msgid "Edit Subject"
+msgstr ""
+
+#: src/views/matieres/edit.php:12 src/views/matieres/index.php:22
+#: src/views/matieres/create.php:11
+msgid "Subject Name"
+msgstr ""
+
+#: src/views/matieres/edit.php:17 src/views/matieres/index.php:23
+#: src/views/matieres/create.php:16
+msgid "Coefficient"
+msgstr ""
+
+#: src/views/matieres/index.php:5
+msgid "Subject Management"
+msgstr ""
+
+#: src/views/matieres/index.php:7
+msgid "Add Subject"
+msgstr ""
+
+#: src/views/matieres/index.php:14
+msgid "Cannot delete this subject because it is in use."
+msgstr ""
+
+#: src/views/matieres/index.php:31
+msgid "No subjects found."
+msgstr ""
+
+#: src/views/matieres/index.php:41
+msgid "Are you sure you want to delete this subject?"
+msgstr ""
+
+#: src/views/matieres/create.php:4
+msgid "Add New Subject"
+msgstr ""
+
+#: src/views/matieres/create.php:12
+msgid "Ex: Mathematics"
+msgstr ""
+
+#: src/views/matieres/create.php:17
+msgid "Ex: 2.5"
+msgstr ""
+
+#: src/views/eleves/details.php:6 src/views/eleves/index.php:33
+msgid "Student Photo"
+msgstr ""
+
+#: src/views/eleves/details.php:15
+msgid "Enrollment History"
+msgstr ""
+
+#: src/views/eleves/details.php:17 src/views/boutique/achats/index.php:6
+msgid "Purchase History"
+msgstr ""
+
+#: src/views/eleves/details.php:18
+msgid "Entrance Tests"
+msgstr ""
+
+#: src/views/eleves/details.php:33
+msgid "No enrollments found."
+msgstr ""
+
+#: src/views/eleves/details.php:49
+msgid "View Report Card"
+msgstr ""
+
+#: src/views/eleves/details.php:59 src/views/paiements/index.php:55
+msgid "Back to student list"
+msgstr ""
+
+#: src/views/eleves/edit.php:4
+msgid "Edit Student File"
+msgstr ""
+
+#: src/views/eleves/edit.php:36
+msgid "Change Photo"
+msgstr ""
+
+#: src/views/eleves/edit.php:39
+msgid "Current Photo"
+msgstr ""
+
+#: src/views/eleves/index.php:5
+msgid "Student Management"
+msgstr ""
+
+#: src/views/eleves/index.php:7
+msgid "Add Student"
+msgstr ""
+
+#: src/views/eleves/index.php:15 src/views/eleves/create.php:35
+msgid "Photo"
+msgstr ""
+
+#: src/views/eleves/index.php:25
+msgid "No students found."
+msgstr ""
+
+#: src/views/eleves/index.php:39
+msgid "Details/Report Card"
+msgstr ""
+
+#: src/views/eleves/index.php:40
+msgid "Payments"
+msgstr ""
+
+#: src/views/eleves/index.php:41
+msgid "Enroll"
+msgstr ""
+
+#: src/views/eleves/index.php:43
+msgid "Are you sure you want to delete this student?"
+msgstr ""
+
+#: src/views/eleves/create.php:4
+msgid "Add New Student"
+msgstr ""
+
+#: src/views/paiements/index.php:6
+msgid "Payment Tracking"
+msgstr ""
+
+#: src/views/paiements/index.php:10 src/views/paiements/create.php:4
+msgid "Add Payment"
+msgstr ""
+
+#: src/views/paiements/index.php:18 src/views/boutique/achats/index.php:18
+msgid "Date"
+msgstr ""
+
+#: src/views/paiements/index.php:20 src/views/paiements/create.php:24
+msgid "Amount"
+msgstr ""
+
+#: src/views/paiements/index.php:28
+msgid "No payments found for this student."
+msgstr ""
+
+#: src/views/paiements/create.php:14
+msgid "Payment Type"
+msgstr ""
+
+#: src/views/paiements/create.php:16
+msgid "Registration"
+msgstr ""
+
+#: src/views/paiements/create.php:17
+msgid "Monthly Fee"
+msgstr ""
+
+#: src/views/paiements/create.php:18
+msgid "Insurance"
+msgstr ""
+
+#: src/views/paiements/create.php:19
+msgid "Shop"
+msgstr ""
+
+#: src/views/paiements/create.php:31
+msgid "Paid"
+msgstr ""
+
+#: src/views/paiements/create.php:32
+msgid "Partial"
+msgstr ""
+
+#: src/views/paiements/create.php:33
+msgid "Unpaid"
+msgstr ""
+
+#: src/views/paiements/create.php:42
+msgid "Record Payment"
+msgstr ""
+
+#: src/views/classes/edit.php:4
+msgid "Edit Class"
+msgstr ""
+
+#: src/views/classes/edit.php:13 src/views/classes/index.php:15
+#: src/views/classes/create.php:12
+msgid "Class Name"
+msgstr ""
+
+#: src/views/classes/edit.php:19 src/views/classes/create.php:18
+msgid "Level"
+msgstr ""
+
+#: src/views/classes/edit.php:25 src/views/classes/create.php:24
+msgid "Series"
+msgstr ""
+
+#: src/views/classes/edit.php:31 src/views/classes/create.php:30
+msgid "Class Number"
+msgstr ""
+
+#: src/views/classes/edit.php:37 src/views/classes/index.php:16
+#: src/views/classes/create.php:36
+msgid "Cycle"
+msgstr ""
+
+#: src/views/classes/index.php:5
+msgid "Class Management"
+msgstr ""
+
+#: src/views/classes/index.php:7
+msgid "Add Class"
+msgstr ""
+
+#: src/views/classes/index.php:27
+msgid "No classes found."
+msgstr ""
+
+#: src/views/classes/index.php:41
+msgid "Are you sure you want to delete this class?"
+msgstr ""
+
+#: src/views/classes/create.php:4
+msgid "Add New Class"
+msgstr ""
+
+#: src/views/classes/create.php:13
+msgid "Ex: Tenth Grade"
+msgstr ""
+
+#: src/views/classes/create.php:19
+msgid "Ex: 10"
+msgstr ""
+
+#: src/views/classes/create.php:25
+msgid "Ex: A4"
+msgstr ""
+
+#: src/views/classes/create.php:38
+msgid "-- Choose a cycle --"
+msgstr ""
+
+#: src/views/classes/create.php:50 src/views/licences/create.php:13
+msgid "-- Choose a high school --"
+msgstr ""
+
+#: src/views/inscriptions/enroll.php:4 src/views/inscriptions/enroll.php:44
+msgid "Enroll Student"
+msgstr ""
+
+#: src/views/inscriptions/enroll.php:34
+msgid "Activate enrollment immediately"
+msgstr ""
+
+#: src/views/inscriptions/enroll.php:36
+msgid ""
+"The enrollment must be active for the student to appear in class lists for "
+"grading, etc."
+msgstr ""
+
+#: src/views/boutique/articles/edit.php:4
+msgid "Edit Article"
+msgstr ""
+
+#: src/views/boutique/articles/edit.php:12
+#: src/views/boutique/articles/create.php:11
+msgid "Article Name"
+msgstr ""
+
+#: src/views/boutique/articles/edit.php:17
+#: src/views/boutique/articles/index.php:16
+#: src/views/boutique/articles/create.php:16
+msgid "Price"
+msgstr ""
+
+#: src/views/boutique/articles/edit.php:22
+#: src/views/boutique/articles/index.php:17
+#: src/views/boutique/articles/create.php:21
+msgid "Stock"
+msgstr ""
+
+#: src/views/boutique/articles/index.php:5
+msgid "Shop Management"
+msgstr ""
+
+#: src/views/boutique/articles/index.php:7
+msgid "Add Article"
+msgstr ""
+
+#: src/views/boutique/articles/index.php:15
+#: src/views/boutique/achats/index.php:19
+#: src/views/boutique/achats/create.php:14
+msgid "Article"
+msgstr ""
+
+#: src/views/boutique/articles/create.php:4
+msgid "Add Article to Shop"
+msgstr ""
+
+#: src/views/boutique/achats/index.php:10
+msgid "New Purchase"
+msgstr ""
+
+#: src/views/boutique/achats/index.php:20
+#: src/views/boutique/achats/create.php:24
+msgid "Quantity"
+msgstr ""
+
+#: src/views/boutique/achats/index.php:21
+msgid "Unit Price"
+msgstr ""
+
+#: src/views/boutique/achats/index.php:22
+msgid "Total"
+msgstr ""
+
+#: src/views/boutique/achats/create.php:4
+msgid "Record a Purchase"
+msgstr ""
+
+#: src/views/boutique/achats/create.php:16
+msgid "-- Choose an article --"
+msgstr ""
+
+#: src/views/boutique/achats/create.php:33
+msgid "Record Purchase"
+msgstr ""
+
+#: src/views/licences/edit.php:4
+msgid "Edit License"
+msgstr ""
+
+#: src/views/licences/edit.php:21 src/views/licences/create.php:21
+msgid "Duration (in months)"
+msgstr ""
+
+#: src/views/licences/edit.php:23 src/views/licences/create.php:23
+msgid "3 months"
+msgstr ""
+
+#: src/views/licences/edit.php:24 src/views/licences/create.php:24
+msgid "6 months"
+msgstr ""
+
+#: src/views/licences/edit.php:25 src/views/licences/create.php:25
+msgid "1 year"
+msgstr ""
+
+#: src/views/licences/edit.php:30 src/views/licences/index.php:16
+#: src/views/licences/create.php:30
+msgid "Start Date"
+msgstr ""
+
+#: src/views/licences/edit.php:37 src/views/licences/create.php:37
+msgid "License Active"
+msgstr ""
+
+#: src/views/licences/index.php:5
+msgid "License Management"
+msgstr ""
+
+#: src/views/licences/index.php:7 src/views/licences/create.php:46
+msgid "Generate License"
+msgstr ""
+
+#: src/views/licences/index.php:17
+msgid "End Date"
+msgstr ""
+
+#: src/views/licences/index.php:18
+msgid "Duration"
+msgstr ""
+
+#: src/views/licences/index.php:29
+msgid "months"
+msgstr ""
+
+#: src/views/licences/create.php:4
+msgid "Generate New License"
+msgstr ""
+
+#: src/views/auth/login.php:5 src/views/auth/login.php:32
+msgid "Login"
+msgstr ""
+
+#: src/views/auth/login.php:10
+msgid "Incorrect email or password."
+msgstr ""
+
+#: src/views/layouts/header.php:6 src/views/layouts/header.php:28
+#: src/views/layouts/footer.php:4
+msgid "School Management"
+msgstr ""
+
+#: src/views/layouts/header.php:29
+msgid "Admin Interface"
+msgstr ""
+
+#: src/views/layouts/footer.php:4
+msgid "All rights reserved."
+msgstr ""
