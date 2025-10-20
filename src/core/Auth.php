@@ -25,6 +25,9 @@ class Auth {
         $user = User::findByEmail($email);
 
         if ($user && password_verify($password, $user->mot_de_passe)) {
+            // Regenerate session ID to prevent session fixation
+            session_regenerate_id(true);
+
             // Password is correct, store user data in session
             $role = Role::findById($user->role_id);
             $permissions = Role::getPermissions($user->role_id);
