@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../models/Sequence.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class SequenceController {
 
@@ -33,7 +34,8 @@ class SequenceController {
     public function store() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            Sequence::save($_POST);
+            $data = Validator::sanitize($_POST);
+            Sequence::save($data);
         }
         header('Location: /sequences');
         exit();
@@ -61,7 +63,8 @@ class SequenceController {
     public function update() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            Sequence::save($_POST);
+            $data = Validator::sanitize($_POST);
+            Sequence::save($data);
         }
         header('Location: /sequences');
         exit();

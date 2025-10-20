@@ -8,6 +8,7 @@ require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/EnseignantMatiere.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class ClasseController {
 
@@ -75,10 +76,11 @@ class ClasseController {
     public function store() {
         $this->checkAccess('class:create');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = Validator::sanitize($_POST);
             if (!Auth::can('system:view_all_lycees')) {
-                $_POST['lycee_id'] = Auth::getLyceeId();
+                $data['lycee_id'] = Auth::getLyceeId();
             }
-            Classe::save($_POST);
+            Classe::save($data);
         }
         header('Location: /classes');
         exit();
@@ -105,10 +107,11 @@ class ClasseController {
     public function update() {
         $this->checkAccess('class:edit');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $classe = Classe::findById($_POST['id_classe']);
+            $data = Validator::sanitize($_POST);
+            $classe = Classe::findById($data['id_classe']);
             $this->checkOwnership($classe['lycee_id']);
-            $_POST['lycee_id'] = $classe['lycee_id'];
-            Classe::save($_POST);
+            $data['lycee_id'] = $classe['lycee_id'];
+            Classe::save($data);
         }
         header('Location: /classes');
         exit();

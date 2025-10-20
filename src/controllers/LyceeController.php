@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/Lycee.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class LyceeController {
 
@@ -26,7 +27,8 @@ class LyceeController {
     public function store() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            Lycee::save($_POST);
+            $data = Validator::sanitize($_POST);
+            Lycee::save($data);
         }
         header('Location: /lycees');
         exit();
@@ -46,7 +48,8 @@ class LyceeController {
     public function update() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            Lycee::save($_POST);
+            $data = Validator::sanitize($_POST);
+            Lycee::save($data);
         }
         header('Location: /lycees');
         exit();
