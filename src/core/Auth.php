@@ -36,7 +36,7 @@ class Auth {
                 'email' => $user->email,
                 'role_id' => $user->role_id,
                 'role_name' => $role['nom_role'] ?? 'N/A',
-                'lycee_id' => $user->lycee_id,
+                'ecoleId' => $user->ecoleId,
                 'permissions' => $permissions,
             ];
             return true;
@@ -105,6 +105,11 @@ class Auth {
         }
 
         return isset($permissions[$resource]) && in_array($action, $permissions[$resource]);
+    }
+
+    public static function getEcoleId() {
+        self::startSession();
+        return $_SESSION['user']['ecoleId'] ?? null;
     }
 }
 ?>
