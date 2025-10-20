@@ -244,6 +244,16 @@ $router->register('/bulletins/appreciation/save', 'BulletinController', 'saveApp
 $router->register('/modele-bulletin/edit', 'ModeleBulletinController', 'edit');
 $router->register('/modele-bulletin/save', 'ModeleBulletinController', 'save');
 
+// School Parameters
+$router->register('/param-lycee/edit', 'ParamLyceeController', 'edit');
+$router->register('/param-lycee/update', 'ParamLyceeController', 'update');
+$router->register('/param-general/edit', 'ParamGeneralController', 'edit');
+$router->register('/param-general/update', 'ParamGeneralController', 'update');
+$router->register('/param-devoir/edit', 'ParamDevoirController', 'edit');
+$router->register('/param-devoir/update', 'ParamDevoirController', 'update');
+$router->register('/param-composition/edit', 'ParamCompositionController', 'edit');
+$router->register('/param-composition/update', 'ParamCompositionController', 'update');
+
 // Salaires
 $router->register('/salaires', 'SalaireController', 'index');
 $router->register('/salaires/create', 'SalaireController', 'create');

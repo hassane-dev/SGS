@@ -95,6 +95,27 @@ $direction = $supported_languages[$lang]['dir'];
                     </a>
                 </li>
                 <?php endif; ?>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="paramsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-cogs"></i> Paramètres
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="paramsDropdown">
+                        <?php if (Auth::can('param_lycee:edit')): ?>
+                            <li><a class="dropdown-item" href="/param-lycee/edit">Paramètres du Lycée</a></li>
+                        <?php endif; ?>
+                        <?php if (Auth::can('param_general:edit')): ?>
+                            <li><a class="dropdown-item" href="/param-general/edit">Paramètres Généraux</a></li>
+                        <?php endif; ?>
+                        <li><hr class="dropdown-divider"></li>
+                        <?php if (Auth::can('param_devoir:edit')): ?>
+                            <li><a class="dropdown-item" href="/param-devoir/edit">Paramètres des Devoirs</a></li>
+                        <?php endif; ?>
+                        <?php if (Auth::can('param_composition:edit')): ?>
+                            <li><a class="dropdown-item" href="/param-composition/edit">Paramètres des Compositions</a></li>
+                        <?php endif; ?>
+                    </ul>
+                </li>
             </ul>
             <ul class="navbar-nav">
                 <li class="nav-item dropdown">

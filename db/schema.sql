@@ -3,7 +3,7 @@
 -- =================================================================
 
 -- Drop tables if they exist to ensure a clean slate on execution
-DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `lycees`, `parametres_generaux`, `annees_academiques`, `personnel_assignments`;
+DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `lycees`, `parametres_generaux`, `annees_academiques`, `personnel_assignments`, `param_lycee`, `param_general`, `param_devoir`, `param_composition`, `bulletins`, `parametres_evaluations`;
 
 -- =================================================================
 -- General and Core Tables
@@ -19,32 +19,38 @@ CREATE TABLE `annees_academiques` (
 );
 
 -- Table for high schools (Lycees)
-CREATE TABLE `lycees` (
-    `id_lycee` INT AUTO_INCREMENT PRIMARY KEY,
-    `nom_lycee` VARCHAR(255) NOT NULL,
-    `type_lycee` ENUM('public', 'prive', 'parapublic') NOT NULL,
-    `adresse` TEXT,
+-- Table for School-specific administrative settings
+CREATE TABLE `param_lycee` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `nomEcole` VARCHAR(255) NOT NULL,
+    `sigle` VARCHAR(50),
+    `tel` VARCHAR(50),
+    `email` VARCHAR(255) UNIQUE,
     `ville` VARCHAR(100),
     `quartier` VARCHAR(100),
-    `telephone` VARCHAR(50),
-    `email` VARCHAR(255) UNIQUE,
-    `logo` VARCHAR(255)
+    `ruelle` VARCHAR(100),
+    `boitePostale` VARCHAR(50),
+    `arrete` VARCHAR(255),
+    `arrondissement` VARCHAR(100),
+    `devise` VARCHAR(255),
+    `logo` VARCHAR(255),
+    `typeLycee` ENUM('public', 'prive', 'semi-public') NOT NULL,
+    `boutique` BOOLEAN NOT NULL DEFAULT FALSE
 );
 
--- Table for general application settings (scoped per Lycee)
-CREATE TABLE `parametres_generaux` (
+-- Table for general system settings (scoped per Lycee)
+CREATE TABLE `param_general` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `lycee_id` INT,
-    `nom_lycee` VARCHAR(255) NOT NULL,
-    `type_lycee` ENUM('public', 'prive', 'parapublic') NOT NULL,
-    `annee_academique_id` INT,
-    `nombre_devoirs_par_trimestre` INT DEFAULT 2,
-    `modalite_paiement` ENUM('avant_inscription', 'apres_test', 'fractionne') NOT NULL,
-    `multilingue_actif` BOOLEAN DEFAULT TRUE,
-    `biometrie_actif` BOOLEAN DEFAULT FALSE,
-    `confidentialite_nationale` BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
-    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
+    `ecoleId` INT NOT NULL,
+    `devisePays` VARCHAR(100),
+    `monnaie` VARCHAR(10),
+    `modalitePaiement` VARCHAR(255), -- e.g., 'Especes, Versement, Mobile Money'
+    `nbLangue` INT DEFAULT 1,
+    `langue_1` VARCHAR(50) DEFAULT 'Francais',
+    `langue_2` VARCHAR(50),
+    `sequenceAnnuelle` ENUM('Semestrielle', 'Trimestrielle') NOT NULL DEFAULT 'Trimestrielle',
+    `creeLe` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 
 
@@ -55,8 +61,8 @@ CREATE TABLE `parametres_generaux` (
 CREATE TABLE `roles` (
     `id_role` INT AUTO_INCREMENT PRIMARY KEY,
     `nom_role` VARCHAR(100) NOT NULL,
-    `lycee_id` INT, -- NULL for global roles
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+    `ecoleId` INT, -- NULL for global roles
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `permissions` (
@@ -90,12 +96,12 @@ CREATE TABLE `utilisateurs` (
     `mot_de_passe` VARCHAR(255) NOT NULL, -- Should be hashed
     `fonction` VARCHAR(100), -- e.g., enseignant, proviseur, surveillant
     `role_id` INT,
-    `lycee_id` INT, -- NULL for global roles
+    `ecoleId` INT, -- NULL for global roles
     `contrat_id` INT,
     `date_embauche` DATE,
     `actif` BOOLEAN DEFAULT TRUE,
     `photo` VARCHAR(255),
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE SET NULL,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE SET NULL,
     FOREIGN KEY (`role_id`) REFERENCES `roles`(`id_role`) ON DELETE SET NULL
 );
 
@@ -111,8 +117,8 @@ CREATE TABLE `salles` (
     `id_salle` INT AUTO_INCREMENT PRIMARY KEY,
     `nom_salle` VARCHAR(100) NOT NULL,
     `capacite` INT,
-    `lycee_id` INT NOT NULL,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+    `ecoleId` INT NOT NULL,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 
 -- Table for academic cycles (e.g., Middle School, High School)
@@ -131,10 +137,10 @@ CREATE TABLE `classes` (
     `serie` VARCHAR(50),
     `numero_classe` INT,
     `cycle_id` INT NOT NULL,
-    `lycee_id` INT NOT NULL,
+    `ecoleId` INT NOT NULL,
     `salle_id` INT, -- Default room for the class
     FOREIGN KEY (`cycle_id`) REFERENCES `cycles`(`id_cycle`),
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`salle_id`) REFERENCES `salles`(`id_salle`) ON DELETE SET NULL
 );
 
@@ -146,8 +152,8 @@ CREATE TABLE `matieres` (
     `type` VARCHAR(100), -- e.g., scientifique, littéraire, technique
     `cycle_concerne` VARCHAR(100), -- e.g., CEG, Lycée
     `statut` ENUM('principale', 'optionnelle') NOT NULL DEFAULT 'principale',
-    `lycee_id` INT NOT NULL,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+    `ecoleId` INT NOT NULL,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 
 -- Junction table for classes and subjects
@@ -185,41 +191,64 @@ CREATE TABLE `enseignant_matieres` (
 -- Table for academic sequences (e.g., Trimester, Semester)
 CREATE TABLE `sequences` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `lycee_id` INT NOT NULL,
+    `ecoleId` INT NOT NULL,
     `annee_academique_id` INT NOT NULL,
     `nom` VARCHAR(255) NOT NULL, -- e.g., Séquence 1, Trimestre 2
     `type` ENUM('trimestrielle', 'semestrielle') NOT NULL,
     `date_debut` DATE NOT NULL,
     `date_fin` DATE NOT NULL,
     `statut` ENUM('ouverte', 'fermee') NOT NULL DEFAULT 'ouverte',
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE
 );
 
 -- Table for evaluation settings (homework and exams)
-CREATE TABLE `parametres_evaluations` (
+-- Table for homework parameters
+CREATE TABLE `param_devoir` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `lycee_id` INT NOT NULL,
-    `classe_id` INT NOT NULL,
-    `matiere_id` INT NOT NULL,
-    `sequence_id` INT NOT NULL,
-    `enseignant_id` INT NOT NULL,
-    `annee_academique_id` INT NOT NULL,
-    `date_ouverture_saisie` DATETIME NOT NULL,
-    `date_fermeture_saisie` DATETIME NOT NULL,
-    `commentaire` TEXT,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
-    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
-    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
-    FOREIGN KEY (`sequence_id`) REFERENCES `sequences`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
-    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE
+    `ecoleId` INT NOT NULL,
+    `anneeId` INT NOT NULL,
+    `nombreDevoirParSequence` INT,
+    `noteMaximale` DECIMAL(5, 2) DEFAULT 20.00,
+    `dateDebutInsertion` DATETIME,
+    `dateFinInsertion` DATETIME,
+    `deblocageUrgence` BOOLEAN DEFAULT FALSE,
+    `classeId` INT,
+    `matiereId` INT,
+    `creePar` INT,
+    `creeLe` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`anneeId`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`classeId`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
+    FOREIGN KEY (`matiereId`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
+    FOREIGN KEY (`creePar`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL
+);
+
+-- Table for exam parameters
+CREATE TABLE `param_composition` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `ecoleId` INT NOT NULL,
+    `anneeId` INT NOT NULL,
+    `nombreCompositionParSequence` INT,
+    `noteMaximale` DECIMAL(5, 2) DEFAULT 20.00,
+    `dateDebutInsertion` DATETIME,
+    `dateFinInsertion` DATETIME,
+    `deblocageUrgence` BOOLEAN DEFAULT FALSE,
+    `classeId` INT,
+    `matiereId` INT,
+    `creePar` INT,
+    `creeLe` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`anneeId`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`classeId`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
+    FOREIGN KEY (`matiereId`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
+    FOREIGN KEY (`creePar`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL
 );
 
 -- Table for grades (unified for homework and exams)
 CREATE TABLE `evaluations` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `lycee_id` INT NOT NULL,
+    `ecoleId` INT NOT NULL,
     `classe_id` INT NOT NULL,
     `matiere_id` INT NOT NULL,
     `enseignant_id` INT NOT NULL,
@@ -230,7 +259,7 @@ CREATE TABLE `evaluations` (
     `coefficient` DECIMAL(4, 2) NOT NULL,
     `appreciation` TEXT,
     `date_saisie` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
     FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
     FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
@@ -248,7 +277,7 @@ CREATE TABLE `evaluations` (
 -- Table for students' personal data
 CREATE TABLE `eleves` (
     `id_eleve` INT AUTO_INCREMENT PRIMARY KEY,
-    `lycee_id` INT NOT NULL,
+    `ecoleId` INT NOT NULL,
     `nom` VARCHAR(100) NOT NULL,
     `prenom` VARCHAR(100) NOT NULL,
     `date_naissance` DATE,
@@ -265,7 +294,7 @@ CREATE TABLE `eleves` (
     `email` VARCHAR(255) UNIQUE,
     `telephone` VARCHAR(50),
     `statut` VARCHAR(50) NOT NULL DEFAULT 'en_attente',
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 
 -- Table linking students to classes for a specific academic year
@@ -273,12 +302,12 @@ CREATE TABLE `etudes` (
     `id_etude` INT AUTO_INCREMENT PRIMARY KEY,
     `eleve_id` INT NOT NULL,
     `classe_id` INT NOT NULL,
-    `lycee_id` INT NOT NULL,
+    `ecoleId` INT NOT NULL,
     `annee_academique_id` INT,
     `actif` BOOLEAN DEFAULT FALSE, -- Activated upon full payment/validation
     FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
 );
 
@@ -307,7 +336,7 @@ CREATE TABLE `inscriptions` (
     `id_inscription` INT AUTO_INCREMENT PRIMARY KEY,
     `eleve_id` INT NOT NULL,
     `classe_id` INT NOT NULL,
-    `lycee_id` INT NOT NULL,
+    `ecoleId` INT NOT NULL,
     `annee_academique_id` INT,
     `montant_total` DECIMAL(10, 2) NOT NULL,
     `montant_verse` DECIMAL(10, 2) NOT NULL,
@@ -317,7 +346,7 @@ CREATE TABLE `inscriptions` (
     `date_inscription` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL,
     FOREIGN KEY (`user_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL
 );
@@ -326,14 +355,14 @@ CREATE TABLE `inscriptions` (
 CREATE TABLE `mensualites` (
     `id_mensualite` INT AUTO_INCREMENT PRIMARY KEY,
     `eleve_id` INT NOT NULL,
-    `lycee_id` INT NOT NULL,
+    `ecoleId` INT NOT NULL,
     `annee_academique_id` INT,
     `mois_ou_sequence` VARCHAR(50) NOT NULL, -- e.g., 'Octobre', 'Trimestre 1'
     `montant_verse` DECIMAL(10, 2) NOT NULL,
     `date_paiement` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `user_id` INT,
     FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL,
     FOREIGN KEY (`user_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL
 );
@@ -341,16 +370,16 @@ CREATE TABLE `mensualites` (
 -- Table for defining school fees (tuition, etc.)
 CREATE TABLE `frais` (
     `id_frais` INT AUTO_INCREMENT PRIMARY KEY,
-    `lycee_id` INT NOT NULL,
+    `ecoleId` INT NOT NULL,
     `niveau` VARCHAR(50) NOT NULL,
     `serie` VARCHAR(50),
     `frais_inscription` DECIMAL(10, 2) NOT NULL,
     `frais_mensuel` DECIMAL(10, 2) NOT NULL,
     `autres_frais` JSON, -- For additional fixed fees like uniform, insurance, etc.
     `annee_academique_id` INT,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL,
-    UNIQUE KEY `unique_frais` (`lycee_id`, `niveau`, `serie`, `annee_academique_id`)
+    UNIQUE KEY `unique_frais` (`ecoleId`, `niveau`, `serie`, `annee_academique_id`)
 );
 
 -- Table for shop articles
@@ -359,8 +388,8 @@ CREATE TABLE `boutique_articles` (
     `nom_article` VARCHAR(255) NOT NULL,
     `prix` DECIMAL(10, 2) NOT NULL,
     `stock` INT,
-    `lycee_id` INT NOT NULL,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+    `ecoleId` INT NOT NULL,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 
 -- Table for shop purchases
@@ -394,12 +423,12 @@ CREATE TABLE `cartes_scolaires` (
 -- Table for software licenses
 CREATE TABLE `licences` (
     `id_licence` INT AUTO_INCREMENT PRIMARY KEY,
-    `lycee_id` INT NOT NULL,
+    `ecoleId` INT NOT NULL,
     `duree_mois` INT NOT NULL, -- 3, 6, 12
     `date_debut` DATE NOT NULL,
     `date_fin` DATE NOT NULL,
     `actif` BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 
 -- Table for translations
@@ -421,8 +450,8 @@ CREATE TABLE `type_contrat` (
     `description` TEXT,
     `type_paiement` ENUM('fixe', 'a_l_heure', 'aucun') NOT NULL DEFAULT 'fixe',
     `prise_en_charge` ENUM('Etat', 'Ecole', 'Mixte') NOT NULL DEFAULT 'Ecole',
-    `lycee_id` INT, -- NULL for global contract types
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+    `ecoleId` INT, -- NULL for global contract types
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 
 ALTER TABLE `utilisateurs` ADD FOREIGN KEY (`contrat_id`) REFERENCES `type_contrat`(`id_contrat`) ON DELETE SET NULL;
@@ -436,11 +465,11 @@ CREATE TABLE `horaire_enseignant` (
     `heure_debut` TIME NOT NULL,
     `heure_fin` TIME NOT NULL,
     `annee_id` INT,
-    `ecole_id` INT NOT NULL,
+    `ecoleId` INT NOT NULL,
     FOREIGN KEY (`personnel_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
     FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
-    FOREIGN KEY (`ecole_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`annee_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
 );
 
@@ -456,11 +485,11 @@ CREATE TABLE `cahier_texte` (
     `travail_donne` TEXT,
     `observation` TEXT,
     `annee_id` INT,
-    `ecole_id` INT NOT NULL,
+    `ecoleId` INT NOT NULL,
     FOREIGN KEY (`personnel_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
     FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
-    FOREIGN KEY (`ecole_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`annee_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
 );
 
@@ -469,9 +498,9 @@ CREATE TABLE `personnel_assignments` (
     `personnel_id` INT NOT NULL,
     `assignment_type` VARCHAR(100) NOT NULL, -- e.g., 'supervises_class', 'teaches_class_in_matiere'
     `target_id` INT NOT NULL, -- The ID of the resource being assigned (e.g., class_id, matiere_id)
-    `lycee_id` INT NOT NULL,
+    `ecoleId` INT NOT NULL,
     FOREIGN KEY (`personnel_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
     UNIQUE KEY `unique_assignment` (`personnel_id`, `assignment_type`, `target_id`)
 );
 
@@ -485,10 +514,10 @@ CREATE TABLE `salaires` (
     `periode_annee` INT NOT NULL,
     `date_paiement` DATE,
     `etat_paiement` ENUM('paye', 'non_paye') NOT NULL DEFAULT 'non_paye',
-    `lycee_id` INT NOT NULL,
+    `ecoleId` INT NOT NULL,
     `annee_academique_id` INT,
     FOREIGN KEY (`personnel_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
 );
 
@@ -498,18 +527,18 @@ CREATE TABLE `salaires` (
 
 CREATE TABLE `modele_carte` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `lycee_id` INT NOT NULL,
+    `ecoleId` INT NOT NULL,
     `nom_modele` VARCHAR(255) NOT NULL,
     `background` VARCHAR(255), -- Path to image or color code
     `font_settings` JSON,
     `layout_data` JSON, -- Stores positions of all elements
     `qr_code_settings` JSON,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `modele_bulletin` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `lycee_id` INT NOT NULL,
+    `ecoleId` INT NOT NULL,
     `nom_modele` VARCHAR(255) NOT NULL,
     `format` ENUM('A4_portrait', 'A4_landscape') DEFAULT 'A4_portrait',
     `background` VARCHAR(255), -- Path to watermark image or color
@@ -517,7 +546,7 @@ CREATE TABLE `modele_bulletin` (
     `header_content` TEXT,
     `footer_content` TEXT,
     `qr_code_settings` JSON,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 
 -- =================================================================
@@ -527,13 +556,13 @@ CREATE TABLE `modele_bulletin` (
 CREATE TABLE `notifications` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `user_id` INT NOT NULL,
-    `lycee_id` INT NOT NULL,
+    `ecoleId` INT NOT NULL,
     `message` TEXT NOT NULL,
     `link` VARCHAR(255),
     `is_read` BOOLEAN NOT NULL DEFAULT FALSE,
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`user_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 
 -- =================================================================
@@ -545,7 +574,7 @@ CREATE TABLE `bulletins` (
     `eleve_id` INT NOT NULL,
     `sequence_id` INT NOT NULL,
     `annee_academique_id` INT NOT NULL,
-    `lycee_id` INT NOT NULL,
+    `ecoleId` INT NOT NULL,
     `moyenne_generale` DECIMAL(5, 2) NOT NULL,
     `rang` VARCHAR(100),
     `appreciation` TEXT,
@@ -555,7 +584,7 @@ CREATE TABLE `bulletins` (
     FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
     FOREIGN KEY (`sequence_id`) REFERENCES `sequences`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`lycee_id`) REFERENCES `lycees`(`id_lycee`) ON DELETE CASCADE,
+    FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
     UNIQUE KEY `unique_bulletin` (`eleve_id`, `sequence_id`)
 );
 
@@ -580,3 +609,6 @@ CREATE TABLE `emploi_du_temps` (
   FOREIGN KEY (`salle_id`) REFERENCES `salles`(`id_salle`) ON DELETE CASCADE,
   FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
 );
+
+ALTER TABLE `emploi_du_temps` ADD COLUMN `ecoleId` INT NOT NULL AFTER `professeur_id`;
+ALTER TABLE `emploi_du_temps` ADD FOREIGN KEY (`ecoleId`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE;
