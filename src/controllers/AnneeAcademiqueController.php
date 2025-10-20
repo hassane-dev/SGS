@@ -64,7 +64,15 @@ class AnneeAcademiqueController {
         $this->checkAccess();
         $id = $_POST['id'] ?? null;
         if ($id) {
-            AnneeAcademique::setActive($id);
+            $db = Database::getInstance();
+            $db->beginTransaction();
+            try {
+                AnneeAcademique::setActive($id, $db);
+                $db->commit();
+            } catch (Exception $e) {
+                $db->rollBack();
+                // Optionally log the error or show a message
+            }
         }
         header('Location: /annees-academiques');
         exit();

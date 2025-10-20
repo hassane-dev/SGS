@@ -53,21 +53,18 @@ class AnneeAcademique {
         return $stmt->execute(['id' => $id]);
     }
 
-    public static function setActive($id) {
-        $db = Database::getInstance();
-        $db->beginTransaction();
-        try {
-            // Deactivate all other years
-            $db->query("UPDATE annees_academiques SET est_active = 0");
-            // Activate the selected year
-            $stmt = $db->prepare("UPDATE annees_academiques SET est_active = 1 WHERE id = :id");
-            $stmt->execute(['id' => $id]);
-            $db->commit();
-            return true;
-        } catch (Exception $e) {
-            $db->rollBack();
-            return false;
+    public static function setActive($id, $db = null) {
+        if ($db === null) {
+            $db = Database::getInstance();
         }
+
+        // Deactivate all other years
+        $stmt1 = $db->query("UPDATE annees_academiques SET est_active = 0");
+
+        // Activate the selected year
+        $stmt2 = $db->prepare("UPDATE annees_academiques SET est_active = 1 WHERE id = :id");
+
+        return $stmt1 && $stmt2->execute(['id' => $id]);
     }
 }
 ?>
