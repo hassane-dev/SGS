@@ -4,6 +4,7 @@ require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/Lycee.php';
 require_once __DIR__ . '/../models/Role.php';
 require_once __DIR__ . '/../models/TypeContrat.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class UserController {
 
@@ -58,7 +59,7 @@ class UserController {
     public function store() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = $_POST;
+            $data = Validator::sanitize($_POST);
             if (!Auth::can('manage_all_lycees')) {
                 $data['lycee_id'] = Auth::get('lycee_id');
             }
@@ -136,7 +137,7 @@ class UserController {
     public function update() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = $_POST;
+            $data = Validator::sanitize($_POST);
             if (!Auth::can('manage_all_lycees')) {
                 $data['lycee_id'] = Auth::get('lycee_id');
             }
