@@ -6,6 +6,7 @@ require_once __DIR__ . '/../models/Role.php';
 require_once __DIR__ . '/../models/ParametresGeneraux.php';
 require_once __DIR__ . '/../models/Permission.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 
 class SetupController {
@@ -35,12 +36,13 @@ class SetupController {
             exit();
         }
 
-        $mode = $_POST['install_mode'] ?? 'single';
+        $data = Validator::sanitize($_POST);
+        $mode = $data['install_mode'] ?? 'single';
 
         if ($mode === 'multi') {
-            $this->setupMultiSchool($_POST);
+            $this->setupMultiSchool($data);
         } else {
-            $this->setupSingleSchool($_POST);
+            $this->setupSingleSchool($data);
         }
 
         require_once __DIR__ . '/../views/auth/login.php';

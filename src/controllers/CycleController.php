@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/Cycle.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class CycleController {
 
@@ -28,7 +29,8 @@ class CycleController {
     public function store() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            Cycle::save($_POST);
+            $data = Validator::sanitize($_POST);
+            Cycle::save($data);
         }
         header('Location: /cycles');
         exit();
@@ -48,7 +50,8 @@ class CycleController {
     public function update() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            Cycle::save($_POST);
+            $data = Validator::sanitize($_POST);
+            Cycle::save($data);
         }
         header('Location: /cycles');
         exit();

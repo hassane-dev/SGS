@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../models/Matiere.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class MatiereController {
 
@@ -33,15 +34,16 @@ class MatiereController {
     public function store() {
         $this->checkAccess('matiere:create');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = Validator::sanitize($_POST);
             // Simple validation
-            if (empty($_POST['nom_matiere']) || empty($_POST['statut'])) {
+            if (empty($data['nom_matiere']) || empty($data['statut'])) {
                  View::render('matieres/create', [
                     'title' => 'Nouvelle Matière',
                     'error' => 'Veuillez remplir tous les champs obligatoires.'
                 ]);
                 return;
             }
-            Matiere::save($_POST);
+            Matiere::save($data);
         }
         header('Location: /matieres');
         exit();
@@ -69,8 +71,9 @@ class MatiereController {
     public function update() {
         $this->checkAccess('matiere:edit');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-             if (empty($_POST['nom_matiere']) || empty($_POST['statut'])) {
-                $matiere = Matiere::findById($_POST['id_matiere']);
+            $data = Validator::sanitize($_POST);
+             if (empty($data['nom_matiere']) || empty($data['statut'])) {
+                $matiere = Matiere::findById($data['id_matiere']);
                 View::render('matieres/edit', [
                     'matiere' => $matiere,
                     'title' => 'Modifier la Matière',
@@ -78,7 +81,7 @@ class MatiereController {
                 ]);
                 return;
             }
-            Matiere::save($_POST);
+            Matiere::save($data);
         }
         header('Location: /matieres');
         exit();
