@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../models/ParamComposition.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class ParamCompositionController {
 
@@ -32,7 +33,8 @@ class ParamCompositionController {
     public function update() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $success = ParamComposition::update($_POST);
+            $data = Validator::sanitize($_POST);
+            $success = ParamComposition::update($data);
             if ($success) {
                 header('Location: /param-composition/edit?success=1');
             } else {

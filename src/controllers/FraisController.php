@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../models/Frais.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../core/Auth.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class FraisController {
 
@@ -30,11 +31,12 @@ class FraisController {
             exit();
         }
 
+        $data = Validator::sanitize($_POST);
         $lycee_id = Auth::get('lycee_id');
         $activeYear = AnneeAcademique::findActive();
 
         // Basic validation
-        if (empty($_POST['niveau']) || empty($_POST['frais_inscription']) || empty($_POST['frais_mensuel'])) {
+        if (empty($data['niveau']) || empty($data['frais_inscription']) || empty($data['frais_mensuel'])) {
             // Handle error: redirect back with an error message
             header('Location: /frais?error=missing_fields');
             exit();
@@ -42,11 +44,11 @@ class FraisController {
 
         Frais::save([
             'lycee_id' => $lycee_id,
-            'niveau' => $_POST['niveau'],
-            'serie' => $_POST['serie'] ?? '',
+            'niveau' => $data['niveau'],
+            'serie' => $data['serie'] ?? '',
             'annee_academique_id' => $activeYear['id'],
-            'frais_inscription' => $_POST['frais_inscription'],
-            'frais_mensuel' => $_POST['frais_mensuel'],
+            'frais_inscription' => $data['frais_inscription'],
+            'frais_mensuel' => $data['frais_mensuel'],
             'autres_frais' => null // For now, can be extended later
         ]);
 

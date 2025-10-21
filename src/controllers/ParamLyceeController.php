@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../models/ParamLycee.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class ParamLyceeController {
 
@@ -33,7 +34,8 @@ class ParamLyceeController {
     public function update() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $success = ParamLycee::update($_POST);
+            $data = Validator::sanitize($_POST);
+            $success = ParamLycee::update($data);
             if ($success) {
                 header('Location: /param-lycee/edit?success=1');
             } else {

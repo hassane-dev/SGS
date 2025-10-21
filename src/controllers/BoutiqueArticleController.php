@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../models/BoutiqueArticle.php';
 require_once __DIR__ . '/../models/Lycee.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class BoutiqueArticleController {
 
@@ -31,10 +32,11 @@ class BoutiqueArticleController {
     public function store() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = Validator::sanitize($_POST);
             if (Auth::get('role_name') === 'admin_local') {
-                $_POST['lycee_id'] = Auth::get('lycee_id');
+                $data['lycee_id'] = Auth::get('lycee_id');
             }
-            BoutiqueArticle::save($_POST);
+            BoutiqueArticle::save($data);
         }
         header('Location: /boutique/articles');
         exit();
@@ -55,10 +57,11 @@ class BoutiqueArticleController {
     public function update() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = Validator::sanitize($_POST);
             if (Auth::get('role_name') === 'admin_local') {
-                $_POST['lycee_id'] = Auth::get('lycee_id');
+                $data['lycee_id'] = Auth::get('lycee_id');
             }
-            BoutiqueArticle::save($_POST);
+            BoutiqueArticle::save($data);
         }
         header('Location: /boutique/articles');
         exit();

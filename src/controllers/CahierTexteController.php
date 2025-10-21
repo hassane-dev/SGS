@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../models/CahierTexte.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/Classe.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class CahierTexteController {
 
@@ -59,7 +60,7 @@ class CahierTexteController {
     public function store() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = $_POST;
+            $data = Validator::sanitize($_POST);
             $data['personnel_id'] = Auth::get('id');
             $data['ecole_id'] = Auth::get('lycee_id');
 
@@ -98,7 +99,7 @@ class CahierTexteController {
     public function update() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = $_POST;
+            $data = Validator::sanitize($_POST);
             $entry = CahierTexte::findById($data['cahier_id']);
 
             // Security check

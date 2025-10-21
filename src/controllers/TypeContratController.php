@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/TypeContrat.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class TypeContratController {
 
@@ -30,10 +31,11 @@ class TypeContratController {
     public function store() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = Validator::sanitize($_POST);
             if (!Auth::can('manage_all_lycees')) {
-                $_POST['lycee_id'] = Auth::get('lycee_id');
+                $data['lycee_id'] = Auth::get('lycee_id');
             }
-            TypeContrat::save($_POST);
+            TypeContrat::save($data);
         }
         header('Location: /contrats');
         exit();
@@ -55,10 +57,11 @@ class TypeContratController {
     public function update() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = Validator::sanitize($_POST);
             if (!Auth::can('manage_all_lycees')) {
-                $_POST['lycee_id'] = Auth::get('lycee_id');
+                $data['lycee_id'] = Auth::get('lycee_id');
             }
-            TypeContrat::save($_POST);
+            TypeContrat::save($data);
         }
         header('Location: /contrats');
         exit();
