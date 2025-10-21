@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../models/Salaire.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../libs/fpdf/fpdf.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class SalaireController {
 
@@ -31,8 +32,9 @@ class SalaireController {
     public function store() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $_POST['lycee_id'] = Auth::get('lycee_id'); // Assuming only local admins do this
-            Salaire::create($_POST);
+            $data = Validator::sanitize($_POST);
+            $data['lycee_id'] = Auth::get('lycee_id'); // Assuming only local admins do this
+            Salaire::create($data);
         }
         header('Location: /salaires');
         exit();

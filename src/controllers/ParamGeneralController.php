@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../models/ParamGeneral.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class ParamGeneralController {
 
@@ -32,7 +33,8 @@ class ParamGeneralController {
     public function update() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $success = ParamGeneral::update($_POST);
+            $data = Validator::sanitize($_POST);
+            $success = ParamGeneral::update($data);
             if ($success) {
                 header('Location: /param-general/edit?success=1');
             } else {

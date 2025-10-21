@@ -6,6 +6,7 @@ require_once __DIR__ . '/../models/Sequence.php';
 require_once __DIR__ . '/../models/ModeleBulletin.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class BulletinController {
 
@@ -87,10 +88,14 @@ class BulletinController {
         $this->checkAccess('bulletin:validate'); // A more specific permission for this action
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            Bulletin::saveAppreciation($_POST);
+            $data = Validator::sanitize($_POST);
+            Bulletin::saveAppreciation($data);
+            header('Location: /bulletins/student?eleve_id=' . $data['eleve_id'] . '&sequence_id=' . $data['sequence_id']);
+            exit();
         }
 
-        header('Location: /bulletins/student?eleve_id=' . $_POST['eleve_id'] . '&sequence_id=' . $_POST['sequence_id']);
+        // Redirect if not a POST request
+        header('Location: /bulletins');
         exit();
     }
 }

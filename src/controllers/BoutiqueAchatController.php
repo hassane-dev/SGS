@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../models/BoutiqueAchat.php';
 require_once __DIR__ . '/../models/BoutiqueArticle.php';
 require_once __DIR__ . '/../models/Eleve.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class BoutiqueAchatController {
 
@@ -45,9 +46,10 @@ class BoutiqueAchatController {
     public function store() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            BoutiqueAchat::create($_POST);
+            $data = Validator::sanitize($_POST);
+            BoutiqueAchat::create($data);
             // Redirect to the purchase list for that student
-            header('Location: /boutique/achats?eleve_id=' . $_POST['eleve_id']);
+            header('Location: /boutique/achats?eleve_id=' . $data['eleve_id']);
             exit();
         }
         header('Location: /eleves');

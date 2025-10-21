@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/AnneeAcademique.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class AnneeAcademiqueController {
 
@@ -27,7 +28,8 @@ class AnneeAcademiqueController {
     public function store() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            AnneeAcademique::save($_POST);
+            $data = Validator::sanitize($_POST);
+            AnneeAcademique::save($data);
         }
         header('Location: /annees-academiques');
         exit();
@@ -44,7 +46,8 @@ class AnneeAcademiqueController {
     public function update() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            AnneeAcademique::save($_POST);
+            $data = Validator::sanitize($_POST);
+            AnneeAcademique::save($data);
         }
         header('Location: /annees-academiques');
         exit();

@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../models/ParamDevoir.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class ParamDevoirController {
 
@@ -32,7 +33,8 @@ class ParamDevoirController {
     public function update() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $success = ParamDevoir::update($_POST);
+            $data = Validator::sanitize($_POST);
+            $success = ParamDevoir::update($data);
             if ($success) {
                 header('Location: /param-devoir/edit?success=1');
             } else {

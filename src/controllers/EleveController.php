@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/Eleve.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class EleveController {
 
@@ -28,7 +29,7 @@ class EleveController {
             exit();
         }
 
-        $data = $_POST;
+        $data = Validator::sanitize($_POST);
         $db = Database::getInstance();
 
         try {
@@ -91,7 +92,7 @@ class EleveController {
     public function update() {
         if (!Auth::can('edit', 'eleve')) { $this->forbidden(); }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = $_POST;
+            $data = Validator::sanitize($_POST);
             if (isset($_FILES['photo']) && $_FILES['photo']['error'] == UPLOAD_ERR_OK) {
                 $data['photo'] = $this->handlePhotoUpload($_FILES['photo']);
             }

@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../models/Role.php';
 require_once __DIR__ . '/../models/Permission.php';
 require_once __DIR__ . '/../models/Lycee.php';
+require_once __DIR__ . '/../core/Validator.php';
 
 class RoleController {
 
@@ -33,11 +34,12 @@ class RoleController {
     public function store() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = Validator::sanitize($_POST);
             // Local admins can only create roles for their own lycee
             if (Auth::get('role_name') === 'admin_local') {
-                $_POST['lycee_id'] = Auth::get('lycee_id');
+                $data['lycee_id'] = Auth::get('lycee_id');
             }
-            Role::save($_POST);
+            Role::save($data);
         }
         header('Location: /roles');
         exit();
@@ -66,8 +68,9 @@ class RoleController {
     public function update() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $role_id = $_POST['id_role'];
-            $permission_ids = $_POST['permissions'] ?? [];
+            $data = Validator::sanitize($_POST);
+            $role_id = $data['id_role'];
+            $permission_ids = $data['permissions'] ?? [];
 
             // Security check for local admins
             $role = Role::findById($role_id);
@@ -75,7 +78,7 @@ class RoleController {
                 http_response_code(403); echo "Accès Interdit."; exit();
             }
 
-            Role::save($_POST);
+            Role::save($data);
             Role::setPermissions($role_id, $permission_ids);
         }
         header('Location: /roles');
