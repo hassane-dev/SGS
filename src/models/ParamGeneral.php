@@ -11,23 +11,23 @@ class ParamGeneral {
      * @return array|false The general parameter data.
      */
     public static function findByAuthenticatedUser() {
-        $ecoleId = Auth::getEcoleId();
-        if (!$ecoleId) {
+        $lycee_id = Auth::getLyceeId();
+        if (!$lycee_id) {
             return false;
         }
 
         try {
             $db = Database::getInstance();
-            $stmt = $db->prepare("SELECT * FROM param_general WHERE ecoleId = :ecoleId");
-            $stmt->execute(['ecoleId' => $ecoleId]);
+            $stmt = $db->prepare("SELECT * FROM param_general WHERE lycee_id = :lycee_id");
+            $stmt->execute(['lycee_id' => $lycee_id]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$result) {
                 // No record found, create a default one
-                $stmt_create = $db->prepare("INSERT INTO param_general (ecoleId) VALUES (:ecoleId)");
-                $stmt_create->execute(['ecoleId' => $ecoleId]);
+                $stmt_create = $db->prepare("INSERT INTO param_general (lycee_id) VALUES (:lycee_id)");
+                $stmt_create->execute(['lycee_id' => $lycee_id]);
                 // Fetch the newly created record
-                $stmt->execute(['ecoleId' => $ecoleId]);
+                $stmt->execute(['lycee_id' => $lycee_id]);
                 $result = $stmt->fetch(PDO::FETCH_ASSOC);
             }
             return $result;
@@ -44,8 +44,8 @@ class ParamGeneral {
      * @return bool True on success, false on failure.
      */
     public static function update($data) {
-        $ecoleId = Auth::getEcoleId();
-        if (!$ecoleId) {
+        $lycee_id = Auth::getLyceeId();
+        if (!$lycee_id) {
             return false;
         }
 
@@ -57,7 +57,7 @@ class ParamGeneral {
                     langue_1 = :langue_1,
                     langue_2 = :langue_2,
                     sequenceAnnuelle = :sequenceAnnuelle
-                WHERE ecoleId = :ecoleId";
+                WHERE lycee_id = :lycee_id";
 
         try {
             $db = Database::getInstance();
@@ -70,7 +70,7 @@ class ParamGeneral {
                 'langue_1' => $data['langue_1'],
                 'langue_2' => $data['langue_2'] ?? null,
                 'sequenceAnnuelle' => $data['sequenceAnnuelle'],
-                'ecoleId' => $ecoleId
+                'lycee_id' => $lycee_id
             ]);
         } catch (PDOException $e) {
             error_log("Error in ParamGeneral::update: " . $e->getMessage());

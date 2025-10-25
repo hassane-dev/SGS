@@ -10,15 +10,15 @@ class ParamLycee {
      * @return array|false The school's parameter data.
      */
     public static function findByAuthenticatedUser() {
-        $ecoleId = Auth::getEcoleId();
-        if (!$ecoleId) {
+        $lycee_id = Auth::getLyceeId();
+        if (!$lycee_id) {
             return false;
         }
 
         try {
             $db = Database::getInstance();
             $stmt = $db->prepare("SELECT * FROM param_lycee WHERE id = :id");
-            $stmt->execute(['id' => $ecoleId]);
+            $stmt->execute(['id' => $lycee_id]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Error in ParamLycee::findByAuthenticatedUser: " . $e->getMessage());
@@ -32,8 +32,8 @@ class ParamLycee {
      * @return bool True on success, false on failure.
      */
     public static function update($data) {
-        $ecoleId = Auth::getEcoleId();
-        if (!$ecoleId) {
+        $lycee_id = Auth::getLyceeId();
+        if (!$lycee_id) {
             return false;
         }
 
@@ -91,7 +91,7 @@ class ParamLycee {
                 'logo' => $data['logo'],
                 'typeLycee' => $data['typeLycee'],
                 'boutique' => isset($data['boutique']) ? 1 : 0,
-                'id' => $ecoleId
+                'id' => $lycee_id
             ]);
         } catch (PDOException $e) {
             error_log("Error in ParamLycee::update: " . $e->getMessage());

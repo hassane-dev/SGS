@@ -12,28 +12,28 @@ class ParamDevoir {
      * @return array|false The parameter data.
      */
     public static function findByCurrentSchoolAndYear() {
-        $ecoleId = Auth::getEcoleId();
+        $lycee_id = Auth::getLyceeId();
         $activeYear = AnneeAcademique::findActive();
-        if (!$ecoleId || !$activeYear) {
+        if (!$lycee_id || !$activeYear) {
             return false;
         }
 
         try {
             $db = Database::getInstance();
-            $stmt = $db->prepare("SELECT * FROM param_devoir WHERE ecoleId = :ecoleId AND anneeId = :anneeId");
-            $stmt->execute(['ecoleId' => $ecoleId, 'anneeId' => $activeYear['id']]);
+            $stmt = $db->prepare("SELECT * FROM param_devoir WHERE lycee_id = :lycee_id AND anneeId = :anneeId");
+            $stmt->execute(['lycee_id' => $lycee_id, 'anneeId' => $activeYear['id']]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$result) {
                 // No record found, create a default one
-                $stmt_create = $db->prepare("INSERT INTO param_devoir (ecoleId, anneeId, creePar) VALUES (:ecoleId, :anneeId, :userId)");
+                $stmt_create = $db->prepare("INSERT INTO param_devoir (lycee_id, anneeId, creePar) VALUES (:lycee_id, :anneeId, :userId)");
                 $stmt_create->execute([
-                    'ecoleId' => $ecoleId,
+                    'lycee_id' => $lycee_id,
                     'anneeId' => $activeYear['id'],
                     'userId' => Auth::get('id')
                 ]);
                 // Fetch the newly created record
-                $stmt->execute(['ecoleId' => $ecoleId, 'anneeId' => $activeYear['id']]);
+                $stmt->execute(['lycee_id' => $lycee_id, 'anneeId' => $activeYear['id']]);
                 $result = $stmt->fetch(PDO::FETCH_ASSOC);
             }
             return $result;
@@ -50,9 +50,9 @@ class ParamDevoir {
      * @return bool True on success, false on failure.
      */
     public static function update($data) {
-        $ecoleId = Auth::getEcoleId();
+        $lycee_id = Auth::getLyceeId();
         $activeYear = AnneeAcademique::findActive();
-        if (!$ecoleId || !$activeYear) {
+        if (!$lycee_id || !$activeYear) {
             return false;
         }
 
@@ -62,7 +62,7 @@ class ParamDevoir {
                     dateDebutInsertion = :dateDebutInsertion,
                     dateFinInsertion = :dateFinInsertion,
                     deblocageUrgence = :deblocageUrgence
-                WHERE ecoleId = :ecoleId AND anneeId = :anneeId";
+                WHERE lycee_id = :lycee_id AND anneeId = :anneeId";
 
         try {
             $db = Database::getInstance();
@@ -73,7 +73,7 @@ class ParamDevoir {
                 'dateDebutInsertion' => $data['dateDebutInsertion'] ?: null,
                 'dateFinInsertion' => $data['dateFinInsertion'] ?: null,
                 'deblocageUrgence' => isset($data['deblocageUrgence']) ? 1 : 0,
-                'ecoleId' => $ecoleId,
+                'lycee_id' => $lycee_id,
                 'anneeId' => $activeYear['id']
             ]);
         } catch (PDOException $e) {

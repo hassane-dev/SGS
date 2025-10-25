@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../models/Role.php';
 
 class Auth {
 
@@ -39,7 +40,7 @@ class Auth {
                 'email' => $user->email,
                 'role_id' => $user->role_id,
                 'role_name' => $role['nom_role'] ?? 'N/A',
-                'ecoleId' => $user->ecoleId,
+                'lycee_id' => $user->lycee_id,
                 'permissions' => $permissions,
             ];
             return true;
@@ -110,9 +111,9 @@ class Auth {
         return isset($permissions[$resource]) && in_array($action, $permissions[$resource]);
     }
 
-    public static function getEcoleId() {
+    public static function getLyceeId() {
         self::startSession();
-        return $_SESSION['user']['ecoleId'] ?? null;
+        return $_SESSION['user']['lycee_id'] ?? null;
     }
 }
 ?>
