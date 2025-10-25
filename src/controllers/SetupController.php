@@ -3,7 +3,7 @@
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/Lycee.php';
 require_once __DIR__ . '/../models/Role.php';
-require_once __DIR__ . '/../models/ParametresGeneraux.php';
+require_once __DIR__ . '/../models/ParamGeneral.php';
 require_once __DIR__ . '/../models/Permission.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../core/Validator.php';
@@ -120,7 +120,7 @@ class SetupController {
             AnneeAcademique::setActive($annee_id);
 
             // 7. Save general settings
-            ParametresGeneraux::save([
+            ParamGeneral::save([
                 'lycee_id' => $lycee_id,
                 'nom_lycee' => $data['nom_lycee'],
                 'type_lycee' => $data['type_lycee'],
