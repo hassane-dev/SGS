@@ -133,11 +133,7 @@ class SetupController {
 
             // 7. Save general settings
             ParamGeneral::save([
-                'lycee_id' => $lycee_id,
-                'nom_lycee' => $data['nom_lycee'],
-                'type_lycee' => $data['type_lycee'],
-                'annee_academique_id' => $annee_id,
-                'modalite_paiement' => 'avant_inscription'
+                'lycee_id' => $lycee_id
             ]);
 
             $db->commit();
