@@ -120,6 +120,21 @@ class User {
     public static function save($data) {
         $isUpdate = !empty($data['id_user']);
 
+        // --- Validation ---
+        if (empty($data['nom']) || empty($data['prenom'])) {
+            throw new InvalidArgumentException("Le nom et le prénom sont obligatoires.");
+        }
+        if (empty($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException("Une adresse email valide est obligatoire.");
+        }
+        if (empty($data['role_id'])) {
+            throw new InvalidArgumentException("Un rôle est obligatoire.");
+        }
+        if (!$isUpdate && empty($data['mot_de_passe'])) {
+            throw new InvalidArgumentException("Un mot de passe est obligatoire pour les nouveaux utilisateurs.");
+        }
+        // --- End Validation ---
+
         if ($isUpdate) {
             $sql = "UPDATE utilisateurs SET
                         nom = :nom, prenom = :prenom, sexe = :sexe, date_naissance = :date_naissance,
@@ -164,11 +179,8 @@ class User {
         if (!empty($data['mot_de_passe'])) {
             $params['mot_de_passe'] = password_hash($data['mot_de_passe'], PASSWORD_DEFAULT);
         } elseif (!$isUpdate) {
-            // Password is required for new users
-            if (empty($data['mot_de_passe'])) return false;
             $params['mot_de_passe'] = password_hash($data['mot_de_passe'], PASSWORD_DEFAULT);
         }
-
 
         if ($isUpdate) {
             $params['id_user'] = $data['id_user'];
