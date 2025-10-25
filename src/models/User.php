@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/AnneeAcademique.php';
 
 class User {
     public $id_user;
