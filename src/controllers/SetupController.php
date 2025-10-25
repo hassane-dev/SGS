@@ -69,8 +69,20 @@ class SetupController {
 
             // 1. Create the Lycee
             $lycee_id = Lycee::save([
-                'nom_lycee' => $data['nom_lycee'],
-                'type_lycee' => $data['type_lycee'],
+                'nomEcole' => $data['nom_lycee'],
+                'typeLycee' => $data['type_lycee'],
+                'sigle' => null,
+                'tel' => null,
+                'email' => null,
+                'ville' => null,
+                'quartier' => null,
+                'ruelle' => null,
+                'boitePostale' => null,
+                'arrete' => null,
+                'arrondissement' => null,
+                'devise' => null,
+                'logo' => null,
+                'boutique' => 0
             ]);
             if (!$lycee_id) throw new Exception("Failed to create the lycee.");
 
