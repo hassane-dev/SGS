@@ -69,7 +69,7 @@ class SetupController {
 
             // 1. Create the Lycee
             $lycee_id = Lycee::save([
-                'nomEcole' => $data['nom_lycee'],
+                'nom_lycee' => $data['nom_lycee'],
                 'typeLycee' => $data['type_lycee'],
                 'sigle' => null,
                 'tel' => null,
