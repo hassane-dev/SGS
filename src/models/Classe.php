@@ -16,7 +16,7 @@ class Classe {
             $sql = "SELECT c.*, cy.nom_cycle, l.nom_lycee
                     FROM classes c
                     JOIN cycles cy ON c.cycle_id = cy.id_cycle
-                    JOIN lycees l ON c.lycee_id = l.id_lycee";
+                    JOIN param_lycee l ON c.lycee_id = l.id";
 
             if ($lycee_id !== null) {
                 $sql .= " WHERE c.lycee_id = :lycee_id";
@@ -51,6 +51,18 @@ class Classe {
     }
 
     public static function save($data) {
+        // --- Validation ---
+        if (empty($data['nom_classe'])) {
+            throw new InvalidArgumentException("Le nom de la classe est obligatoire.");
+        }
+        if (empty($data['cycle_id'])) {
+            throw new InvalidArgumentException("Le cycle est obligatoire.");
+        }
+        if (empty($data['lycee_id'])) {
+            throw new InvalidArgumentException("L'identifiant de l'école est obligatoire.");
+        }
+        // --- End Validation ---
+
         $isUpdate = !empty($data['id_classe']);
 
         $sql = $isUpdate
