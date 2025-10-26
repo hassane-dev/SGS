@@ -28,6 +28,12 @@ class Lycee {
     }
 
     public static function save($data) {
+        // --- Validation ---
+        if (empty($data['nom_lycee'])) {
+            throw new InvalidArgumentException("Le nom de l'école est obligatoire.");
+        }
+        // --- End Validation ---
+
         // Handle logo upload logic can be shared
         if (isset($_FILES['logo']) && $_FILES['logo']['error'] == UPLOAD_ERR_OK) {
             $uploadDir = __DIR__ . '/../../public/uploads/logos/';
@@ -48,7 +54,7 @@ class Lycee {
         if (isset($data['id']) && !empty($data['id'])) {
             // Update
             $sql = "UPDATE param_lycee SET
-                        nomEcole = :nomEcole, sigle = :sigle, tel = :tel, email = :email,
+                        nomEcole = :nom_lycee, sigle = :sigle, tel = :tel, email = :email,
                         ville = :ville, quartier = :quartier, ruelle = :ruelle,
                         boitePostale = :boitePostale, arrete = :arrete,
                         arrondissement = :arrondissement, devise = :devise, logo = :logo,
@@ -59,7 +65,7 @@ class Lycee {
                 $stmt = $db->prepare($sql);
                 return $stmt->execute([
                     'id' => $data['id'],
-                    'nomEcole' => $data['nomEcole'],
+                    'nom_lycee' => $data['nom_lycee'],
                     'sigle' => $data['sigle'],
                     'tel' => $data['tel'],
                     'email' => $data['email'],
@@ -81,12 +87,12 @@ class Lycee {
         } else {
             // Create
             $sql = "INSERT INTO param_lycee (nomEcole, sigle, tel, email, ville, quartier, ruelle, boitePostale, arrete, arrondissement, devise, logo, typeLycee, boutique)
-                    VALUES (:nomEcole, :sigle, :tel, :email, :ville, :quartier, :ruelle, :boitePostale, :arrete, :arrondissement, :devise, :logo, :typeLycee, :boutique)";
+                    VALUES (:nom_lycee, :sigle, :tel, :email, :ville, :quartier, :ruelle, :boitePostale, :arrete, :arrondissement, :devise, :logo, :typeLycee, :boutique)";
             try {
                 $db = Database::getInstance();
                 $stmt = $db->prepare($sql);
                 $stmt->execute([
-                    'nomEcole' => $data['nomEcole'],
+                    'nom_lycee' => $data['nom_lycee'],
                     'sigle' => $data['sigle'],
                     'tel' => $data['tel'],
                     'email' => $data['email'],
