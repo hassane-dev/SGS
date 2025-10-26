@@ -8,8 +8,8 @@ require_once __DIR__ . '/../core/Validator.php';
 
 class UserController {
 
-    private function checkAccess() {
-        if (!Auth::can('user_manage')) {
+    private function checkAccess($action) {
+        if (!Auth::can($action, 'user')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();
@@ -39,16 +39,16 @@ class UserController {
     }
 
     public function index() {
-        $this->checkAccess();
-        $lycee_id = !Auth::can('manage_all_lycees') ? Auth::get('lycee_id') : null;
+        $this->checkAccess('view_all');
+        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::get('lycee_id') : null;
         $users = User::findAll($lycee_id);
         require_once __DIR__ . '/../views/users/index.php';
     }
 
     public function create() {
-        $this->checkAccess();
+        $this->checkAccess('create');
         $lycee_id = Auth::get('lycee_id');
-        $lycees = (Auth::can('manage_all_lycees')) ? Lycee::findAll() : [];
+        $lycees = (Auth::can('view_all_lycees', 'lycee')) ? Lycee::findAll() : [];
         $contrats = TypeContrat::findAll($lycee_id);
         $roles = Role::findAll($lycee_id);
         $user = [];
@@ -57,10 +57,10 @@ class UserController {
     }
 
     public function store() {
-        $this->checkAccess();
+        $this->checkAccess('create');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
-            if (!Auth::can('manage_all_lycees')) {
+            if (!Auth::can('view_all_lycees', 'lycee')) {
                 $data['lycee_id'] = Auth::get('lycee_id');
             }
 
@@ -83,10 +83,8 @@ class UserController {
         }
 
         // A user can edit their own profile, OR an admin can edit users.
-        if ($id != Auth::get('id') && !Auth::can('manage_users')) {
-            http_response_code(403);
-            echo "Accès Interdit.";
-            exit();
+        if ($id != Auth::get('id')) {
+            $this->checkAccess('edit');
         }
 
         $user = User::findById($id);
@@ -96,13 +94,13 @@ class UserController {
         }
 
         // Admin scope check: can only edit users in their school unless they are a super admin
-        if ($id != Auth::get('id') && !Auth::can('manage_all_lycees') && $user['lycee_id'] != Auth::get('lycee_id')) {
+        if ($id != Auth::get('id') && !Auth::can('view_all_lycees', 'lycee') && $user['lycee_id'] != Auth::get('lycee_id')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();
         }
 
-        $lycees = (Auth::can('manage_all_lycees')) ? Lycee::findAll() : [];
+        $lycees = (Auth::can('view_all_lycees', 'lycee')) ? Lycee::findAll() : [];
         $contrats = TypeContrat::findAll($user['lycee_id']);
         $roles = Role::findAll($user['lycee_id']);
         $is_edit = true;
@@ -110,7 +108,7 @@ class UserController {
     }
 
     public function view() {
-        $this->checkAccess();
+        $this->checkAccess('view_one');
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: /users');
@@ -123,7 +121,7 @@ class UserController {
             exit();
         }
 
-        if (!Auth::can('manage_all_lycees') && $user['lycee_id'] != Auth::get('lycee_id')) {
+        if (!Auth::can('view_all_lycees', 'lycee') && $user['lycee_id'] != Auth::get('lycee_id')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();
@@ -135,10 +133,10 @@ class UserController {
     }
 
     public function update() {
-        $this->checkAccess();
+        $this->checkAccess('edit');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
-            if (!Auth::can('manage_all_lycees')) {
+            if (!Auth::can('view_all_lycees', 'lycee')) {
                 $data['lycee_id'] = Auth::get('lycee_id');
             }
 
@@ -163,7 +161,7 @@ class UserController {
     }
 
     public function destroy() {
-        $this->checkAccess();
+        $this->checkAccess('delete');
         $id = $_POST['id'] ?? null;
         if ($id && $id != Auth::get('id')) {
             $user = User::findById($id);

@@ -51,7 +51,7 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (31, 'lycee', 'view_all', 'Can view all schools (super admin)'),
 (32, 'lycee', 'edit', 'Can edit school information (super admin)'),
 (33, 'lycee', 'delete', 'Can delete schools (super admin)'),
-(34, 'system', 'view_all_lycees', 'Special permission to bypass lycee_id scope checks'),
+(34, 'lycee', 'view_all_lycees', 'Special permission to bypass lycee_id scope checks'),
 
 -- Academic Structure
 (40, 'class', 'view', 'Can view the list of classes'),
