@@ -54,7 +54,7 @@ class Lycee {
         if (isset($data['id']) && !empty($data['id'])) {
             // Update
             $sql = "UPDATE param_lycee SET
-                        nomEcole = :nom_lycee, sigle = :sigle, tel = :tel, email = :email,
+                        nom_lycee = :nom_lycee, sigle = :sigle, tel = :tel, email = :email,
                         ville = :ville, quartier = :quartier, ruelle = :ruelle,
                         boitePostale = :boitePostale, arrete = :arrete,
                         arrondissement = :arrondissement, devise = :devise, logo = :logo,
@@ -86,7 +86,7 @@ class Lycee {
             }
         } else {
             // Create
-            $sql = "INSERT INTO param_lycee (nomEcole, sigle, tel, email, ville, quartier, ruelle, boitePostale, arrete, arrondissement, devise, logo, typeLycee, boutique)
+            $sql = "INSERT INTO param_lycee (nom_lycee, sigle, tel, email, ville, quartier, ruelle, boitePostale, arrete, arrondissement, devise, logo, typeLycee, boutique)
                     VALUES (:nom_lycee, :sigle, :tel, :email, :ville, :quartier, :ruelle, :boitePostale, :arrete, :arrondissement, :devise, :logo, :typeLycee, :boutique)";
             try {
                 $db = Database::getInstance();
