@@ -22,7 +22,7 @@ CREATE TABLE `annees_academiques` (
 -- Table for School-specific administrative settings
 CREATE TABLE `param_lycee` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `nomEcole` VARCHAR(255) NOT NULL,
+    `nom_lycee` VARCHAR(255) NOT NULL,
     `sigle` VARCHAR(50),
     `tel` VARCHAR(50),
     `email` VARCHAR(255) UNIQUE,
