@@ -42,6 +42,15 @@ class Eleve {
      * @return bool
      */
     public static function save($data) {
+        // --- Validation ---
+        if (empty($data['nom']) || empty($data['prenom'])) {
+            throw new InvalidArgumentException("Le nom et le prénom de l'élève sont obligatoires.");
+        }
+        if (empty($data['lycee_id'])) {
+            throw new InvalidArgumentException("L'identifiant de l'école est obligatoire.");
+        }
+        // --- End Validation ---
+
         $db = Database::getInstance();
         $isUpdate = !empty($data['id_eleve']);
 
