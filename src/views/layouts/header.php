@@ -44,7 +44,7 @@ $direction = $supported_languages[$lang]['dir'];
                         <?php endif; ?>
                     </ul>
                 </li>
-                <?php if (Auth::can('note:create_own')): ?>
+                <?php if (Auth::can('create_own', 'note')): ?>
                 <li class="nav-item">
                     <a class="nav-link" href="/evaluations/select_class">Saisir les Notes</a>
                 </li>
@@ -54,35 +54,35 @@ $direction = $supported_languages[$lang]['dir'];
                         Pédagogie
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="pedagogieDropdown">
-                        <?php if (Auth::can('class:view')): ?>
+                        <?php if (Auth::can('view', 'class')): ?>
                             <li><a class="dropdown-item" href="/classes">Gestion des Classes</a></li>
                         <?php endif; ?>
-                        <?php if (Auth::can('matiere:view')): ?>
+                        <?php if (Auth::can('view', 'matiere')): ?>
                             <li><a class="dropdown-item" href="/matieres">Gestion des Matières</a></li>
                         <?php endif; ?>
-                        <?php if (Auth::can('sequence:manage')): ?>
+                        <?php if (Auth::can('manage', 'sequence')): ?>
                             <li><a class="dropdown-item" href="/sequences">Gestion des Séquences</a></li>
                         <?php endif; ?>
-                        <?php if (Auth::can('bulletin:generate')): ?>
+                        <?php if (Auth::can('generate', 'bulletin')): ?>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="/bulletins">Générer les Bulletins</a></li>
                         <?php endif; ?>
-                        <?php if (Auth::can('bulletin_template:manage')): ?>
+                        <?php if (Auth::can('manage', 'bulletin_template')): ?>
                             <li><a class="dropdown-item" href="/modele-bulletin/edit">Personnaliser le Bulletin</a></li>
                         <?php endif; ?>
                     </ul>
                 </li>
-                <?php if (Auth::can('manage_users')): ?>
+                <?php if (Auth::can('view_all', 'user')): ?>
                 <li class="nav-item">
                     <a class="nav-link" href="/users">Utilisateurs</a>
                 </li>
                 <?php endif; ?>
-                <?php if (Auth::can('manage_frais')): ?>
+                <?php if (Auth::can('view', 'frais')): ?>
                 <li class="nav-item">
                     <a class="nav-link" href="/frais">Grille Tarifaire</a>
                 </li>
                 <?php endif; ?>
-                <?php if (Auth::can('manage_paiements')):
+                <?php if (Auth::can('validate', 'paiement')):
                     // Fetch notifications for the accountant
                     $unread_notifications = Notification::findUnreadByUser(Auth::get('id_user'));
                     $unread_count = count($unread_notifications);
@@ -102,17 +102,17 @@ $direction = $supported_languages[$lang]['dir'];
                         <i class="fas fa-cogs"></i> Paramètres
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="paramsDropdown">
-                        <?php if (Auth::can('param_lycee:edit')): ?>
+                        <?php if (Auth::can('edit', 'param_lycee')): ?>
                             <li><a class="dropdown-item" href="/param-lycee/edit">Paramètres du Lycée</a></li>
                         <?php endif; ?>
-                        <?php if (Auth::can('param_general:edit')): ?>
+                        <?php if (Auth::can('edit', 'param_general')): ?>
                             <li><a class="dropdown-item" href="/param-general/edit">Paramètres Généraux</a></li>
                         <?php endif; ?>
                         <li><hr class="dropdown-divider"></li>
-                        <?php if (Auth::can('param_devoir:edit')): ?>
+                        <?php if (Auth::can('edit', 'param_devoir')): ?>
                             <li><a class="dropdown-item" href="/param-devoir/edit">Paramètres des Devoirs</a></li>
                         <?php endif; ?>
-                        <?php if (Auth::can('param_composition:edit')): ?>
+                        <?php if (Auth::can('edit', 'param_composition')): ?>
                             <li><a class="dropdown-item" href="/param-composition/edit">Paramètres des Compositions</a></li>
                         <?php endif; ?>
                     </ul>
