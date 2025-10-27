@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <?php
+global $lang, $supported_languages;
 // Determine language code and direction from the language setting
 $lang_code = explode('_', $lang)[0]; // 'fr_FR' becomes 'fr'
 $direction = $supported_languages[$lang]['dir'];
@@ -25,7 +26,7 @@ $direction = $supported_languages[$lang]['dir'];
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <?php if (Auth::isLoggedIn()): ?>
+            <?php if (Auth::check()): ?>
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="elevesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
