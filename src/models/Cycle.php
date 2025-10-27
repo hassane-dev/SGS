@@ -28,6 +28,12 @@ class Cycle {
     }
 
     public static function save($data) {
+        // --- Validation ---
+        if (empty($data['nom_cycle'])) {
+            throw new InvalidArgumentException("Le nom du cycle est obligatoire.");
+        }
+        // --- End Validation ---
+
         $isUpdate = !empty($data['id_cycle']);
 
         $sql = $isUpdate
