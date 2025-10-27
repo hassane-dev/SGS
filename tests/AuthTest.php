@@ -50,13 +50,13 @@ function run_test() {
         }
 
         // 4. Check the permission
-        $has_permission = Auth::can('user_edit');
+        $has_permission = Auth::can('edit', 'user');
 
         // 5. Assert the result
         if ($has_permission) {
-            echo "    [PASS] Auth::can('user_edit') correctly returned true.\n";
+            echo "    [PASS] Auth::can('edit', 'user') correctly returned true.\n";
         } else {
-            echo "    [FAIL] Auth::can('user_edit') returned false for an authorized user.\n";
+            echo "    [FAIL] Auth::can('edit', 'user') returned false for an authorized user.\n";
             exit(1);
         }
 
