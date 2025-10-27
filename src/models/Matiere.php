@@ -38,6 +38,12 @@ class Matiere {
     }
 
     public static function save($data) {
+        // --- Validation ---
+        if (empty($data['nom_matiere'])) {
+            throw new InvalidArgumentException("Le nom de la matière est obligatoire.");
+        }
+        // --- End Validation ---
+
         $isUpdate = !empty($data['id_matiere']);
         $lycee_id = Auth::getLyceeId();
 
