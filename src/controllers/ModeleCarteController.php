@@ -7,7 +7,7 @@ class ModeleCarteController {
 
     private function checkAccess() {
         // For now, let's assume local admins can manage their school's template
-        if (!Auth::can('manage_own_lycee_settings')) {
+        if (!Auth::can('edit', 'param_lycee')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();

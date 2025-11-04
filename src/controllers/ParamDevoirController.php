@@ -8,7 +8,8 @@ require_once __DIR__ . '/../core/Validator.php';
 class ParamDevoirController {
 
     private function checkAccess($permission = 'param_devoir:edit') {
-        if (!Auth::can($permission)) {
+        list($resource, $action) = explode(':', $permission);
+        if (!Auth::can($action, $resource)) {
             http_response_code(403);
             View::render('errors/403');
             exit();

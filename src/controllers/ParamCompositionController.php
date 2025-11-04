@@ -8,7 +8,8 @@ require_once __DIR__ . '/../core/Validator.php';
 class ParamCompositionController {
 
     private function checkAccess($permission = 'param_composition:edit') {
-        if (!Auth::can($permission)) {
+        list($resource, $action) = explode(':', $permission);
+        if (!Auth::can($action, $resource)) {
             http_response_code(403);
             View::render('errors/403');
             exit();

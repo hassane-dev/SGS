@@ -9,12 +9,23 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Fetch school-specific language settings if a user is logged in
+// Determine if we are in the setup process to avoid database calls
+$uri = strtok($_SERVER['REQUEST_URI'], '?');
+$is_setup_route = (strpos($uri, '/setup') === 0);
+
+// Fetch school-specific language settings only if not in setup and user is logged in
 $school_lang = null;
-if (Auth::check()) {
-    $params = ParamGeneral::findByAuthenticatedUser();
-    if ($params && !empty($params['langue_1'])) {
-        $school_lang = $params['langue_1'];
+if (!$is_setup_route && Auth::check()) {
+    try {
+        $params = ParamGeneral::findByAuthenticatedUser();
+        if ($params && !empty($params['langue_1'])) {
+            $school_lang = $params['langue_1'];
+        }
+    } catch (PDOException $e) {
+        // Gracefully handle cases where the database/table doesn't exist yet,
+        // especially during the transition from setup to the main application.
+        // We can log this if needed, but for now, we'll just fall back.
+        $school_lang = null;
     }
 }
 

@@ -8,7 +8,7 @@ require_once __DIR__ . '/../core/Validator.php';
 class BoutiqueAchatController {
 
     private function checkAccess() {
-        if (!Auth::can('manage_boutique')) {
+        if (!Auth::can('manage', 'boutique')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();

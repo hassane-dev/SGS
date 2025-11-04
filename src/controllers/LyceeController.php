@@ -6,7 +6,7 @@ require_once __DIR__ . '/../core/Validator.php';
 class LyceeController {
 
     private function checkAccess() {
-        if (!Auth::can('system_view_all_lycees')) {
+        if (!Auth::can('view_all_lycees', 'system')) {
             http_response_code(403);
             echo "Accès Interdit. Vous devez être un super administrateur national.";
             exit();

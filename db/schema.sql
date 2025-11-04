@@ -2,6 +2,8 @@
 -- Schema for the High School Management Application
 -- =================================================================
 
+SET FOREIGN_KEY_CHECKS = 0;
+
 -- Drop tables if they exist to ensure a clean slate on execution
 DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `parametres_generaux`, `annees_academiques`, `personnel_assignments`, `param_lycee`, `param_general`, `param_devoir`, `param_composition`, `bulletins`, `parametres_evaluations`;
 
@@ -246,28 +248,6 @@ CREATE TABLE `param_composition` (
 );
 
 -- Table for grades (unified for homework and exams)
-CREATE TABLE `evaluations` (
-    `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `lycee_id` INT NOT NULL,
-    `classe_id` INT NOT NULL,
-    `matiere_id` INT NOT NULL,
-    `enseignant_id` INT NOT NULL,
-    `eleve_id` INT NOT NULL,
-    `sequence_id` INT NOT NULL,
-    `annee_academique_id` INT NOT NULL,
-    `note` DECIMAL(5, 2) NOT NULL,
-    `coefficient` DECIMAL(4, 2) NOT NULL,
-    `appreciation` TEXT,
-    `date_saisie` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
-    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
-    FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
-    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
-    FOREIGN KEY (`sequence_id`) REFERENCES `sequences`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
-    UNIQUE KEY `unique_evaluation_note` (`eleve_id`, `matiere_id`, `sequence_id`, `annee_academique_id`)
-);
 
 
 -- =================================================================
@@ -612,3 +592,29 @@ CREATE TABLE `emploi_du_temps` (
 
 ALTER TABLE `emploi_du_temps` ADD COLUMN `lycee_id` INT NOT NULL AFTER `professeur_id`;
 ALTER TABLE `emploi_du_temps` ADD FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE;
+
+-- Table for grades (unified for homework and exams)
+CREATE TABLE `evaluations` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `lycee_id` INT NOT NULL,
+    `classe_id` INT NOT NULL,
+    `matiere_id` INT NOT NULL,
+    `enseignant_id` INT NOT NULL,
+    `eleve_id` INT NOT NULL,
+    `sequence_id` INT NOT NULL,
+    `annee_academique_id` INT NOT NULL,
+    `note` DECIMAL(5, 2) NOT NULL,
+    `coefficient` DECIMAL(4, 2) NOT NULL,
+    `appreciation` TEXT,
+    `date_saisie` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
+    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
+    FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
+    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
+    FOREIGN KEY (`sequence_id`) REFERENCES `sequences`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
+    UNIQUE KEY `unique_evaluation_note` (`eleve_id`, `matiere_id`, `sequence_id`, `annee_academique_id`)
+);
+
+SET FOREIGN_KEY_CHECKS = 1;

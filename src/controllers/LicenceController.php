@@ -6,7 +6,7 @@ require_once __DIR__ . '/../models/Lycee.php';
 class LicenceController {
 
     private function checkAccess() {
-        if (!Auth::can('manage_licences')) {
+        if (!Auth::can('manage', 'licence')) {
             http_response_code(403);
             echo "Accès Interdit. Cette section est réservée au créateur de l'application.";
             exit();

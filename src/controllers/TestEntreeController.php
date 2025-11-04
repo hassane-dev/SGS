@@ -7,7 +7,7 @@ require_once __DIR__ . '/../models/Classe.php';
 class TestEntreeController {
 
     private function checkAccess() {
-        if (!Auth::can('manage_tests_entree')) {
+        if (!Auth::can('manage', 'tests_entree')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();
@@ -34,7 +34,7 @@ class TestEntreeController {
             exit();
         }
         $eleve = Eleve::findById($eleve_id);
-        $lycee_id = !Auth::can('manage_all_lycees') ? Auth::get('lycee_id') : null;
+        $lycee_id = !Auth::can('view_all_lycees', 'system') ? Auth::get('lycee_id') : null;
         $classes = Classe::findAll($lycee_id);
         require_once __DIR__ . '/../views/tests_entree/create.php';
     }

@@ -1,7 +1,7 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0 text-gray-800">Gestion des Matières</h1>
-        <?php if (Auth::can('matiere:create')): ?>
+        <?php if (Auth::can('create', 'matiere')): ?>
             <a href="/matieres/create" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Nouvelle Matière
             </a>
@@ -42,12 +42,12 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <?php if (Auth::can('matiere:edit')): ?>
+                                    <?php if (Auth::can('edit', 'matiere')): ?>
                                         <a href="/matieres/edit?id=<?= $matiere['id_matiere'] ?>" class="btn btn-sm btn-warning">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                     <?php endif; ?>
-                                    <?php if (Auth::can('matiere:delete')): ?>
+                                    <?php if (Auth::can('delete', 'matiere')): ?>
                                         <form action="/matieres/delete" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette matière ?');">
                                             <input type="hidden" name="id" value="<?= $matiere['id_matiere'] ?>">
                                             <button type="submit" class="btn btn-sm btn-danger">

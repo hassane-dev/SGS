@@ -8,7 +8,7 @@ require_once __DIR__ . '/../core/Validator.php';
 class FraisController {
 
     private function checkAccess() {
-        if (!Auth::can('manage_frais')) {
+        if (!Auth::can('manage', 'frais')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();

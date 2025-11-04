@@ -11,7 +11,8 @@ require_once __DIR__ . '/../core/View.php';
 class EvaluationController {
 
     private function checkAccess($permission = 'note:create_own') { // Assuming a new permission
-        if (!Auth::can($permission)) {
+        list($resource, $action) = explode(':', $permission);
+        if (!Auth::can($action, $resource)) {
             http_response_code(403);
             View::render('errors/403');
             exit();

@@ -7,7 +7,8 @@ require_once __DIR__ . '/../core/View.php';
 class ModeleBulletinController {
 
     private function checkAccess($permission = 'bulletin_template:manage') {
-        if (!Auth::can($permission)) {
+        list($resource, $action) = explode(':', $permission);
+        if (!Auth::can($action, $resource)) {
             http_response_code(403);
             View::render('errors/403');
             exit();
