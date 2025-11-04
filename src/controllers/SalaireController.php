@@ -8,7 +8,7 @@ require_once __DIR__ . '/../core/Validator.php';
 class SalaireController {
 
     private function checkAccess() {
-        if (!Auth::can('manage_paiements')) { // Reuse this permission
+        if (!Auth::can('manage', 'salaire')) { // Reuse this permission
             http_response_code(403);
             echo "Accès Interdit.";
             exit();
@@ -17,14 +17,14 @@ class SalaireController {
 
     public function index() {
         $this->checkAccess();
-        $lycee_id = !Auth::can('manage_all_lycees') ? Auth::get('lycee_id') : null;
+        $lycee_id = !Auth::can('view_all_lycees', 'system') ? Auth::get('lycee_id') : null;
         $salaires = Salaire::findAll($lycee_id);
         require_once __DIR__ . '/../views/salaires/index.php';
     }
 
     public function create() {
         $this->checkAccess();
-        $lycee_id = !Auth::can('manage_all_lycees') ? Auth::get('lycee_id') : null;
+        $lycee_id = !Auth::can('view_all_lycees', 'system') ? Auth::get('lycee_id') : null;
         $personnels = User::findAll($lycee_id); // Simplified, should filter by contract type
         require_once __DIR__ . '/../views/salaires/create.php';
     }

@@ -1,7 +1,7 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0 text-gray-800">Gestion des Séquences</h1>
-        <?php if (Auth::can('sequence:manage')): ?>
+        <?php if (Auth::can('manage', 'sequence')): ?>
             <a href="/sequences/create" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Nouvelle Séquence
             </a>
@@ -44,7 +44,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <?php if (Auth::can('sequence:manage')): ?>
+                                    <?php if (Auth::can('manage', 'sequence')): ?>
                                         <a href="/sequences/edit?id=<?= $sequence['id'] ?>" class="btn btn-sm btn-warning">
                                             <i class="fas fa-edit"></i>
                                         </a>

@@ -11,7 +11,7 @@ class ComptableController {
 
     private function checkAccess() {
         // We might need a more specific permission like 'validate_inscriptions'
-        if (!Auth::can('manage_paiements')) {
+        if (!Auth::can('validate', 'paiement')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();

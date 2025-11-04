@@ -13,7 +13,8 @@ require_once __DIR__ . '/../core/Validator.php';
 class ClasseController {
 
     private function checkAccess($permission) {
-        if (!Auth::can($permission)) {
+        list($resource, $action) = explode(':', $permission);
+        if (!Auth::can($action, $resource)) {
             http_response_code(403);
             View::render('errors/403');
             exit();
@@ -22,7 +23,7 @@ class ClasseController {
 
     public function index() {
         $this->checkAccess('class:view');
-        $lycee_id = !Auth::can('system:view_all_lycees') ? Auth::getLyceeId() : null;
+        $lycee_id = !Auth::can('view_all_lycees', 'system') ? Auth::getLyceeId() : null;
         $classes = Classe::findAll($lycee_id);
         View::render('classes/index', [
             'classes' => $classes,
@@ -65,7 +66,7 @@ class ClasseController {
     public function create() {
         $this->checkAccess('class:create');
         $cycles = Cycle::findAll();
-        $lycees = Auth::can('system:view_all_lycees') ? Lycee::findAll() : [];
+        $lycees = Auth::can('view_all_lycees', 'system') ? Lycee::findAll() : [];
         View::render('classes/create', [
             'cycles' => $cycles,
             'lycees' => $lycees,
@@ -77,7 +78,7 @@ class ClasseController {
         $this->checkAccess('class:create');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
-            if (!Auth::can('system:view_all_lycees')) {
+            if (!Auth::can('view_all_lycees', 'system')) {
                 $data['lycee_id'] = Auth::getLyceeId();
             }
             Classe::save($data);
@@ -95,7 +96,7 @@ class ClasseController {
         $this->checkOwnership($classe['lycee_id']);
 
         $cycles = Cycle::findAll();
-        $lycees = Auth::can('system:view_all_lycees') ? Lycee::findAll() : [];
+        $lycees = Auth::can('view_all_lycees', 'system') ? Lycee::findAll() : [];
         View::render('classes/edit', [
             'classe' => $classe,
             'cycles' => $cycles,
@@ -189,7 +190,7 @@ class ClasseController {
     }
 
     private function checkOwnership($resource_lycee_id) {
-        if (!Auth::can('system:view_all_lycees') && $resource_lycee_id != Auth::getLyceeId()) {
+        if (!Auth::can('view_all_lycees', 'system') && $resource_lycee_id != Auth::getLyceeId()) {
             http_response_code(403);
             View::render('errors/403');
             exit();

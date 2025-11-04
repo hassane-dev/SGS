@@ -1,7 +1,7 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0 text-gray-800">Gestion des Classes</h1>
-        <?php if (Auth::can('class:create')): ?>
+        <?php if (Auth::can('create', 'class')): ?>
             <a href="/classes/create" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Nouvelle Classe
             </a>
@@ -21,7 +21,7 @@
                             <th>Niveau</th>
                             <th>Série</th>
                             <th>Cycle</th>
-                            <?php if (Auth::can('system:view_all_lycees')): ?>
+                            <?php if (Auth::can('view_all_lycees', 'system')): ?>
                                 <th>Lycée</th>
                             <?php endif; ?>
                             <th>Actions</th>
@@ -34,21 +34,21 @@
                                 <td><?= htmlspecialchars($classe['niveau']) ?></td>
                                 <td><?= htmlspecialchars($classe['serie'] ?? 'N/A') ?></td>
                                 <td><?= htmlspecialchars($classe['nom_cycle']) ?></td>
-                                <?php if (Auth::can('system:view_all_lycees')): ?>
+                                <?php if (Auth::can('view_all_lycees', 'system')): ?>
                                     <td><?= htmlspecialchars($classe['nom_lycee']) ?></td>
                                 <?php endif; ?>
                                 <td>
-                                    <?php if (Auth::can('class:view')): ?>
+                                    <?php if (Auth::can('view', 'class')): ?>
                                         <a href="/classes/show?id=<?= $classe['id_classe'] ?>" class="btn btn-sm btn-info" title="Détails et matières">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                     <?php endif; ?>
-                                    <?php if (Auth::can('class:edit')): ?>
+                                    <?php if (Auth::can('edit', 'class')): ?>
                                         <a href="/classes/edit?id=<?= $classe['id_classe'] ?>" class="btn btn-sm btn-warning" title="Modifier">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                     <?php endif; ?>
-                                    <?php if (Auth::can('class:delete')): ?>
+                                    <?php if (Auth::can('delete', 'class')): ?>
                                         <form action="/classes/destroy" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette classe ?');">
                                             <input type="hidden" name="id" value="<?= $classe['id_classe'] ?>">
                                             <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">

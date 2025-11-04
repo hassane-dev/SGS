@@ -1,5 +1,6 @@
 <?php
 
+
 // Initialize internationalization (i18n)
 require_once __DIR__ . '/../src/core/bootstrap_i18n.php';
 

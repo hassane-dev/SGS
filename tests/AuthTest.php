@@ -1,9 +1,8 @@
 <?php
 
 // Test for Auth class, specifically the can() method.
-define('DB_USER', 'jules');
-define('DB_PASS', '');
 
+require_once __DIR__ . '/../src/config/config.php';
 require_once __DIR__ . '/../src/config/database.php';
 require_once __DIR__ . '/../src/core/Auth.php';
 require_once __DIR__ . '/../src/models/User.php';

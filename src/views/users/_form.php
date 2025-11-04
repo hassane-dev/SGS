@@ -98,7 +98,7 @@
             </select>
         </div>
 
-        <?php if (Auth::can('manage_all_lycees')): ?>
+        <?php if (Auth::can('view_all_lycees', 'system')): ?>
         <div class="col-md-6">
             <label for="lycee_id" class="form-label fw-bold"><?= _('Lycée d\'affectation') ?></label>
             <select name="lycee_id" id="lycee_id" class="form-select">

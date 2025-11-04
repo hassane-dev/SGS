@@ -8,7 +8,7 @@ require_once __DIR__ . '/../core/Auth.php';
 class MensualiteController {
 
     private function checkAccess() {
-        if (!Auth::can('manage_paiements')) {
+        if (!Auth::can('create', 'paiement')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();

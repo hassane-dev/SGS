@@ -12,7 +12,7 @@
                     <h6 class="m-0 font-weight-bold text-primary">Attribuer une Matière</h6>
                 </div>
                 <div class="card-body">
-                    <?php if (Auth::can('class:edit')): ?>
+                    <?php if (Auth::can('edit', 'class')): ?>
                     <form action="/classes/assignMatiere" method="POST">
                         <input type="hidden" name="classe_id" value="<?= $classe['id_classe'] ?>">
                         <div class="form-group">
@@ -75,20 +75,20 @@
                                             ?>
                                                 <span><?= htmlspecialchars($assignment['enseignant_nom']) ?></span>
 
-                                                <?php if (Auth::can('evaluation:manage_settings')): ?>
+                                                <?php if (Auth::can('manage_settings', 'evaluation')): ?>
                                                 <a href="/evaluations/settings?classe_id=<?= $classe['id_classe'] ?>&matiere_id=<?= $matiere['id_matiere'] ?>" class="btn btn-sm btn-outline-secondary ml-2" title="Paramètres des évaluations">
                                                     <i class="fas fa-cog"></i>
                                                 </a>
                                                 <?php endif; ?>
 
-                                                <?php if (Auth::can('class:edit')): ?>
+                                                <?php if (Auth::can('edit', 'class')): ?>
                                                 <a href="/classes/unassignEnseignant?assignment_id=<?= $assignment['id'] ?>&classe_id=<?= $classe['id_classe'] ?>" class="btn btn-sm btn-outline-danger" title="Dissocier l'enseignant">
                                                     <i class="fas fa-times"></i>
                                                 </a>
                                                 <?php endif; ?>
 
                                             <?php else: ?>
-                                                <?php if (Auth::can('class:edit')): ?>
+                                                <?php if (Auth::can('edit', 'class')): ?>
                                                 <form action="/classes/assignEnseignant" method="POST" class="d-flex">
                                                     <input type="hidden" name="classe_id" value="<?= $classe['id_classe'] ?>">
                                                     <input type="hidden" name="matiere_id" value="<?= $matiere['id_matiere'] ?>">
@@ -106,7 +106,7 @@
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <?php if (Auth::can('class:edit')): ?>
+                                            <?php if (Auth::can('edit', 'class')): ?>
                                                 <a href="/classes/removeMatiere?id=<?= $matiere['id'] ?>&classe_id=<?= $classe['id_classe'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir retirer cette matière de la classe ?');" title="Retirer la matière">
                                                     <i class="fas fa-trash"></i>
                                                 </a>

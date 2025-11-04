@@ -9,7 +9,7 @@ require_once __DIR__ . '/../models/Salle.php';
 class EmploiDuTempsController {
 
     private function checkAccess() {
-        if (!Auth::can('manage_classes')) { // Reuse this permission for now
+        if (!Auth::can('manage', 'class')) { // Reuse this permission for now
             http_response_code(403);
             echo "Accès Interdit.";
             exit();
@@ -19,7 +19,7 @@ class EmploiDuTempsController {
     public function index() {
         $this->checkAccess();
 
-        $lycee_id = !Auth::can('manage_all_lycees') ? Auth::get('lycee_id') : null;
+        $lycee_id = !Auth::can('view_all_lycees', 'system') ? Auth::get('lycee_id') : null;
         $classes = Classe::findAll($lycee_id);
 
         // Default to the first class if none is selected
@@ -35,7 +35,7 @@ class EmploiDuTempsController {
 
     public function create() {
         $this->checkAccess();
-        $lycee_id = !Auth::can('manage_all_lycees') ? Auth::get('lycee_id') : null;
+        $lycee_id = !Auth::can('view_all_lycees', 'system') ? Auth::get('lycee_id') : null;
 
         $data = [
             'classes' => Classe::findAll($lycee_id),

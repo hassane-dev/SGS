@@ -6,7 +6,7 @@ require_once __DIR__ . '/../core/Validator.php';
 class CycleController {
 
     private function checkAccess() {
-        if (!Auth::can('manage_cycles')) {
+        if (!Auth::can('manage', 'cycle')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();

@@ -9,7 +9,7 @@ class RoleController {
 
     private function checkAccess() {
         // Only creator and national admin can manage roles in general
-        if (!Auth::can('manage_roles')) {
+        if (!Auth::can('manage', 'role')) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();

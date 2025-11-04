@@ -25,11 +25,11 @@ class HomeController {
                 $navLinks[] = '<a href="/boutique/articles" class="text-blue-500 hover:underline">Gérer la Boutique</a>';
             }
 
-            if (Auth::can('manage_own_lycee_settings')) {
+            if (Auth::can('edit', 'param_lycee')) {
                 $navLinks[] = '<a href="/modele-carte/edit" class="text-teal-500 hover:underline">Éditeur de Carte</a>';
             }
 
-            if (Auth::can('manage_classes')) { // Reuse permission
+            if (Auth::can('manage', 'class')) { // Reuse permission
                 $navLinks[] = '<a href="/emploi-du-temps" class="text-orange-500 hover:underline">Emploi du Temps</a>';
             }
 
@@ -42,15 +42,15 @@ class HomeController {
                 $navLinks[] = '<a href="/licences" class="text-red-500 hover:underline">Gérer les Licences</a>';
             }
 
-            if (Auth::can('manage_roles')) {
+            if (Auth::can('manage', 'role')) {
                 $navLinks[] = '<a href="/roles" class="text-purple-500 hover:underline">Gérer les Rôles</a>';
             }
 
-            if (Auth::can('manage_users')) { // Reuse permission
+            if (Auth::can('manage', 'user')) { // Reuse permission
                 $navLinks[] = '<a href="/contrats" class="text-pink-500 hover:underline">Gérer les Contrats</a>';
             }
 
-            if (Auth::can('manage_paiements')) { // Reuse permission
+            if (Auth::can('create', 'paiement')) { // Reuse permission
                 $navLinks[] = '<a href="/salaires" class="text-red-500 hover:underline">Gérer les Salaires</a>';
             }
 

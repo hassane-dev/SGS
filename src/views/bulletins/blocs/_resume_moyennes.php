@@ -8,7 +8,7 @@
             <div class="col-md-6">
                 <p><strong>Moyenne Générale :</strong> <span class="h5"><?= number_format($bulletin['moyenne_generale'], 2) ?> / 20</span></p>
 
-                <?php if (Auth::can('bulletin:validate')): ?>
+                <?php if (Auth::can('validate', 'bulletin')): ?>
                     <div class="form-group">
                         <label for="rang"><strong>Rang de l'élève</strong></label>
                         <input type="text" name="rang" id="rang" class="form-control" value="<?= htmlspecialchars($bulletin['bulletin_record']['rang'] ?? '') ?>">
@@ -20,7 +20,7 @@
             <div class="col-md-6">
                 <div class="border p-3">
                     <h5>Appréciation du Conseil de Classe</h5>
-                    <?php if (Auth::can('bulletin:validate')): ?>
+                    <?php if (Auth::can('validate', 'bulletin')): ?>
                         <div class="form-group">
                             <textarea name="appreciation" class="form-control" rows="3"><?= htmlspecialchars($bulletin['bulletin_record']['appreciation'] ?? '') ?></textarea>
                         </div>

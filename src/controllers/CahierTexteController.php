@@ -9,7 +9,7 @@ class CahierTexteController {
 
     private function checkAccess() {
         // Allow access if user is a teacher or has permission to manage logbooks
-        if (Auth::get('role_name') === 'enseignant' || Auth::can('manage_cahier_texte')) {
+        if (Auth::get('role_name') === 'enseignant' || Auth::can('manage', 'cahier_texte')) {
             return true;
         }
         http_response_code(403);
@@ -21,7 +21,7 @@ class CahierTexteController {
         $this->checkAccess();
         $user_id = Auth::get('id');
         $lycee_id = Auth::get('lycee_id');
-        $is_admin = Auth::can('manage_cahier_texte');
+        $is_admin = Auth::can('manage', 'cahier_texte');
 
         $filters = [
             'personnel_id_filter' => $_GET['personnel_id'] ?? null,
