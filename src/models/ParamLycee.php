@@ -17,8 +17,8 @@ class ParamLycee {
 
         try {
             $db = Database::getInstance();
-            $stmt = $db->prepare("SELECT * FROM param_lycee WHERE id = :id");
-            $stmt->execute(['id' => $lycee_id]);
+            $stmt = $db->prepare("SELECT * FROM param_lycee WHERE lycee_id = :lycee_id");
+            $stmt->execute(['lycee_id' => $lycee_id]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Error in ParamLycee::findByAuthenticatedUser: " . $e->getMessage());
@@ -57,41 +57,41 @@ class ParamLycee {
 
 
         $sql = "UPDATE param_lycee SET
-                    nomEcole = :nomEcole,
+                    nom_lycee = :nom_lycee,
                     sigle = :sigle,
                     tel = :tel,
                     email = :email,
                     ville = :ville,
                     quartier = :quartier,
                     ruelle = :ruelle,
-                    boitePostale = :boitePostale,
+                    boite_postale = :boite_postale,
                     arrete = :arrete,
                     arrondissement = :arrondissement,
                     devise = :devise,
                     logo = :logo,
-                    typeLycee = :typeLycee,
+                    type_lycee = :type_lycee,
                     boutique = :boutique
-                WHERE id = :id";
+                WHERE lycee_id = :lycee_id";
 
         try {
             $db = Database::getInstance();
             $stmt = $db->prepare($sql);
             return $stmt->execute([
-                'nomEcole' => $data['nomEcole'],
+                'nom_lycee' => $data['nom_lycee'],
                 'sigle' => $data['sigle'],
                 'tel' => $data['tel'],
                 'email' => $data['email'],
                 'ville' => $data['ville'],
                 'quartier' => $data['quartier'],
                 'ruelle' => $data['ruelle'],
-                'boitePostale' => $data['boitePostale'],
+                'boite_postale' => $data['boite_postale'],
                 'arrete' => $data['arrete'],
                 'arrondissement' => $data['arrondissement'],
                 'devise' => $data['devise'],
                 'logo' => $data['logo'],
-                'typeLycee' => $data['typeLycee'],
+                'type_lycee' => $data['type_lycee'],
                 'boutique' => isset($data['boutique']) ? 1 : 0,
-                'id' => $lycee_id
+                'lycee_id' => $lycee_id
             ]);
         } catch (PDOException $e) {
             error_log("Error in ParamLycee::update: " . $e->getMessage());

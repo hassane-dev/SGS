@@ -31,12 +31,12 @@ CREATE TABLE `param_lycee` (
     `ville` VARCHAR(100),
     `quartier` VARCHAR(100),
     `ruelle` VARCHAR(100),
-    `boitePostale` VARCHAR(50),
+    `boite_postale` VARCHAR(50),
     `arrete` VARCHAR(255),
     `arrondissement` VARCHAR(100),
     `devise` VARCHAR(255),
     `logo` VARCHAR(255),
-    `typeLycee` ENUM('public', 'prive', 'semi-public') NOT NULL,
+    `type_lycee` ENUM('public', 'prive', 'semi-public') NOT NULL,
     `boutique` BOOLEAN NOT NULL DEFAULT FALSE
 );
 
@@ -44,14 +44,14 @@ CREATE TABLE `param_lycee` (
 CREATE TABLE `param_general` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `lycee_id` INT NOT NULL,
-    `devisePays` VARCHAR(100),
+    `devise_pays` VARCHAR(100),
     `monnaie` VARCHAR(10),
-    `modalitePaiement` VARCHAR(255), -- e.g., 'Especes, Versement, Mobile Money'
-    `nbLangue` INT DEFAULT 1,
+    `modalite_paiement` VARCHAR(255), -- e.g., 'Especes, Versement, Mobile Money'
+    `nb_langue` INT DEFAULT 1,
     `langue_1` VARCHAR(50) DEFAULT 'Francais',
     `langue_2` VARCHAR(50),
-    `sequenceAnnuelle` ENUM('Semestrielle', 'Trimestrielle') NOT NULL DEFAULT 'Trimestrielle',
-    `creeLe` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `sequence_annuelle` ENUM('Semestrielle', 'Trimestrielle') NOT NULL DEFAULT 'Trimestrielle',
+    `cree_le` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 
@@ -209,42 +209,42 @@ CREATE TABLE `sequences` (
 CREATE TABLE `param_devoir` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `lycee_id` INT NOT NULL,
-    `anneeId` INT NOT NULL,
-    `nombreDevoirParSequence` INT,
-    `noteMaximale` DECIMAL(5, 2) DEFAULT 20.00,
-    `dateDebutInsertion` DATETIME,
-    `dateFinInsertion` DATETIME,
-    `deblocageUrgence` BOOLEAN DEFAULT FALSE,
-    `classeId` INT,
-    `matiereId` INT,
-    `creePar` INT,
-    `creeLe` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `annee_id` INT NOT NULL,
+    `nombre_devoir_par_sequence` INT,
+    `note_maximale` DECIMAL(5, 2) DEFAULT 20.00,
+    `date_debut_insertion` DATETIME,
+    `date_fin_insertion` DATETIME,
+    `deblocage_urgence` BOOLEAN DEFAULT FALSE,
+    `classe_id` INT,
+    `matiere_id` INT,
+    `cree_par` INT,
+    `cree_le` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`anneeId`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`classeId`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
-    FOREIGN KEY (`matiereId`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
-    FOREIGN KEY (`creePar`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL
+    FOREIGN KEY (`annee_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
+    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
+    FOREIGN KEY (`cree_par`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL
 );
 
 -- Table for exam parameters
 CREATE TABLE `param_composition` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `lycee_id` INT NOT NULL,
-    `anneeId` INT NOT NULL,
-    `nombreCompositionParSequence` INT,
-    `noteMaximale` DECIMAL(5, 2) DEFAULT 20.00,
-    `dateDebutInsertion` DATETIME,
-    `dateFinInsertion` DATETIME,
-    `deblocageUrgence` BOOLEAN DEFAULT FALSE,
-    `classeId` INT,
-    `matiereId` INT,
-    `creePar` INT,
-    `creeLe` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `annee_id` INT NOT NULL,
+    `nombre_composition_par_sequence` INT,
+    `note_maximale` DECIMAL(5, 2) DEFAULT 20.00,
+    `date_debut_insertion` DATETIME,
+    `date_fin_insertion` DATETIME,
+    `deblocage_urgence` BOOLEAN DEFAULT FALSE,
+    `classe_id` INT,
+    `matiere_id` INT,
+    `cree_par` INT,
+    `cree_le` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`anneeId`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`classeId`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
-    FOREIGN KEY (`matiereId`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
-    FOREIGN KEY (`creePar`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL
+    FOREIGN KEY (`annee_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
+    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
+    FOREIGN KEY (`cree_par`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL
 );
 
 -- Table for grades (unified for homework and exams)
