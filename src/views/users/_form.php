@@ -98,7 +98,7 @@
             </select>
         </div>
 
-        <?php if (Auth::can('view_all_lycees', 'system')): ?>
+        <?php if (Auth::can('view_all_lycees', 'lycee')): ?>
         <div class="col-md-6">
             <label for="lycee_id" class="form-label fw-bold"><?= _('Lycée d\'affectation') ?></label>
             <select name="lycee_id" id="lycee_id" class="form-select">
@@ -114,8 +114,7 @@
 
         <div class="col-12">
             <div class="form-check">
-                <input type="hidden" name="actif" value="0">
-                <input type="checkbox" name="actif" value="1" class="form-check-input" id="actif" <?= (isset($user['actif']) && $user['actif']) || !isset($user['actif']) ? 'checked' : '' ?>>
+                <input type="checkbox" name="actif" value="1" class="form-check-input" id="actif" <?= !isset($user['actif']) || $user['actif'] ? 'checked' : '' ?>>
                 <label class="form-check-label" for="actif"><?= _('Compte Actif') ?></label>
             </div>
         </div>

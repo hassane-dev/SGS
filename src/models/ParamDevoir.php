@@ -20,20 +20,20 @@ class ParamDevoir {
 
         try {
             $db = Database::getInstance();
-            $stmt = $db->prepare("SELECT * FROM param_devoir WHERE lycee_id = :lycee_id AND anneeId = :anneeId");
-            $stmt->execute(['lycee_id' => $lycee_id, 'anneeId' => $activeYear['id']]);
+            $stmt = $db->prepare("SELECT * FROM param_devoir WHERE lycee_id = :lycee_id AND annee_id = :annee_id");
+            $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$result) {
                 // No record found, create a default one
-                $stmt_create = $db->prepare("INSERT INTO param_devoir (lycee_id, anneeId, creePar) VALUES (:lycee_id, :anneeId, :userId)");
+                $stmt_create = $db->prepare("INSERT INTO param_devoir (lycee_id, annee_id, cree_par) VALUES (:lycee_id, :annee_id, :userId)");
                 $stmt_create->execute([
                     'lycee_id' => $lycee_id,
-                    'anneeId' => $activeYear['id'],
-                    'userId' => Auth::get('id')
+                    'annee_id' => $activeYear['id'],
+                    'userId' => Auth::get('id_user')
                 ]);
                 // Fetch the newly created record
-                $stmt->execute(['lycee_id' => $lycee_id, 'anneeId' => $activeYear['id']]);
+                $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
                 $result = $stmt->fetch(PDO::FETCH_ASSOC);
             }
             return $result;
@@ -57,24 +57,24 @@ class ParamDevoir {
         }
 
         $sql = "UPDATE param_devoir SET
-                    nombreDevoirParSequence = :nombreDevoirParSequence,
-                    noteMaximale = :noteMaximale,
-                    dateDebutInsertion = :dateDebutInsertion,
-                    dateFinInsertion = :dateFinInsertion,
-                    deblocageUrgence = :deblocageUrgence
-                WHERE lycee_id = :lycee_id AND anneeId = :anneeId";
+                    nombre_devoir_par_sequence = :nombre_devoir_par_sequence,
+                    note_maximale = :note_maximale,
+                    date_debut_insertion = :date_debut_insertion,
+                    date_fin_insertion = :date_fin_insertion,
+                    deblocage_urgence = :deblocage_urgence
+                WHERE lycee_id = :lycee_id AND annee_id = :annee_id";
 
         try {
             $db = Database::getInstance();
             $stmt = $db->prepare($sql);
             return $stmt->execute([
-                'nombreDevoirParSequence' => $data['nombreDevoirParSequence'],
-                'noteMaximale' => $data['noteMaximale'],
-                'dateDebutInsertion' => $data['dateDebutInsertion'] ?: null,
-                'dateFinInsertion' => $data['dateFinInsertion'] ?: null,
-                'deblocageUrgence' => isset($data['deblocageUrgence']) ? 1 : 0,
+                'nombre_devoir_par_sequence' => $data['nombre_devoir_par_sequence'],
+                'note_maximale' => $data['note_maximale'],
+                'date_debut_insertion' => $data['date_debut_insertion'] ?: null,
+                'date_fin_insertion' => $data['date_fin_insertion'] ?: null,
+                'deblocage_urgence' => isset($data['deblocage_urgence']) ? 1 : 0,
                 'lycee_id' => $lycee_id,
-                'anneeId' => $activeYear['id']
+                'annee_id' => $activeYear['id']
             ]);
         } catch (PDOException $e) {
             error_log("Error in ParamDevoir::update: " . $e->getMessage());

@@ -3,6 +3,12 @@
 <div class="container-lg">
     <h2 class="fs-2 fw-bold mb-4"><?= _('Modifier le membre du personnel') ?>: <span class="text-primary"><?= htmlspecialchars($user['prenom'] . ' ' . $user['nom']) ?></span></h2>
 
+    <?php if (isset($error)): ?>
+        <div class="alert alert-danger">
+            <?= htmlspecialchars($error) ?>
+        </div>
+    <?php endif; ?>
+
     <div class="card shadow-sm">
         <div class="card-body">
             <?php

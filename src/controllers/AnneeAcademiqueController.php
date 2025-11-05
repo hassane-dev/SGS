@@ -7,9 +7,9 @@ class AnneeAcademiqueController {
 
     private function checkAccess() {
         // For now, only super admins can manage academic years
-        if (!Auth::can('view_all_lycees', 'system')) {
+        if (!Auth::can('view_all_lycees', 'lycee')) {
             http_response_code(403);
-            echo "Accès Interdit.";
+            View::render('errors/403');
             exit();
         }
     }
