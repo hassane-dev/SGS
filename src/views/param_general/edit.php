@@ -15,43 +15,43 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6 form-group">
-                        <label for="devisePays">Nom complet de la devise</label>
-                        <input type="text" id="devisePays" name="devisePays" class="form-control" placeholder="Ex: Franc CFA" value="<?= htmlspecialchars($params['devisePays']) ?>">
+                        <label for="devise_pays">Nom complet de la devise</label>
+                        <input type="text" id="devise_pays" name="devise_pays" class="form-control" placeholder="Ex: Franc CFA" value="<?= htmlspecialchars($params['devise_pays'] ?? '') ?>">
                     </div>
                     <div class="col-md-6 form-group">
                         <label for="monnaie">Symbole monétaire</label>
-                        <input type="text" id="monnaie" name="monnaie" class="form-control" placeholder="Ex: FCFA" value="<?= htmlspecialchars($params['monnaie']) ?>">
+                        <input type="text" id="monnaie" name="monnaie" class="form-control" placeholder="Ex: FCFA" value="<?= htmlspecialchars($params['monnaie'] ?? '') ?>">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="modalitePaiement">Modalités de paiement autorisées</label>
-                    <input type="text" id="modalitePaiement" name="modalitePaiement" class="form-control" placeholder="Ex: Espèces, Versement, Mobile Money" value="<?= htmlspecialchars($params['modalitePaiement']) ?>">
+                    <label for="modalite_paiement">Modalités de paiement autorisées</label>
+                    <input type="text" id="modalite_paiement" name="modalite_paiement" class="form-control" placeholder="Ex: Espèces, Versement, Mobile Money" value="<?= htmlspecialchars($params['modalite_paiement'] ?? '') ?>">
                     <small class="form-text text-muted">Séparez les différentes modalités par une virgule.</small>
                 </div>
                 <hr>
                 <div class="row">
                     <div class="col-md-4 form-group">
-                        <label for="nbLangue">Nombre de langues sur les documents</label>
-                        <select id="nbLangue" name="nbLangue" class="form-control">
-                            <option value="1" <?= $params['nbLangue'] == 1 ? 'selected' : '' ?>>1</option>
-                            <option value="2" <?= $params['nbLangue'] == 2 ? 'selected' : '' ?>>2</option>
+                        <label for="nb_langue">Nombre de langues sur les documents</label>
+                        <select id="nb_langue" name="nb_langue" class="form-control">
+                            <option value="1" <?= ($params['nb_langue'] ?? 1) == 1 ? 'selected' : '' ?>>1</option>
+                            <option value="2" <?= ($params['nb_langue'] ?? 1) == 2 ? 'selected' : '' ?>>2</option>
                         </select>
                     </div>
                     <div class="col-md-4 form-group">
                         <label for="langue_1">Première langue</label>
-                        <input type="text" id="langue_1" name="langue_1" class="form-control" placeholder="Ex: Français" value="<?= htmlspecialchars($params['langue_1']) ?>">
+                        <input type="text" id="langue_1" name="langue_1" class="form-control" placeholder="Ex: Français" value="<?= htmlspecialchars($params['langue_1'] ?? '') ?>">
                     </div>
                     <div class="col-md-4 form-group">
                         <label for="langue_2">Deuxième langue (si applicable)</label>
-                        <input type="text" id="langue_2" name="langue_2" class="form-control" placeholder="Ex: Anglais" value="<?= htmlspecialchars($params['langue_2']) ?>">
+                        <input type="text" id="langue_2" name="langue_2" class="form-control" placeholder="Ex: Anglais" value="<?= htmlspecialchars($params['langue_2'] ?? '') ?>">
                     </div>
                 </div>
                 <hr>
                 <div class="form-group">
-                    <label for="sequenceAnnuelle">Type de séquence annuelle</label>
-                     <select id="sequenceAnnuelle" name="sequenceAnnuelle" class="form-control">
-                        <option value="Trimestrielle" <?= $params['sequenceAnnuelle'] == 'Trimestrielle' ? 'selected' : '' ?>>Trimestrielle</option>
-                        <option value="Semestrielle" <?= $params['sequenceAnnuelle'] == 'Semestrielle' ? 'selected' : '' ?>>Semestrielle</option>
+                    <label for="sequence_annuelle">Type de séquence annuelle</label>
+                     <select id="sequence_annuelle" name="sequence_annuelle" class="form-control">
+                        <option value="Trimestrielle" <?= ($params['sequence_annuelle'] ?? '') == 'Trimestrielle' ? 'selected' : '' ?>>Trimestrielle</option>
+                        <option value="Semestrielle" <?= ($params['sequence_annuelle'] ?? '') == 'Semestrielle' ? 'selected' : '' ?>>Semestrielle</option>
                     </select>
                 </div>
             </div>

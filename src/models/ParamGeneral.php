@@ -50,26 +50,26 @@ class ParamGeneral {
         }
 
         $sql = "UPDATE param_general SET
-                    devisePays = :devisePays,
+                    devise_pays = :devise_pays,
                     monnaie = :monnaie,
-                    modalitePaiement = :modalitePaiement,
-                    nbLangue = :nbLangue,
+                    modalite_paiement = :modalite_paiement,
+                    nb_langue = :nb_langue,
                     langue_1 = :langue_1,
                     langue_2 = :langue_2,
-                    sequenceAnnuelle = :sequenceAnnuelle
+                    sequence_annuelle = :sequence_annuelle
                 WHERE lycee_id = :lycee_id";
 
         try {
             $db = Database::getInstance();
             $stmt = $db->prepare($sql);
             return $stmt->execute([
-                'devisePays' => $data['devisePays'],
+                'devise_pays' => $data['devise_pays'],
                 'monnaie' => $data['monnaie'],
-                'modalitePaiement' => $data['modalitePaiement'],
-                'nbLangue' => $data['nbLangue'],
+                'modalite_paiement' => $data['modalite_paiement'],
+                'nb_langue' => $data['nb_langue'],
                 'langue_1' => $data['langue_1'],
                 'langue_2' => $data['langue_2'] ?? null,
-                'sequenceAnnuelle' => $data['sequenceAnnuelle'],
+                'sequence_annuelle' => $data['sequence_annuelle'],
                 'lycee_id' => $lycee_id
             ]);
         } catch (PDOException $e) {
@@ -88,31 +88,31 @@ class ParamGeneral {
         if ($exists) {
             // Update
             $sql = "UPDATE param_general SET
-                        devisePays = :devisePays,
+                        devise_pays = :devise_pays,
                         monnaie = :monnaie,
-                        modalitePaiement = :modalitePaiement,
-                        nbLangue = :nbLangue,
+                        modalite_paiement = :modalite_paiement,
+                        nb_langue = :nb_langue,
                         langue_1 = :langue_1,
                         langue_2 = :langue_2,
-                        sequenceAnnuelle = :sequenceAnnuelle
+                        sequence_annuelle = :sequence_annuelle
                     WHERE lycee_id = :lycee_id";
         } else {
             // Create
-            $sql = "INSERT INTO param_general (lycee_id, devisePays, monnaie, modalitePaiement, nbLangue, langue_1, langue_2, sequenceAnnuelle)
-                    VALUES (:lycee_id, :devisePays, :monnaie, :modalitePaiement, :nbLangue, :langue_1, :langue_2, :sequenceAnnuelle)";
+            $sql = "INSERT INTO param_general (lycee_id, devise_pays, monnaie, modalite_paiement, nb_langue, langue_1, langue_2, sequence_annuelle)
+                    VALUES (:lycee_id, :devise_pays, :monnaie, :modalite_paiement, :nb_langue, :langue_1, :langue_2, :sequence_annuelle)";
         }
 
         try {
             $stmt = $db->prepare($sql);
             return $stmt->execute([
                 'lycee_id' => $data['lycee_id'],
-                'devisePays' => $data['devisePays'] ?? 'XAF',
+                'devise_pays' => $data['devise_pays'] ?? 'XAF',
                 'monnaie' => $data['monnaie'] ?? 'FCFA',
-                'modalitePaiement' => $data['modalitePaiement'] ?? 'Especes',
-                'nbLangue' => $data['nbLangue'] ?? 1,
+                'modalite_paiement' => $data['modalite_paiement'] ?? 'Especes',
+                'nb_langue' => $data['nb_langue'] ?? 1,
                 'langue_1' => $data['langue_1'] ?? 'Francais',
                 'langue_2' => $data['langue_2'] ?? null,
-                'sequenceAnnuelle' => $data['sequenceAnnuelle'] ?? 'Trimestrielle'
+                'sequence_annuelle' => $data['sequence_annuelle'] ?? 'Trimestrielle'
             ]);
         } catch (PDOException $e) {
             error_log("Error in ParamGeneral::save: " . $e->getMessage());

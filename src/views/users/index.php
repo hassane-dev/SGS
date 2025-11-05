@@ -22,7 +22,7 @@
                 <?php foreach ($users as $user): ?>
                     <tr>
                         <td><?= htmlspecialchars($user['prenom'] . ' ' . $user['nom']) ?></td>
-                        <td><?= htmlspecialchars($user['fonction']) ?></td>
+                        <td><?= htmlspecialchars($user['nom_role'] ?? 'N/A') ?></td>
                         <td>
                             <?php if ($user['actif']): ?>
                                 <span class="badge bg-success"><?= _('Actif') ?></span>
