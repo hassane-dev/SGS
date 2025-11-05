@@ -9,7 +9,7 @@ class EleveController {
 
     public function index() {
         if (!Auth::can('view_all', 'eleve')) { $this->forbidden(); }
-        $lycee_id = !Auth::can('view_all_lycees', 'system') ? Auth::get('lycee_id') : null;
+        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::get('lycee_id') : null;
 
         $eleves = Eleve::findAll($lycee_id);
         require_once __DIR__ . '/../views/eleves/index.php';
@@ -129,7 +129,7 @@ class EleveController {
 
     private function forbidden() {
         http_response_code(403);
-        echo "Accès Interdit.";
+        View::render('errors/403');
         exit();
     }
 

@@ -93,7 +93,7 @@ class User {
 
     public static function findAll($lycee_id = null) {
         $db = Database::getInstance();
-        $sql = "SELECT u.id_user, u.nom, u.prenom, u.email, u.role_id, u.actif, u.lycee_id, u.fonction, r.nom_role
+        $sql = "SELECT u.id_user, u.nom, u.prenom, u.actif, r.nom_role
                 FROM utilisateurs u
                 LEFT JOIN roles r ON u.role_id = r.id_role";
         if ($lycee_id !== null) {
@@ -127,6 +127,16 @@ class User {
         if (empty($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
             throw new InvalidArgumentException("Une adresse email valide est obligatoire.");
         }
+
+        // Check for email uniqueness
+        $db = Database::getInstance();
+        $stmt_email = $db->prepare("SELECT id_user FROM utilisateurs WHERE email = :email");
+        $stmt_email->execute(['email' => $data['email']]);
+        $existing_user = $stmt_email->fetch();
+        if ($existing_user && (!$isUpdate || $existing_user['id_user'] != $data['id_user'])) {
+            throw new InvalidArgumentException("Cette adresse email est déjà utilisée par un autre compte.");
+        }
+
         if (empty($data['role_id'])) {
             throw new InvalidArgumentException("Un rôle est obligatoire.");
         }

@@ -12,7 +12,7 @@
                     <input type="text" name="nom_role" id="nom_role" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required>
                 </div>
 
-                <?php if (Auth::can('view_all_lycees', 'system')): ?>
+                <?php if (Auth::can('view_all_lycees', 'lycee')): ?>
                 <div>
                     <label for="lycee_id" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Scope') ?></label>
                     <select name="lycee_id" id="lycee_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">

@@ -21,7 +21,7 @@
                             <th>Niveau</th>
                             <th>Série</th>
                             <th>Cycle</th>
-                            <?php if (Auth::can('view_all_lycees', 'system')): ?>
+                            <?php if (Auth::can('view_all_lycees', 'lycee')): ?>
                                 <th>Lycée</th>
                             <?php endif; ?>
                             <th>Actions</th>
@@ -34,7 +34,7 @@
                                 <td><?= htmlspecialchars($classe['niveau']) ?></td>
                                 <td><?= htmlspecialchars($classe['serie'] ?? 'N/A') ?></td>
                                 <td><?= htmlspecialchars($classe['nom_cycle']) ?></td>
-                                <?php if (Auth::can('view_all_lycees', 'system')): ?>
+                                <?php if (Auth::can('view_all_lycees', 'lycee')): ?>
                                     <td><?= htmlspecialchars($classe['nom_lycee']) ?></td>
                                 <?php endif; ?>
                                 <td>

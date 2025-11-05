@@ -39,7 +39,7 @@
             <textarea name="description" id="description" rows="4" class="form-control"><?= htmlspecialchars($contrat['description'] ?? '') ?></textarea>
         </div>
 
-        <?php if (Auth::can('view_all_lycees', 'system')): ?>
+        <?php if (Auth::can('view_all_lycees', 'lycee')): ?>
             <div class="col-12">
                 <div class="form-check form-switch">
                      <input type="hidden" name="is_global" value="0">

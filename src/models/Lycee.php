@@ -56,9 +56,9 @@ class Lycee {
             $sql = "UPDATE param_lycee SET
                         nom_lycee = :nom_lycee, sigle = :sigle, tel = :tel, email = :email,
                         ville = :ville, quartier = :quartier, ruelle = :ruelle,
-                        boitePostale = :boitePostale, arrete = :arrete,
+                        boite_postale = :boite_postale, arrete = :arrete,
                         arrondissement = :arrondissement, devise = :devise, logo = :logo,
-                        typeLycee = :typeLycee, boutique = :boutique
+                        type_lycee = :type_lycee, boutique = :boutique
                     WHERE id = :id";
             try {
                 $db = Database::getInstance();
@@ -72,12 +72,12 @@ class Lycee {
                     'ville' => $data['ville'],
                     'quartier' => $data['quartier'],
                     'ruelle' => $data['ruelle'],
-                    'boitePostale' => $data['boitePostale'],
+                    'boite_postale' => $data['boite_postale'],
                     'arrete' => $data['arrete'],
                     'arrondissement' => $data['arrondissement'],
                     'devise' => $data['devise'],
                     'logo' => $data['logo'],
-                    'typeLycee' => $data['typeLycee'],
+                    'type_lycee' => $data['type_lycee'],
                     'boutique' => isset($data['boutique']) ? 1 : 0
                 ]);
             } catch (PDOException $e) {
@@ -86,8 +86,8 @@ class Lycee {
             }
         } else {
             // Create
-            $sql = "INSERT INTO param_lycee (nom_lycee, sigle, tel, email, ville, quartier, ruelle, boitePostale, arrete, arrondissement, devise, logo, typeLycee, boutique)
-                    VALUES (:nom_lycee, :sigle, :tel, :email, :ville, :quartier, :ruelle, :boitePostale, :arrete, :arrondissement, :devise, :logo, :typeLycee, :boutique)";
+            $sql = "INSERT INTO param_lycee (nom_lycee, sigle, tel, email, ville, quartier, ruelle, boite_postale, arrete, arrondissement, devise, logo, type_lycee, boutique)
+                    VALUES (:nom_lycee, :sigle, :tel, :email, :ville, :quartier, :ruelle, :boite_postale, :arrete, :arrondissement, :devise, :logo, :type_lycee, :boutique)";
             try {
                 $db = Database::getInstance();
                 $stmt = $db->prepare($sql);
@@ -99,12 +99,12 @@ class Lycee {
                     'ville' => $data['ville'],
                     'quartier' => $data['quartier'],
                     'ruelle' => $data['ruelle'],
-                    'boitePostale' => $data['boitePostale'],
+                    'boite_postale' => $data['boite_postale'],
                     'arrete' => $data['arrete'],
                     'arrondissement' => $data['arrondissement'],
                     'devise' => $data['devise'],
                     'logo' => $data['logo'],
-                    'typeLycee' => $data['typeLycee'],
+                    'type_lycee' => $data['type_lycee'],
                     'boutique' => isset($data['boutique']) ? 1 : 0
                 ]);
                 return $db->lastInsertId();

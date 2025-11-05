@@ -9,7 +9,7 @@ class BoutiqueArticleController {
     private function checkAccess() {
         if (!Auth::can('manage', 'boutique')) {
             http_response_code(403);
-            echo "Accès Interdit.";
+            View::render('errors/403');
             exit();
         }
     }
@@ -25,7 +25,7 @@ class BoutiqueArticleController {
 
     public function create() {
         $this->checkAccess();
-        $lycees = (Auth::can('view_all_lycees', 'system')) ? Lycee::findAll() : [];
+        $lycees = (Auth::can('view_all_lycees', 'lycee')) ? Lycee::findAll() : [];
         require_once __DIR__ . '/../views/boutique/articles/create.php';
     }
 
@@ -50,7 +50,7 @@ class BoutiqueArticleController {
             exit();
         }
         $article = BoutiqueArticle::findById($id);
-        $lycees = (Auth::can('view_all_lycees', 'system')) ? Lycee::findAll() : [];
+        $lycees = (Auth::can('view_all_lycees', 'lycee')) ? Lycee::findAll() : [];
         require_once __DIR__ . '/../views/boutique/articles/edit.php';
     }
 

@@ -11,7 +11,7 @@ class UserController {
     private function checkAccess($action) {
         if (!Auth::can($action, 'user')) {
             http_response_code(403);
-            echo "Accès Interdit.";
+            View::render('errors/403');
             exit();
         }
     }
@@ -60,6 +60,10 @@ class UserController {
         $this->checkAccess('create');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
+
+            // Ensure 'actif' is always set
+            $data['actif'] = isset($data['actif']) ? 1 : 0;
+
             if (!Auth::can('view_all_lycees', 'lycee')) {
                 $data['lycee_id'] = Auth::get('lycee_id');
             }
@@ -69,10 +73,22 @@ class UserController {
                 $data['photo'] = $photoPath;
             }
 
-            User::save($data);
+            try {
+                User::save($data);
+                header('Location: /users');
+                exit();
+            } catch (InvalidArgumentException $e) {
+                // Redisplay the form with an error message and pre-filled data
+                $lycee_id = Auth::get('lycee_id');
+                $lycees = (Auth::can('view_all_lycees', 'lycee')) ? Lycee::findAll() : [];
+                $contrats = TypeContrat::findAll($lycee_id);
+                $roles = Role::findAll($lycee_id);
+                $user = $data;
+                $is_edit = false;
+                $error = $e->getMessage();
+                require_once __DIR__ . '/../views/users/create.php';
+            }
         }
-        header('Location: /users');
-        exit();
     }
 
     public function edit() {
@@ -96,7 +112,7 @@ class UserController {
         // Admin scope check: can only edit users in their school unless they are a super admin
         if ($id != Auth::get('id') && !Auth::can('view_all_lycees', 'lycee') && $user['lycee_id'] != Auth::get('lycee_id')) {
             http_response_code(403);
-            echo "Accès Interdit.";
+            View::render('errors/403');
             exit();
         }
 
@@ -123,7 +139,7 @@ class UserController {
 
         if (!Auth::can('view_all_lycees', 'lycee') && $user['lycee_id'] != Auth::get('lycee_id')) {
             http_response_code(403);
-            echo "Accès Interdit.";
+            View::render('errors/403');
             exit();
         }
 
@@ -136,6 +152,10 @@ class UserController {
         $this->checkAccess('edit');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
+
+            // Ensure 'actif' is always set
+            $data['actif'] = isset($data['actif']) ? 1 : 0;
+
             if (!Auth::can('view_all_lycees', 'lycee')) {
                 $data['lycee_id'] = Auth::get('lycee_id');
             }
@@ -154,26 +174,61 @@ class UserController {
                 }
             }
 
-            User::save($data);
+            try {
+                User::save($data);
+                header('Location: /users');
+                exit();
+            } catch (InvalidArgumentException $e) {
+                // Redisplay the form with an error message and pre-filled data
+                $id = $data['id_user'];
+                $user = $data; // Use submitted data to refill form
+                $lycees = (Auth::can('view_all_lycees', 'lycee')) ? Lycee::findAll() : [];
+                $contrats = TypeContrat::findAll($user['lycee_id']);
+                $roles = Role::findAll($user['lycee_id']);
+                $is_edit = true;
+                $error = $e->getMessage();
+                require_once __DIR__ . '/../views/users/edit.php';
+            }
         }
-        header('Location: /users');
-        exit();
     }
 
     public function destroy() {
         $this->checkAccess('delete');
         $id = $_POST['id'] ?? null;
-        if ($id && $id != Auth::get('id')) {
-            $user = User::findById($id);
-            if ($user && !empty($user['photo'])) {
-                $photoPath = __DIR__ . '/../../public' . $user['photo'];
-                if (file_exists($photoPath)) {
-                    unlink($photoPath);
-                }
-            }
-            User::delete($id);
+
+        if (!$id || $id == Auth::get('id_user')) {
+            // Do not allow self-deletion or invalid ID
+            header('Location: /users?error=delete_failed');
+            exit();
         }
-        header('Location: /users');
+
+        $user = User::findById($id);
+        if (!$user) {
+            // User not found
+            header('Location: /users?error=not_found');
+            exit();
+        }
+
+        // Scope check: Super admin can delete anyone, others only within their lycee
+        if (!Auth::can('view_all_lycees', 'lycee') && $user['lycee_id'] != Auth::get('lycee_id')) {
+            http_response_code(403);
+            View::render('errors/403');
+            exit();
+        }
+
+        // Attempt to delete the user's photo if it exists
+        if (!empty($user['photo'])) {
+            $photoPath = __DIR__ . '/../../public' . $user['photo'];
+            if (file_exists($photoPath)) {
+                unlink($photoPath);
+            }
+        }
+
+        if (User::delete($id)) {
+            header('Location: /users?success=delete');
+        } else {
+            header('Location: /users?error=delete_failed');
+        }
         exit();
     }
 }
