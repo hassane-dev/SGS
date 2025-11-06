@@ -18,7 +18,7 @@
                     <select name="lycee_id" id="lycee_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
                         <option value=""><?= _('Global Role') ?></option>
                         <?php foreach ($lycees as $lycee): ?>
-                            <option value="<?= $lycee['id_lycee'] ?>"><?= _('Specific to') ?>: <?= htmlspecialchars($lycee['nom_lycee']) ?></option>
+                            <option value="<?= $lycee['id'] ?>"><?= _('Specific to') ?>: <?= htmlspecialchars($lycee['nom_lycee']) ?></option>
                         <?php endforeach; ?>
                     </select>
                     <p class="text-xs text-gray-600 mt-1"><?= _('Leave as "Global" for roles like Teacher, or assign to a school for a specific local role.') ?></p>

@@ -7,9 +7,9 @@ class Role {
     public static function findAll($lycee_id = null) {
         $db = Database::getInstance();
         // Find global roles (lycee_id IS NULL) and roles for the specific lycee
-        $sql = "SELECT * FROM roles WHERE lycee_id IS NULL";
+        $sql = "SELECT r.*, l.nom_lycee FROM roles r LEFT JOIN param_lycee l ON r.lycee_id = l.id WHERE r.lycee_id IS NULL";
         if ($lycee_id !== null) {
-            $sql .= " OR lycee_id = :lycee_id";
+            $sql .= " OR r.lycee_id = :lycee_id";
         }
         $sql .= " ORDER BY nom_role ASC";
 
@@ -41,21 +41,23 @@ class Role {
 
         $params = [
             'nom_role' => $data['nom_role'],
-            'lycee_id' => $data['lycee_id'] ?: null,
+            'lycee_id' => !empty($data['lycee_id']) ? $data['lycee_id'] : null,
         ];
 
         if ($isUpdate) {
             $params['id_role'] = $data['id_role'];
         }
 
-        return $stmt->execute($params);
+        $result = $stmt->execute($params);
+
+        if ($isUpdate) {
+            return $result;
+        } else {
+            return $result ? $db->lastInsertId() : false;
+        }
     }
 
     public static function delete($id) {
-        // Basic protection for global roles
-        if ($id <= 6) {
-            return false;
-        }
         $db = Database::getInstance();
         $stmt = $db->prepare("DELETE FROM roles WHERE id_role = :id");
         return $stmt->execute(['id' => $id]);
@@ -80,6 +82,15 @@ class Role {
             $permissions[$row['resource']][] = $row['action'];
         }
         return $permissions;
+    }
+
+    public static function getPermissionIds($role_id) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("
+            SELECT permission_id FROM role_permissions WHERE role_id = :role_id
+        ");
+        $stmt->execute(['role_id' => $role_id]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
     public static function setPermissions($role_id, $permission_ids) {
