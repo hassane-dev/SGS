@@ -18,25 +18,31 @@
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-                <?php foreach ($roles as $role): ?>
+                <?php if (empty($roles)): ?>
                     <tr>
-                        <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($role['nom_role']) ?></td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <?= $role['lycee_id'] ? _('School Specific') : _('Global') ?>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <?php if ($role['id_role'] > 6): // Basic protection for default roles ?>
-                                <a href="/roles/edit?id=<?= $role['id_role'] ?>" class="text-indigo-600 hover:text-indigo-900"><?= _('Edit') ?></a>
-                                <form action="/roles/destroy" method="POST" class="inline-block ml-4" onsubmit="return confirm('<?= _('Are you sure?') ?>');">
-                                    <input type="hidden" name="id" value="<?= $role['id_role'] ?>">
-                                    <button type="submit" class="text-red-600 hover:text-red-900"><?= _('Delete') ?></button>
-                                </form>
-                            <?php else: ?>
-                                <a href="/roles/edit?id=<?= $role['id_role'] ?>" class="text-indigo-600 hover:text-indigo-900"><?= _('View Permissions') ?></a>
-                            <?php endif; ?>
-                        </td>
+                        <td colspan="3" class="px-6 py-4 text-center"><?= _('No roles found.') ?></td>
                     </tr>
-                <?php endforeach; ?>
+                <?php else: ?>
+                    <?php foreach ($roles as $role): ?>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($role['nom_role']) ?></td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <?= $role['lycee_id'] ? htmlspecialchars($role['nom_lycee']) : _('Global') ?>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <?php if ($role['id_role'] > 6): // Basic protection for default roles ?>
+                                    <a href="/roles/edit?id=<?= $role['id_role'] ?>" class="text-indigo-600 hover:text-indigo-900"><?= _('Edit') ?></a>
+                                    <form action="/roles/destroy" method="POST" class="inline-block ml-4" onsubmit="return confirm('<?= _('Are you sure?') ?>');">
+                                        <input type="hidden" name="id" value="<?= $role['id_role'] ?>">
+                                        <button type="submit" class="text-red-600 hover:text-red-900"><?= _('Delete') ?></button>
+                                    </form>
+                                <?php else: ?>
+                                    <a href="/roles/edit?id=<?= $role['id_role'] ?>" class="text-indigo-600 hover:text-indigo-900"><?= _('View Permissions') ?></a>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </tbody>
         </table>
     </div>

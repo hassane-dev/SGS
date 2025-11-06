@@ -22,7 +22,7 @@
                         <select name="lycee_id" id="lycee_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
                             <option value="" <?= !$role['lycee_id'] ? 'selected' : '' ?>><?= _('Global Role') ?></option>
                             <?php foreach ($lycees as $lycee): ?>
-                                <option value="<?= $lycee['id_lycee'] ?>" <?= $role['lycee_id'] == $lycee['id_lycee'] ? 'selected' : '' ?>><?= _('Specific to') ?>: <?= htmlspecialchars($lycee['nom_lycee']) ?></option>
+                                <option value="<?= $lycee['id'] ?>" <?= $role['lycee_id'] == $lycee['id'] ? 'selected' : '' ?>><?= _('Specific to') ?>: <?= htmlspecialchars($lycee['nom_lycee']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -34,14 +34,29 @@
                 <!-- Permissions -->
                 <div class="md:col-span-2">
                     <h3 class="text-lg font-semibold mb-4 border-b pb-2"><?= _('Permissions') ?></h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <?php foreach ($permissions as $permission): ?>
-                            <label class="flex items-center p-2 rounded-lg border hover:bg-gray-100">
-                                <input type="checkbox" name="permissions[]" value="<?= $permission['id_permission'] ?>"
-                                    class="form-checkbox h-5 w-5 text-blue-600"
-                                    <?= in_array($permission['nom_permission'], $role_permissions) ? 'checked' : '' ?>>
-                                <span class="ml-3 text-gray-700"><?= htmlspecialchars($permission['nom_permission']) ?></span>
-                            </label>
+                    <div class="space-y-4">
+                        <?php
+                        // Group permissions by resource
+                        $grouped_permissions = [];
+                        foreach ($permissions as $permission) {
+                            $grouped_permissions[$permission['resource']][] = $permission;
+                        }
+                        ?>
+
+                        <?php foreach ($grouped_permissions as $resource => $perms): ?>
+                            <fieldset class="border rounded-lg p-4">
+                                <legend class="px-2 font-semibold text-gray-800"><?= _(ucfirst(str_replace('_', ' ', $resource))) ?></legend>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+                                    <?php foreach ($perms as $permission): ?>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" name="permissions[]" value="<?= $permission['id_permission'] ?>"
+                                                class="form-checkbox h-4 w-4 text-blue-600"
+                                                <?= in_array($permission['id_permission'], $role_permission_ids) ? 'checked' : '' ?>>
+                                            <span class="ml-2 text-gray-700"><?= _(ucfirst($permission['action'])) ?></span>
+                                        </label>
+                                    <?php endforeach; ?>
+                                </div>
+                            </fieldset>
                         <?php endforeach; ?>
                     </div>
                 </div>
