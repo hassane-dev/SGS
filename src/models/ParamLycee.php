@@ -17,8 +17,8 @@ class ParamLycee {
 
         try {
             $db = Database::getInstance();
-            $stmt = $db->prepare("SELECT * FROM param_lycee WHERE lycee_id = :lycee_id");
-            $stmt->execute(['lycee_id' => $lycee_id]);
+            $stmt = $db->prepare("SELECT * FROM param_lycee WHERE id = :id");
+            $stmt->execute(['id' => $lycee_id]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Error in ParamLycee::findByAuthenticatedUser: " . $e->getMessage());
@@ -71,7 +71,7 @@ class ParamLycee {
                     logo = :logo,
                     type_lycee = :type_lycee,
                     boutique = :boutique
-                WHERE lycee_id = :lycee_id";
+                WHERE id = :id";
 
         try {
             $db = Database::getInstance();
@@ -91,7 +91,7 @@ class ParamLycee {
                 'logo' => $data['logo'],
                 'type_lycee' => $data['type_lycee'],
                 'boutique' => isset($data['boutique']) ? 1 : 0,
-                'lycee_id' => $lycee_id
+                'id' => $lycee_id
             ]);
         } catch (PDOException $e) {
             error_log("Error in ParamLycee::update: " . $e->getMessage());
