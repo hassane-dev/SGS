@@ -143,3 +143,13 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Eleve (Student)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (8, 1); -- Can view dashboard
+
+-- --------------------------------------------------------
+-- Default Contract Types
+-- These are global contract types available to all schools.
+-- --------------------------------------------------------
+INSERT INTO `type_contrat` (`libelle`, `description`, `type_paiement`, `prise_en_charge`, `lycee_id`) VALUES
+('Fonctionnaire', 'Employé de la fonction publique', 'fixe', 'Etat', NULL),
+('Contractuel', 'Employé sous contrat à durée déterminée ou indéterminée avec l''école', 'fixe', 'Ecole', NULL),
+('Vacataire', 'Payé à l''heure pour des missions ponctuelles', 'a_l_heure', 'Ecole', NULL),
+('Stagiaire', 'En stage au sein de l''établissement', 'aucun', 'Ecole', NULL);
