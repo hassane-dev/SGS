@@ -1,6 +1,9 @@
 <?php
 
 require_once __DIR__ . '/../models/Eleve.php';
+require_once __DIR__ . '/../models/PersonnelAssignment.php';
+require_once __DIR__ . '/../core/Auth.php';
+require_once __DIR__ . '/../core/View.php';
 require_once __DIR__ . '/../core/Validator.php';
 
 class EleveController {
@@ -8,11 +11,31 @@ class EleveController {
     const UPLOAD_DIR = '/uploads/photos/';
 
     public function index() {
-        if (!Auth::can('view_all', 'eleve')) { $this->forbidden(); }
-        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::get('lycee_id') : null;
+        $user_role = Auth::getRoleName();
+        $user_id = Auth::getUserId();
+        $lycee_id = Auth::getLyceeId();
 
-        $eleves = Eleve::findAll($lycee_id);
-        require_once __DIR__ . '/../views/eleves/index.php';
+        $eleves = [];
+
+        // Censeur/Proviseur/Admin can see all students in the lycee
+        if (Auth::can('view_all', 'eleve')) {
+            $eleves = Eleve::findAll($lycee_id);
+        }
+        // Surveillant can see students from their assigned classes
+        elseif ($user_role === 'surveillant') {
+            $assigned_class_ids = PersonnelAssignment::findAssignedClassIdsBySupervisor($user_id);
+            if (!empty($assigned_class_ids)) {
+                $eleves = Eleve::findAllByClassIds($assigned_class_ids);
+            }
+        } else {
+            // Other roles (like teacher) cannot see the student list view
+            $this->forbidden();
+        }
+
+        View::render('eleves/index', [
+            'eleves' => $eleves,
+            'title' => 'Liste des Élèves'
+        ]);
     }
 
     public function create() {

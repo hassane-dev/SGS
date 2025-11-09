@@ -122,5 +122,32 @@ class Eleve {
         $stmt->execute(['lycee_id' => $lycee_id, 'term' => '%' . $term . '%']);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    /**
+     * Find all students belonging to a specific list of class IDs for the active academic year.
+     * @param array $class_ids
+     * @return array
+     */
+    public static function findAllByClassIds(array $class_ids) {
+        if (empty($class_ids)) {
+            return [];
+        }
+
+        $db = Database::getInstance();
+        $placeholders = implode(',', array_fill(0, count($class_ids), '?'));
+
+        $sql = "SELECT e.*, c.nom_classe
+                FROM eleves e
+                JOIN etudes et ON e.id_eleve = et.eleve_id
+                JOIN classes c ON et.classe_id = c.id_classe
+                JOIN annees_academiques aa ON et.annee_academique_id = aa.id
+                WHERE et.classe_id IN ($placeholders)
+                AND aa.est_active = 1
+                ORDER BY c.nom_classe, e.nom, e.prenom ASC";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($class_ids);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>

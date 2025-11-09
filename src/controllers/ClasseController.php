@@ -6,6 +6,7 @@ require_once __DIR__ . '/../models/Lycee.php';
 require_once __DIR__ . '/../models/Matiere.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/EnseignantMatiere.php';
+require_once __DIR__ . '/../models/PersonnelAssignment.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
 require_once __DIR__ . '/../core/Validator.php';
@@ -53,12 +54,19 @@ class ClasseController {
         $enseignants = User::findTeachers($classe['lycee_id']);
         $teacher_assignments = EnseignantMatiere::findAssignmentsForClass($id);
 
+        // --- Supervisor Assignment Data ---
+        $assigned_supervisors = PersonnelAssignment::findSupervisorsByClass($id);
+        $all_supervisors = User::findAllByRoleName('surveillant', $classe['lycee_id']);
+
+
         View::render('classes/show', [
             'classe' => $classe,
             'assigned_matieres' => $assigned_matieres,
             'all_matieres' => $all_matieres,
             'enseignants' => $enseignants,
             'teacher_assignments' => $teacher_assignments,
+            'assigned_supervisors' => $assigned_supervisors,
+            'all_supervisors' => $all_supervisors,
             'title' => 'Détails de la Classe'
         ]);
     }
@@ -145,6 +153,21 @@ class ClasseController {
         exit();
     }
 
+    public function assignSupervisor() {
+        $this->checkAccess('class:edit');
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $classe_id = $_POST['classe_id'];
+            $surveillant_id = $_POST['surveillant_id'];
+
+            $classe = Classe::findById($classe_id);
+            $this->checkOwnership($classe['lycee_id']);
+
+            PersonnelAssignment::assign($surveillant_id, 'supervises_class', $classe_id, $classe['lycee_id']);
+        }
+        header('Location: /classes/show?id=' . $classe_id);
+        exit();
+    }
+
     public function removeMatiere() {
         $this->checkAccess('class:edit');
         $classe_id = $_GET['classe_id'];
@@ -161,18 +184,30 @@ class ClasseController {
 
     public function assignEnseignant() {
         $this->checkAccess('class:edit');
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $classe_id = $_POST['classe_id'];
-            $matiere_id = $_POST['matiere_id'];
-            $enseignant_id = $_POST['enseignant_id'];
+        session_start();
+        $classe_id = $_POST['classe_id'] ?? null;
 
-            $classe = Classe::findById($classe_id);
-            $this->checkOwnership($classe['lycee_id']);
+        try {
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && $classe_id) {
+                $matiere_id = $_POST['matiere_id'];
+                $enseignant_id = $_POST['enseignant_id'];
 
-            // Now passing the lycee_id to the assign method
-            EnseignantMatiere::assign($enseignant_id, $classe_id, $matiere_id, $classe['lycee_id']);
+                $classe = Classe::findById($classe_id);
+                $this->checkOwnership($classe['lycee_id']);
+
+                EnseignantMatiere::assign($enseignant_id, $classe_id, $matiere_id, $classe['lycee_id']);
+                $_SESSION['success_message'] = "La demande d'assignation a été enregistrée avec succès.";
+
+            }
+        } catch (Exception $e) {
+            $_SESSION['error_message'] = "Erreur lors de l'assignation : " . $e->getMessage();
         }
-        header('Location: /classes/show?id=' . $classe_id);
+
+        if ($classe_id) {
+            header('Location: /classes/show?id=' . $classe_id);
+        } else {
+            header('Location: /classes');
+        }
         exit();
     }
 

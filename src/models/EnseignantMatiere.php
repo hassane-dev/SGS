@@ -55,22 +55,38 @@ class EnseignantMatiere {
     /**
      * Assign a teacher to a subject in a class for the current academic year.
      * This creates an assignment with 'en_attente' status.
+     * It now includes a validation check for cycle compatibility.
      */
     public static function assign($enseignant_id, $classe_id, $matiere_id, $lycee_id) {
         $active_year = AnneeAcademique::findActive();
         if (!$active_year) {
-            error_log("Cannot assign teacher: No active academic year.");
-            return false;
+            throw new Exception("Impossible d'assigner l'enseignant : Aucune année académique active.");
         }
         $annee_id = $active_year['id'];
 
-        // Upsert logic: Delete any existing record for this combo, then insert the new one.
-        // This ensures that a new assignment request overwrites any previous one for the same subject/class/year.
+        $db = Database::getInstance();
+
+        // --- Cycle Validation ---
+        $val_sql = "
+            SELECT cl.cycle_id, cy.nom_cycle, m.cycle_concerne
+            FROM classes cl
+            JOIN cycles cy ON cl.cycle_id = cy.id_cycle
+            JOIN matieres m ON m.id_matiere = :matiere_id
+            WHERE cl.id_classe = :classe_id
+        ";
+        $stmt_val = $db->prepare($val_sql);
+        $stmt_val->execute(['classe_id' => $classe_id, 'matiere_id' => $matiere_id]);
+        $data = $stmt_val->fetch(PDO::FETCH_ASSOC);
+
+        if ($data && !empty($data['cycle_concerne']) && strcasecmp($data['nom_cycle'], $data['cycle_concerne']) != 0) {
+             throw new Exception("Incompatibilité de cycle : La matière est prévue pour le cycle '{$data['cycle_concerne']}' mais la classe appartient au cycle '{$data['nom_cycle']}'.");
+        }
+        // --- End Validation ---
+
         $delete_sql = "DELETE FROM enseignant_matieres WHERE classe_id = :classe_id AND matiere_id = :matiere_id AND annee_academique_id = :annee_academique_id AND lycee_id = :lycee_id";
         $insert_sql = "INSERT INTO enseignant_matieres (enseignant_id, classe_id, matiere_id, annee_academique_id, lycee_id, statut) VALUES (:enseignant_id, :classe_id, :matiere_id, :annee_academique_id, :lycee_id, 'en_attente')";
 
         try {
-            $db = Database::getInstance();
             $db->beginTransaction();
 
             $stmt_delete = $db->prepare($delete_sql);
@@ -98,7 +114,7 @@ class EnseignantMatiere {
                 $db->rollBack();
             }
             error_log("Error in EnseignantMatiere::assign: " . $e->getMessage());
-            return false;
+            throw new Exception("Une erreur de base de données est survenue lors de l'assignation.");
         }
     }
 

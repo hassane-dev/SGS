@@ -5,8 +5,9 @@
     </p>
 
     <div class="row">
-        <!-- Assign Subjects Card -->
+        <!-- Assign Subjects & Supervisors Column -->
         <div class="col-lg-4">
+            <!-- Assign Subjects Card -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">Attribuer une Matière</h6>
@@ -42,6 +43,45 @@
                     </form>
                     <?php else: ?>
                         <p>Vous n'avez pas la permission d'attribuer des matières.</p>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Assign Supervisor Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Assigner un Surveillant</h6>
+                </div>
+                <div class="card-body">
+                    <?php if (Auth::can('edit', 'class')): ?>
+                    <form action="/classes/assignSupervisor" method="POST">
+                        <input type="hidden" name="classe_id" value="<?= $classe['id_classe'] ?>">
+                        <div class="form-group">
+                            <label for="surveillant_id">Surveillant</label>
+                            <select name="surveillant_id" id="surveillant_id" class="form-control" required>
+                                <option value="">-- Choisir un surveillant --</option>
+                                <?php foreach ($all_supervisors as $supervisor): ?>
+                                    <option value="<?= $supervisor['id_user'] ?>"><?= htmlspecialchars($supervisor['prenom'] . ' ' . $supervisor['nom']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">Assigner le Surveillant</button>
+                    </form>
+                    <hr>
+                    <h6>Surveillants Actuels:</h6>
+                    <ul class="list-group">
+                        <?php foreach ($assigned_supervisors as $supervisor): ?>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <?= htmlspecialchars($supervisor['prenom'] . ' ' . $supervisor['nom']) ?>
+                                <!-- Optional: Add a button to unassign -->
+                            </li>
+                        <?php endforeach; ?>
+                         <?php if (empty($assigned_supervisors)): ?>
+                            <li class="list-group-item">Aucun surveillant assigné</li>
+                        <?php endif; ?>
+                    </ul>
+                    <?php else: ?>
+                        <p>Vous n'avez pas la permission d'assigner des surveillants.</p>
                     <?php endif; ?>
                 </div>
             </div>

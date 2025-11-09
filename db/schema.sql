@@ -173,21 +173,16 @@ CREATE TABLE `classe_matieres` (
 -- Junction table for teachers, classes, and subjects
 CREATE TABLE `enseignant_matieres` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `lycee_id` INT NOT NULL,
     `enseignant_id` INT NOT NULL,
     `classe_id` INT NOT NULL,
     `matiere_id` INT NOT NULL,
     `annee_academique_id` INT NOT NULL,
-    `statut` ENUM('en_attente', 'valide', 'refuse') NOT NULL DEFAULT 'en_attente',
-    `validateur_id` INT,
-    `date_validation` DATETIME,
-    FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
+    `actif` BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
     FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`validateur_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL,
-    UNIQUE KEY `unique_assignation_annee` (`classe_id`, `matiere_id`, `annee_academique_id`)
+    UNIQUE KEY `unique_enseignant_matiere_annee` (`enseignant_id`, `classe_id`, `matiere_id`, `annee_academique_id`)
 );
 
 
