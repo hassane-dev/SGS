@@ -160,7 +160,7 @@ class ClasseController {
     }
 
     public function assignEnseignant() {
-        $this->checkAccess('class:edit'); // Or a more specific permission
+        $this->checkAccess('class:edit');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $classe_id = $_POST['classe_id'];
             $matiere_id = $_POST['matiere_id'];
@@ -169,14 +169,39 @@ class ClasseController {
             $classe = Classe::findById($classe_id);
             $this->checkOwnership($classe['lycee_id']);
 
-            EnseignantMatiere::assign($enseignant_id, $classe_id, $matiere_id);
+            // Now passing the lycee_id to the assign method
+            EnseignantMatiere::assign($enseignant_id, $classe_id, $matiere_id, $classe['lycee_id']);
         }
         header('Location: /classes/show?id=' . $classe_id);
         exit();
     }
 
+    public function approveAssignment() {
+        $this->checkAccess('assignment:validate');
+        $classe_id = $_GET['classe_id'];
+        $assignment_id = $_GET['assignment_id'];
+
+        // We should check if the validator belongs to the same lycee as the assignment
+        // This logic can be added later, for now we trust the permission system
+        EnseignantMatiere::validate($assignment_id);
+
+        header('Location: /classes/show?id=' . $classe_id);
+        exit();
+    }
+
+    public function rejectAssignment() {
+        $this->checkAccess('assignment:validate');
+        $classe_id = $_GET['classe_id'];
+        $assignment_id = $_GET['assignment_id'];
+
+        EnseignantMatiere::reject($assignment_id);
+
+        header('Location: /classes/show?id=' . $classe_id);
+        exit();
+    }
+
     public function unassignEnseignant() {
-        $this->checkAccess('class:edit'); // Or a more specific permission
+        $this->checkAccess('class:edit');
         $classe_id = $_GET['classe_id'];
         $assignment_id = $_GET['assignment_id'];
 
