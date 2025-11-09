@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
+require_once __DIR__ . '/../core/Auth.php';
 
 class EnseignantMatiere {
 
@@ -19,6 +20,7 @@ class EnseignantMatiere {
             SELECT
                 em.id,
                 em.matiere_id,
+                em.statut,
                 u.id_user as enseignant_id,
                 CONCAT(u.prenom, ' ', u.nom) as enseignant_nom
             FROM enseignant_matieres em
@@ -52,9 +54,9 @@ class EnseignantMatiere {
 
     /**
      * Assign a teacher to a subject in a class for the current academic year.
-     * It performs an "upsert" (update or insert).
+     * This creates an assignment with 'en_attente' status.
      */
-    public static function assign($enseignant_id, $classe_id, $matiere_id) {
+    public static function assign($enseignant_id, $classe_id, $matiere_id, $lycee_id) {
         $active_year = AnneeAcademique::findActive();
         if (!$active_year) {
             error_log("Cannot assign teacher: No active academic year.");
@@ -62,18 +64,10 @@ class EnseignantMatiere {
         }
         $annee_id = $active_year['id'];
 
-        $sql = "
-            INSERT INTO enseignant_matieres (enseignant_id, classe_id, matiere_id, annee_academique_id)
-            VALUES (:enseignant_id, :classe_id, :matiere_id, :annee_academique_id)
-            ON DUPLICATE KEY UPDATE enseignant_id = VALUES(enseignant_id)
-        ";
-
-        // The unique key is on (enseignant_id, classe_id, matiere_id, annee_academique_id)
-        // A better approach for upserting only the teacher for a class/subject/year combo
-        // is to first DELETE any existing entry for that combo, then INSERT the new one.
-
-        $delete_sql = "DELETE FROM enseignant_matieres WHERE classe_id = :classe_id AND matiere_id = :matiere_id AND annee_academique_id = :annee_academique_id";
-        $insert_sql = "INSERT INTO enseignant_matieres (enseignant_id, classe_id, matiere_id, annee_academique_id) VALUES (:enseignant_id, :classe_id, :matiere_id, :annee_academique_id)";
+        // Upsert logic: Delete any existing record for this combo, then insert the new one.
+        // This ensures that a new assignment request overwrites any previous one for the same subject/class/year.
+        $delete_sql = "DELETE FROM enseignant_matieres WHERE classe_id = :classe_id AND matiere_id = :matiere_id AND annee_academique_id = :annee_academique_id AND lycee_id = :lycee_id";
+        $insert_sql = "INSERT INTO enseignant_matieres (enseignant_id, classe_id, matiere_id, annee_academique_id, lycee_id, statut) VALUES (:enseignant_id, :classe_id, :matiere_id, :annee_academique_id, :lycee_id, 'en_attente')";
 
         try {
             $db = Database::getInstance();
@@ -83,7 +77,8 @@ class EnseignantMatiere {
             $stmt_delete->execute([
                 'classe_id' => $classe_id,
                 'matiere_id' => $matiere_id,
-                'annee_academique_id' => $annee_id
+                'annee_academique_id' => $annee_id,
+                'lycee_id' => $lycee_id
             ]);
 
             $stmt_insert = $db->prepare($insert_sql);
@@ -91,21 +86,60 @@ class EnseignantMatiere {
                 'enseignant_id' => $enseignant_id,
                 'classe_id' => $classe_id,
                 'matiere_id' => $matiere_id,
-                'annee_academique_id' => $annee_id
+                'annee_academique_id' => $annee_id,
+                'lycee_id' => $lycee_id
             ]);
 
             $db->commit();
             return true;
 
         } catch (PDOException $e) {
-            $db->rollBack();
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
             error_log("Error in EnseignantMatiere::assign: " . $e->getMessage());
             return false;
         }
     }
 
     /**
-     * Unassign a teacher using the assignment ID.
+     * Validate an assignment.
+     */
+    public static function validate($assignment_id) {
+        $sql = "UPDATE enseignant_matieres SET statut = 'valide', validateur_id = :validateur_id, date_validation = NOW() WHERE id = :id";
+        try {
+            $db = Database::getInstance();
+            $stmt = $db->prepare($sql);
+            return $stmt->execute([
+                'id' => $assignment_id,
+                'validateur_id' => Auth::getUserId()
+            ]);
+        } catch (PDOException $e) {
+            error_log("Error in EnseignantMatiere::validate: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Reject an assignment.
+     */
+    public static function reject($assignment_id) {
+        $sql = "UPDATE enseignant_matieres SET statut = 'refuse', validateur_id = :validateur_id, date_validation = NOW() WHERE id = :id";
+        try {
+            $db = Database::getInstance();
+            $stmt = $db->prepare($sql);
+            return $stmt->execute([
+                'id' => $assignment_id,
+                'validateur_id' => Auth::getUserId()
+            ]);
+        } catch (PDOException $e) {
+            error_log("Error in EnseignantMatiere::reject: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Unassign a teacher using the assignment ID (full deletion).
      */
     public static function unassign($assignment_id) {
         $sql = "DELETE FROM enseignant_matieres WHERE id = :id";

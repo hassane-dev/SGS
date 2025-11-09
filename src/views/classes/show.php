@@ -60,7 +60,7 @@
                                 <tr>
                                     <th>Matière</th>
                                     <th>Coefficient</th>
-                                    <th>Enseignant</th>
+                                    <th>Enseignant et Statut</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -72,19 +72,27 @@
                                         <td>
                                             <?php if (isset($teacher_assignments[$matiere['id_matiere']])):
                                                 $assignment = $teacher_assignments[$matiere['id_matiere']];
+                                                $status_badge = '';
+                                                switch ($assignment['statut']) {
+                                                    case 'valide':
+                                                        $status_badge = '<span class="badge badge-success">Validé</span>';
+                                                        break;
+                                                    case 'refuse':
+                                                        $status_badge = '<span class="badge badge-danger">Refusé</span>';
+                                                        break;
+                                                    case 'en_attente':
+                                                    default:
+                                                        $status_badge = '<span class="badge badge-warning">En attente</span>';
+                                                        break;
+                                                }
                                             ?>
-                                                <span><?= htmlspecialchars($assignment['enseignant_nom']) ?></span>
+                                                <div><?= htmlspecialchars($assignment['enseignant_nom']) . ' ' . $status_badge ?></div>
 
-                                                <?php if (Auth::can('manage_settings', 'evaluation')): ?>
-                                                <a href="/evaluations/settings?classe_id=<?= $classe['id_classe'] ?>&matiere_id=<?= $matiere['id_matiere'] ?>" class="btn btn-sm btn-outline-secondary ml-2" title="Paramètres des évaluations">
-                                                    <i class="fas fa-cog"></i>
-                                                </a>
-                                                <?php endif; ?>
-
-                                                <?php if (Auth::can('edit', 'class')): ?>
-                                                <a href="/classes/unassignEnseignant?assignment_id=<?= $assignment['id'] ?>&classe_id=<?= $classe['id_classe'] ?>" class="btn btn-sm btn-outline-danger" title="Dissocier l'enseignant">
-                                                    <i class="fas fa-times"></i>
-                                                </a>
+                                                <?php if ($assignment['statut'] == 'en_attente' && Auth::can('validate', 'assignment')): ?>
+                                                    <div class="mt-2">
+                                                        <a href="/classes/approveAssignment?assignment_id=<?= $assignment['id'] ?>&classe_id=<?= $classe['id_classe'] ?>" class="btn btn-sm btn-success" title="Valider l'attribution"><i class="fas fa-check"></i></a>
+                                                        <a href="/classes/rejectAssignment?assignment_id=<?= $assignment['id'] ?>&classe_id=<?= $classe['id_classe'] ?>" class="btn btn-sm btn-danger" title="Refuser l'attribution"><i class="fas fa-times"></i></a>
+                                                    </div>
                                                 <?php endif; ?>
 
                                             <?php else: ?>
@@ -98,7 +106,7 @@
                                                             <option value="<?= $enseignant['id_user'] ?>"><?= htmlspecialchars($enseignant['full_name']) ?></option>
                                                         <?php endforeach; ?>
                                                     </select>
-                                                    <button type="submit" class="btn btn-sm btn-success ml-2"><i class="fas fa-check"></i></button>
+                                                    <button type="submit" class="btn btn-sm btn-primary ml-2" title="Soumettre pour validation"><i class="fas fa-paper-plane"></i></button>
                                                 </form>
                                                 <?php else: ?>
                                                     <span class="text-muted">Non assigné</span>
