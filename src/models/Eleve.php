@@ -5,7 +5,7 @@ require_once __DIR__ . '/../config/database.php';
 class Eleve {
 
     /**
-     * Find all students, optionally filtered by lycee_id.
+     * Find all active students, optionally filtered by lycee_id.
      * @param int|null $lycee_id
      * @return array
      */
@@ -14,11 +14,12 @@ class Eleve {
         $sql = "SELECT e.*, GROUP_CONCAT(c.nom_classe SEPARATOR ', ') as classes
                 FROM eleves e
                 LEFT JOIN etudes et ON e.id_eleve = et.eleve_id
-                LEFT JOIN classes c ON et.classe_id = c.id_classe";
+                LEFT JOIN classes c ON et.classe_id = c.id_classe
+                WHERE (e.statut = 'actif' OR e.statut = 'en_attente')";
 
         $params = [];
         if ($lycee_id !== null) {
-            $sql .= " WHERE e.lycee_id = :lycee_id";
+            $sql .= " AND e.lycee_id = :lycee_id";
             $params['lycee_id'] = $lycee_id;
         }
 
@@ -42,19 +43,13 @@ class Eleve {
      * @return bool
      */
     public static function save($data) {
-        // --- Validation ---
-        if (empty($data['nom']) || empty($data['prenom'])) {
-            throw new InvalidArgumentException("Le nom et le prénom de l'élève sont obligatoires.");
+        if (empty($data['nom']) || empty($data['prenom']) || empty($data['lycee_id'])) {
+            throw new InvalidArgumentException("Les informations de base (nom, prénom, lycée) sont obligatoires.");
         }
-        if (empty($data['lycee_id'])) {
-            throw new InvalidArgumentException("L'identifiant de l'école est obligatoire.");
-        }
-        // --- End Validation ---
 
         $db = Database::getInstance();
         $isUpdate = !empty($data['id_eleve']);
 
-        // Base fields
         $fields = ['lycee_id', 'nom', 'prenom', 'date_naissance', 'lieu_naissance', 'nationalite', 'sexe', 'quartier', 'tel_parent', 'nom_pere', 'nom_mere', 'profession_pere', 'profession_mere', 'email', 'telephone', 'statut'];
 
         $params = [];
@@ -62,22 +57,17 @@ class Eleve {
             $params[$field] = $data[$field] ?? null;
         }
 
-        // Set default status for new students
         if (!$isUpdate) {
             $params['statut'] = 'en_attente';
         }
 
-        // Handle photo upload only if a new photo is provided
         if (!empty($data['photo'])) {
             $fields[] = 'photo';
             $params['photo'] = $data['photo'];
         }
 
         if ($isUpdate) {
-            $setClauses = [];
-            foreach ($fields as $field) {
-                $setClauses[] = "`$field` = :$field";
-            }
+            $setClauses = array_map(fn($f) => "`$f` = :$f", $fields);
             $sql = "UPDATE eleves SET " . implode(', ', $setClauses) . " WHERE id_eleve = :id_eleve";
             $params['id_eleve'] = $data['id_eleve'];
         } else {
@@ -90,36 +80,37 @@ class Eleve {
         return $stmt->execute($params);
     }
 
-    public static function findByStatus($statut, $lycee_id) {
+    /**
+     * Changes the status of a student (soft delete/archive).
+     * @param int $id The student ID.
+     * @param string $status The new status.
+     * @return bool
+     */
+    public static function changeStatus($id, $status) {
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT * FROM eleves WHERE statut = :statut AND lycee_id = :lycee_id ORDER BY nom, prenom ASC");
-        $stmt->execute(['statut' => $statut, 'lycee_id' => $lycee_id]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $db->prepare("UPDATE eleves SET statut = :statut WHERE id_eleve = :id");
+        return $stmt->execute(['id' => $id, 'statut' => $status]);
     }
 
-    public static function delete($id) {
-        // Before deleting, we might want to remove the photo file from the server
-        $eleve = self::findById($id);
-        if ($eleve && !empty($eleve['photo'])) {
-            $photo_path = __DIR__ . '/../../public' . $eleve['photo'];
-            if (file_exists($photo_path)) {
-                unlink($photo_path);
-            }
+    /**
+     * Find all archived students.
+     * @param int|null $lycee_id
+     * @return array
+     */
+    public static function findAllArchived($lycee_id = null) {
+        $db = Database::getInstance();
+        $sql = "SELECT * FROM eleves WHERE statut NOT IN ('actif', 'en_attente')";
+
+        $params = [];
+        if ($lycee_id !== null) {
+            $sql .= " AND lycee_id = :lycee_id";
+            $params['lycee_id'] = $lycee_id;
         }
 
-        $db = Database::getInstance();
-        $stmt = $db->prepare("DELETE FROM eleves WHERE id_eleve = :id");
-        return $stmt->execute(['id' => $id]);
-    }
+        $sql .= " ORDER BY nom, prenom ASC";
 
-    public static function search(string $term, int $lycee_id) {
-        $db = Database::getInstance();
-        $stmt = $db->prepare(
-            "SELECT * FROM eleves
-             WHERE lycee_id = :lycee_id
-             AND (matricule LIKE :term OR nom LIKE :term OR prenom LIKE :term)"
-        );
-        $stmt->execute(['lycee_id' => $lycee_id, 'term' => '%' . $term . '%']);
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -143,6 +134,7 @@ class Eleve {
                 JOIN annees_academiques aa ON et.annee_academique_id = aa.id
                 WHERE et.classe_id IN ($placeholders)
                 AND aa.est_active = 1
+                AND e.statut = 'actif'
                 ORDER BY c.nom_classe, e.nom, e.prenom ASC";
 
         $stmt = $db->prepare($sql);
@@ -150,4 +142,3 @@ class Eleve {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
-?>
