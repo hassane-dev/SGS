@@ -173,21 +173,16 @@ CREATE TABLE `classe_matieres` (
 -- Junction table for teachers, classes, and subjects
 CREATE TABLE `enseignant_matieres` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `lycee_id` INT NOT NULL,
     `enseignant_id` INT NOT NULL,
     `classe_id` INT NOT NULL,
     `matiere_id` INT NOT NULL,
     `annee_academique_id` INT NOT NULL,
-    `statut` ENUM('en_attente', 'valide', 'refuse') NOT NULL DEFAULT 'en_attente',
-    `validateur_id` INT,
-    `date_validation` DATETIME,
-    FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
+    `actif` BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
     FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`validateur_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL,
-    UNIQUE KEY `unique_assignation_annee` (`classe_id`, `matiere_id`, `annee_academique_id`)
+    UNIQUE KEY `unique_enseignant_matiere_annee` (`enseignant_id`, `classe_id`, `matiere_id`, `annee_academique_id`)
 );
 
 
@@ -278,7 +273,7 @@ CREATE TABLE `eleves` (
     `photo` VARCHAR(255),
     `email` VARCHAR(255) UNIQUE,
     `telephone` VARCHAR(50),
-    `statut` VARCHAR(50) NOT NULL DEFAULT 'en_attente',
+    `statut` ENUM('en_attente', 'actif', 'transféré', 'radié', 'diplômé', 'abandonné') NOT NULL DEFAULT 'en_attente',
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 
@@ -621,45 +616,5 @@ CREATE TABLE `evaluations` (
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
     UNIQUE KEY `unique_evaluation_note` (`eleve_id`, `matiere_id`, `sequence_id`, `annee_academique_id`)
 );
-
--- =================================================================
--- Vie Scolaire (Student Life) Tables
--- =================================================================
-
-CREATE TABLE `assiduite` (
-    `id_assiduite` INT AUTO_INCREMENT PRIMARY KEY,
-    `eleve_id` INT NOT NULL,
-    `classe_id` INT NOT NULL,
-    `annee_academique_id` INT NOT NULL,
-    `enseignant_id` INT NOT NULL, -- Teacher who took the attendance
-    `date_cours` DATE NOT NULL,
-    `heure_debut` TIME NOT NULL,
-    `heure_fin` TIME NOT NULL,
-    `statut` ENUM('Présent', 'Absent', 'Retard') NOT NULL,
-    `justificatif` TEXT,
-    `lycee_id` INT NOT NULL,
-    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
-    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
-    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
-    FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
-    UNIQUE KEY `unique_assiduite_eleve_cours` (`eleve_id`, `date_cours`, `heure_debut`)
-);
-
-CREATE TABLE `discipline` (
-    `id_discipline` INT AUTO_INCREMENT PRIMARY KEY,
-    `eleve_id` INT NOT NULL,
-    `rapporteur_id` INT NOT NULL, -- User who reported the incident (surveillant, teacher, etc.)
-    `annee_academique_id` INT NOT NULL,
-    `date_incident` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `type` ENUM('Avertissement', 'Blâme', 'Exclusion temporaire', 'Exclusion définitive', 'Encouragement', 'Félicitation') NOT NULL,
-    `description` TEXT NOT NULL,
-    `lycee_id` INT NOT NULL,
-    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
-    FOREIGN KEY (`rapporteur_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
-    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
-);
-
 
 SET FOREIGN_KEY_CHECKS = 1;

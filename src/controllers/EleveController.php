@@ -129,7 +129,7 @@ class EleveController {
         if (!Auth::can('delete', 'eleve')) { $this->forbidden(); }
         $id = $_POST['id'] ?? null;
         if ($id) {
-            Eleve::delete($id);
+            Eleve::changeStatus($id, 'radié');
         }
         header('Location: /eleves');
         exit();
@@ -174,6 +174,17 @@ class EleveController {
         }
 
         return null;
+    }
+
+    public function archives() {
+        if (!Auth::can('view_all', 'eleve')) { $this->forbidden(); }
+        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::getLyceeId() : null;
+
+        $eleves = Eleve::findAllArchived($lycee_id);
+        View::render('eleves/archives', [
+            'eleves' => $eleves,
+            'title' => 'Élèves Archivés'
+        ]);
     }
 }
 ?>
