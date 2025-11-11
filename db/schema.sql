@@ -138,13 +138,30 @@ CREATE TABLE `classes` (
     `nom_classe` VARCHAR(100) NOT NULL,
     `niveau` VARCHAR(50),
     `serie` VARCHAR(50),
+    `categorie` VARCHAR(100), -- Scientifique / Littéraire
     `numero_classe` INT,
     `cycle_id` INT NOT NULL,
     `lycee_id` INT NOT NULL,
     `salle_id` INT, -- Default room for the class
+    `created_on` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`cycle_id`) REFERENCES `cycles`(`id_cycle`),
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`salle_id`) REFERENCES `salles`(`id_salle`) ON DELETE SET NULL
+);
+
+-- Table for class parameters (annual settings)
+CREATE TABLE `classe_parametres` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `classe_id` INT NOT NULL,
+    `annee_academique_id` INT NOT NULL,
+    `nombre_places` INT,
+    `effectif_actuel` INT DEFAULT 0,
+    `professeur_principal_id` INT,
+    `commentaire` TEXT,
+    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`professeur_principal_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL,
+    UNIQUE KEY `unique_classe_annee` (`classe_id`, `annee_academique_id`)
 );
 
 -- Table for subjects
@@ -166,6 +183,8 @@ CREATE TABLE `classe_matieres` (
     `matiere_id` INT NOT NULL,
     `coefficient` DECIMAL(4, 2) NOT NULL,
     `statut` ENUM('obligatoire', 'optionnelle') NOT NULL DEFAULT 'obligatoire',
+    `categorie` VARCHAR(100), -- Scientifique / Littéraire
+    `cycle` VARCHAR(100), -- CEG / Lycée
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
     FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
     UNIQUE KEY `unique_classe_matiere` (`classe_id`, `matiere_id`)
@@ -178,6 +197,7 @@ CREATE TABLE `enseignant_matieres` (
     `classe_id` INT NOT NULL,
     `matiere_id` INT NOT NULL,
     `annee_academique_id` INT NOT NULL,
+    `disponibilite_horaire` TEXT, -- Plages horaires disponibles
     `actif` BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,

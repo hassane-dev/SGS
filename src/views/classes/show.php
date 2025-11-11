@@ -1,12 +1,57 @@
 <div class="container-fluid">
     <h1 class="h3 mb-2 text-gray-800">Détails de la Classe: <?= htmlspecialchars($classe['nom_classe']) ?></h1>
     <p class="mb-4">
-        Niveau: <?= htmlspecialchars($classe['niveau']) ?> | Série: <?= htmlspecialchars($classe['serie'] ?? 'N/A') ?>
+        Niveau: <?= htmlspecialchars($classe['niveau']) ?> | Série: <?= htmlspecialchars($classe['serie'] ?? 'N/A') ?> | Catégorie: <?= htmlspecialchars($classe['categorie'] ?? 'N/A') ?>
     </p>
 
     <div class="row">
+        <!-- Annual Parameters Card -->
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Paramètres pour l'année <?= htmlspecialchars($active_year['libelle'] ?? 'N/A') ?></h6>
+                </div>
+                <div class="card-body">
+                    <?php if (Auth::can('edit', 'class') && $active_year): ?>
+                    <form action="/classes/updateParams" method="POST">
+                        <input type="hidden" name="classe_id" value="<?= $classe['id_classe'] ?>">
+                        <input type="hidden" name="annee_academique_id" value="<?= $active_year['id'] ?>">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="nombre_places">Nombre de places</label>
+                                <input type="number" class="form-control" name="nombre_places" value="<?= htmlspecialchars($params_annuels['nombre_places'] ?? '') ?>">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label>Effectif actuel</label>
+                                <p class="form-control-plaintext"><?= htmlspecialchars($params_annuels['effectif_actuel'] ?? 0) ?> élèves</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="professeur_principal_id">Professeur Principal</label>
+                            <select name="professeur_principal_id" class="form-control">
+                                <option value="">-- Aucun --</option>
+                                <?php foreach ($enseignants as $enseignant): ?>
+                                    <option value="<?= $enseignant['id_user'] ?>" <?= (isset($params_annuels['professeur_principal_id']) && $params_annuels['professeur_principal_id'] == $enseignant['id_user']) ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($enseignant['full_name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="commentaire">Commentaire</label>
+                            <textarea name="commentaire" class="form-control" rows="2"><?= htmlspecialchars($params_annuels['commentaire'] ?? '') ?></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success">Enregistrer les paramètres</button>
+                    </form>
+                    <?php else: ?>
+                        <p>Les paramètres annuels ne peuvent pas être modifiés car aucune année académique n'est active ou vous n'avez pas les permissions.</p>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
         <!-- Assign Subjects Card -->
-        <div class="col-lg-4">
+        <div class="col-lg-6">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">Attribuer une Matière</h6>
