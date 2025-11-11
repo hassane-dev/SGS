@@ -54,6 +54,15 @@
                         <option value="Semestrielle" <?= ($params['sequence_annuelle'] ?? '') == 'Semestrielle' ? 'selected' : '' ?>>Semestrielle</option>
                     </select>
                 </div>
+                <hr>
+                <div class="form-group">
+                    <label for="mode_cycle">Mode de gestion des cycles</label>
+                    <select id="mode_cycle" name="mode_cycle" class="form-control">
+                        <option value="separe_ceg_lycee" <?= ($params['mode_cycle'] ?? '') == 'separe_ceg_lycee' ? 'selected' : '' ?>>Séparer CEG et Lycée</option>
+                        <option value="lycee_unique" <?= ($params['mode_cycle'] ?? '') == 'lycee_unique' ? 'selected' : '' ?>>Lycée Unifié (tout le secondaire)</option>
+                    </select>
+                    <small class="form-text text-muted">Détermine si les classes sont automatiquement assignées au CEG/Lycée, ou si toutes appartiennent à un cycle unique "Lycée".</small>
+                </div>
             </div>
             <div class="card-footer">
                 <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>

@@ -31,16 +31,7 @@
                     <input type="number" name="numero_classe" id="numero_classe" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" placeholder="<?= _('Ex: 1') ?>">
                 </div>
 
-                <!-- Cycle -->
-                <div>
-                    <label for="cycle_id" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Cycle') ?></label>
-                    <select name="cycle_id" id="cycle_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required>
-                        <option value=""><?= _('-- Choose a cycle --') ?></option>
-                        <?php foreach ($cycles as $cycle): ?>
-                            <option value="<?= $cycle['id_cycle'] ?>"><?= htmlspecialchars($cycle['nom_cycle']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                <!-- Le champ Cycle a été supprimé car il est maintenant assigné automatiquement par le contrôleur -->
 
                 <!-- Lycee -->
                 <?php if (Auth::get('role') === 'super_admin_national'): ?>

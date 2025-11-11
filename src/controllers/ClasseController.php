@@ -6,6 +6,7 @@ require_once __DIR__ . '/../models/Lycee.php';
 require_once __DIR__ . '/../models/Matiere.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/EnseignantMatiere.php';
+require_once __DIR__ . '/../models/ParamGeneral.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
 require_once __DIR__ . '/../core/Validator.php';
@@ -67,9 +68,15 @@ class ClasseController {
         $this->checkAccess('class:create');
         $cycles = Cycle::findAll();
         $lycees = Auth::can('view_all_lycees', 'lycee') ? Lycee::findAll() : [];
+
+        $lycee_id = Auth::getLyceeId();
+        $params = ParamGeneral::findByLyceeId($lycee_id);
+        $mode_cycle = $params['mode_cycle'] ?? 'separe_ceg_lycee'; // Default value
+
         View::render('classes/create', [
             'cycles' => $cycles,
             'lycees' => $lycees,
+            'mode_cycle' => $mode_cycle,
             'title' => 'Nouvelle Classe'
         ]);
     }
@@ -78,9 +85,28 @@ class ClasseController {
         $this->checkAccess('class:create');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
-            if (!Auth::can('view_all_lycees', 'lycee')) {
-                $data['lycee_id'] = Auth::getLyceeId();
+            $lycee_id = Auth::can('view_all_lycees', 'lycee') ? $data['lycee_id'] : Auth::getLyceeId();
+            $data['lycee_id'] = $lycee_id;
+
+            // Automatic cycle assignment
+            $params = ParamGeneral::findByLyceeId($lycee_id);
+            $mode_cycle = $params['mode_cycle'] ?? 'separe_ceg_lycee';
+
+            if ($mode_cycle === 'lycee_unique') {
+                $cycle = Cycle::findByNom('Lycée');
+                $data['cycle_id'] = $cycle['id_cycle'];
+            } else { // separe_ceg_lycee
+                // Assumes niveau is an integer e.g., 6, 5, 4, 3 for CEG and 2, 1, Tle for Lycée
+                $niveau = intval(preg_replace('/[^0-9]/', '', $data['niveau']));
+                if (in_array($niveau, [6, 5, 4, 3])) {
+                    $cycle = Cycle::findByNom('CEG');
+                    $data['cycle_id'] = $cycle['id_cycle'];
+                } else {
+                    $cycle = Cycle::findByNom('Lycée');
+                    $data['cycle_id'] = $cycle['id_cycle'];
+                }
             }
+
             Classe::save($data);
         }
         header('Location: /classes');
