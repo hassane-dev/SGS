@@ -66,8 +66,8 @@ class Classe {
         $isUpdate = !empty($data['id_classe']);
 
         $sql = $isUpdate
-            ? "UPDATE classes SET nom_classe = :nom_classe, niveau = :niveau, serie = :serie, numero_classe = :numero_classe, cycle_id = :cycle_id, lycee_id = :lycee_id WHERE id_classe = :id_classe"
-            : "INSERT INTO classes (nom_classe, niveau, serie, numero_classe, cycle_id, lycee_id) VALUES (:nom_classe, :niveau, :serie, :numero_classe, :cycle_id, :lycee_id)";
+            ? "UPDATE classes SET nom_classe = :nom_classe, niveau = :niveau, serie = :serie, categorie = :categorie, numero_classe = :numero_classe, cycle_id = :cycle_id, lycee_id = :lycee_id WHERE id_classe = :id_classe"
+            : "INSERT INTO classes (nom_classe, niveau, serie, categorie, numero_classe, cycle_id, lycee_id) VALUES (:nom_classe, :niveau, :serie, :categorie, :numero_classe, :cycle_id, :lycee_id)";
 
         try {
             $db = Database::getInstance();
@@ -77,6 +77,7 @@ class Classe {
                 'nom_classe' => $data['nom_classe'],
                 'niveau' => $data['niveau'] ?? null,
                 'serie' => $data['serie'] ?? null,
+                'categorie' => $data['categorie'] ?? null,
                 'numero_classe' => $data['numero_classe'] ?? null,
                 'cycle_id' => $data['cycle_id'],
                 'lycee_id' => $data['lycee_id'],

@@ -25,6 +25,16 @@
                     <input type="text" name="serie" id="serie" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" placeholder="<?= _('Ex: A4') ?>">
                 </div>
 
+                <!-- Categorie -->
+                <div>
+                    <label for="categorie" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Category') ?></label>
+                    <select name="categorie" id="categorie" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
+                        <option value=""><?= _('-- Choose a category --') ?></option>
+                        <option value="Scientifique"><?= _('Scientific') ?></option>
+                        <option value="Littéraire"><?= _('Literary') ?></option>
+                    </select>
+                </div>
+
                 <!-- Numero Classe -->
                 <div>
                     <label for="numero_classe" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Class Number') ?></label>

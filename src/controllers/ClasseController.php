@@ -3,9 +3,11 @@
 require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Cycle.php';
 require_once __DIR__ . '/../models/Lycee.php';
+require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../models/Matiere.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/EnseignantMatiere.php';
+require_once __DIR__ . '/../models/ClasseParametre.php';
 require_once __DIR__ . '/../models/ParamGeneral.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
@@ -20,6 +22,31 @@ class ClasseController {
             View::render('errors/403');
             exit();
         }
+    }
+
+    public function updateParams() {
+        $this->checkAccess('class:edit');
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = Validator::sanitize($_POST);
+
+            // Check ownership
+            $classe = Classe::findById($data['classe_id']);
+            if (!$classe) {
+                http_response_code(404);
+                View::render('errors/404');
+                exit();
+            }
+            $this->checkOwnership($classe['lycee_id']);
+
+            try {
+                ClasseParametre::save($data);
+                $_SESSION['success_message'] = "Paramètres de la classe mis à jour pour l'année en cours.";
+            } catch (Exception $e) {
+                $_SESSION['error_message'] = "Erreur lors de la mise à jour des paramètres : " . $e->getMessage();
+            }
+        }
+        header('Location: /classes/show?id=' . $data['classe_id']);
+        exit();
     }
 
     public function index() {
@@ -49,13 +76,21 @@ class ClasseController {
 
         $this->checkOwnership($classe['lycee_id']);
 
+        $active_year = AnneeAcademique::findActive();
+        $params_annuels = [];
+        if ($active_year) {
+            $params_annuels = ClasseParametre::findByClasseAndAnnee($id, $active_year['id']);
+        }
+
         $assigned_matieres = Matiere::findByClassId($id);
-        $all_matieres = Matiere::findAll();
+        $all_matieres = Matiere::findAll($classe['lycee_id']);
         $enseignants = User::findTeachers($classe['lycee_id']);
         $teacher_assignments = EnseignantMatiere::findAssignmentsForClass($id);
 
         View::render('classes/show', [
             'classe' => $classe,
+            'params_annuels' => $params_annuels,
+            'active_year' => $active_year,
             'assigned_matieres' => $assigned_matieres,
             'all_matieres' => $all_matieres,
             'enseignants' => $enseignants,
@@ -91,6 +126,16 @@ class ClasseController {
             // Automatic cycle assignment
             $params = ParamGeneral::findByLyceeId($lycee_id);
             $mode_cycle = $params['mode_cycle'] ?? 'separe_ceg_lycee';
+
+            // Set categorie based on serie
+            if (!empty($data['serie'])) {
+                $serie = strtoupper($data['serie']);
+                if (in_array($serie, ['A', 'A4', 'L'])) {
+                    $data['categorie'] = 'Littéraire';
+                } elseif (in_array($serie, ['C', 'D', 'E', 'S'])) {
+                    $data['categorie'] = 'Scientifique';
+                }
+            }
 
             if ($mode_cycle === 'lycee_unique') {
                 $cycle = Cycle::findByNom('Lycée');
