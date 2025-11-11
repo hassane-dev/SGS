@@ -75,5 +75,17 @@ class Cycle {
             return false;
         }
     }
+
+    public static function findByNom($nom_cycle) {
+        try {
+            $db = Database::getInstance();
+            $stmt = $db->prepare("SELECT * FROM cycles WHERE nom_cycle = :nom_cycle");
+            $stmt->execute(['nom_cycle' => $nom_cycle]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error in Cycle::findByNom: " . $e->getMessage());
+            return false;
+        }
+    }
 }
 ?>

@@ -51,6 +51,7 @@ CREATE TABLE `param_general` (
     `langue_1` VARCHAR(50) DEFAULT 'Francais',
     `langue_2` VARCHAR(50),
     `sequence_annuelle` ENUM('Semestrielle', 'Trimestrielle') NOT NULL DEFAULT 'Trimestrielle',
+    `mode_cycle` ENUM('lycee_unique', 'separe_ceg_lycee') NOT NULL DEFAULT 'separe_ceg_lycee',
     `cree_le` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
