@@ -22,7 +22,7 @@ class Classe {
                 $sql .= " WHERE c.lycee_id = :lycee_id";
             }
 
-            $sql .= " ORDER BY l.nom_lycee, cy.nom_cycle, c.nom_classe ASC";
+            $sql .= " ORDER BY l.nom_lycee, cy.nom_cycle, c.niveau ASC, c.serie ASC, c.numero ASC";
 
             $stmt = $db->prepare($sql);
             if ($lycee_id !== null) {
@@ -50,10 +50,21 @@ class Classe {
         }
     }
 
+    public static function getFormattedName($classe) {
+        $name = $classe['niveau'];
+        if (!empty($classe['serie'])) {
+            $name .= ' ' . $classe['serie'];
+        }
+        if (!empty($classe['numero'])) {
+            $name .= ' ' . $classe['numero'];
+        }
+        return $name;
+    }
+
     public static function save($data) {
         // --- Validation ---
-        if (empty($data['nom_classe'])) {
-            throw new InvalidArgumentException("Le nom de la classe est obligatoire.");
+        if (empty($data['niveau'])) {
+            throw new InvalidArgumentException("Le niveau de la classe est obligatoire.");
         }
         if (empty($data['cycle_id'])) {
             throw new InvalidArgumentException("Le cycle est obligatoire.");
@@ -66,19 +77,18 @@ class Classe {
         $isUpdate = !empty($data['id_classe']);
 
         $sql = $isUpdate
-            ? "UPDATE classes SET nom_classe = :nom_classe, niveau = :niveau, serie = :serie, categorie = :categorie, numero_classe = :numero_classe, cycle_id = :cycle_id, lycee_id = :lycee_id WHERE id_classe = :id_classe"
-            : "INSERT INTO classes (nom_classe, niveau, serie, categorie, numero_classe, cycle_id, lycee_id) VALUES (:nom_classe, :niveau, :serie, :categorie, :numero_classe, :cycle_id, :lycee_id)";
+            ? "UPDATE classes SET niveau = :niveau, serie = :serie, numero = :numero, categorie = :categorie, cycle_id = :cycle_id, lycee_id = :lycee_id WHERE id_classe = :id_classe"
+            : "INSERT INTO classes (niveau, serie, numero, categorie, cycle_id, lycee_id) VALUES (:niveau, :serie, :numero, :categorie, :cycle_id, :lycee_id)";
 
         try {
             $db = Database::getInstance();
             $stmt = $db->prepare($sql);
 
             $params = [
-                'nom_classe' => $data['nom_classe'],
-                'niveau' => $data['niveau'] ?? null,
+                'niveau' => $data['niveau'],
                 'serie' => $data['serie'] ?? null,
+                'numero' => $data['numero'] ?? null,
                 'categorie' => $data['categorie'] ?? null,
-                'numero_classe' => $data['numero_classe'] ?? null,
                 'cycle_id' => $data['cycle_id'],
                 'lycee_id' => $data['lycee_id'],
             ];

@@ -30,7 +30,7 @@
                     <tbody>
                         <?php foreach ($classes as $classe): ?>
                             <tr>
-                                <td><?= htmlspecialchars($classe['nom_classe']) ?></td>
+                                <td><?= htmlspecialchars(Classe::getFormattedName($classe)) ?></td>
                                 <td><?= htmlspecialchars($classe['niveau']) ?></td>
                                 <td><?= htmlspecialchars($classe['serie'] ?? 'N/A') ?></td>
                                 <td><?= htmlspecialchars($classe['nom_cycle']) ?></td>

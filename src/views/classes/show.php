@@ -1,5 +1,5 @@
 <div class="container-fluid">
-    <h1 class="h3 mb-2 text-gray-800">Détails de la Classe: <?= htmlspecialchars($classe['nom_classe']) ?></h1>
+    <h1 class="h3 mb-2 text-gray-800">Détails de la Classe: <?= htmlspecialchars($classe['nom_complet']) ?></h1>
     <p class="mb-4">
         Niveau: <?= htmlspecialchars($classe['niveau']) ?> | Série: <?= htmlspecialchars($classe['serie'] ?? 'N/A') ?> | Catégorie: <?= htmlspecialchars($classe['categorie'] ?? 'N/A') ?>
     </p>

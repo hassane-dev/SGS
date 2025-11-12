@@ -135,18 +135,15 @@ CREATE TABLE `cycles` (
 -- Table for classes
 CREATE TABLE `classes` (
     `id_classe` INT AUTO_INCREMENT PRIMARY KEY,
-    `nom_classe` VARCHAR(100) NOT NULL,
-    `niveau` VARCHAR(50),
+    `niveau` VARCHAR(50) NOT NULL,
     `serie` VARCHAR(50),
+    `numero` INT,
     `categorie` VARCHAR(100), -- Scientifique / Littéraire
-    `numero_classe` INT,
     `cycle_id` INT NOT NULL,
     `lycee_id` INT NOT NULL,
-    `salle_id` INT, -- Default room for the class
     `created_on` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`cycle_id`) REFERENCES `cycles`(`id_cycle`),
-    FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`salle_id`) REFERENCES `salles`(`id_salle`) ON DELETE SET NULL
+    FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 
 -- Table for class parameters (annual settings)

@@ -8,12 +8,6 @@
             <input type="hidden" name="id_classe" value="<?= htmlspecialchars($classe['id_classe']) ?>">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                <!-- Nom Classe -->
-                <div class="md:col-span-2">
-                    <label for="nom_classe" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Class Name') ?></label>
-                    <input type="text" name="nom_classe" id="nom_classe" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" value="<?= htmlspecialchars($classe['nom_classe']) ?>" required>
-                </div>
-
                 <!-- Niveau -->
                 <div>
                     <label for="niveau" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Level') ?></label>
@@ -36,10 +30,10 @@
                     </select>
                 </div>
 
-                <!-- Numero Classe -->
+                <!-- Numero -->
                 <div>
-                    <label for="numero_classe" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Class Number') ?></label>
-                    <input type="number" name="numero_classe" id="numero_classe" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" value="<?= htmlspecialchars($classe['numero_classe']) ?>">
+                    <label for="numero" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Number') ?></label>
+                    <input type="number" name="numero" id="numero" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" value="<?= htmlspecialchars($classe['numero']) ?>">
                 </div>
 
                 <!-- Cycle -->

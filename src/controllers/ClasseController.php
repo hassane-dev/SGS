@@ -87,6 +87,9 @@ class ClasseController {
         $enseignants = User::findTeachers($classe['lycee_id']);
         $teacher_assignments = EnseignantMatiere::findAssignmentsForClass($id);
 
+        // Add formatted name to the classe array
+        $classe['nom_complet'] = Classe::getFormattedName($classe);
+
         View::render('classes/show', [
             'classe' => $classe,
             'params_annuels' => $params_annuels,
@@ -168,6 +171,10 @@ class ClasseController {
 
         $cycles = Cycle::findAll();
         $lycees = Auth::can('view_all_lycees', 'lycee') ? Lycee::findAll() : [];
+
+        // Add formatted name to the classe array
+        $classe['nom_complet'] = Classe::getFormattedName($classe);
+
         View::render('classes/edit', [
             'classe' => $classe,
             'cycles' => $cycles,
