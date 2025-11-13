@@ -12,53 +12,53 @@
         <input type="hidden" name="id_user" value="<?= htmlspecialchars($user['id_user'] ?? '') ?>">
     <?php endif; ?>
 
-    <h5 class="fw-bold border-bottom pb-2 mb-3"><?= _('Informations Personnelles') ?></h5>
+    <h5 class="border-bottom pb-2 mb-3"><?= _('Informations Personnelles') ?></h5>
     <div class="row g-3">
         <div class="col-md-6">
-            <label for="prenom" class="form-label fw-bold"><?= _('Prénom') ?></label>
+            <label for="prenom" class="form-label"><?= _('Prénom') ?></label>
             <input type="text" name="prenom" id="prenom" class="form-control" value="<?= htmlspecialchars($user['prenom'] ?? '') ?>" required>
         </div>
         <div class="col-md-6">
-            <label for="nom" class="form-label fw-bold"><?= _('Nom') ?></label>
+            <label for="nom" class="form-label"><?= _('Nom') ?></label>
             <input type="text" name="nom" id="nom" class="form-control" value="<?= htmlspecialchars($user['nom'] ?? '') ?>" required>
         </div>
         <div class="col-md-6">
-            <label for="sexe" class="form-label fw-bold"><?= _('Sexe') ?></label>
+            <label for="sexe" class="form-label"><?= _('Sexe') ?></label>
             <select name="sexe" id="sexe" class="form-select">
                 <option value="Homme" <?= (isset($user['sexe']) && $user['sexe'] == 'Homme') ? 'selected' : '' ?>><?= _('Homme') ?></option>
                 <option value="Femme" <?= (isset($user['sexe']) && $user['sexe'] == 'Femme') ? 'selected' : '' ?>><?= _('Femme') ?></option>
             </select>
         </div>
         <div class="col-md-6">
-            <label for="date_naissance" class="form-label fw-bold"><?= _('Date de Naissance') ?></label>
+            <label for="date_naissance" class="form-label"><?= _('Date de Naissance') ?></label>
             <input type="date" name="date_naissance" id="date_naissance" class="form-control" value="<?= htmlspecialchars($user['date_naissance'] ?? '') ?>">
         </div>
         <div class="col-md-6">
-            <label for="lieu_naissance" class="form-label fw-bold"><?= _('Lieu de Naissance') ?></label>
+            <label for="lieu_naissance" class="form-label"><?= _('Lieu de Naissance') ?></label>
             <input type="text" name="lieu_naissance" id="lieu_naissance" class="form-control" value="<?= htmlspecialchars($user['lieu_naissance'] ?? '') ?>">
         </div>
         <div class="col-md-6">
-            <label for="telephone" class="form-label fw-bold"><?= _('Téléphone') ?></label>
+            <label for="telephone" class="form-label"><?= _('Téléphone') ?></label>
             <input type="tel" name="telephone" id="telephone" class="form-control" value="<?= htmlspecialchars($user['telephone'] ?? '') ?>">
         </div>
         <div class="col-12">
-            <label for="adresse" class="form-label fw-bold"><?= _('Adresse') ?></label>
+            <label for="adresse" class="form-label"><?= _('Adresse') ?></label>
             <input name="adresse" id="adresse" class="form-control" value="<?= htmlspecialchars($user['adresse'] ?? '') ?>">
         </div>
         <div class="col-12">
-            <label for="photo" class="form-label fw-bold"><?= _('Photo') ?></label>
+            <label for="photo" class="form-label"><?= _('Photo') ?></label>
             <input type="file" name="photo" id="photo" class="form-control">
         </div>
     </div>
 
-    <h5 class="fw-bold border-bottom pb-2 mt-4 mb-3"><?= _('Informations du Compte') ?></h5>
+    <h5 class="border-bottom pb-2 mt-4 mb-3"><?= _('Informations du Compte') ?></h5>
     <div class="row g-3">
         <div class="col-12">
-            <label for="email" class="form-label fw-bold"><?= _('Email') ?></label>
+            <label for="email" class="form-label"><?= _('Email') ?></label>
             <input type="email" name="email" id="email" class="form-control" value="<?= htmlspecialchars($user['email'] ?? '') ?>" required>
         </div>
         <div class="col-12">
-            <label for="mot_de_passe" class="form-label fw-bold"><?= _('Mot de passe') ?></label>
+            <label for="mot_de_passe" class="form-label"><?= _('Mot de passe') ?></label>
             <input type="password" name="mot_de_passe" id="mot_de_passe" class="form-control" <?= !$is_edit ? 'required' : '' ?>>
             <?php if ($is_edit): ?>
                 <div class="form-text"><?= _('Laissez vide pour ne pas changer.') ?></div>
@@ -66,18 +66,18 @@
         </div>
     </div>
 
-    <h5 class="fw-bold border-bottom pb-2 mt-4 mb-3"><?= _('Informations Professionnelles') ?></h5>
+    <h5 class="border-bottom pb-2 mt-4 mb-3"><?= _('Informations Professionnelles') ?></h5>
     <div class="row g-3">
         <div class="col-md-6">
-            <label for="fonction" class="form-label fw-bold"><?= _('Fonction') ?></label>
+            <label for="fonction" class="form-label"><?= _('Fonction') ?></label>
             <input type="text" name="fonction" id="fonction" class="form-control" value="<?= htmlspecialchars($user['fonction'] ?? '') ?>">
         </div>
         <div class="col-md-6">
-            <label for="date_embauche" class="form-label fw-bold"><?= _('Date d\'embauche') ?></label>
+            <label for="date_embauche" class="form-label"><?= _('Date d\'embauche') ?></label>
             <input type="date" name="date_embauche" id="date_embauche" class="form-control" value="<?= htmlspecialchars($user['date_embauche'] ?? '') ?>">
         </div>
         <div class="col-md-6">
-            <label for="role_id" class="form-label fw-bold"><?= _('Rôle') ?></label>
+            <label for="role_id" class="form-label"><?= _('Rôle') ?></label>
             <select name="role_id" id="role_id" class="form-select" required>
                 <?php foreach ($roles as $role): ?>
                     <option value="<?= $role['id_role'] ?>" <?= (isset($user['role_id']) && $user['role_id'] == $role['id_role']) ? 'selected' : '' ?>>
@@ -87,7 +87,7 @@
             </select>
         </div>
         <div class="col-md-6">
-            <label for="contrat_id" class="form-label fw-bold"><?= _('Type de Contrat') ?></label>
+            <label for="contrat_id" class="form-label"><?= _('Type de Contrat') ?></label>
             <select name="contrat_id" id="contrat_id" class="form-select">
                 <option value=""><?= _('-- Aucun --') ?></option>
                 <?php foreach ($contrats as $contrat): ?>
@@ -100,7 +100,7 @@
 
         <?php if (Auth::can('view_all_lycees', 'lycee')): ?>
         <div class="col-md-6">
-            <label for="lycee_id" class="form-label fw-bold"><?= _('Lycée d\'affectation') ?></label>
+            <label for="lycee_id" class="form-label"><?= _('Lycée d\'affectation') ?></label>
             <select name="lycee_id" id="lycee_id" class="form-select">
                 <option value=""><?= _('-- Aucun --') ?></option>
                 <?php foreach ($lycees as $lycee): ?>
