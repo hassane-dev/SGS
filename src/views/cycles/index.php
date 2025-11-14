@@ -1,56 +1,82 @@
-<?php require_once __DIR__ . '/../layouts/header.php'; ?>
+<?php require_once __DIR__ . '/../layouts/header_able.php'; ?>
+<?php require_once __DIR__ . '/../layouts/sidebar_able.php'; ?>
 
-<div class="container mx-auto">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold"><?= _('Cycle Management') ?></h2>
-        <a href="/cycles/create" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            <?= _('Add Cycle') ?>
-        </a>
-    </div>
-
-    <?php if (isset($error) && $error === 'delete_failed'): ?>
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <strong class="font-bold"><?= _('Error!') ?></strong>
-            <span class="block sm:inline"><?= _('Cannot delete this cycle because it is used by one or more classes.') ?></span>
+<!-- [ Main Content ] start -->
+<div class="pc-container">
+    <div class="pc-content">
+        <!-- [ breadcrumb ] start -->
+        <div class="page-header">
+            <div class="page-block">
+                <div class="row align-items-center">
+                    <div class="col-md-12">
+                        <div class="page-header-title">
+                            <h2 class="mb-0"><?= _('Gestion des Cycles') ?></h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    <?php endif; ?>
+        <!-- [ breadcrumb ] end -->
 
-    <div class="bg-white shadow-md rounded">
-        <table class="min-w-full table-auto">
-            <thead class="bg-gray-200">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Cycle Name') ?></th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Start Level') ?></th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('End Level') ?></th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Actions') ?></th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                <?php if (empty($cycles)): ?>
-                    <tr>
-                        <td colspan="4" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">
-                            <?= _('No cycles found.') ?>
-                        </td>
-                    </tr>
-                <?php else: ?>
-                    <?php foreach ($cycles as $cycle): ?>
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($cycle['nom_cycle']) ?></td>
-                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($cycle['niveau_debut']) ?></td>
-                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($cycle['niveau_fin']) ?></td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="/cycles/edit?id=<?= $cycle['id_cycle'] ?>" class="text-indigo-600 hover:text-indigo-900"><?= _('Edit') ?></a>
-                                <form action="/cycles/destroy" method="POST" class="inline-block ml-4" onsubmit="return confirm('<?= _('Are you sure you want to delete this cycle?') ?>');">
-                                    <input type="hidden" name="id" value="<?= $cycle['id_cycle'] ?>">
-                                    <button type="submit" class="text-red-600 hover:text-red-900"><?= _('Delete') ?></button>
-                                </form>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
+        <!-- [ Main Content ] start -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-end">
+                            <a href="/cycles/create" class="btn btn-primary">
+                                <?= _('Ajouter un Cycle') ?>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <?php if (isset($error) && $error === 'delete_failed'): ?>
+                            <div class="alert alert-danger" role="alert">
+                                <?= _('Impossible de supprimer ce cycle car il est utilisé par une ou plusieurs classes.') ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th><?= _('Nom du Cycle') ?></th>
+                                        <th><?= _('Niveau de Début') ?></th>
+                                        <th><?= _('Niveau de Fin') ?></th>
+                                        <th class="text-end"><?= _('Actions') ?></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (empty($cycles)): ?>
+                                        <tr>
+                                            <td colspan="4" class="text-center"><?= _('Aucun cycle trouvé.') ?></td>
+                                        </tr>
+                                    <?php else: ?>
+                                        <?php foreach ($cycles as $cycle): ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($cycle['nom_cycle']) ?></td>
+                                                <td><?= htmlspecialchars($cycle['niveau_debut']) ?></td>
+                                                <td><?= htmlspecialchars($cycle['niveau_fin']) ?></td>
+                                                <td class="text-end">
+                                                    <a href="/cycles/edit?id=<?= $cycle['id_cycle'] ?>" class="btn btn-sm btn-primary"><?= _('Modifier') ?></a>
+                                                    <form action="/cycles/destroy" method="POST" class="d-inline ms-2" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer ce cycle ?') ?>');">
+                                                        <input type="hidden" name="id" value="<?= $cycle['id_cycle'] ?>">
+                                                        <button type="submit" class="btn btn-sm btn-danger"><?= _('Supprimer') ?></button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- [ Main Content ] end -->
     </div>
 </div>
+<!-- [ Main Content ] end -->
 
-<?php require_once __DIR__ . '/../layouts/footer.php'; ?>
+<?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>
