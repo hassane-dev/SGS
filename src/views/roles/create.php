@@ -1,40 +1,63 @@
-<?php require_once __DIR__ . '/../layouts/header.php'; ?>
+<?php require_once __DIR__ . '/../layouts/header_able.php'; ?>
+<?php require_once __DIR__ . '/../layouts/sidebar_able.php'; ?>
 
-<div class="max-w-2xl mx-auto">
-    <h2 class="text-2xl font-bold mb-6"><?= _('Add New Role') ?></h2>
-
-    <div class="bg-white p-8 rounded-lg shadow-lg">
-        <form action="/roles/store" method="POST">
-            <div class="grid grid-cols-1 gap-6">
-
-                <div>
-                    <label for="nom_role" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Role Name') ?></label>
-                    <input type="text" name="nom_role" id="nom_role" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required>
+<!-- [ Main Content ] start -->
+<div class="pc-container">
+    <div class="pc-content">
+        <!-- [ breadcrumb ] start -->
+        <div class="page-header">
+            <div class="page-block">
+                <div class="row align-items-center">
+                    <div class="col-md-12">
+                        <div class="page-header-title">
+                            <h2 class="mb-0"><?= _('Ajouter un nouveau rôle') ?></h2>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </div>
+        <!-- [ breadcrumb ] end -->
 
-                <?php if (Auth::can('view_all_lycees', 'lycee')): ?>
-                <div>
-                    <label for="lycee_id" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Scope') ?></label>
-                    <select name="lycee_id" id="lycee_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
-                        <option value=""><?= _('Global Role') ?></option>
-                        <?php foreach ($lycees as $lycee): ?>
-                            <option value="<?= $lycee['id'] ?>"><?= _('Specific to') ?>: <?= htmlspecialchars($lycee['nom_lycee']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <p class="text-xs text-gray-600 mt-1"><?= _('Leave as "Global" for roles like Teacher, or assign to a school for a specific local role.') ?></p>
+        <!-- [ Main Content ] start -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <form action="/roles/store" method="POST">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label for="nom_role" class="form-label"><?= _('Nom du Rôle') ?></label>
+                                    <input type="text" name="nom_role" id="nom_role" class="form-control" required>
+                                </div>
+
+                                <?php if (Auth::can('view_all_lycees', 'lycee')): ?>
+                                <div class="col-12">
+                                    <label for="lycee_id" class="form-label"><?= _('Portée') ?></label>
+                                    <select name="lycee_id" id="lycee_id" class="form-select">
+                                        <option value=""><?= _('Rôle Global') ?></option>
+                                        <?php foreach ($lycees as $lycee): ?>
+                                            <option value="<?= $lycee['id_lycee'] ?>"><?= _('Spécifique à') ?>: <?= htmlspecialchars($lycee['nom_lycee']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <div class="form-text"><?= _('Laissez sur "Global" pour les rôles généraux (ex: Enseignant), ou assignez à une école pour un rôle local (ex: Administrateur local).') ?></div>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="mt-4 d-flex justify-content-end">
+                                <a href="/roles" class="btn btn-secondary me-2"><?= _('Annuler') ?></a>
+                                <button type="submit" class="btn btn-primary">
+                                    <?= _('Enregistrer') ?>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                <?php endif; ?>
-
             </div>
-
-            <div class="mt-8 flex justify-end gap-4">
-                <a href="/roles" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"><?= _('Cancel') ?></a>
-                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    <?= _('Save') ?>
-                </button>
-            </div>
-        </form>
+        </div>
+        <!-- [ Main Content ] end -->
     </div>
 </div>
+<!-- [ Main Content ] end -->
 
-<?php require_once __DIR__ . '/../layouts/footer.php'; ?>
+<?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>
