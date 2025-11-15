@@ -1,19 +1,46 @@
-<?php
-$title = "Modifier l'Élève";
-ob_start();
-?>
+<?php require_once __DIR__ . '/../layouts/header_able.php'; ?>
+<?php require_once __DIR__ . '/../layouts/sidebar_able.php'; ?>
 
-<div class="container">
-    <h1>Modifier l'Élève</h1>
-    <form action="/eleves/update" method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="id_eleve" value="<?= $eleve['id_eleve'] ?>">
-        <?php include '_form.php'; ?>
-        <button type="submit" class="btn btn-primary mt-4">Mettre à jour</button>
-        <a href="/eleves" class="btn btn-secondary mt-4">Annuler</a>
-    </form>
+<!-- [ Main Content ] start -->
+<div class="pc-container">
+    <div class="pc-content">
+        <!-- [ breadcrumb ] start -->
+        <div class="page-header">
+            <div class="page-block">
+                <div class="row align-items-center">
+                    <div class="col-md-12">
+                        <div class="page-header-title">
+                            <h2 class="mb-0"><?= _('Modifier l\'élève') ?></h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- [ breadcrumb ] end -->
+
+        <!-- [ Main Content ] start -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <form action="/eleves/update" method="POST" enctype="multipart/form-data">
+                            <input type="hidden" name="id_eleve" value="<?= $eleve['id_eleve'] ?>">
+                            <?php
+                                $eleve = $eleve ?? []; // Ensure $eleve is an array
+                                include '_form.php';
+                            ?>
+                            <div class="mt-4 d-flex justify-content-end">
+                                <a href="/eleves" class="btn btn-secondary me-2"><?= _('Annuler') ?></a>
+                                <button type="submit" class="btn btn-primary"><?= _('Mettre à jour') ?></button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- [ Main Content ] end -->
+    </div>
 </div>
+<!-- [ Main Content ] end -->
 
-<?php
-$content = ob_get_clean();
-require_once __DIR__ . '/../layouts/header.php';
-?>
+<?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>
