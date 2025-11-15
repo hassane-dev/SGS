@@ -2,66 +2,62 @@
 
 class HomeController {
     public function index() {
-        // For now, just a simple welcome page.
-        // In the future, this could be a dashboard.
-
-        require_once __DIR__ . '/../views/layouts/header.php';
-        echo "<h1>Welcome to the Dashboard</h1>";
-        if (Auth::check()) {
-            echo "<p>You are logged in as " . htmlspecialchars(Auth::get('email') ?? '') . " (" . htmlspecialchars(Auth::get('role') ?? 'N/A') . ").</p>";
-
-            $navLinks = [];
-            $navLinks[] = '<a href="/settings" class="text-blue-500 hover:underline">Paramètres</a>';
-
-            if (Auth::get('role') === 'super_admin_national') {
-                $navLinks[] = '<a href="/lycees" class="text-blue-500 hover:underline">Gérer les Lycées</a>';
-            }
-            if (in_array(Auth::get('role'), ['admin_local', 'super_admin_national'])) {
-                $navLinks[] = '<a href="/users" class="text-blue-500 hover:underline">Gérer les Utilisateurs</a>';
-                $navLinks[] = '<a href="/eleves" class="text-blue-500 hover:underline">Gérer les Élèves</a>';
-                $navLinks[] = '<a href="/cycles" class="text-blue-500 hover:underline">Gérer les Cycles</a>';
-                $navLinks[] = '<a href="/classes" class="text-blue-500 hover:underline">Gérer les Classes</a>';
-                $navLinks[] = '<a href="/matieres" class="text-blue-500 hover:underline">Gérer les Matières</a>';
-                $navLinks[] = '<a href="/boutique/articles" class="text-blue-500 hover:underline">Gérer la Boutique</a>';
-            }
-
-            if (Auth::can('edit', 'param_lycee')) {
-                $navLinks[] = '<a href="/modele-carte/edit" class="text-teal-500 hover:underline">Éditeur de Carte</a>';
-            }
-
-            if (Auth::can('manage', 'class')) { // Reuse permission
-                $navLinks[] = '<a href="/emploi-du-temps" class="text-orange-500 hover:underline">Emploi du Temps</a>';
-            }
-
-            if (Auth::get('role_name') === 'enseignant') {
-                $navLinks[] = '<a href="/notes" class="text-blue-500 hover:underline">Saisir les Notes</a>';
-                $navLinks[] = '<a href="/cahier-texte" class="text-green-500 hover:underline">Cahier de Texte</a>';
-            }
-
-            if (Auth::get('role') === 'super_admin_createur') {
-                $navLinks[] = '<a href="/licences" class="text-red-500 hover:underline">Gérer les Licences</a>';
-            }
-
-            if (Auth::can('manage', 'role')) {
-                $navLinks[] = '<a href="/roles" class="text-purple-500 hover:underline">Gérer les Rôles</a>';
-            }
-
-            if (Auth::can('manage', 'user')) { // Reuse permission
-                $navLinks[] = '<a href="/contrats" class="text-pink-500 hover:underline">Gérer les Contrats</a>';
-            }
-
-            if (Auth::can('create', 'paiement')) { // Reuse permission
-                $navLinks[] = '<a href="/salaires" class="text-red-500 hover:underline">Gérer les Salaires</a>';
-            }
-
-            $navLinks[] = '<a href="/logout" class="text-blue-500 hover:underline">Déconnexion</a>';
-
-            echo implode(' | ', $navLinks);
-
-        } else {
-            echo '<p>Please <a href="/login">login</a> to continue.</p>';
+        if (!Auth::check()) {
+            header('Location: /login');
+            exit();
         }
-        require_once __DIR__ . '/../views/layouts/footer.php';
+
+        $navLinks = [];
+        $navLinks[] = ['url' => '/settings', 'text' => _('Paramètres')];
+
+        if (Auth::can('view_all_lycees', 'lycee')) {
+            $navLinks[] = ['url' => '/lycees', 'text' => _('Gérer les Lycées')];
+        }
+        if (in_array(Auth::get('role_name'), ['admin_local', 'super_admin_national'])) {
+            $navLinks[] = ['url' => '/users', 'text' => _('Gérer les Utilisateurs')];
+            $navLinks[] = ['url' => '/eleves', 'text' => _('Gérer les Élèves')];
+            $navLinks[] = ['url' => '/cycles', 'text' => _('Gérer les Cycles')];
+            $navLinks[] = ['url' => '/classes', 'text' => _('Gérer les Classes')];
+            $navLinks[] = ['url' => '/matieres', 'text' => _('Gérer les Matières')];
+            $navLinks[] = ['url' => '/boutique/articles', 'text' => _('Gérer la Boutique')];
+        }
+
+        if (Auth::can('edit', 'param_lycee')) {
+            $navLinks[] = ['url' => '/modele-carte/edit', 'text' => _('Éditeur de Carte')];
+        }
+
+        if (Auth::can('manage', 'class')) { // Reuse permission
+            $navLinks[] = ['url' => '/emploi-du-temps', 'text' => _('Emploi du Temps')];
+        }
+
+        if (Auth::get('role_name') === 'enseignant') {
+            $navLinks[] = ['url' => '/notes', 'text' => _('Saisir les Notes')];
+            $navLinks[] = ['url' => '/cahier-texte', 'text' => _('Cahier de Texte')];
+        }
+
+        if (Auth::get('role_name') === 'super_admin_createur') {
+            $navLinks[] = ['url' => '/licences', 'text' => _('Gérer les Licences')];
+        }
+
+        if (Auth::can('manage', 'role')) {
+            $navLinks[] = ['url' => '/roles', 'text' => _('Gérer les Rôles')];
+        }
+
+        if (Auth::can('manage', 'user')) { // Reuse permission
+            $navLinks[] = ['url' => '/contrats', 'text' => _('Gérer les Contrats')];
+        }
+
+        if (Auth::can('create', 'paiement')) { // Reuse permission
+            $navLinks[] = ['url' => '/salaires', 'text' => _('Gérer les Salaires')];
+        }
+
+        // Pass data to the view
+        $data = [
+            'navLinks' => $navLinks
+        ];
+
+        // Load the view
+        require_once __DIR__ . '/../views/home/index.php';
     }
 }
 ?>
