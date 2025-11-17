@@ -145,6 +145,14 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (8, 1); -- Can view dashboard
 
 -- --------------------------------------------------------
+-- Default Academic Cycles
+-- --------------------------------------------------------
+INSERT INTO `cycles` (`id_cycle`, `nom_cycle`, `niveau_debut`, `niveau_fin`) VALUES
+(1, 'CEG', '6e', '3e'),
+(2, 'Lycée', '2nd', 'Terminale')
+ON DUPLICATE KEY UPDATE nom_cycle=VALUES(nom_cycle), niveau_debut=VALUES(niveau_debut), niveau_fin=VALUES(niveau_fin);
+
+-- --------------------------------------------------------
 -- Default Contract Types
 -- These are global contract types available to all schools.
 -- --------------------------------------------------------

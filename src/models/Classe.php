@@ -129,26 +129,5 @@ class Classe {
         $stmt->execute(['classe_id' => $classe_id, 'matiere_id' => $matiere_id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-
-    /**
-     * Get a distinct list of 'niveau' for a given lycee.
-     * @param int $lycee_id The ID of the lycee.
-     * @return array An array of distinct 'niveau' values.
-     */
-    public static function getDistinctNiveaux($lycee_id) {
-        try {
-            $db = Database::getInstance();
-            $sql = "SELECT DISTINCT niveau
-                    FROM classes
-                    WHERE lycee_id = :lycee_id
-                    ORDER BY niveau ASC"; // Order might need to be more complex if levels are alphanumeric (e.g., 6e, 5e)
-            $stmt = $db->prepare($sql);
-            $stmt->execute(['lycee_id' => $lycee_id]);
-            return $stmt->fetchAll(PDO::FETCH_COLUMN);
-        } catch (PDOException $e) {
-            error_log("Error in Classe::getDistinctNiveaux: " . $e->getMessage());
-            return [];
-        }
-    }
 }
 ?>

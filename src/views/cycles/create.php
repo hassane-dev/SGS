@@ -27,28 +27,15 @@
                             <div class="row g-3">
                                 <div class="col-12">
                                     <label for="nom_cycle" class="form-label"><?= _('Nom du Cycle') ?></label>
-                                    <select name="nom_cycle" id="nom_cycle" class="form-select" required>
-                                        <option value="CEG"><?= _('CEG') ?></option>
-                                        <option value="Lycée"><?= _('Lycée') ?></option>
-                                    </select>
+                                    <input type="text" name="nom_cycle" id="nom_cycle" class="form-control" placeholder="<?= _('Ex: Lycée') ?>" required>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="niveau_debut" class="form-label"><?= _('Niveau de Début') ?></label>
-                                    <select name="niveau_debut" id="niveau_debut" class="form-select">
-                                        <option value=""><?= _('Sélectionner...') ?></option>
-                                        <?php foreach ($niveaux as $niveau): ?>
-                                            <option value="<?= htmlspecialchars($niveau) ?>"><?= htmlspecialchars($niveau) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
+                                    <input type="number" name="niveau_debut" id="niveau_debut" class="form-control" placeholder="<?= _('Ex: 1') ?>">
                                 </div>
                                 <div class="col-md-6">
                                     <label for="niveau_fin" class="form-label"><?= _('Niveau de Fin') ?></label>
-                                    <select name="niveau_fin" id="niveau_fin" class="form-select">
-                                        <option value=""><?= _('Sélectionner...') ?></option>
-                                        <?php foreach ($niveaux as $niveau): ?>
-                                            <option value="<?= htmlspecialchars($niveau) ?>"><?= htmlspecialchars($niveau) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
+                                    <input type="number" name="niveau_fin" id="niveau_fin" class="form-control" placeholder="<?= _('Ex: 3') ?>">
                                 </div>
                             </div>
                             <div class="mt-4 d-flex justify-content-end">

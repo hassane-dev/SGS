@@ -128,8 +128,8 @@ CREATE TABLE `salles` (
 CREATE TABLE `cycles` (
     `id_cycle` INT AUTO_INCREMENT PRIMARY KEY,
     `nom_cycle` VARCHAR(100) NOT NULL,
-    `niveau_debut` INT,
-    `niveau_fin` INT
+    `niveau_debut` VARCHAR(40),
+    `niveau_fin` VARCHAR(40)
 );
 
 -- Table for classes
