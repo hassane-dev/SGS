@@ -303,5 +303,20 @@ class User {
             return [];
         }
     }
+
+    public static function updatePassword($user_id, $new_password) {
+        if (empty($new_password)) {
+            throw new InvalidArgumentException('Password cannot be empty.');
+        }
+
+        $db = Database::getInstance();
+        $sql = "UPDATE utilisateurs SET mot_de_passe = :mot_de_passe WHERE id_user = :id_user";
+        $stmt = $db->prepare($sql);
+
+        return $stmt->execute([
+            'mot_de_passe' => password_hash($new_password, PASSWORD_DEFAULT),
+            'id_user' => $user_id
+        ]);
+    }
 }
 ?>

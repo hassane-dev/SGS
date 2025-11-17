@@ -231,5 +231,56 @@ class UserController {
         }
         exit();
     }
+
+    public function profile() {
+        $user_id = Auth::get('id_user');
+        $user = User::findById($user_id);
+
+        if (!$user) {
+            // Should not happen for a logged-in user
+            header('Location: /');
+            exit();
+        }
+
+        $data = [
+            'user' => $user,
+            'title' => _('Mon Profil')
+        ];
+
+        require_once __DIR__ . '/../views/users/profile.php';
+    }
+
+    public function updatePassword() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $user_id = Auth::get('id_user');
+            $data = Validator::sanitize($_POST);
+
+            // 1. Verify current password
+            $user = User::findById($user_id);
+            if (!password_verify($data['current_password'], $user['mot_de_passe'])) {
+                // Handle incorrect password
+                $_SESSION['error_message'] = 'Le mot de passe actuel est incorrect.';
+                header('Location: /profile');
+                exit();
+            }
+
+            // 2. Check if new passwords match
+            if ($data['new_password'] !== $data['confirm_password']) {
+                $_SESSION['error_message'] = 'Les nouveaux mots de passe ne correspondent pas.';
+                header('Location: /profile');
+                exit();
+            }
+
+            // 3. Update the password
+            if (User::updatePassword($user_id, $data['new_password'])) {
+                $_SESSION['success_message'] = 'Mot de passe mis à jour avec succès.';
+            } else {
+                $_SESSION['error_message'] = 'Erreur lors de la mise à jour du mot de passe.';
+            }
+
+            header('Location: /profile');
+            exit();
+        }
+    }
 }
 ?>
