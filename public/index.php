@@ -69,6 +69,14 @@ $router->register('/logout', 'AuthController', 'logout');
 
 // Settings
 $router->register('/settings', 'SettingsController', 'index');
+$router->register('/settings/change-language', 'SettingsController', 'changeLanguage');
+$router->register('/settings/change-lycee', 'SettingsController', 'changeLycee');
+$router->register('/settings/change-year', 'SettingsController', 'changeYear');
+
+// Notifications
+$router->register('/notifications/all', 'NotificationController', 'index');
+$router->register('/notifications/mark-as-read', 'NotificationController', 'markAsRead');
+$router->register('/notifications/mark-all-as-read', 'NotificationController', 'markAllAsRead');
 
 // Lycees CRUD
 $router->register('/lycees', 'LyceeController', 'index');
@@ -127,6 +135,8 @@ $router->register('/users/view', 'UserController', 'view');
 $router->register('/users/edit', 'UserController', 'edit');
 $router->register('/users/update', 'UserController', 'update');
 $router->register('/users/destroy', 'UserController', 'destroy');
+$router->register('/profile', 'UserController', 'profile');
+$router->register('/profile/update-password', 'UserController', 'updatePassword');
 
 // Eleves CRUD
 $router->register('/eleves', 'EleveController', 'index');
@@ -248,8 +258,6 @@ $router->register('/modele-bulletin/save', 'ModeleBulletinController', 'save');
 // School Parameters
 $router->register('/param-lycee/edit', 'ParamLyceeController', 'edit');
 $router->register('/param-lycee/update', 'ParamLyceeController', 'update');
-$router->register('/param-general/edit', 'ParamGeneralController', 'edit');
-$router->register('/param-general/update', 'ParamGeneralController', 'update');
 $router->register('/param-devoir/edit', 'ParamDevoirController', 'edit');
 $router->register('/param-devoir/update', 'ParamDevoirController', 'update');
 $router->register('/param-composition/edit', 'ParamCompositionController', 'edit');

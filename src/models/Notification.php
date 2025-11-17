@@ -65,5 +65,40 @@ class Notification {
         $stmt = $db->prepare("UPDATE notifications SET is_read = 1 WHERE id = :id");
         return $stmt->execute(['id' => $notification_id]);
     }
+
+    /**
+     * Mark all notifications for a user as read.
+     * @param int $user_id
+     * @return bool
+     */
+    public static function markAllAsRead($user_id) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = :user_id");
+        return $stmt->execute(['user_id' => $user_id]);
+    }
+
+    /**
+     * Find a notification by its ID.
+     * @param int $notification_id
+     * @return array|false
+     */
+    public static function findById($notification_id) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT * FROM notifications WHERE id = :id");
+        $stmt->execute(['id' => $notification_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Find all notifications for a user.
+     * @param int $user_id
+     * @return array
+     */
+    public static function findAllByUser($user_id) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT * FROM notifications WHERE user_id = :user_id ORDER BY created_at DESC");
+        $stmt->execute(['user_id' => $user_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>

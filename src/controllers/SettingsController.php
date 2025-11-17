@@ -1,42 +1,82 @@
 <?php
 
-require_once __DIR__ . '/../models/Settings.php';
+require_once __DIR__ . '/../models/AnneeAcademique.php';
+require_once __DIR__ . '/../models/ParamGeneral.php';
+require_once __DIR__ . '/../core/Validator.php';
+
 
 class SettingsController {
 
     public function index() {
-        // 1. Authentication Check
-        if (!Auth::can('edit', 'param_lycee')) {
+        if (!Auth::can('manage', 'settings')) {
             http_response_code(403);
-            echo "Accès Interdit.";
+            require_once __DIR__ . '/../views/errors/403.php';
             exit();
         }
 
-        // For a multi-lycee app, the lycee_id would come from the user's session.
-        // For now, we'll hardcode it to 1 for demonstration purposes.
-        // In a real scenario, you'd create a Lycee first and assign it to the user.
-        $lycee_id = Auth::get('lycee_id') ?? 1;
+        $lycee_id = Auth::getLyceeId();
 
-        $message = '';
-
-        // 2. Handle POST request (form submission)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (Settings::save($lycee_id, $_POST)) {
-                $message = 'Paramètres enregistrés avec succès!';
-            } else {
-                $message = 'Erreur lors de l\'enregistrement des paramètres.';
+            $data = Validator::sanitize($_POST);
+            $data['lycee_id'] = $lycee_id;
+
+            // In the old controller, this was ParamGeneral::update.
+            // Let's assume a general save/update method is better.
+            ParamGeneral::save($data);
+
+            // Also handle active year change
+            if(isset($data['annee_academique_id'])) {
+                AnneeAcademique::setActive($data['annee_academique_id']);
             }
+
+            $_SESSION['success_message'] = 'Paramètres mis à jour avec succès.';
+            header('Location: /settings');
+            exit();
         }
 
-        // 3. Fetch current settings for the view
-        $settings = Settings::getByLyceeId($lycee_id);
-
-        // 4. Fetch all academic years for the dropdown
-        require_once __DIR__ . '/../models/AnneeAcademique.php';
+        $settings = ParamGeneral::findByLyceeId($lycee_id);
         $annees_academiques = AnneeAcademique::findAll();
 
-        // 5. Display the view
+        $data = [
+            'settings' => $settings,
+            'annees_academiques' => $annees_academiques,
+            'title' => 'Paramètres'
+        ];
+
+        if (isset($_SESSION['success_message'])) {
+            $data['message'] = $_SESSION['success_message'];
+            unset($_SESSION['success_message']);
+        }
+
         require_once __DIR__ . '/../views/settings/index.php';
+    }
+
+    public function changeLanguage() {
+        if (isset($_GET['lang'])) {
+            $lang = $_GET['lang'];
+            $_SESSION['lang'] = $lang;
+        }
+        header('Location: ' . $_SERVER['HTTP_REFERER']);
+        exit();
+    }
+
+    public function changeLycee() {
+        if (isset($_GET['id']) && Auth::can('view_all_lycees', 'lycee')) {
+            $lycee_id = (int)$_GET['id'];
+            $_SESSION['user']['lycee_id'] = $lycee_id;
+        }
+        header('Location: /');
+        exit();
+    }
+
+    public function changeYear() {
+        if (isset($_GET['id'])) {
+            require_once __DIR__ . '/../models/AnneeAcademique.php';
+            $year_id = (int)$_GET['id'];
+            AnneeAcademique::setActive($year_id);
+        }
+        header('Location: ' . $_SERVER['HTTP_REFERER']);
+        exit();
     }
 }
 ?>
