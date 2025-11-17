@@ -6,19 +6,23 @@ class Role {
 
     public static function findAll($lycee_id = null) {
         $db = Database::getInstance();
-        // Find global roles (lycee_id IS NULL) and roles for the specific lycee
-        $sql = "SELECT r.*, l.nom_lycee FROM roles r LEFT JOIN param_lycee l ON r.lycee_id = l.id WHERE r.lycee_id IS NULL";
+        $params = [];
+        // Base query now selects from roles and LEFT JOINs param_lycee
+        $sql = "SELECT r.*, l.nom_lycee
+                FROM roles r
+                LEFT JOIN param_lycee l ON r.lycee_id = l.id";
+
+        // If a lycee_id is provided, filter to show global roles OR roles for that specific lycee.
+        // Otherwise, without a lycee_id (super admin context), show all roles.
         if ($lycee_id !== null) {
-            $sql .= " OR r.lycee_id = :lycee_id";
+            $sql .= " WHERE r.lycee_id IS NULL OR r.lycee_id = :lycee_id";
+            $params['lycee_id'] = $lycee_id;
         }
-        $sql .= " ORDER BY nom_role ASC";
+
+        $sql .= " ORDER BY r.nom_role ASC";
 
         $stmt = $db->prepare($sql);
-        if ($lycee_id !== null) {
-            $stmt->execute(['lycee_id' => $lycee_id]);
-        } else {
-            $stmt->execute();
-        }
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

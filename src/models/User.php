@@ -53,7 +53,15 @@ class User {
     public static function findByEmail($email) {
         try {
             $db = Database::getInstance();
-            $stmt = $db->prepare("SELECT * FROM utilisateurs WHERE email = :email");
+            // Select specific fields to ensure clarity and avoid column name conflicts.
+            // Crucially, this selects u.role_id, which is the correct one for the user.
+            $sql = "SELECT
+                        u.id_user, u.nom, u.prenom, u.sexe, u.date_naissance, u.lieu_naissance,
+                        u.adresse, u.telephone, u.email, u.mot_de_passe, u.fonction, u.role_id,
+                        u.lycee_id, u.contrat_id, u.date_embauche, u.actif, u.photo
+                    FROM utilisateurs u
+                    WHERE u.email = :email";
+            $stmt = $db->prepare($sql);
             $stmt->execute(['email' => $email]);
             $userData = $stmt->fetch(PDO::FETCH_ASSOC);
 
