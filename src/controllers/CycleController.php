@@ -1,7 +1,9 @@
 <?php
 
 require_once __DIR__ . '/../models/Cycle.php';
+require_once __DIR__ . '/../models/Classe.php'; // Required for fetching levels
 require_once __DIR__ . '/../core/Validator.php';
+require_once __DIR__ . '/../core/Auth.php';     // Required for getting lycee_id
 
 class CycleController {
 
@@ -23,6 +25,8 @@ class CycleController {
 
     public function create() {
         $this->checkAccess();
+        $lycee_id = Auth::getLyceeId();
+        $niveaux = Classe::getDistinctNiveaux($lycee_id);
         require_once __DIR__ . '/../views/cycles/create.php';
     }
 
