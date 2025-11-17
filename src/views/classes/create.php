@@ -25,10 +25,23 @@
                     <div class="card-body">
                         <form action="/classes/store" method="POST">
                             <div class="row g-3">
+                                <!-- Cycle -->
+                                <div class="col-md-6">
+                                    <label for="cycle_id" class="form-label"><?= _('Cycle') ?></label>
+                                    <select name="cycle_id" id="cycle_id" class="form-select" required>
+                                        <option value=""><?= _('-- Choisir un cycle --') ?></option>
+                                        <?php foreach ($cycles as $cycle): ?>
+                                            <option value="<?= $cycle['id_cycle'] ?>" data-nom-cycle="<?= htmlspecialchars($cycle['nom_cycle']) ?>"><?= htmlspecialchars($cycle['nom_cycle']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+
                                 <!-- Niveau -->
                                 <div class="col-md-6">
                                     <label for="niveau" class="form-label"><?= _('Niveau') ?></label>
-                                    <input type="text" name="niveau" id="niveau" class="form-control" placeholder="<?= _('Ex: 10') ?>">
+                                    <select name="niveau" id="niveau" class="form-select" required disabled>
+                                        <option value=""><?= _('-- Choisir un niveau --') ?></option>
+                                    </select>
                                 </div>
 
                                 <!-- Serie -->
@@ -84,3 +97,40 @@
 <!-- [ Main Content ] end -->
 
 <?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const cycleSelect = document.getElementById('cycle_id');
+        const niveauSelect = document.getElementById('niveau');
+
+        const niveauxParCycle = {
+            'CEG': ['6e', '5e', '4e', '3e'],
+            'Lycée': ['2nd', '1ère', 'Terminale']
+        };
+
+        cycleSelect.addEventListener('change', function () {
+            // Get the selected cycle's name from the data attribute
+            const selectedOption = this.options[this.selectedIndex];
+            const nomCycle = selectedOption.getAttribute('data-nom-cycle');
+
+            // Clear previous options
+            niveauSelect.innerHTML = '<option value=""><?= _('-- Choisir un niveau --') ?></option>';
+
+            if (nomCycle && niveauxParCycle[nomCycle]) {
+                // Enable the niveau select
+                niveauSelect.disabled = false;
+
+                // Populate with new options
+                niveauxParCycle[nomCycle].forEach(function (niveau) {
+                    const option = document.createElement('option');
+                    option.value = niveau;
+                    option.textContent = niveau;
+                    niveauSelect.appendChild(option);
+                });
+            } else {
+                // If no cycle is selected, disable the niveau select
+                niveauSelect.disabled = true;
+            }
+        });
+    });
+</script>
