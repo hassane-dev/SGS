@@ -11,8 +11,8 @@ class EleveController {
     const UPLOAD_DIR = '/uploads/photos/';
 
     public function index() {
-        $user_role = Auth::getRoleName();
-        $user_id = Auth::getUserId();
+        $user_role = Auth::get('role_name');
+        $user_id = Auth::get('id');
         $lycee_id = Auth::getLyceeId();
 
         $eleves = [];
