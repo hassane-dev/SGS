@@ -11,7 +11,7 @@ class Eleve {
      */
     public static function findAll($lycee_id = null) {
         $db = Database::getInstance();
-        $sql = "SELECT e.*, GROUP_CONCAT(c.nom_classe SEPARATOR ', ') as classes
+        $sql = "SELECT e.*, GROUP_CONCAT(c.niveau SEPARATOR ', ') as classes
                 FROM eleves e
                 LEFT JOIN etudes et ON e.id_eleve = et.eleve_id
                 LEFT JOIN classes c ON et.classe_id = c.id_classe
@@ -127,7 +127,7 @@ class Eleve {
         $db = Database::getInstance();
         $placeholders = implode(',', array_fill(0, count($class_ids), '?'));
 
-        $sql = "SELECT e.*, c.nom_classe
+        $sql = "SELECT e.*, c.niveau as nom_classe
                 FROM eleves e
                 JOIN etudes et ON e.id_eleve = et.eleve_id
                 JOIN classes c ON et.classe_id = c.id_classe
