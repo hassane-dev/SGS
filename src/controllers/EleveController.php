@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/Eleve.php';
+require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/PersonnelAssignment.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
