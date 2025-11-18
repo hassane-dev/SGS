@@ -1,8 +1,11 @@
 <?php
 
 require_once __DIR__ . '/../models/Eleve.php';
-require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/PersonnelAssignment.php';
+require_once __DIR__ . '/../models/Classe.php';
+require_once __DIR__ . '/../models/Etude.php';
+require_once __DIR__ . '/../models/AnneeAcademique.php';
+require_once __DIR__ . '/../models/Notification.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
 require_once __DIR__ . '/../core/Validator.php';
@@ -12,8 +15,8 @@ class EleveController {
     const UPLOAD_DIR = '/uploads/photos/';
 
     public function index() {
-        $user_role = Auth::getRoleName();
-        $user_id = Auth::getUserId();
+        $user_role = Auth::get('role_name');
+        $user_id = Auth::get('id');
         $lycee_id = Auth::getLyceeId();
 
         $eleves = [];
