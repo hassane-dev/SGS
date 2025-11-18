@@ -6,6 +6,7 @@ require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Etude.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../models/Notification.php';
+require_once __DIR__ . '/../models/Cycle.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
 require_once __DIR__ . '/../core/Validator.php';
@@ -44,8 +45,7 @@ class EleveController {
 
     public function create() {
         if (!Auth::can('inscrire', 'eleve')) { $this->forbidden(); }
-        $lycee_id = Auth::get('lycee_id');
-        $classes = Classe::findAll($lycee_id);
+        // The $classes variable is no longer needed here as class assignment is now a separate step.
         require_once __DIR__ . '/../views/eleves/create.php';
     }
 
@@ -74,21 +74,6 @@ class EleveController {
             Eleve::save($data);
             $eleve_id = $db->lastInsertId();
 
-            // 3. Pre-enroll the student in the selected class
-            $activeYear = AnneeAcademique::findActive();
-            Etude::create([
-                'eleve_id' => $eleve_id,
-                'classe_id' => $data['classe_id'],
-                'annee_academique_id' => $activeYear['id'],
-                'actif' => 0 // Inactive until payment validation
-            ]);
-
-            // 4. Notify accountants
-            $eleve = Eleve::findById($eleve_id);
-            $message = "Nouvelle pré-inscription pour " . $eleve['prenom'] . " " . $eleve['nom'] . ".";
-            $link = "/comptable/validate-form?eleve_id=" . $eleve_id;
-            Notification::notifyAccountants($data['lycee_id'], $message, $link);
-
             $db->commit();
 
         } catch (Exception $e) {
@@ -99,7 +84,8 @@ class EleveController {
             exit();
         }
 
-        header('Location: /eleves?success=1');
+        // Redirect to the new class assignment step
+        header('Location: /eleves/assign-class?eleve_id=' . $eleve_id);
         exit();
     }
 
@@ -189,6 +175,71 @@ class EleveController {
             'eleves' => $eleves,
             'title' => 'Élèves Archivés'
         ]);
+    }
+
+    public function assignClass() {
+        if (!Auth::can('inscrire', 'eleve')) { $this->forbidden(); }
+
+        $eleve_id = $_GET['eleve_id'] ?? null;
+        if (!$eleve_id) {
+            header('Location: /eleves');
+            exit();
+        }
+
+        $eleve = Eleve::findById($eleve_id);
+        if (!$eleve) {
+            // Handle student not found
+            header('Location: /eleves');
+            exit();
+        }
+
+        $cycles = Cycle::findAll();
+
+        View::render('eleves/assign_class', [
+            'eleve' => $eleve,
+            'cycles' => $cycles,
+            'title' => 'Assigner une Classe'
+        ]);
+    }
+
+    public function processAssignment() {
+        if (!Auth::can('inscrire', 'eleve')) { $this->forbidden(); }
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /eleves');
+            exit();
+        }
+
+        $data = Validator::sanitize($_POST);
+        $eleve_id = $data['eleve_id'];
+        $lycee_id = Auth::getLyceeId();
+
+        $classe_id = Classe::findIdByDetails($lycee_id, $data['niveau'], $data['serie'] ?? null, $data['numero']);
+
+        if ($classe_id) {
+            $activeYear = AnneeAcademique::findActive();
+            Etude::create([
+                'eleve_id' => $eleve_id,
+                'classe_id' => $classe_id,
+                'lycee_id' => $lycee_id,
+                'annee_academique_id' => $activeYear['id'],
+                'actif' => 0 // Inactive until payment validation
+            ]);
+
+            // Notify accountants
+            $eleve = Eleve::findById($eleve_id);
+            $message = "Nouvelle pré-inscription pour " . $eleve['prenom'] . " " . $eleve['nom'] . ".";
+            $link = "/comptable/validate-form?eleve_id=" . $eleve_id;
+            Notification::notifyAccountants($lycee_id, $message, $link);
+
+            $_SESSION['success_message'] = "L'élève a été assigné à la classe avec succès.";
+        } else {
+            $_SESSION['error_message'] = "La classe sélectionnée n'a pas pu être trouvée.";
+            header('Location: /eleves/assign-class?eleve_id=' . $eleve_id);
+            exit();
+        }
+
+        header('Location: /eleves');
+        exit();
     }
 }
 ?>

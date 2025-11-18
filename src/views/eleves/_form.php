@@ -74,20 +74,6 @@
     </div>
 </div>
 
-<h5 class="border-bottom pb-2 mt-4 mb-3"><?= _('Informations d\'Inscription') ?></h5>
-
-<div class="mb-3">
-    <label for="classe_id" class="form-label"><?= _('Classe d\'Inscription') ?></label>
-    <select class="form-select" id="classe_id" name="classe_id" required>
-        <option value=""><?= _('-- Sélectionner une classe --') ?></option>
-        <?php foreach ($classes as $classe): ?>
-            <option value="<?= $classe['id_classe'] ?>" <?= (isset($eleve['classe_id']) && $eleve['classe_id'] == $classe['id_classe']) ? 'selected' : '' ?>>
-                <?= htmlspecialchars($classe['nom_classe']) ?>
-            </option>
-        <?php endforeach; ?>
-    </select>
-    <div class="form-text"><?= _('L\'élève sera pré-inscrit dans cette classe en attente de la validation du paiement.') ?></div>
-</div>
 
 <div class="mb-3">
     <label for="photo" class="form-label"><?= _('Photo') ?></label>

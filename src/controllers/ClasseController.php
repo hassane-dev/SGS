@@ -274,5 +274,35 @@ class ClasseController {
             exit();
         }
     }
+
+    // --- API Methods for AJAX calls ---
+
+    public function getNiveauxForCycle() {
+        header('Content-Type: application/json');
+        $cycle_id = $_GET['cycle_id'] ?? null;
+        $lycee_id = $_GET['lycee_id'] ?? null;
+        $niveaux = Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id);
+        echo json_encode($niveaux);
+        exit();
+    }
+
+    public function getSeriesForNiveau() {
+        header('Content-Type: application/json');
+        $niveau = $_GET['niveau'] ?? null;
+        $lycee_id = $_GET['lycee_id'] ?? null;
+        $series = Classe::findDistinctSeriesByNiveau($niveau, $lycee_id);
+        echo json_encode($series);
+        exit();
+    }
+
+    public function getNumerosForClasse() {
+        header('Content-Type: application/json');
+        $niveau = $_GET['niveau'] ?? null;
+        $serie = $_GET['serie'] ?? null;
+        $lycee_id = $_GET['lycee_id'] ?? null;
+        $numeros = Classe::findAvailableNumeros($niveau, $serie, $lycee_id);
+        echo json_encode($numeros);
+        exit();
+    }
 }
 ?>
