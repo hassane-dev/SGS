@@ -129,5 +129,55 @@ class Classe {
         $stmt->execute(['classe_id' => $classe_id, 'matiere_id' => $matiere_id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
+    public static function findDistinctNiveauxByCycle($cycle_id, $lycee_id) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT DISTINCT niveau FROM classes WHERE cycle_id = :cycle_id AND lycee_id = :lycee_id ORDER BY niveau ASC");
+        $stmt->execute(['cycle_id' => $cycle_id, 'lycee_id' => $lycee_id]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    public static function findDistinctSeriesByNiveau($niveau, $lycee_id) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT DISTINCT serie FROM classes WHERE niveau = :niveau AND lycee_id = :lycee_id AND serie IS NOT NULL ORDER BY serie ASC");
+        $stmt->execute(['niveau' => $niveau, 'lycee_id' => $lycee_id]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    public static function findAvailableNumeros($niveau, $serie, $lycee_id) {
+        $db = Database::getInstance();
+        $sql = "SELECT DISTINCT numero FROM classes WHERE niveau = :niveau AND lycee_id = :lycee_id";
+        $params = ['niveau' => $niveau, 'lycee_id' => $lycee_id];
+
+        if ($serie) {
+            $sql .= " AND serie = :serie";
+            $params['serie'] = $serie;
+        } else {
+            $sql .= " AND (serie IS NULL OR serie = '')";
+        }
+
+        $sql .= " ORDER BY numero ASC";
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    public static function findIdByDetails($lycee_id, $niveau, $serie, $numero) {
+        $db = Database::getInstance();
+        $sql = "SELECT id_classe FROM classes WHERE lycee_id = :lycee_id AND niveau = :niveau AND numero = :numero";
+        $params = ['lycee_id' => $lycee_id, 'niveau' => $niveau, 'numero' => $numero];
+
+        if ($serie) {
+            $sql .= " AND serie = :serie";
+            $params['serie'] = $serie;
+        } else {
+            $sql .= " AND (serie IS NULL OR serie = '')";
+        }
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? $result['id_classe'] : null;
+    }
 }
 ?>
