@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Carte d'Identité Scolaire</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Using Bootstrap 5 for consistency -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
     <style>
         @media print {
@@ -33,17 +34,17 @@
         }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-light">
 
     <div id="card-container">
         <!-- Elements will be injected by JS -->
     </div>
 
-    <div class="text-center mt-8 no-print">
-        <button onclick="window.print()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+    <div class="text-center mt-4 no-print">
+        <button onclick="window.print()" class="btn btn-primary">
             Imprimer la Carte
         </button>
-        <a href="/eleves/details?id=<?= $data['eleve']['id_eleve'] ?>" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded ml-4">
+        <a href="/eleves/details?id=<?= $data['eleve']['id_eleve'] ?>" class="btn btn-secondary ms-2">
             Retour
         </a>
     </div>

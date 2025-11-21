@@ -1,5 +1,6 @@
 <!-- Force file recognition -->
-<?php require_once __DIR__ . '/../layouts/header.php'; ?>
+<?php require_once __DIR__ . '/../layouts/header_able.php'; ?>
+<?php require_once __DIR__ . '/../layouts/sidebar_able.php'; ?>
 
 <style>
     #card-preview {
@@ -24,47 +25,67 @@
     }
 </style>
 
-<div class="container mx-auto">
-    <h2 class="text-2xl font-bold mb-6"><?= _('Card Template Editor') ?></h2>
-
-    <?php if (isset($_GET['success'])): ?>
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <span class="block sm:inline"><?= _('Template saved successfully!') ?></span>
-        </div>
-    <?php endif; ?>
-
-    <form action="/modele-carte/edit" method="POST">
-        <input type="hidden" name="nom_modele" value="Default Card Model">
-        <input type="hidden" name="layout_data" id="layout_data_input" value="<?= htmlspecialchars($modele['layout_data'] ?? '{}') ?>">
-
-        <div class="flex gap-8">
-            <!-- Card Preview Area -->
-            <div class="flex-grow">
-                <h3 class="text-lg font-semibold mb-2"><?= _('Preview') ?></h3>
-                <div id="card-preview">
-                    <!-- Draggable elements will be added here by JS -->
+<div class="pc-container">
+    <div class="pc-content">
+        <div class="page-header">
+            <div class="page-block">
+                <div class="row align-items-center">
+                    <div class="col-md-12">
+                        <div class="page-header-title">
+                            <h2 class="mb-0"><?= _('Card Template Editor') ?></h2>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Available Elements -->
-            <div class="w-1/4">
-                <h3 class="text-lg font-semibold mb-2"><?= _('Available Elements') ?></h3>
-                <ul id="element-list" class="space-y-2">
-                    <li><button type="button" data-element="photo" class="w-full p-2 bg-gray-200 rounded hover:bg-gray-300"><?= _('Photo') ?></button></li>
-                    <li><button type="button" data-element="nom_complet" class="w-full p-2 bg-gray-200 rounded hover:bg-gray-300"><?= _('Full Name') ?></button></li>
-                    <li><button type="button" data-element="matricule" class="w-full p-2 bg-gray-200 rounded hover:bg-gray-300"><?= _('ID Number') ?></button></li>
-                    <li><button type="button" data-element="classe" class="w-full p-2 bg-gray-200 rounded hover:bg-gray-300"><?= _('Class') ?></button></li>
-                    <li><button type="button" data-element="qr_code" class="w-full p-2 bg-gray-200 rounded hover:bg-gray-300"><?= _('QR Code') ?></button></li>
-                </ul>
+        <?php if (isset($_GET['success'])): ?>
+            <div class="alert alert-success" role="alert">
+                <?= _('Template saved successfully!') ?>
+            </div>
+        <?php endif; ?>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <form action="/modele-carte/edit" method="POST">
+                            <input type="hidden" name="nom_modele" value="Default Card Model">
+                            <input type="hidden" name="layout_data" id="layout_data_input" value="<?= htmlspecialchars($modele['layout_data'] ?? '{}') ?>">
+
+                            <div class="row">
+                                <!-- Card Preview Area -->
+                                <div class="col-md-9">
+                                    <h5 class="mb-3"><?= _('Preview') ?></h5>
+                                    <div id="card-preview">
+                                        <!-- Draggable elements will be added here by JS -->
+                                    </div>
+                                </div>
+
+                                <!-- Available Elements -->
+                                <div class="col-md-3">
+                                    <h5 class="mb-3"><?= _('Available Elements') ?></h5>
+                                    <div id="element-list" class="d-grid gap-2">
+                                        <button type="button" data-element="photo" class="btn btn-light"><?= _('Photo') ?></button>
+                                        <button type="button" data-element="nom_complet" class="btn btn-light"><?= _('Full Name') ?></button>
+                                        <button type="button" data-element="matricule" class="btn btn-light"><?= _('ID Number') ?></button>
+                                        <button type="button" data-element="classe" class="btn btn-light"><?= _('Class') ?></button>
+                                        <button type="button" data-element="qr_code" class="btn btn-light"><?= _('QR Code') ?></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 text-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <?= _('Save Template') ?>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div class="mt-8 flex justify-end">
-            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                <?= _('Save Template') ?>
-            </button>
-        </div>
-    </form>
+    </div>
 </div>
 
 <!-- We need jQuery UI for draggable and resizable -->
@@ -135,4 +156,4 @@ $(function() {
 });
 </script>
 
-<?php require_once __DIR__ . '/../layouts/footer.php'; ?>
+<?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>
