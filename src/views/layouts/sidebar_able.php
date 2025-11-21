@@ -142,6 +142,13 @@ $navItems = [
         'title' => _('Personnaliser le modèle de la carte d\'identité scolaire.'),
         'condition' => Auth::can('edit', 'param_lycee'),
     ],
+    [
+        'url' => '/modele-bulletin/edit',
+        'icon' => 'ph-duotone ph-file-search',
+        'text' => _('Éditeur de Bulletin'),
+        'title' => _('Personnaliser le modèle du bulletin de notes.'),
+        'condition' => Auth::can('manage', 'bulletin_template'),
+    ],
 ];
 ?>
 <nav class="pc-sidebar">
