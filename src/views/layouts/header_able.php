@@ -60,6 +60,13 @@ $notification_count = count($unread_notifications);
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" id="main-font-link" />
     <link rel="stylesheet" href="/assets/css/style.css" id="main-style-link" >
     <link rel="stylesheet" href="/assets/css/style-preset.css" >
+    <style>
+        .pc-sidebar .navbar-content {
+            height: calc(100vh - 70px); /* Adjust 70px to match the header's height */
+            overflow-y: auto;
+            padding-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
 <!-- [ Pre-loader ] start -->
