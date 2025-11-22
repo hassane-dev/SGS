@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
         serieContainer.style.display = 'none';
 
         if (cycleId) {
-            fetch(`/api/classes/niveaux?cycle_id=${cycleId}&lycee_id=${lyceeId}`)
+            fetch(`/classes/get-niveaux?cycle_id=${cycleId}&lycee_id=${lyceeId}`)
                 .then(response => response.json())
                 .then(data => {
                     niveauSelect.disabled = false;
@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
         resetSelect(numeroSelect, '<?= _('-- Sélectionner un numéro --') ?>');
 
         if (niveau && selectedCycleText.toLowerCase() === 'lycée') {
-            fetch(`/api/classes/series?niveau=${niveau}&lycee_id=${lyceeId}`)
+            fetch(`/classes/get-series?niveau=${niveau}&lycee_id=${lyceeId}`)
                 .then(response => response.json())
                 .then(data => {
                     serieSelect.disabled = false;
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 });
         } else if (niveau) {
-            fetch(`/api/classes/numeros?niveau=${niveau}&lycee_id=${lyceeId}`)
+            fetch(`/classes/get-numeros?niveau=${niveau}&lycee_id=${lyceeId}`)
                 .then(response => response.json())
                 .then(data => {
                     numeroSelect.disabled = false;
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
         resetSelect(numeroSelect, '<?= _('-- Sélectionner un numéro --') ?>');
 
         if (serie && niveau) {
-            fetch(`/api/classes/numeros?niveau=${niveau}&serie=${serie}&lycee_id=${lyceeId}`)
+            fetch(`/classes/get-numeros?niveau=${niveau}&serie=${serie}&lycee_id=${lyceeId}`)
                 .then(response => response.json())
                 .then(data => {
                     numeroSelect.disabled = false;
