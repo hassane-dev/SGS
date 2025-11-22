@@ -15,7 +15,7 @@ $navItems = [
     [
         'label' => _('Gestion'),
         'is_caption' => true,
-        'condition' => Auth::can('manage', 'user') || Auth::can('manage', 'class') || Auth::can('manage', 'role'),
+        'condition' => Auth::can('manage', 'user') || Auth::can('manage', 'class') || Auth::can('manage', 'role') || Auth::can('create', 'inscription'),
     ],
     [
         'url' => '/users',
@@ -39,6 +39,20 @@ $navItems = [
         'condition' => Auth::can('view', 'eleve'),
     ],
     [
+        'url' => '/inscriptions',
+        'icon' => 'ph-duotone ph-user-plus',
+        'text' => _('Inscriptions'),
+        'title' => _('Gérer les inscriptions des nouveaux élèves.'),
+        'condition' => Auth::can('create', 'inscription'),
+    ],
+    [
+        'url' => '/reinscription',
+        'icon' => 'ph-duotone ph-user-switch',
+        'text' => _('Réinscriptions'),
+        'title' => _('Gérer les réinscriptions des élèves existants.'),
+        'condition' => Auth::can('create', 'inscription'),
+    ],
+    [
         'url' => '/classes',
         'icon' => 'ph-duotone ph-chalkboard-teacher',
         'text' => _('Classes'),
@@ -55,7 +69,7 @@ $navItems = [
     [
         'label' => _('Pédagogie'),
         'is_caption' => true,
-        'condition' => Auth::get('role_name') === 'enseignant' || Auth::can('manage', 'class'),
+        'condition' => Auth::get('role_name') === 'enseignant' || Auth::can('manage', 'class') || Auth::can('view', 'bulletin'),
     ],
     [
         'url' => '/emploi-du-temps',
@@ -69,19 +83,26 @@ $navItems = [
         'icon' => 'ph-duotone ph-book-open-text',
         'text' => _('Cahier de Texte'),
         'title' => _('Remplir et consulter le cahier de texte.'),
-        'condition' => Auth::get('role_name') === 'enseignant',
+        'condition' => Auth::get('role_name') === 'enseignant' || Auth::can('view', 'cahier_texte'),
     ],
     [
-        'url' => '/notes',
+        'url' => '/evaluations',
         'icon' => 'ph-duotone ph-graduation-cap',
-        'text' => _('Notes'),
+        'text' => _('Évaluations'),
         'title' => _('Saisir et consulter les notes des élèves.'),
-        'condition' => Auth::get('role_name') === 'enseignant',
+        'condition' => Auth::can('create', 'evaluation') || Auth::can('view', 'evaluation'),
+    ],
+    [
+        'url' => '/bulletins',
+        'icon' => 'ph-duotone ph-file-text',
+        'text' => _('Bulletins'),
+        'title' => _('Générer et consulter les bulletins de notes.'),
+        'condition' => Auth::can('view', 'bulletin'),
     ],
     [
         'label' => _('Administration'),
         'is_caption' => true,
-        'condition' => Auth::can('view_all_lycees', 'lycee') || Auth::can('manage', 'user'),
+        'condition' => Auth::can('view_all_lycees', 'lycee') || Auth::can('manage', 'user') || Auth::can('manage', 'settings'),
     ],
     [
         'url' => '/lycees',
@@ -89,6 +110,20 @@ $navItems = [
         'text' => _('Lycées'),
         'title' => _('Gérer les différents établissements scolaires.'),
         'condition' => Auth::can('view_all_lycees', 'lycee'),
+    ],
+    [
+        'url' => '/annees-academiques',
+        'icon' => 'ph-duotone ph-calendar-check',
+        'text' => _('Années Académiques'),
+        'title' => _('Gérer les années académiques et définir l\'année active.'),
+        'condition' => Auth::can('manage', 'settings'),
+    ],
+    [
+        'url' => '/sequences',
+        'icon' => 'ph-duotone ph-flag',
+        'text' => _('Séquences'),
+        'title' => _('Gérer les séquences et les périodes d\'évaluation.'),
+        'condition' => Auth::can('manage', 'settings'),
     ],
     [
         'url' => '/cycles',
@@ -114,6 +149,20 @@ $navItems = [
     [
         'label' => _('Finances'),
         'is_caption' => true,
+        'condition' => Auth::can('create', 'paiement') || Auth::can('view', 'finance'),
+    ],
+    [
+        'url' => '/frais',
+        'icon' => 'ph-duotone ph-money',
+        'text' => _('Frais Scolaires'),
+        'title' => _('Configurer les différents types de frais scolaires.'),
+        'condition' => Auth::can('manage', 'finance'),
+    ],
+    [
+        'url' => '/paiements',
+        'icon' => 'ph-duotone ph-receipt',
+        'text' => _('Paiements'),
+        'title' => _('Enregistrer les paiements des frais scolaires.'),
         'condition' => Auth::can('create', 'paiement'),
     ],
     [
@@ -122,6 +171,27 @@ $navItems = [
         'text' => _('Salaires'),
         'title' => _('Gérer la paie des employés.'),
         'condition' => Auth::can('create', 'paiement'),
+    ],
+    [
+        'url' => '/mensualites',
+        'icon' => 'ph-duotone ph-calendar-plus',
+        'text' => _('Mensualités'),
+        'title' => _('Suivre le paiement des frais de scolarité mensuels.'),
+        'condition' => Auth::can('view', 'finance'),
+    ],
+    [
+        'url' => '/recus',
+        'icon' => 'ph-duotone ph-printer',
+        'text' => _('Reçus'),
+        'title' => _('Consulter et imprimer les reçus de paiement.'),
+        'condition' => Auth::can('view', 'finance'),
+    ],
+     [
+        'url' => '/boutique',
+        'icon' => 'ph-duotone ph-shopping-cart',
+        'text' => _('Boutique'),
+        'title' => _('Gérer la vente d\'articles scolaires.'),
+        'condition' => Auth::can('manage', 'boutique'),
     ],
     [
         'label' => _('Paramètres'),
@@ -133,6 +203,20 @@ $navItems = [
         'icon' => 'ph-duotone ph-gear',
         'text' => _('Paramètres Généraux'),
         'title' => _('Configurer les paramètres globaux de l\'application.'),
+        'condition' => Auth::can('manage', 'settings'),
+    ],
+    [
+        'url' => '/param-devoir',
+        'icon' => 'ph-duotone ph-sliders-horizontal',
+        'text' => _('Paramètres Devoirs'),
+        'title' => _('Configurer les paramètres pour les devoirs.'),
+        'condition' => Auth::can('manage', 'settings'),
+    ],
+    [
+        'url' => '/param-composition',
+        'icon' => 'ph-duotone ph-exam',
+        'text' => _('Paramètres Compositions'),
+        'title' => _('Configurer les paramètres pour les compositions.'),
         'condition' => Auth::can('manage', 'settings'),
     ],
     [
