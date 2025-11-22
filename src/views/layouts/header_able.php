@@ -45,7 +45,7 @@ $all_years = AnneeAcademique::findAll();
 $active_sequence = $lycee_params['sequence_annuelle'] ?? _('Non définie');
 
 // Get unread notifications
-$unread_notifications = Notification::findUnreadByUser($current_user['id_user']);
+$unread_notifications = Notification::findUnreadByUser($current_user['id']);
 $notification_count = count($unread_notifications);
 
 // --- End Data Loading ---
