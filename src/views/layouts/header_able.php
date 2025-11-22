@@ -15,8 +15,8 @@ require_once __DIR__ . '/../../models/ParamLycee.php';
 require_once __DIR__ . '/../../models/Notification.php';
 
 // Get current user info
-$current_user = Auth::get();
-$user_role = $current_user['nom_role'] ?? 'N/A';
+$current_user = Auth::user();
+$user_role = $current_user['role_name'] ?? 'N/A';
 $user_avatar = $current_user['photo'] ?? '/assets/img/default-avatar.png';
 $user_name = $current_user['prenom'] . ' ' . $current_user['nom'];
 
