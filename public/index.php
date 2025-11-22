@@ -106,6 +106,8 @@ $router->register('/classes/assignMatiere', 'ClasseController', 'assignMatiere')
 $router->register('/classes/removeMatiere', 'ClasseController', 'removeMatiere');
 $router->register('/classes/assignEnseignant', 'ClasseController', 'assignEnseignant');
 $router->register('/classes/unassignEnseignant', 'ClasseController', 'unassignEnseignant');
+$router->register('/classes/updateParams', 'ClasseController', 'updateParams');
+
 
 // API routes for dynamic dropdowns
 $router->register('/classes/get-niveaux', 'ClasseController', 'getNiveauxForCycle');
