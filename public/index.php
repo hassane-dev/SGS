@@ -107,6 +107,11 @@ $router->register('/classes/removeMatiere', 'ClasseController', 'removeMatiere')
 $router->register('/classes/assignEnseignant', 'ClasseController', 'assignEnseignant');
 $router->register('/classes/unassignEnseignant', 'ClasseController', 'unassignEnseignant');
 
+// API routes for dynamic dropdowns
+$router->register('/classes/get-niveaux', 'ClasseController', 'getNiveauxForCycle');
+$router->register('/classes/get-series', 'ClasseController', 'getSeriesForNiveau');
+$router->register('/classes/get-numeros', 'ClasseController', 'getNumerosForClasse');
+
 // Matieres CRUD
 $router->register('/matieres', 'MatiereController', 'index');
 $router->register('/matieres/create', 'MatiereController', 'create');
@@ -146,6 +151,8 @@ $router->register('/eleves/edit', 'EleveController', 'edit');
 $router->register('/eleves/details', 'EleveController', 'details');
 $router->register('/eleves/update', 'EleveController', 'update');
 $router->register('/eleves/destroy', 'EleveController', 'destroy');
+$router->register('/eleves/assign-class', 'EleveController', 'assignClass');
+$router->register('/eleves/process-assignment', 'EleveController', 'processAssignment');
 
 // Obsolete inscription routes, the flow now starts from EleveController
 // $router->register('/inscriptions/show-form', 'InscriptionController', 'showForm');
