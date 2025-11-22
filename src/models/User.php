@@ -258,7 +258,7 @@ class User {
             FROM utilisateurs u
             JOIN roles r ON u.role_id = r.id_role
             WHERE u.lycee_id = :lycee_id
-            AND r.nom_role = 'enseignant'
+            AND r.nom_role IN ('enseignant', 'censeur', 'proviseur', 'surveillant')
             ORDER BY full_name ASC
         ";
         try {
