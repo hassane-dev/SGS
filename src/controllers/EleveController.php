@@ -68,7 +68,7 @@ class EleveController {
             }
 
             // 2. Save student data
-            if (!Auth::can('manage_all_lycees')) {
+            if (!Auth::can('view_all_lycees', 'lycee')) {
                 $data['lycee_id'] = Auth::get('lycee_id');
             }
             Eleve::save($data);
