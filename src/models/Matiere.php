@@ -104,7 +104,7 @@ class Matiere {
     public static function findByClassId($class_id) {
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            SELECT m.*, cm.coefficient, cm.statut as statut_classe
+            SELECT m.*, cm.id, cm.coefficient, cm.statut as statut_classe
             FROM matieres m
             JOIN classe_matieres cm ON m.id_matiere = cm.matiere_id
             WHERE cm.classe_id = :class_id
