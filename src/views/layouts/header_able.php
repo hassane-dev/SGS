@@ -20,21 +20,36 @@ $user_role = $current_user['role_name'] ?? 'N/A';
 $user_avatar = $current_user['photo'] ?? '/assets/img/default-avatar.png';
 $user_name = $current_user['prenom'] . ' ' . $current_user['nom'];
 
-// Get active Lycee (school) information
+// --- Active Lycee & Availability Logic ---
+
 $active_lycee_id = Auth::getLyceeId();
-$active_lycee = Lycee::findById($active_lycee_id);
-$lycee_params = ParamLycee::findByLyceeId($active_lycee_id);
-
-
-// Get all lycees available to the user (for the selector)
+$active_lycee = null;
 $available_lycees = [];
+
+// Determine all lycees available to the current user
 if (Auth::can('view_all_lycees', 'lycee')) {
     $available_lycees = Lycee::findAll();
-} else {
-    if ($active_lycee) {
-        $available_lycees[] = $active_lycee;
+} elseif ($active_lycee_id) {
+    // A regular user is tied to one lycee
+    $potential_lycee = Lycee::findById($active_lycee_id);
+    if ($potential_lycee) {
+        $available_lycees[] = $potential_lycee;
     }
 }
+
+// Determine the active lycee for the current request
+if ($active_lycee_id) {
+    $active_lycee = Lycee::findById($active_lycee_id);
+}
+
+// If no lycee is active (e.g., super admin first login), default to the first available one
+if (!$active_lycee && !empty($available_lycees)) {
+    $active_lycee = $available_lycees[0];
+    $active_lycee_id = $active_lycee['id_lycee'];
+}
+
+// Fetch params for the now-determined active lycee
+$lycee_params = $active_lycee_id ? ParamLycee::findByLyceeId($active_lycee_id) : [];
 $is_multilycee = count($available_lycees) > 1;
 
 // Get active academic year
@@ -104,7 +119,7 @@ $notification_count = count($unread_notifications);
                 <div class="dropdown">
                     <a class="pc-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
                         <img src="<?= htmlspecialchars($lycee_params['logo'] ?? '/assets/img/favicon.svg') ?>" alt="logo" class="logo-lg" style="height: 30px;">
-                        <span class="ms-2"><?= htmlspecialchars($active_lycee['nom_lycee']) ?></span>
+                        <span class="ms-2"><?= htmlspecialchars($active_lycee['nom_lycee'] ?? _('Aucun lycée configuré')) ?></span>
                     </a>
                     <div class="dropdown-menu">
                         <?php foreach ($available_lycees as $lycee): ?>
@@ -114,7 +129,7 @@ $notification_count = count($unread_notifications);
                 </div>
             <?php else: ?>
                 <img src="<?= htmlspecialchars($lycee_params['logo'] ?? '/assets/img/favicon.svg') ?>" alt="logo" class="logo-lg" style="height: 30px;">
-                <span class="ms-2"><?= htmlspecialchars($active_lycee['nom_lycee']) ?></span>
+                <span class="ms-2"><?= htmlspecialchars($active_lycee['nom_lycee'] ?? _('Aucun lycée configuré')) ?></span>
             <?php endif; ?>
         </div>
 
