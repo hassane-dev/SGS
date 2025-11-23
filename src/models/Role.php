@@ -6,25 +6,34 @@ class Role {
 
     public static function findAll($lycee_id = null) {
         $db = Database::getInstance();
-        // Find global roles (lycee_id IS NULL) and roles for the specific lycee
-        $sql = "SELECT r.*, l.nom_lycee FROM roles r LEFT JOIN param_lycee l ON r.lycee_id = l.id WHERE r.lycee_id IS NULL";
-        if ($lycee_id !== null) {
-            $sql .= " OR r.lycee_id = :lycee_id";
+
+        $sql = "SELECT r.*, l.nom_lycee FROM roles r LEFT JOIN param_lycee l ON r.lycee_id = l.id";
+        $params = [];
+
+        // Super admins see all roles. Local admins see global roles + their own.
+        // We determine this by checking if they are NOT a super admin.
+        // This assumes a user without a lycee_id OR with the 'view_all_lycees' permission is a super admin type.
+        if ($lycee_id !== null && !Auth::can('view_all_lycees', 'lycee')) {
+            $sql .= " WHERE r.lycee_id IS NULL OR r.lycee_id = :lycee_id";
+            $params['lycee_id'] = $lycee_id;
         }
-        $sql .= " ORDER BY nom_role ASC";
+
+        $sql .= " ORDER BY r.nom_role ASC";
 
         $stmt = $db->prepare($sql);
-        if ($lycee_id !== null) {
-            $stmt->execute(['lycee_id' => $lycee_id]);
-        } else {
-            $stmt->execute();
-        }
+        $stmt->execute($params);
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public static function findById($id) {
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT * FROM roles WHERE id_role = :id");
+        $stmt = $db->prepare("
+            SELECT r.*, l.nom_lycee
+            FROM roles r
+            LEFT JOIN param_lycee l ON r.lycee_id = l.id
+            WHERE r.id_role = :id
+        ");
         $stmt->execute(['id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }

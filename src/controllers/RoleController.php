@@ -4,6 +4,7 @@ require_once __DIR__ . '/../models/Role.php';
 require_once __DIR__ . '/../models/Permission.php';
 require_once __DIR__ . '/../models/Lycee.php';
 require_once __DIR__ . '/../core/Validator.php';
+require_once __DIR__ . '/../core/View.php';
 
 class RoleController {
 
@@ -79,9 +80,12 @@ class RoleController {
         $role = Role::findById($id);
         if (!$role) { header('Location: /roles'); exit(); }
 
-        // Security check for local admins
-        if (Auth::get('role_name') === 'admin_local' && $role['lycee_id'] != Auth::get('lycee_id')) {
-             http_response_code(403); View::render('errors/403'); exit();
+        // Security check for local admins: they can only edit roles for their own lycee.
+        // They cannot edit global roles (where lycee_id is NULL).
+        if (Auth::is_local_admin() && $role['lycee_id'] != Auth::getLyceeId()) {
+             http_response_code(403);
+             View::render('errors/403');
+             exit();
         }
 
         $permissions = Permission::findAll();
@@ -110,7 +114,7 @@ class RoleController {
             exit();
         }
 
-        // Security check for local admins
+        // Security check for local admins: they can only update roles for their own lycee.
         $role = Role::findById($role_id);
         if (!$role || (Auth::is_local_admin() && $role['lycee_id'] != Auth::getLyceeId())) {
             http_response_code(403);
