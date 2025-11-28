@@ -10,7 +10,7 @@
                 <div class="row align-items-center">
                     <div class="col-md-12">
                         <div class="page-header-title">
-                            <h2 class="mb-0"><?= _('Modifier le Rôle') ?>: <span class="text-primary"><?= htmlspecialchars($role['nom_role']) ?></span></h2>
+                            <h2 class="mb-0"><?= _('Modifier le Rôle') ?>: <span class="text-primary"><?= htmlspecialchars($role['nom_role'] ?? '') ?></span></h2>
                         </div>
                     </div>
                 </div>
@@ -24,7 +24,7 @@
                 <div class="card">
                     <div class="card-body">
                         <form action="/roles/update" method="POST">
-                            <input type="hidden" name="id_role" value="<?= htmlspecialchars($role['id_role']) ?>">
+                            <input type="hidden" name="id_role" value="<?= htmlspecialchars($role['id_role'] ?? '') ?>">
 
                             <div class="row">
                                 <!-- Role Details -->
@@ -32,7 +32,7 @@
                                     <h5 class="border-bottom pb-2 mb-3"><?= _('Détails du Rôle') ?></h5>
                                     <div class="mb-3">
                                         <label for="nom_role" class="form-label"><?= _('Nom du Rôle') ?></label>
-                                        <input type="text" name="nom_role" id="nom_role" class="form-control" value="<?= htmlspecialchars($role['nom_role']) ?>" required>
+                                        <input type="text" name="nom_role" id="nom_role" class="form-control" value="<?= htmlspecialchars($role['nom_role'] ?? '') ?>" required>
                                     </div>
 
                                     <?php if (Auth::can('view_all_lycees', 'lycee')): ?>
@@ -41,12 +41,12 @@
                                         <select name="lycee_id" id="lycee_id" class="form-select">
                                             <option value="" <?= !$role['lycee_id'] ? 'selected' : '' ?>><?= _('Rôle Global') ?></option>
                                             <?php foreach ($lycees as $lycee): ?>
-                                                <option value="<?= $lycee['id_lycee'] ?>" <?= $role['lycee_id'] == $lycee['id_lycee'] ? 'selected' : '' ?>><?= _('Spécifique à') ?>: <?= htmlspecialchars($lycee['nom_lycee']) ?></option>
+                                                <option value="<?= $lycee['id_lycee'] ?>" <?= $role['lycee_id'] == $lycee['id_lycee'] ? 'selected' : '' ?>><?= _('Spécifique à') ?>: <?= htmlspecialchars($lycee['nom_lycee'] ?? '') ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
                                     <?php else: ?>
-                                        <input type="hidden" name="lycee_id" value="<?= htmlspecialchars($role['lycee_id']) ?>">
+                                        <input type="hidden" name="lycee_id" value="<?= htmlspecialchars($role['lycee_id'] ?? '') ?>">
                                     <?php endif; ?>
                                 </div>
 

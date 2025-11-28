@@ -43,7 +43,7 @@ class RoleController {
         $permission_ids = $data['permissions'] ?? [];
 
         // Local admins can only create roles for their own lycee
-        if (Auth::is_local_admin()) {
+        if (Auth::get('role_name') === 'admin_local') {
             $data['lycee_id'] = Auth::getLyceeId();
         }
 
@@ -82,7 +82,7 @@ class RoleController {
 
         // Security check for local admins: they can only edit roles for their own lycee.
         // They cannot edit global roles (where lycee_id is NULL).
-        if (Auth::is_local_admin() && $role['lycee_id'] != Auth::getLyceeId()) {
+        if (Auth::get('role_name') === 'admin_local' && $role['lycee_id'] != Auth::getLyceeId()) {
              http_response_code(403);
              View::render('errors/403');
              exit();
@@ -116,7 +116,7 @@ class RoleController {
 
         // Security check for local admins: they can only update roles for their own lycee.
         $role = Role::findById($role_id);
-        if (!$role || (Auth::is_local_admin() && $role['lycee_id'] != Auth::getLyceeId())) {
+        if (!$role || (Auth::get('role_name') === 'admin_local' && $role['lycee_id'] != Auth::getLyceeId())) {
             http_response_code(403);
             View::render('errors/403');
             exit();
@@ -159,7 +159,7 @@ class RoleController {
         }
 
         // Security check: Local admin can only delete roles from their own lycee
-        if (Auth::is_local_admin() && $role['lycee_id'] != Auth::getLyceeId()) {
+        if (Auth::get('role_name') === 'admin_local' && $role['lycee_id'] != Auth::getLyceeId()) {
             http_response_code(403);
             View::render('errors/403');
             exit();
