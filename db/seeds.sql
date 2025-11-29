@@ -45,6 +45,7 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (21, 'role', 'view_all', 'Can view all roles'),
 (22, 'role', 'edit', 'Can edit roles and assign permissions'),
 (23, 'role', 'delete', 'Can delete roles'),
+(24, 'role', 'manage', 'Global permission for role management section'),
 
 -- Lycees (Schools) & System
 (30, 'lycee', 'create', 'Can create new schools (super admin)'),
@@ -112,7 +113,7 @@ WHERE r.nom_role IN ('super_admin_createur', 'super_admin_national');
 -- Admin Local
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Dashboard & Users & Roles
-(3, 1), (3, 10), (3, 11), (3, 12), (3, 13), (3, 14), (3, 15), (3, 20), (3, 21), (3, 22), (3, 23),
+(3, 1), (3, 10), (3, 11), (3, 12), (3, 13), (3, 14), (3, 15), (3, 20), (3, 21), (3, 22), (3, 23), (3, 24),
 -- Academic Structure
 (3, 40), (3, 41), (3, 42), (3, 43), -- Classes
 (3, 44), (3, 45), (3, 46), (3, 47), -- Matieres
