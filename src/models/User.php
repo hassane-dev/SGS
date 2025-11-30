@@ -179,7 +179,7 @@ class User {
             'email' => $data['email'],
             'fonction' => $data['fonction'] ?? null,
             'role_id' => $data['role_id'],
-            'lycee_id' => $data['lycee_id'] ?? null,
+            'lycee_id' => empty($data['lycee_id']) ? null : (int)$data['lycee_id'],
             'contrat_id' => $data['contrat_id'] ?? null,
             'date_embauche' => $data['date_embauche'] ?? null,
             'actif' => $data['actif'] ?? 1, // Default to active
