@@ -1,5 +1,9 @@
 <?php
 
+require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../models/Classe.php';
+
+
 class HomeController {
     public function index() {
         if (!Auth::check()) {
@@ -51,9 +55,15 @@ class HomeController {
             $navLinks[] = ['url' => '/salaires', 'text' => _('Gérer les Salaires')];
         }
 
+        $teacherSubjects = [];
+        if (Auth::get('role_name') === 'enseignant') {
+            $teacherSubjects = User::findSubjectsTaughtByTeacher(Auth::get('id'));
+        }
+
         // Pass data to the view
         $data = [
-            'navLinks' => $navLinks
+            'navLinks' => $navLinks,
+            'teacherSubjects' => $teacherSubjects
         ];
 
         // Load the view
