@@ -15,11 +15,20 @@
 <div class="row">
     <div class="col-md-6 mb-3">
         <label for="type" class="form-label"><?= _('Type') ?></label>
-        <input type="text" class="form-control" id="type" name="type" placeholder="<?= _('Ex: Scientifique, Littéraire') ?>" value="<?= htmlspecialchars($matiere['type'] ?? '') ?>">
+        <select class="form-select" id="type" name="type">
+            <option value="Scientifique" <?= (isset($matiere['type']) && $matiere['type'] === 'Scientifique') ? 'selected' : '' ?>><?= _('Scientifique') ?></option>
+            <option value="Littéraire" <?= (isset($matiere['type']) && $matiere['type'] === 'Littéraire') ? 'selected' : '' ?>><?= _('Littéraire') ?></option>
+        </select>
     </div>
     <div class="col-md-6 mb-3">
         <label for="cycle_concerne" class="form-label"><?= _('Cycle Concerné') ?></label>
-        <input type="text" class="form-control" id="cycle_concerne" name="cycle_concerne" placeholder="<?= _('Ex: Lycée, CEG') ?>" value="<?= htmlspecialchars($matiere['cycle_concerne'] ?? '') ?>">
+        <select class="form-select" id="cycle_concerne" name="cycle_concerne">
+            <?php foreach ($cycles as $cycle): ?>
+                <option value="<?= htmlspecialchars($cycle['nom_cycle']) ?>" <?= (isset($matiere['cycle_concerne']) && $matiere['cycle_concerne'] === $cycle['nom_cycle']) ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($cycle['nom_cycle']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
     </div>
 </div>
 

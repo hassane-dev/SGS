@@ -4,6 +4,7 @@ require_once __DIR__ . '/../models/Matiere.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
 require_once __DIR__ . '/../core/Validator.php';
+require_once __DIR__ . '/../models/Cycle.php';
 
 class MatiereController {
 
@@ -27,8 +28,10 @@ class MatiereController {
 
     public function create() {
         $this->checkAccess('matiere:create');
+        $cycles = Cycle::findAll();
         View::render('matieres/create', [
-            'title' => 'Nouvelle Matière'
+            'title' => 'Nouvelle Matière',
+            'cycles' => $cycles
         ]);
     }
 
@@ -38,9 +41,12 @@ class MatiereController {
             $data = Validator::sanitize($_POST);
             // Simple validation
             if (empty($data['nom_matiere']) || empty($data['statut'])) {
+                 $cycles = Cycle::findAll();
                  View::render('matieres/create', [
                     'title' => 'Nouvelle Matière',
-                    'error' => 'Veuillez remplir tous les champs obligatoires.'
+                    'error' => 'Veuillez remplir tous les champs obligatoires.',
+                    'matiere' => $data,
+                    'cycles' => $cycles
                 ]);
                 return;
             }
@@ -63,9 +69,11 @@ class MatiereController {
             View::render('errors/404');
             exit();
         }
+        $cycles = Cycle::findAll();
         View::render('matieres/edit', [
             'matiere' => $matiere,
-            'title' => 'Modifier la Matière'
+            'title' => 'Modifier la Matière',
+            'cycles' => $cycles
         ]);
     }
 
@@ -74,11 +82,12 @@ class MatiereController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
              if (empty($data['nom_matiere']) || empty($data['statut'])) {
-                $matiere = Matiere::findById($data['id_matiere']);
+                $cycles = Cycle::findAll();
                 View::render('matieres/edit', [
-                    'matiere' => $matiere,
+                    'matiere' => $data,
                     'title' => 'Modifier la Matière',
-                    'error' => 'Veuillez remplir tous les champs obligatoires.'
+                    'error' => 'Veuillez remplir tous les champs obligatoires.',
+                    'cycles' => $cycles
                 ]);
                 return;
             }
