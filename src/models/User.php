@@ -279,15 +279,16 @@ class User {
             SELECT
                 em.classe_id,
                 em.matiere_id,
-                c.nom_classe,
+                c.niveau,
+                c.serie,
+                c.numero,
                 m.nom_matiere
             FROM enseignant_matieres em
             JOIN classes c ON em.classe_id = c.id_classe
             JOIN matieres m ON em.matiere_id = m.id_matiere
             WHERE em.enseignant_id = :enseignant_id
             AND em.annee_academique_id = :annee_id
-            GROUP BY em.classe_id, em.matiere_id, c.nom_classe, m.nom_matiere
-            ORDER BY c.nom_classe, m.nom_matiere
+            ORDER BY c.niveau, c.serie, c.numero, m.nom_matiere
         ";
 
         try {

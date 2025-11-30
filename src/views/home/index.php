@@ -30,6 +30,42 @@
                 </div>
             </div>
 
+            <?php if (Auth::get('role_name') === 'enseignant' && !empty($data['teacherSubjects'])) : ?>
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><?= _('Mes Classes et Matières') ?></h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th><?= _('Classe') ?></th>
+                                            <th><?= _('Matière') ?></th>
+                                            <th><?= _('Actions') ?></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($data['teacherSubjects'] as $subject) : ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars(Classe::getFormattedName($subject)) ?></td>
+                                                <td><?= htmlspecialchars($subject['nom_matiere']) ?></td>
+                                                <td>
+                                                    <a href="/notes/saisir/<?= $subject['classe_id'] ?>/<?= $subject['matiere_id'] ?>" class="btn btn-sm btn-primary"><?= _('Saisir Notes') ?></a>
+                                                    <a href="/cahier-texte/<?= $subject['classe_id'] ?>/<?= $subject['matiere_id'] ?>" class="btn btn-sm btn-secondary"><?= _('Cahier de Texte') ?></a>
+                                                    <a href="/presences/gerer/<?= $subject['classe_id'] ?>" class="btn btn-sm btn-info"><?= _('Gérer Présences') ?></a>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <!-- Quick Access Menu -->
             <div class="col-12">
                 <div class="card">
