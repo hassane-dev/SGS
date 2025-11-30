@@ -216,22 +216,43 @@ class EleveController {
         $classe_id = Classe::findIdByDetails($lycee_id, $data['niveau'], $data['serie'] ?? null, $data['numero']);
 
         if ($classe_id) {
-            $activeYear = AnneeAcademique::findActive();
-            Etude::create([
-                'eleve_id' => $eleve_id,
-                'classe_id' => $classe_id,
-                'lycee_id' => $lycee_id,
-                'annee_academique_id' => $activeYear['id'],
-                'actif' => 0 // Inactive until payment validation
-            ]);
+            $db = Database::getInstance();
+            try {
+                $db->beginTransaction();
 
-            // Notify accountants
-            $eleve = Eleve::findById($eleve_id);
-            $message = "Nouvelle pré-inscription pour " . $eleve['prenom'] . " " . $eleve['nom'] . ".";
-            $link = "/comptable/validate-form?eleve_id=" . $eleve_id;
-            Notification::notifyAccountants($lycee_id, $message, $link);
+                $activeYear = AnneeAcademique::findActive();
+                if (!$activeYear) {
+                    throw new Exception("Aucune année académique active n'a été trouvée.");
+                }
 
-            $_SESSION['success_message'] = "L'élève a été assigné à la classe avec succès.";
+                // Create the study record
+                Etude::create([
+                    'eleve_id' => $eleve_id,
+                    'classe_id' => $classe_id,
+                    'lycee_id' => $lycee_id,
+                    'annee_academique_id' => $activeYear['id'],
+                    'actif' => 0 // Inactive until payment validation
+                ]);
+
+                // Increment the class's current number of students
+                Classe::incrementerEffectifActuel($classe_id, $activeYear['id']);
+
+                $db->commit();
+
+                 // Notify accountants after successful transaction
+                $eleve = Eleve::findById($eleve_id);
+                $message = "Nouvelle pré-inscription pour " . $eleve['prenom'] . " " . $eleve['nom'] . ".";
+                $link = "/comptable/validate-form?eleve_id=" . $eleve_id;
+                Notification::notifyAccountants($lycee_id, $message, $link);
+
+                $_SESSION['success_message'] = "L'élève a été assigné à la classe avec succès.";
+            } catch (Exception $e) {
+                $db->rollBack();
+                error_log("Erreur lors de l'assignation de la classe : " . $e->getMessage());
+                $_SESSION['error_message'] = "Une erreur est survenue. L'assignation a été annulée.";
+                header('Location: /eleves/assign-class?eleve_id=' . $eleve_id);
+                exit();
+            }
         } else {
             $_SESSION['error_message'] = "La classe sélectionnée n'a pas pu être trouvée.";
             header('Location: /eleves/assign-class?eleve_id=' . $eleve_id);
