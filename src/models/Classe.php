@@ -202,5 +202,42 @@ class Classe {
             throw $e;
         }
     }
+
+    public static function getLevelOrderMap() {
+        // Defines the logical order of school levels.
+        return [
+            '6ème' => 1, '6e' => 1,
+            '5ème' => 2, '5e' => 2,
+            '4ème' => 3, '4e' => 3,
+            '3ème' => 4, '3e' => 4,
+            'Seconde' => 5, '2nde' => 5,
+            'Première' => 6, '1ère' => 6,
+            'Terminale' => 7
+        ];
+    }
+
+    public static function getDistinctNiveaux($lycee_id) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT DISTINCT niveau FROM classes WHERE lycee_id = :lycee_id");
+        $stmt->execute(['lycee_id' => $lycee_id]);
+        $niveaux = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        $orderMap = self::getLevelOrderMap();
+
+        usort($niveaux, function ($a, $b) use ($orderMap) {
+            $orderA = $orderMap[$a] ?? 99;
+            $orderB = $orderMap[$b] ?? 99;
+            return $orderA <=> $orderB;
+        });
+
+        return $niveaux;
+    }
+
+    public static function getDistinctSeries($lycee_id) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT DISTINCT serie FROM classes WHERE lycee_id = :lycee_id AND serie IS NOT NULL AND serie != '' ORDER BY serie ASC");
+        $stmt->execute(['lycee_id' => $lycee_id]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
 }
 ?>

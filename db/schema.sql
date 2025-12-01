@@ -369,15 +369,16 @@ CREATE TABLE `mensualites` (
 CREATE TABLE `frais` (
     `id_frais` INT AUTO_INCREMENT PRIMARY KEY,
     `lycee_id` INT NOT NULL,
-    `niveau` VARCHAR(50) NOT NULL,
+    `cycle` VARCHAR(100), -- e.g., 'CEG', 'Lycée'
+    `niveau_debut` VARCHAR(50),
+    `niveau_fin` VARCHAR(50),
     `serie` VARCHAR(50),
     `frais_inscription` DECIMAL(10, 2) NOT NULL,
     `frais_mensuel` DECIMAL(10, 2) NOT NULL,
     `autres_frais` JSON, -- For additional fixed fees like uniform, insurance, etc.
     `annee_academique_id` INT,
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL,
-    UNIQUE KEY `unique_frais` (`lycee_id`, `niveau`, `serie`, `annee_academique_id`)
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL
 );
 
 -- Table for shop articles
