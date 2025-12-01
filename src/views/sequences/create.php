@@ -1,14 +1,46 @@
-<div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Nouvelle Séquence</h1>
+<?php
+require_once __DIR__ . '/../layouts/header_able.php';
+require_once __DIR__ . '/../layouts/sidebar_able.php';
+?>
 
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Détails de la séquence</h6>
+<div class="pc-container">
+    <div class="pc-content">
+        <!-- [ breadcrumb ] start -->
+        <div class="page-header">
+            <div class="page-block">
+                <div class="row align-items-center">
+                    <div class="col-md-12">
+                        <div class="page-header-title">
+                            <h5 class="m-b-10">Séquences Annuelles</h5>
+                        </div>
+                        <ul class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/home">Tableau de Bord</a></li>
+                            <li class="breadcrumb-item"><a href="/sequences">Liste des Séquences</a></li>
+                            <li class="breadcrumb-item" aria-current="page">Nouvelle Séquence</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <form action="/sequences/store" method="POST">
-                <?php include '_form.php'; ?>
-            </form>
+        <!-- [ breadcrumb ] end -->
+
+        <!-- [ Main Content ] start -->
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Créer une nouvelle séquence</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/sequences/store" method="POST">
+                            <?php include '_form.php'; ?>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
+        <!-- [ Main Content ] end -->
     </div>
 </div>
+
+<?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>
