@@ -2,72 +2,124 @@
 
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../core/Validator.php';
+require_once __DIR__ . '/../core/Auth.php';
+require_once __DIR__ . '/../core/View.php';
 
 class AnneeAcademiqueController {
 
-    private function checkAccess() {
-        // For now, only super admins can manage academic years
-        if (!Auth::can('view_all_lycees', 'lycee')) {
-            http_response_code(403);
+    public function index() {
+        if (!Auth::can('manage', 'annee_academique')) {
             View::render('errors/403');
             exit();
         }
-    }
-
-    public function index() {
-        $this->checkAccess();
         $annees = AnneeAcademique::findAll();
-        require_once __DIR__ . '/../views/annees_academiques/index.php';
+        View::render('annees_academiques/index', ['annees' => $annees]);
     }
 
     public function create() {
-        $this->checkAccess();
-        require_once __DIR__ . '/../views/annees_academiques/create.php';
+        if (!Auth::can('manage', 'annee_academique')) {
+            View::render('errors/403');
+            exit();
+        }
+        View::render('annees_academiques/create');
     }
 
     public function store() {
-        $this->checkAccess();
+        if (!Auth::can('manage', 'annee_academique')) {
+            View::render('errors/403');
+            exit();
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = Validator::sanitize($_POST);
-            AnneeAcademique::save($data);
+            try {
+                $data = Validator::sanitize($_POST);
+                AnneeAcademique::save($data);
+                $_SESSION['success_message'] = _('Année académique créée avec succès.');
+            } catch (InvalidArgumentException $e) {
+                $_SESSION['error_message'] = $e->getMessage();
+                $_SESSION['old_post'] = $_POST;
+                header('Location: /annees-academiques/create');
+                exit();
+            }
         }
         header('Location: /annees-academiques');
         exit();
     }
 
     public function edit() {
-        $this->checkAccess();
+        if (!Auth::can('manage', 'annee_academique')) {
+            View::render('errors/403');
+            exit();
+        }
         $id = $_GET['id'] ?? null;
-        if (!$id) { header('Location: /annees-academiques'); exit(); }
+        if (!$id) {
+            header('Location: /annees-academiques');
+            exit();
+        }
         $annee = AnneeAcademique::findById($id);
-        require_once __DIR__ . '/../views/annees_academiques/edit.php';
+        if (!$annee) {
+            $_SESSION['error_message'] = _("L'année académique demandée n'existe pas.");
+            header('Location: /annees-academiques');
+            exit();
+        }
+        View::render('annees_academiques/edit', ['annee' => $annee]);
     }
 
     public function update() {
-        $this->checkAccess();
+        if (!Auth::can('manage', 'annee_academique')) {
+            View::render('errors/403');
+            exit();
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = Validator::sanitize($_POST);
-            AnneeAcademique::save($data);
+            try {
+                $data = Validator::sanitize($_POST);
+                AnneeAcademique::save($data);
+                $_SESSION['success_message'] = _('Année académique mise à jour avec succès.');
+            } catch (InvalidArgumentException $e) {
+                $_SESSION['error_message'] = $e->getMessage();
+                $_SESSION['old_post'] = $_POST;
+                header('Location: /annees-academiques/edit?id=' . $_POST['id']);
+                exit();
+            }
         }
         header('Location: /annees-academiques');
         exit();
     }
 
     public function destroy() {
-        $this->checkAccess();
+        if (!Auth::can('manage', 'annee_academique')) {
+            View::render('errors/403');
+            exit();
+        }
         $id = $_POST['id'] ?? null;
         if ($id) {
-            AnneeAcademique::delete($id);
+            // Add check to prevent deleting active year
+            $annee = AnneeAcademique::findById($id);
+            if ($annee && $annee['est_active']) {
+                $_SESSION['error_message'] = _("Vous ne pouvez pas supprimer l'année académique active.");
+            } else {
+                AnneeAcademique::delete($id);
+                $_SESSION['success_message'] = _('Année académique supprimée avec succès.');
+            }
         }
         header('Location: /annees-academiques');
         exit();
     }
 
     public function activate() {
-        $this->checkAccess();
+        if (!Auth::can('manage', 'annee_academique')) {
+            View::render('errors/403');
+            exit();
+        }
         $id = $_POST['id'] ?? null;
         if ($id) {
-            AnneeAcademique::setActive($id);
+            try {
+                AnneeAcademique::setActive($id);
+                $_SESSION['success_message'] = _('Année académique activée avec succès.');
+            } catch (PDOException $e) {
+                $_SESSION['error_message'] = _("Erreur lors de l'activation de l'année académique: ") . $e->getMessage();
+            }
         }
         header('Location: /annees-academiques');
         exit();
