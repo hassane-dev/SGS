@@ -162,7 +162,10 @@ $router->register('/eleves/process-assignment', 'EleveController', 'processAssig
 
 // Frais (Fee management)
 $router->register('/frais', 'FraisController', 'index');
+$router->register('/frais/create', 'FraisController', 'create');
 $router->register('/frais/store', 'FraisController', 'store');
+$router->register('/frais/get-niveaux', 'FraisController', 'getNiveaux');
+$router->register('/frais/get-series', 'FraisController', 'getSeries');
 
 // Comptable (Accountant) flow
 $router->register('/comptable/pending', 'ComptableController', 'listPending');
