@@ -98,7 +98,10 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (81, 'param_lycee', 'edit', 'Can edit the school identity settings'),
 (82, 'param_general', 'edit', 'Can edit the general system settings for the school'),
 (83, 'param_devoir', 'edit', 'Can edit the homework parameters'),
-(84, 'param_composition', 'edit', 'Can edit the exam parameters');
+(84, 'param_composition', 'edit', 'Can edit the exam parameters'),
+
+-- Timetable
+(90, 'timetable', 'manage', 'Can manage timetables');
 
 -- --------------------------------------------------------
 -- Role-Permission Assignments
@@ -123,7 +126,9 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (3, 50), (3, 51), (3, 52), (3, 53), (3, 54), (3, 55), (3, 56), (3, 61), (3, 62), (3, 63), (3, 66),
 -- Finance & Settings
 (3, 70), (3, 71), (3, 72), (3, 75), (3, 76), (3, 77),
-(3, 81), (3, 82), (3, 83), (3, 84);
+(3, 81), (3, 82), (3, 83), (3, 84),
+-- Timetable
+(3, 90);
 
 -- Censeur (Academic Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES

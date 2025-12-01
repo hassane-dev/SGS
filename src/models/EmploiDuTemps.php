@@ -11,17 +11,17 @@ class EmploiDuTemps {
      * @param int|null $professeur_id
      * @return array
      */
-    public static function getByContext($annee_academique, $classe_id = null, $professeur_id = null) {
+    public static function getByContext($annee_academique_id, $classe_id = null, $professeur_id = null) {
         $db = Database::getInstance();
-        $sql = "SELECT edt.*, c.nom_classe, m.nom_matiere, u.nom as prof_nom, u.prenom as prof_prenom, s.nom_salle
+        $sql = "SELECT edt.*, CONCAT(c.niveau, ' ', c.serie, ' ', c.numero) as nom_classe, m.nom_matiere, u.nom as prof_nom, u.prenom as prof_prenom, s.nom_salle
                 FROM emploi_du_temps edt
                 JOIN classes c ON edt.classe_id = c.id_classe
                 JOIN matieres m ON edt.matiere_id = m.id_matiere
                 JOIN utilisateurs u ON edt.professeur_id = u.id_user
                 JOIN salles s ON edt.salle_id = s.id_salle
-                WHERE edt.annee_academique = :annee_academique";
+                WHERE edt.annee_academique_id = :annee_academique_id";
 
-        $params = ['annee_academique' => $annee_academique];
+        $params = ['annee_academique_id' => $annee_academique_id];
 
         if ($classe_id) {
             $sql .= " AND edt.classe_id = :classe_id";
@@ -47,7 +47,7 @@ class EmploiDuTemps {
     private static function checkConflict($data, $exclude_id = null) {
         $db = Database::getInstance();
         $sql = "SELECT * FROM emploi_du_temps WHERE
-                annee_academique = :annee_academique AND
+                annee_academique_id = :annee_academique_id AND
                 jour = :jour AND
                 (heure_debut < :heure_fin AND heure_fin > :heure_debut) AND
                 (professeur_id = :professeur_id OR classe_id = :classe_id)";
@@ -58,7 +58,7 @@ class EmploiDuTemps {
 
         $stmt = $db->prepare($sql);
         $params = [
-            'annee_academique' => $data['annee_academique'],
+            'annee_academique_id' => $data['annee_academique_id'],
             'jour' => $data['jour'],
             'heure_debut' => $data['heure_debut'],
             'heure_fin' => $data['heure_fin'],
@@ -91,8 +91,8 @@ class EmploiDuTemps {
         }
 
         $sql = $isUpdate
-            ? "UPDATE emploi_du_temps SET classe_id = :classe_id, matiere_id = :matiere_id, professeur_id = :professeur_id, jour = :jour, heure_debut = :heure_debut, heure_fin = :heure_fin, salle_id = :salle_id, annee_academique = :annee_academique WHERE id = :id"
-            : "INSERT INTO emploi_du_temps (classe_id, matiere_id, professeur_id, jour, heure_debut, heure_fin, salle_id, annee_academique) VALUES (:classe_id, :matiere_id, :professeur_id, :jour, :heure_debut, :heure_fin, :salle_id, :annee_academique)";
+            ? "UPDATE emploi_du_temps SET classe_id = :classe_id, matiere_id = :matiere_id, professeur_id = :professeur_id, jour = :jour, heure_debut = :heure_debut, heure_fin = :heure_fin, salle_id = :salle_id, annee_academique_id = :annee_academique_id WHERE id = :id"
+            : "INSERT INTO emploi_du_temps (classe_id, matiere_id, professeur_id, jour, heure_debut, heure_fin, salle_id, annee_academique_id) VALUES (:classe_id, :matiere_id, :professeur_id, :jour, :heure_debut, :heure_fin, :salle_id, :annee_academique_id)";
 
         $db = Database::getInstance();
         $stmt = $db->prepare($sql);
@@ -105,7 +105,7 @@ class EmploiDuTemps {
             'heure_debut' => $data['heure_debut'],
             'heure_fin' => $data['heure_fin'],
             'salle_id' => $data['salle_id'],
-            'annee_academique' => $data['annee_academique'],
+            'annee_academique_id' => $data['annee_academique_id'],
         ];
 
         if ($isUpdate) {
