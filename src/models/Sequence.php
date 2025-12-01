@@ -50,6 +50,27 @@ class Sequence {
     }
 
     public static function save($data) {
+        // --- Server-side validation ---
+        if (empty($data['type'])) {
+            throw new InvalidArgumentException('Le type de séquence est obligatoire.');
+        }
+        if (empty($data['nom'])) {
+            throw new InvalidArgumentException('Le nom de la séquence est obligatoire.');
+        }
+        if (empty($data['date_debut'])) {
+            throw new InvalidArgumentException('La date de début est obligatoire.');
+        }
+        if (empty($data['date_fin'])) {
+            throw new InvalidArgumentException('La date de fin est obligatoire.');
+        }
+        if (strtotime($data['date_fin']) < strtotime($data['date_debut'])) {
+            throw new InvalidArgumentException('La date de fin ne peut pas être antérieure à la date de début.');
+        }
+        if (empty($data['statut'])) {
+            throw new InvalidArgumentException('Le statut est obligatoire.');
+        }
+        // --- End validation ---
+
         $isUpdate = !empty($data['id']);
         $lycee_id = Auth::getLyceeId();
         $active_year = AnneeAcademique::findActive();
