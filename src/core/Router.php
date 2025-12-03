@@ -4,28 +4,38 @@ class Router {
     protected $routes = [];
 
     public function register($route, $controller, $action) {
-        $this->routes[$route] = ['controller' => $controller, 'action' => $action];
+        // Convertit la route en une expression régulière pour capturer les paramètres
+        // Par exemple: /paiements/show/{eleveId} devient #^/paiements/show/(\w+)$#
+        $pattern = preg_replace('/\{(\w+)\}/', '(\w+)', $route);
+        $pattern = '#^' . $pattern . '$#';
+        $this->routes[$pattern] = ['controller' => $controller, 'action' => $action];
     }
 
     public function dispatch($uri) {
-        if (array_key_exists($uri, $this->routes)) {
-            $controller = $this->routes[$uri]['controller'];
-            $action = $this->routes[$uri]['action'];
+        foreach ($this->routes as $pattern => $route) {
+            if (preg_match($pattern, $uri, $matches)) {
+                // Supprime la correspondance complète ($matches[0]) pour ne garder que les paramètres
+                array_shift($matches);
+                $params = $matches;
 
-            // NOTE: This is a simplified example. A real router would be more complex.
-            // For now, we assume controller files are in src/controllers/
-            require_once __DIR__ . '/../controllers/' . $controller . '.php';
+                $controller = $route['controller'];
+                $action = $route['action'];
 
-            $controllerInstance = new $controller();
-            $controllerInstance->$action();
+                require_once __DIR__ . '/../controllers/' . $controller . '.php';
 
-        } else {
-            // Handle 404 Not Found
-            http_response_code(404);
-            echo "<h1>404 Not Found</h1>";
-            echo "The page you are looking for could not be found.";
-            exit();
+                $controllerInstance = new $controller();
+
+                // Appelle la méthode du contrôleur avec les paramètres extraits
+                call_user_func_array([$controllerInstance, $action], $params);
+                return;
+            }
         }
+
+        // Handle 404 Not Found
+        http_response_code(404);
+        require_once __DIR__ . '/../core/View.php';
+        View::render('errors/404');
+        exit();
     }
 }
 ?>

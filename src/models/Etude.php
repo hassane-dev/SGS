@@ -114,5 +114,19 @@ class Etude {
         ]);
         return $stmt->fetchColumn() > 0;
     }
+
+    /**
+     * Trouve une étude par ID de l'élève et ID de l'année.
+     */
+    public static function findByEleveAndAnnee($eleveId, $anneeId) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("
+            SELECT * FROM etudes
+            WHERE eleve_id = :eleve_id AND annee_academique_id = :annee_id
+            LIMIT 1
+        ");
+        $stmt->execute(['eleve_id' => $eleveId, 'annee_id' => $anneeId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }
 ?>

@@ -74,6 +74,12 @@ class EleveController {
             Eleve::save($data);
             $eleve_id = $db->lastInsertId();
 
+            // Notification pour le comptable
+            $eleve_nom_complet = $data['prenom'] . ' ' . $data['nom'];
+            $message = "Un nouvel élève est en attente de paiement : {$eleve_nom_complet}. Cliquez pour procéder au paiement.";
+            $link = "/paiements/show/{$eleve_id}";
+            Notification::notifyRole('comptable', $data['lycee_id'], $message, $link);
+
             $db->commit();
 
         } catch (Exception $e) {
@@ -238,12 +244,6 @@ class EleveController {
                 Classe::incrementerEffectifActuel($classe_id, $activeYear['id']);
 
                 $db->commit();
-
-                 // Notify accountants after successful transaction
-                $eleve = Eleve::findById($eleve_id);
-                $message = "Nouvelle pré-inscription pour " . $eleve['prenom'] . " " . $eleve['nom'] . ".";
-                $link = "/comptable/validate-form?eleve_id=" . $eleve_id;
-                Notification::notifyAccountants($lycee_id, $message, $link);
 
                 $_SESSION['success_message'] = "L'élève a été assigné à la classe avec succès.";
             } catch (Exception $e) {

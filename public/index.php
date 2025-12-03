@@ -185,11 +185,11 @@ $router->register('/evaluations/select_evaluation', 'EvaluationController', 'sel
 $router->register('/evaluations/form', 'EvaluationController', 'showForm');
 $router->register('/evaluations/save', 'EvaluationController', 'save');
 
-// Paiements
-// Obsolete payment routes, replaced by Inscription and Mensualite flows
-// $router->register('/paiements', 'PaiementController', 'index');
-// $router->register('/paiements/create', 'PaiementController', 'create');
-// $router->register('/paiements/store', 'PaiementController', 'store');
+// --- Paiements (Nouveau Module Unifié) ---
+$router->register('/paiements/show/{eleveId}', 'PaiementController', 'show');
+$router->register('/paiements/process-inscription/{eleveId}', 'PaiementController', 'processInscription');
+$router->register('/paiements/process-mensualites/{eleveId}', 'PaiementController', 'processMensualites');
+
 
 // Bulletins
 $router->register('/bulletin/show', 'BulletinController', 'show');
