@@ -141,4 +141,13 @@ class Eleve {
         $stmt->execute($class_ids);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    /**
+     * Met à jour le statut d'un élève.
+     */
+    public static function updateStatus($id, $status) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("UPDATE eleves SET statut = :statut WHERE id_eleve = :id");
+        return $stmt->execute(['id' => $id, 'statut' => $status]);
+    }
 }

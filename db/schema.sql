@@ -353,6 +353,7 @@ CREATE TABLE `inscriptions` (
 CREATE TABLE `mensualites` (
     `id_mensualite` INT AUTO_INCREMENT PRIMARY KEY,
     `eleve_id` INT NOT NULL,
+    `classe_id` INT NOT NULL,
     `lycee_id` INT NOT NULL,
     `annee_academique_id` INT,
     `mois_ou_sequence` VARCHAR(50) NOT NULL, -- e.g., 'Octobre', 'Trimestre 1'
@@ -360,6 +361,7 @@ CREATE TABLE `mensualites` (
     `date_paiement` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `user_id` INT,
     FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
+    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE SET NULL,
     FOREIGN KEY (`user_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL

@@ -115,53 +115,50 @@ class Frais {
      * @param int $annee_academique_id
      * @return array|false
      */
-    public static function getForClasse($classe_id, $annee_academique_id) {
+    public static function findForClasse($classe, $annee_academique_id) {
         $db = Database::getInstance();
 
-        $class_sql = "SELECT c.lycee_id, c.niveau, c.serie, cy.nom_cycle
-                      FROM classes c
-                      JOIN cycles cy ON c.cycle_id = cy.id_cycle
-                      WHERE c.id_classe = :classe_id";
-        $class_stmt = $db->prepare($class_sql);
-        $class_stmt->execute(['classe_id' => $classe_id]);
-        $class_details = $class_stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$class_details) return false;
+        // La classe contient déjà lycee_id, niveau, serie. Il faut juste le nom du cycle.
+        $cycle = Cycle::findById($classe['cycle_id']);
+        $nom_cycle = $cycle['nom_cycle'];
 
         $all_frais_sql = "SELECT * FROM frais
                           WHERE lycee_id = :lycee_id
                           AND annee_academique_id = :annee_academique_id";
         $frais_stmt = $db->prepare($all_frais_sql);
         $frais_stmt->execute([
-            'lycee_id' => $class_details['lycee_id'],
+            'lycee_id' => $classe['lycee_id'],
             'annee_academique_id' => $annee_academique_id
         ]);
         $all_frais = $frais_stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $levelOrderMap = Classe::getLevelOrderMap();
-        $class_level_order = $levelOrderMap[$class_details['niveau']] ?? 99;
+        $class_level_order = $levelOrderMap[$classe['niveau']] ?? 99;
 
         foreach ($all_frais as $frais) {
-            // Case 1: Cycle-based fee
-            if (!empty($frais['cycle']) && $frais['cycle'] === $class_details['nom_cycle']) {
-                return $frais;
+            // Priorité 1: Correspondance par plage de niveau ET série
+            if (!empty($frais['niveau_debut']) && !empty($frais['serie']) && $frais['serie'] === $classe['serie']) {
+                 $start_level_order = $levelOrderMap[$frais['niveau_debut']] ?? 0;
+                 $end_level_order = $levelOrderMap[$frais['niveau_fin']] ?? 100;
+                 if ($class_level_order >= $start_level_order && $class_level_order <= $end_level_order) {
+                     return $frais;
+                 }
             }
-
-            // Case 2: Range-based fee
-            if (!empty($frais['niveau_debut']) && !empty($frais['niveau_fin'])) {
-                $start_level_order = $levelOrderMap[$frais['niveau_debut']] ?? 0;
-                $end_level_order = $levelOrderMap[$frais['niveau_fin']] ?? 100;
-
-                if ($class_level_order >= $start_level_order && $class_level_order <= $end_level_order) {
-                    // Check for series match (if series is specified in the fee)
-                    if (empty($frais['serie']) || $frais['serie'] === $class_details['serie']) {
-                        return $frais;
-                    }
-                }
+            // Priorité 2: Correspondance par plage de niveau SANS série
+            if (!empty($frais['niveau_debut']) && empty($frais['serie'])) {
+                 $start_level_order = $levelOrderMap[$frais['niveau_debut']] ?? 0;
+                 $end_level_order = $levelOrderMap[$frais['niveau_fin']] ?? 100;
+                 if ($class_level_order >= $start_level_order && $class_level_order <= $end_level_order) {
+                     return $frais;
+                 }
+            }
+            // Priorité 3: Correspondance par cycle
+            if (!empty($frais['cycle']) && $frais['cycle'] === $nom_cycle) {
+                return $frais;
             }
         }
 
-        return false;
+        return false; // Aucun frais applicable trouvé
     }
 }
 ?>
