@@ -89,6 +89,7 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (70, 'paiement', 'manage', 'Can manage and validate student payments'),
 (71, 'salaire', 'manage', 'Can manage staff payroll records'),
 (72, 'frais', 'manage', 'Can manage the fee structure (frais)'),
+(73, 'paiement', 'view', 'Can view student payment information and history'),
 (75, 'bulletin', 'generate', 'Can generate and view report cards'),
 (76, 'bulletin', 'validate', 'Can validate report cards and add final appreciations'),
 (77, 'bulletin_template', 'manage', 'Can edit the report card template layout'),
@@ -125,18 +126,18 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Students & Academics
 (3, 50), (3, 51), (3, 52), (3, 53), (3, 54), (3, 55), (3, 56), (3, 61), (3, 62), (3, 63), (3, 66),
 -- Finance & Settings
-(3, 70), (3, 71), (3, 72), (3, 75), (3, 76), (3, 77),
+(3, 71), (3, 72), (3, 73), (3, 75), (3, 76), (3, 77),
 (3, 81), (3, 82), (3, 83), (3, 84),
 -- Timetable
 (3, 90);
 
 -- Censeur (Academic Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(4, 1), (4, 40), (4, 51), (4, 61), (4, 62), (4, 75), (4, 76);
+(4, 1), (4, 40), (4, 51), (4, 61), (4, 62), (4, 73), (4, 75), (4, 76);
 
 -- Surveillant (Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(5, 1), (5, 11), (5, 12);
+(5, 1), (5, 11), (5, 12), (5, 73);
 
 -- Enseignant (Teacher)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES

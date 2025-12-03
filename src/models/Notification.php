@@ -25,22 +25,32 @@ class Notification {
     }
 
     /**
+     * Notify all users with a specific role in a lycee.
+     * @param string $roleName
+     * @param int $lycee_id
+     * @param string $message
+     * @param string $link
+     */
+    public static function notifyRole($roleName, $lycee_id, $message, $link) {
+        $users = User::findAllByRoleName($roleName, $lycee_id);
+        foreach ($users as $user) {
+            self::create([
+                'user_id' => $user['id_user'],
+                'lycee_id' => $lycee_id,
+                'message' => $message,
+                'link' => $link
+            ]);
+        }
+    }
+
+    /**
      * Notify all accountants of a lycee.
      * @param int $lycee_id
      * @param string $message
      * @param string $link
      */
     public static function notifyAccountants($lycee_id, $message, $link) {
-        // In a real app, 'comptable' might be an ID. Here we assume the role name.
-        $accountants = User::findAllByRoleName('comptable', $lycee_id);
-        foreach ($accountants as $accountant) {
-            self::create([
-                'user_id' => $accountant['id_user'],
-                'lycee_id' => $lycee_id,
-                'message' => $message,
-                'link' => $link
-            ]);
-        }
+        self::notifyRole('comptable', $lycee_id, $message, $link);
     }
 
     /**
