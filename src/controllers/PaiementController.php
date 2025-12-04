@@ -1,6 +1,5 @@
 <?php
 
-require_once __DIR__ . '/../core/Controller.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../models/Eleve.php';
 require_once __DIR__ . '/../models/Inscription.php';
@@ -13,7 +12,7 @@ require_once __DIR__ . '/../models/Notification.php';
 require_once __DIR__ . '/../models/Etude.php';
 require_once __DIR__ . '/../core/View.php';
 
-class PaiementController extends Controller {
+class PaiementController {
 
     /**
      * Affiche l'interface de paiement pour un élève donné.
@@ -28,8 +27,8 @@ class PaiementController extends Controller {
         if (!$anneeActive) {
             // Gérer l'erreur : aucune année active
             $_SESSION['error_message'] = "Aucune année académique active n'est définie.";
-            self::redirect('/eleves');
-            return;
+            header('Location: /eleves');
+            exit();
         }
 
         $eleve = Eleve::findById($eleveId);
@@ -38,8 +37,8 @@ class PaiementController extends Controller {
 
         if (!$eleve || !$classe) {
             $_SESSION['error_message'] = "L'élève ou sa classe sont introuvables pour l'année en cours.";
-            self::redirect('/eleves');
-            return;
+            header('Location: /eleves');
+            exit();
         }
 
         $eleve['nom_classe'] = $classe ? Classe::getFormattedName($classe) : 'Non assignée';
@@ -57,7 +56,7 @@ class PaiementController extends Controller {
         $options = $inscription ? json_decode($inscription['details_frais'], true) : ['logo' => false, 'carte' => false];
 
         // Dérivation automatique des mois réels à partir des séquences
-        $sequences = Sequence::findByAnnee($anneeActive['id']);
+        $sequences = Sequence::findAll();
         $mensualitesPayees = Mensualite::findByEleveAndAnnee($eleveId, $anneeActive['id']);
         $tranches = [];
         $fmt = new IntlDateFormatter('fr_FR', IntlDateFormatter::FULL, IntlDateFormatter::NONE, 'Africa/Porto-Novo', IntlDateFormatter::GREGORIAN, 'MMMM');
@@ -108,8 +107,8 @@ class PaiementController extends Controller {
         }
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            self::redirect('/paiements/show/' . $eleveId);
-            return;
+            header('Location: /paiements/show/' . $eleveId);
+            exit();
         }
 
         $db = Database::getInstance();
@@ -172,7 +171,8 @@ class PaiementController extends Controller {
             $_SESSION['error_message'] = "Erreur lors de l'enregistrement du paiement : " . $e->getMessage();
         }
 
-        self::redirect('/paiements/show/' . $eleveId);
+        header('Location: /paiements/show/' . $eleveId);
+        exit();
     }
 
     /**
@@ -186,8 +186,8 @@ class PaiementController extends Controller {
         }
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_POST['mensualites'])) {
-            self::redirect('/paiements/show/' . $eleveId);
-            return;
+            header('Location: /paiements/show/' . $eleveId);
+            exit();
         }
 
         $db = Database::getInstance();
@@ -226,6 +226,7 @@ class PaiementController extends Controller {
             $_SESSION['error_message'] = "Erreur lors de l'enregistrement des mensualités : " . $e->getMessage();
         }
 
-        self::redirect('/paiements/show/' . $eleveId);
+        header('Location: /paiements/show/' . $eleveId);
+        exit();
     }
 }
