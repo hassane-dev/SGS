@@ -7,6 +7,8 @@ require_once __DIR__ . '/../models/Etude.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../models/Notification.php';
 require_once __DIR__ . '/../models/Cycle.php';
+require_once __DIR__ . '/../models/Inscription.php';
+require_once __DIR__ . '/../models/Mensualite.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
 require_once __DIR__ . '/../core/Validator.php';

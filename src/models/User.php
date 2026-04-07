@@ -112,7 +112,7 @@ class User {
 
     public static function findById($id) {
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT id_user, nom, prenom, email, role_id, actif, lycee_id FROM utilisateurs WHERE id_user = :id");
+        $stmt = $db->prepare("SELECT * FROM utilisateurs WHERE id_user = :id");
         $stmt->execute(['id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -172,7 +172,7 @@ class User {
             'nom' => $data['nom'],
             'prenom' => $data['prenom'],
             'sexe' => $data['sexe'] ?? null,
-            'date_naissance' => $data['date_naissance'] ?? null,
+            'date_naissance' => empty($data['date_naissance']) ? null : $data['date_naissance'],
             'lieu_naissance' => $data['lieu_naissance'] ?? null,
             'adresse' => $data['adresse'] ?? null,
             'telephone' => $data['telephone'] ?? null,
@@ -180,8 +180,8 @@ class User {
             'fonction' => $data['fonction'] ?? null,
             'role_id' => $data['role_id'],
             'lycee_id' => empty($data['lycee_id']) ? null : (int)$data['lycee_id'],
-            'contrat_id' => $data['contrat_id'] ?? null,
-            'date_embauche' => $data['date_embauche'] ?? null,
+            'contrat_id' => empty($data['contrat_id']) ? null : (int)$data['contrat_id'],
+            'date_embauche' => empty($data['date_embauche']) ? null : $data['date_embauche'],
             'actif' => $data['actif'] ?? 1, // Default to active
             'photo' => $data['photo'] ?? null,
         ];

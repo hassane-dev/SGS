@@ -23,7 +23,7 @@ class PaiementController {
             return;
         }
 
-        $anneeActive = AnneeAcademique::getActive();
+        $anneeActive = AnneeAcademique::findActive();
         if (!$anneeActive) {
             // Gérer l'erreur : aucune année active
             $_SESSION['error_message'] = "Aucune année académique active n'est définie.";
@@ -115,7 +115,7 @@ class PaiementController {
         $db->beginTransaction();
 
         try {
-            $anneeActive = AnneeAcademique::getActive();
+            $anneeActive = AnneeAcademique::findActive();
             $eleve = Eleve::findById($eleveId);
             $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id']);
             $classe = Classe::findById($etude['classe_id']);
@@ -194,7 +194,7 @@ class PaiementController {
         $db->beginTransaction();
 
         try {
-            $anneeActive = AnneeAcademique::getActive();
+            $anneeActive = AnneeAcademique::findActive();
             $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id']);
 
             $paiements = $_POST['mensualites'];

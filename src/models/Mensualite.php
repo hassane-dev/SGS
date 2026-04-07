@@ -7,6 +7,19 @@ class Mensualite {
     /**
      * Trouve les paiements mensuels pour un élève et une année académique.
      */
+    public static function findByEleveId($eleveId) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("
+            SELECT m.*, aa.libelle as annee_academique
+            FROM mensualites m
+            JOIN annees_academiques aa ON m.annee_academique_id = aa.id
+            WHERE m.eleve_id = :eleve_id
+            ORDER BY m.date_paiement DESC
+        ");
+        $stmt->execute(['eleve_id' => $eleveId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public static function findByEleveAndAnnee($eleveId, $anneeId) {
         $db = Database::getInstance();
         $stmt = $db->prepare(

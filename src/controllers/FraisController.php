@@ -19,7 +19,7 @@ class FraisController {
     public function index() {
         $this->checkAccess();
         $lycee_id = Auth::get('lycee_id');
-        $activeYear = AnneeAcademique::getActive();
+        $activeYear = AnneeAcademique::findActive();
 
         $frais = [];
         if ($lycee_id && $activeYear) {
@@ -36,7 +36,7 @@ class FraisController {
     public function create() {
         $this->checkAccess();
         $lycee_id = Auth::get('lycee_id');
-        $activeYear = AnneeAcademique::getActive();
+        $activeYear = AnneeAcademique::findActive();
 
         View::render('frais/create', [
             'title' => 'Ajouter une Grille Tarifaire',
@@ -54,7 +54,7 @@ class FraisController {
 
         $data = Validator::sanitize($_POST);
         $lycee_id = Auth::get('lycee_id');
-        $activeYear = AnneeAcademique::getActive();
+        $activeYear = AnneeAcademique::findActive();
 
         $data['lycee_id'] = $lycee_id;
         $data['annee_academique_id'] = $activeYear['id'];

@@ -67,7 +67,7 @@ class ModeleCarteController {
 
         $modele = ModeleCarte::findByLyceeId($lycee_id);
         $params_lycee = ParamLycee::findByLyceeId($lycee_id);
-        $annee_academique = AnneeAcademique::getActive();
+        $annee_academique = AnneeAcademique::findActive();
 
 
         require_once __DIR__ . '/../views/modele_carte/edit.php';
