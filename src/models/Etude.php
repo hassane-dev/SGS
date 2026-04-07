@@ -12,11 +12,12 @@ class Etude {
     public static function findByEleveId($eleve_id) {
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            SELECT et.*, c.nom_classe, c.serie, c.niveau
+            SELECT et.*, c.serie, c.niveau, aa.libelle as annee_academique
             FROM etudes et
             JOIN classes c ON et.classe_id = c.id_classe
+            JOIN annees_academiques aa ON et.annee_academique_id = aa.id
             WHERE et.eleve_id = :eleve_id
-            ORDER BY et.annee_academique DESC
+            ORDER BY aa.date_debut DESC
         ");
         $stmt->execute(['eleve_id' => $eleve_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -90,7 +91,7 @@ class Etude {
     public static function findPendingEnrollment($eleve_id, $annee_academique_id) {
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            SELECT et.*, c.nom_classe, c.niveau, c.serie
+            SELECT et.*, c.niveau, c.serie
             FROM etudes et
             JOIN classes c ON et.classe_id = c.id_classe
             WHERE et.eleve_id = :eleve_id

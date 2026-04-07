@@ -17,6 +17,20 @@ class Inscription {
     /**
      * Crée ou met à jour une inscription.
      */
+    public static function findByEleveId($eleveId) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("
+            SELECT i.*, aa.libelle as annee_academique, c.niveau as nom_classe
+            FROM inscriptions i
+            JOIN annees_academiques aa ON i.annee_academique_id = aa.id
+            JOIN classes c ON i.classe_id = c.id_classe
+            WHERE i.eleve_id = :eleve_id
+            ORDER BY aa.date_debut DESC
+        ");
+        $stmt->execute(['eleve_id' => $eleveId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public static function save($data) {
         $db = Database::getInstance();
 

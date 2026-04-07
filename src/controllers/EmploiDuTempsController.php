@@ -24,7 +24,7 @@ class EmploiDuTempsController {
 
         $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::get('lycee_id') : null;
         $classes = Classe::findAll($lycee_id);
-        $active_year = AnneeAcademique::getActive();
+        $active_year = AnneeAcademique::findActive();
         $annee_academique_id = $active_year ? $active_year['id'] : null;
 
         // Default to the first class if none is selected
@@ -42,7 +42,7 @@ class EmploiDuTempsController {
     public function create() {
         $this->checkAccess();
         $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::get('lycee_id') : null;
-        $active_year = AnneeAcademique::getActive();
+        $active_year = AnneeAcademique::findActive();
         if (!$active_year) {
             // Or handle this with a user-friendly error message
             die("Erreur : Aucune année académique active n'a été trouvée.");

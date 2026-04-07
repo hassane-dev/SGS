@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../models/ParamGeneral.php';
 require_once __DIR__ . '/../core/Validator.php';
+require_once __DIR__ . '/../core/View.php';
 
 
 class SettingsController {
@@ -10,7 +11,7 @@ class SettingsController {
     public function index() {
         if (!Auth::can('manage', 'settings')) {
             http_response_code(403);
-            require_once __DIR__ . '/../views/errors/403.php';
+            View::render('errors/403');
             exit();
         }
 

@@ -127,7 +127,7 @@ class Eleve {
         $db = Database::getInstance();
         $placeholders = implode(',', array_fill(0, count($class_ids), '?'));
 
-        $sql = "SELECT e.*, c.niveau as nom_classe
+        $sql = "SELECT e.*, c.niveau
                 FROM eleves e
                 JOIN etudes et ON e.id_eleve = et.eleve_id
                 JOIN classes c ON et.classe_id = c.id_classe
@@ -135,7 +135,7 @@ class Eleve {
                 WHERE et.classe_id IN ($placeholders)
                 AND aa.est_active = 1
                 AND e.statut = 'actif'
-                ORDER BY c.nom_classe, e.nom, e.prenom ASC";
+                ORDER BY c.niveau, e.nom, e.prenom ASC";
 
         $stmt = $db->prepare($sql);
         $stmt->execute($class_ids);
