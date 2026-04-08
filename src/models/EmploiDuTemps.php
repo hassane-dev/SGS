@@ -13,7 +13,7 @@ class EmploiDuTemps {
      */
     public static function getByContext($annee_academique_id, $classe_id = null, $professeur_id = null) {
         $db = Database::getInstance();
-        $sql = "SELECT edt.*, CONCAT(c.niveau, ' ', c.serie, ' ', c.numero) as nom_classe, m.nom_matiere, u.nom as prof_nom, u.prenom as prof_prenom, s.nom_salle
+        $sql = "SELECT edt.*, c.niveau, c.serie, c.numero, m.nom_matiere, u.nom as prof_nom, u.prenom as prof_prenom, s.nom_salle
                 FROM emploi_du_temps edt
                 JOIN classes c ON edt.classe_id = c.id_classe
                 JOIN matieres m ON edt.matiere_id = m.id_matiere

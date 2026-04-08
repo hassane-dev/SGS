@@ -23,7 +23,7 @@
             <div class="col-lg-4">
                 <div class="card">
                     <div class="card-body text-center">
-                        <img src="<?= htmlspecialchars($user['photo'] ?? '/img/default-avatar.png') ?>" alt="Photo de profil" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                        <img src="<?= htmlspecialchars(!empty($user['photo']) ? $user['photo'] : '/assets/img/placeholder-photo.png') ?>" alt="Photo de profil" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
                         <h4 class="mb-1"><?= htmlspecialchars($user['prenom'] . ' ' . $user['nom']) ?></h4>
                         <p class="text-muted mb-3"><?= htmlspecialchars($user['fonction'] ?? 'Fonction non spécifiée') ?></p>
                         <?php if ($user['actif']): ?>
