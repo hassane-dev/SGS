@@ -46,7 +46,7 @@
                                         <?php else: ?>
                                             <?php foreach ($classes as $classe): ?>
                                                 <option value="<?= $classe['id_classe'] ?>" <?= ($view_classe_id == $classe['id_classe']) ? 'selected' : '' ?>>
-                                                    <?= htmlspecialchars($classe['nom_classe']) ?>
+                                                    <?= htmlspecialchars(Classe::getFormattedName($classe)) ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         <?php endif; ?>
@@ -75,6 +75,7 @@
                                                 <td>
                                                     <?php if (isset($row[$day]) && $entry = $row[$day]): ?>
                                                         <div class="alert alert-primary p-2" role="alert">
+                                                            <div class="mb-1"><strong><?= htmlspecialchars(Classe::getFormattedName($entry)) ?></strong></div>
                                                             <strong><?= htmlspecialchars($entry['nom_matiere']) ?></strong><br>
                                                             <small><?= htmlspecialchars($entry['prof_prenom'] . ' ' . $entry['prof_nom']) ?></small><br>
                                                             <em class="text-muted" style="font-size: 0.8em;"><?= htmlspecialchars($entry['nom_salle']) ?></em>

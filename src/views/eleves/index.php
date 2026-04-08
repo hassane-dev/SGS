@@ -23,8 +23,12 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <div class="d-flex justify-content-end">
-                            <a href="/eleves/archives" class="btn btn-secondary me-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="flex-grow-1 me-3">
+                                <input type="text" id="eleveSearch" class="form-control" placeholder="<?= _('Rechercher un élève (nom, email, classe)...') ?>">
+                            </div>
+                            <div class="d-flex">
+                                <a href="/eleves/archives" class="btn btn-secondary me-2">
                                 <?= _('Archives') ?>
                             </a>
                             <a href="/eleves/create" class="btn btn-primary">
@@ -61,7 +65,7 @@
                                                     <?php if (!empty($eleve['photo'])): ?>
                                                         <img src="<?= htmlspecialchars($eleve['photo']) ?>" alt="Photo de l'élève" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
                                                     <?php else: ?>
-                                                        <img src="/assets/img/default-avatar.png" alt="Avatar par défaut" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                                        <img src="/assets/img/placeholder-photo.png" alt="Avatar par défaut" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
                                                     <?php endif; ?>
                                                 </td>
                                                 <td><?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?></td>
@@ -92,5 +96,19 @@
     </div>
 </div>
 <!-- [ Main Content ] end -->
+
+<script>
+document.getElementById('eleveSearch').addEventListener('keyup', function() {
+    let value = this.value.toLowerCase();
+    let rows = document.querySelectorAll('table tbody tr');
+
+    rows.forEach(row => {
+        if (row.cells.length > 1) { // Skip "No students found" row
+            let text = row.innerText.toLowerCase();
+            row.style.display = text.includes(value) ? '' : 'none';
+        }
+    });
+});
+</script>
 
 <?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>

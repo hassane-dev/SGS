@@ -23,7 +23,10 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <div class="d-flex justify-content-end">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="flex-grow-1 me-3">
+                                <input type="text" id="userSearch" class="form-control" placeholder="<?= _('Rechercher un membre du personnel (nom, fonction)...') ?>">
+                            </div>
                             <a href="/users/create" class="btn btn-primary">
                                 <?= _('Ajouter un membre') ?>
                             </a>
@@ -43,6 +46,7 @@
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
+                                        <th><?= _('Photo') ?></th>
                                         <th><?= _('Nom') ?></th>
                                         <th><?= _('Fonction') ?></th>
                                         <th><?= _('Statut') ?></th>
@@ -57,6 +61,13 @@
                                     <?php else: ?>
                                         <?php foreach ($users as $user): ?>
                                             <tr>
+                                                <td>
+                                                    <?php if (!empty($user['photo'])): ?>
+                                                        <img src="<?= htmlspecialchars($user['photo']) ?>" alt="Photo de profil" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                                    <?php else: ?>
+                                                        <img src="/assets/img/placeholder-photo.png" alt="Avatar par défaut" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                                    <?php endif; ?>
+                                                </td>
                                                 <td><?= htmlspecialchars($user['prenom'] . ' ' . $user['nom']) ?></td>
                                                 <td><?= htmlspecialchars($user['nom_role'] ?? 'N/A') ?></td>
                                                 <td>
@@ -90,5 +101,19 @@
     </div>
 </div>
 <!-- [ Main Content ] end -->
+
+<script>
+document.getElementById('userSearch').addEventListener('keyup', function() {
+    let value = this.value.toLowerCase();
+    let rows = document.querySelectorAll('table tbody tr');
+
+    rows.forEach(row => {
+        if (row.cells.length > 1) { // Skip "No user found" row
+            let text = row.innerText.toLowerCase();
+            row.style.display = text.includes(value) ? '' : 'none';
+        }
+    });
+});
+</script>
 
 <?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>
