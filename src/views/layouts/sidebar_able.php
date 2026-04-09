@@ -185,6 +185,13 @@ $navItems = [
         'condition' => Auth::can('edit', 'param_lycee'),
     ],
     [
+        'url' => '/param-general/edit',
+        'icon' => 'ph-duotone ph-wrench',
+        'text' => _('Paramètres Généraux'),
+        'title' => _('Configurer les paramètres globaux de l\'établissement.'),
+        'condition' => Auth::can('edit', 'param_general'),
+    ],
+    [
         'url' => '/param-devoir',
         'icon' => 'ph-duotone ph-sliders-horizontal',
         'text' => _('Paramètres Devoirs'),

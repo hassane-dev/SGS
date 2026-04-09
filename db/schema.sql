@@ -601,7 +601,7 @@ CREATE TABLE `emploi_du_temps` (
   `jour` VARCHAR(20) NOT NULL,          -- ex: 'Lundi'
   `heure_debut` TIME NOT NULL,
   `heure_fin` TIME NOT NULL,
-  `salle_id` INT NOT NULL,
+  `salle_id` INT NULL,
   `annee_academique_id` INT,
   `modifiable` TINYINT(1) DEFAULT 1,
   FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,

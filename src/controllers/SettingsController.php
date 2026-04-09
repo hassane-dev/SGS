@@ -9,7 +9,7 @@ require_once __DIR__ . '/../core/View.php';
 class SettingsController {
 
     public function index() {
-        if (!Auth::can('manage', 'settings')) {
+        if (!Auth::can('edit', 'param_lycee')) {
             http_response_code(403);
             View::render('errors/403');
             exit();
