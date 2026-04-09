@@ -42,7 +42,7 @@
                                     <select id="classe_id" name="classe_id" class="form-select" required>
                                         <option value="">Sélectionner une classe</option>
                                         <?php foreach ($data['classes'] as $classe): ?>
-                                            <option value="<?= $classe['id_classe'] ?>"><?= htmlspecialchars($classe['nom_classe']) ?></option>
+                                            <option value="<?= $classe['id_classe'] ?>"><?= htmlspecialchars(Classe::getFormattedName($classe)) ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>

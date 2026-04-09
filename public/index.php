@@ -156,9 +156,9 @@ $router->register('/eleves/destroy', 'EleveController', 'destroy');
 $router->register('/eleves/assign-class', 'EleveController', 'assignClass');
 $router->register('/eleves/process-assignment', 'EleveController', 'processAssignment');
 
-// Obsolete inscription routes, the flow now starts from EleveController
-// $router->register('/inscriptions/show-form', 'InscriptionController', 'showForm');
-// $router->register('/inscriptions/enroll', 'InscriptionController', 'enroll');
+// Inscriptions / Reinscriptions redirects to student creation flow
+$router->register('/inscriptions', 'EleveController', 'create');
+$router->register('/reinscription', 'EleveController', 'archives');
 
 // Frais (Fee management)
 $router->register('/frais', 'FraisController', 'index');
@@ -270,8 +270,10 @@ $router->register('/modele-bulletin/save', 'ModeleBulletinController', 'save');
 // School Parameters
 $router->register('/param-lycee/edit', 'ParamLyceeController', 'edit');
 $router->register('/param-lycee/update', 'ParamLyceeController', 'update');
+$router->register('/param-devoir', 'ParamDevoirController', 'edit');
 $router->register('/param-devoir/edit', 'ParamDevoirController', 'edit');
 $router->register('/param-devoir/update', 'ParamDevoirController', 'update');
+$router->register('/param-composition', 'ParamCompositionController', 'edit');
 $router->register('/param-composition/edit', 'ParamCompositionController', 'edit');
 $router->register('/param-composition/update', 'ParamCompositionController', 'update');
 

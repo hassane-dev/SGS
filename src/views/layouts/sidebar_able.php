@@ -76,7 +76,7 @@ $navItems = [
         'icon' => 'ph-duotone ph-calendar',
         'text' => _('Emploi du Temps'),
         'title' => _('Configurer et consulter les emplois du temps.'),
-        'condition' => Auth::can('edit', 'class'), // Reuse existing permission
+        'condition' => Auth::can('manage', 'timetable'),
     ],
     [
         'url' => '/cahier-texte',
