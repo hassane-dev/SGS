@@ -52,7 +52,7 @@
                 <select name="lycee_id" id="lycee_id" class="form-select">
                     <option value=""><?= _('-- Sélectionner un lycée --') ?></option>
                     <?php foreach($lycees as $lycee): ?>
-                        <option value="<?= $lycee['id_lycee'] ?>" <?= (isset($contrat['lycee_id']) && $contrat['lycee_id'] == $lycee['id_lycee']) ? 'selected' : '' ?>>
+                        <option value="<?= $lycee['id'] ?>" <?= (isset($contrat['lycee_id']) && $contrat['lycee_id'] == $lycee['id']) ? 'selected' : '' ?>>
                             <?= htmlspecialchars($lycee['nom_lycee']) ?>
                         </option>
                     <?php endforeach; ?>
