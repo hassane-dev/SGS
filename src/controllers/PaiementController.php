@@ -159,7 +159,7 @@ class PaiementController {
                 // Notifier l'admin local que l'inscription est finalisée
                 $eleve_nom_complet = $eleve['prenom'] . ' ' . $eleve['nom'];
                 $message = "Paiement initial validé et inscription activée pour {$eleve_nom_complet}.";
-                $link = "/eleves/details/{$eleveId}"; // Lien vers le profil de l'élève
+                $link = "/eleves/details?id={$eleveId}"; // Lien vers le profil de l'élève
                 Notification::notifyRole('admin_local', Auth::getLyceeId(), $message, $link);
             }
 

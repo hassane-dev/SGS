@@ -8,8 +8,13 @@
                 <div class="row align-items-center">
                     <div class="col-md-12">
                         <div class="page-header-title">
-                            <h2 class="mb-0"><?= _('Ajouter un type de contrat') ?></h2>
+                            <h5 class="m-b-10"><?= _('Ajouter un type de contrat') ?></h5>
                         </div>
+                        <ul class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/home"><?= _('Tableau de Bord') ?></a></li>
+                            <li class="breadcrumb-item"><a href="/contrats"><?= _('Types de Contrat') ?></a></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= _('Ajouter') ?></li>
+                        </ul>
                     </div>
                 </div>
             </div>

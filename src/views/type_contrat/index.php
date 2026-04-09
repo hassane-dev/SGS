@@ -8,8 +8,12 @@
                 <div class="row align-items-center">
                     <div class="col-md-12">
                         <div class="page-header-title">
-                            <h2 class="mb-0"><?= _('Gestion des Types de Contrat') ?></h2>
+                            <h5 class="m-b-10"><?= _('Gestion des Types de Contrat') ?></h5>
                         </div>
+                        <ul class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/home"><?= _('Tableau de Bord') ?></a></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= _('Types de Contrat') ?></li>
+                        </ul>
                     </div>
                 </div>
             </div>

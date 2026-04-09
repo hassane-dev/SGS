@@ -17,29 +17,29 @@
                     Ces paramètres s'appliquent à toute l'école pour l'année académique active.
                 </div>
                 <div class="row">
-                    <div class="col-md-6 form-group">
-                        <label for="nombreCompositionParSequence">Nombre de compositions autorisées par séquence</label>
-                        <input type="number" id="nombreCompositionParSequence" name="nombreCompositionParSequence" class="form-control" value="<?= htmlspecialchars($params['nombreCompositionParSequence']) ?>">
+                    <div class="col-md-6 form-group mb-3">
+                        <label for="nombre_composition_par_sequence">Nombre de compositions autorisées par séquence</label>
+                        <input type="number" id="nombre_composition_par_sequence" name="nombre_composition_par_sequence" class="form-control" value="<?= htmlspecialchars($params['nombre_composition_par_sequence'] ?? '') ?>">
                     </div>
-                    <div class="col-md-6 form-group">
-                        <label for="noteMaximale">Note maximale pour une composition</label>
-                        <input type="number" step="0.25" id="noteMaximale" name="noteMaximale" class="form-control" value="<?= htmlspecialchars($params['noteMaximale']) ?>">
+                    <div class="col-md-6 form-group mb-3">
+                        <label for="note_maximale">Note maximale pour une composition</label>
+                        <input type="number" step="0.25" id="note_maximale" name="note_maximale" class="form-control" value="<?= htmlspecialchars($params['note_maximale'] ?? '') ?>">
                     </div>
                 </div>
                 <hr>
                 <div class="row">
-                    <div class="col-md-6 form-group">
-                        <label for="dateDebutInsertion">Date d'ouverture globale de la saisie</label>
-                        <input type="datetime-local" id="dateDebutInsertion" name="dateDebutInsertion" class="form-control" value="<?= !empty($params['dateDebutInsertion']) ? (new DateTime($params['dateDebutInsertion']))->format('Y-m-d\TH:i') : '' ?>">
+                    <div class="col-md-6 form-group mb-3">
+                        <label for="date_debut_insertion">Date d'ouverture globale de la saisie</label>
+                        <input type="datetime-local" id="date_debut_insertion" name="date_debut_insertion" class="form-control" value="<?= !empty($params['date_debut_insertion']) ? (new DateTime($params['date_debut_insertion']))->format('Y-m-d\TH:i') : '' ?>">
                     </div>
-                    <div class="col-md-6 form-group">
-                        <label for="dateFinInsertion">Date de fermeture globale de la saisie</label>
-                        <input type="datetime-local" id="dateFinInsertion" name="dateFinInsertion" class="form-control" value="<?= !empty($params['dateFinInsertion']) ? (new DateTime($params['dateFinInsertion']))->format('Y-m-d\TH:i') : '' ?>">
+                    <div class="col-md-6 form-group mb-3">
+                        <label for="date_fin_insertion">Date de fermeture globale de la saisie</label>
+                        <input type="datetime-local" id="date_fin_insertion" name="date_fin_insertion" class="form-control" value="<?= !empty($params['date_fin_insertion']) ? (new DateTime($params['date_fin_insertion']))->format('Y-m-d\TH:i') : '' ?>">
                     </div>
                 </div>
-                <div class="form-group form-check">
-                    <input type="checkbox" id="deblocageUrgence" name="deblocageUrgence" class="form-check-input" value="1" <?= $params['deblocageUrgence'] ? 'checked' : '' ?>>
-                    <label for="deblocageUrgence" class="form-check-label">Débloquer la saisie en urgence</label>
+                <div class="form-group form-check mb-3">
+                    <input type="checkbox" id="deblocage_urgence" name="deblocage_urgence" class="form-check-input" value="1" <?= ($params['deblocage_urgence'] ?? 0) ? 'checked' : '' ?>>
+                    <label for="deblocage_urgence" class="form-check-label">Débloquer la saisie en urgence</label>
                     <small class="form-text text-muted">Cocher cette case ignore les dates de restriction pour tous.</small>
                 </div>
             </div>
