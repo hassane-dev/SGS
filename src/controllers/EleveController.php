@@ -59,15 +59,21 @@ class EleveController {
         }
 
         $data = Validator::sanitize($_POST);
+
+        // Handle photo upload BEFORE database operation
+        if (isset($_FILES['photo']) && $_FILES['photo']['error'] == UPLOAD_ERR_OK) {
+            $photoPath = $this->handlePhotoUpload($_FILES['photo']);
+            if ($photoPath) {
+                $data['photo'] = $photoPath;
+            }
+        }
+
         $db = Database::getInstance();
 
         try {
             $db->beginTransaction();
 
-            // 1. Handle photo upload
-            if (isset($_FILES['photo']) && $_FILES['photo']['error'] == UPLOAD_ERR_OK) {
-                $data['photo'] = $this->handlePhotoUpload($_FILES['photo']);
-            }
+            // 1. Photo is already in $data
 
             // 2. Save student data
             if (!Auth::can('view_all_lycees', 'lycee')) {

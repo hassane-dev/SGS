@@ -68,9 +68,11 @@ class UserController {
                 $data['lycee_id'] = Auth::get('lycee_id');
             }
 
-            $photoPath = $this->handlePhotoUpload($_FILES['photo'] ?? null);
-            if ($photoPath) {
-                $data['photo'] = $photoPath;
+            if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+                $photoPath = $this->handlePhotoUpload($_FILES['photo']);
+                if ($photoPath) {
+                    $data['photo'] = $photoPath;
+                }
             }
 
             try {
@@ -161,15 +163,15 @@ class UserController {
             }
 
             if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
-                $currentUser = User::findById($data['id_user']);
-                if ($currentUser && !empty($currentUser['photo'])) {
-                    $oldPhotoPath = __DIR__ . '/../../public' . $currentUser['photo'];
-                    if (file_exists($oldPhotoPath)) {
-                        unlink($oldPhotoPath);
-                    }
-                }
                 $photoPath = $this->handlePhotoUpload($_FILES['photo']);
                 if ($photoPath) {
+                    $currentUser = User::findById($data['id_user']);
+                    if ($currentUser && !empty($currentUser['photo'])) {
+                        $oldPhotoPath = __DIR__ . '/../../public' . $currentUser['photo'];
+                        if (file_exists($oldPhotoPath)) {
+                            unlink($oldPhotoPath);
+                        }
+                    }
                     $data['photo'] = $photoPath;
                 }
             }
