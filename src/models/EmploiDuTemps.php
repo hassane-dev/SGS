@@ -18,7 +18,7 @@ class EmploiDuTemps {
                 JOIN classes c ON edt.classe_id = c.id_classe
                 JOIN matieres m ON edt.matiere_id = m.id_matiere
                 JOIN utilisateurs u ON edt.professeur_id = u.id_user
-                JOIN salles s ON edt.salle_id = s.id_salle
+                LEFT JOIN salles s ON edt.salle_id = s.id_salle
                 WHERE edt.annee_academique_id = :annee_academique_id";
 
         $params = ['annee_academique_id' => $annee_academique_id];
@@ -90,9 +90,10 @@ class EmploiDuTemps {
             return false; // Conflict detected
         }
 
+        $lycee_id = Auth::getLyceeId();
         $sql = $isUpdate
-            ? "UPDATE emploi_du_temps SET classe_id = :classe_id, matiere_id = :matiere_id, professeur_id = :professeur_id, jour = :jour, heure_debut = :heure_debut, heure_fin = :heure_fin, salle_id = :salle_id, annee_academique_id = :annee_academique_id WHERE id = :id"
-            : "INSERT INTO emploi_du_temps (classe_id, matiere_id, professeur_id, jour, heure_debut, heure_fin, salle_id, annee_academique_id) VALUES (:classe_id, :matiere_id, :professeur_id, :jour, :heure_debut, :heure_fin, :salle_id, :annee_academique_id)";
+            ? "UPDATE emploi_du_temps SET classe_id = :classe_id, matiere_id = :matiere_id, professeur_id = :professeur_id, lycee_id = :lycee_id, jour = :jour, heure_debut = :heure_debut, heure_fin = :heure_fin, salle_id = :salle_id, annee_academique_id = :annee_academique_id WHERE id = :id"
+            : "INSERT INTO emploi_du_temps (classe_id, matiere_id, professeur_id, lycee_id, jour, heure_debut, heure_fin, salle_id, annee_academique_id) VALUES (:classe_id, :matiere_id, :professeur_id, :lycee_id, :jour, :heure_debut, :heure_fin, :salle_id, :annee_academique_id)";
 
         $db = Database::getInstance();
         $stmt = $db->prepare($sql);
@@ -101,10 +102,11 @@ class EmploiDuTemps {
             'classe_id' => $data['classe_id'],
             'matiere_id' => $data['matiere_id'],
             'professeur_id' => $data['professeur_id'],
+            'lycee_id' => $lycee_id,
             'jour' => $data['jour'],
             'heure_debut' => $data['heure_debut'],
             'heure_fin' => $data['heure_fin'],
-            'salle_id' => $data['salle_id'],
+            'salle_id' => !empty($data['salle_id']) ? $data['salle_id'] : null,
             'annee_academique_id' => $data['annee_academique_id'],
         ];
 

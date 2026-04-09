@@ -78,7 +78,7 @@
                                                             <div class="mb-1"><strong><?= htmlspecialchars(Classe::getFormattedName($entry)) ?></strong></div>
                                                             <strong><?= htmlspecialchars($entry['nom_matiere']) ?></strong><br>
                                                             <small><?= htmlspecialchars($entry['prof_prenom'] . ' ' . $entry['prof_nom']) ?></small><br>
-                                                            <em class="text-muted" style="font-size: 0.8em;"><?= htmlspecialchars($entry['nom_salle']) ?></em>
+                                                            <em class="text-muted" style="font-size: 0.8em;"><?= htmlspecialchars($entry['nom_salle'] ?? '') ?></em>
                                                             <form action="/emploi-du-temps/destroy" method="POST" onsubmit="return confirm('<?= _('Are you sure?') ?>');" class="d-inline">
                                                                 <input type="hidden" name="id" value="<?= $entry['id'] ?>">
                                                                 <button type="submit" class="btn btn-danger btn-sm p-0" style="line-height: 1; width: 20px; height: 20px; float: right;">&times;</button>

@@ -68,8 +68,8 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="salle_id" class="form-label">Salle</label>
-                                    <select id="salle_id" name="salle_id" class="form-select" required>
-                                        <option value="">Sélectionner une salle</option>
+                                    <select id="salle_id" name="salle_id" class="form-select">
+                                        <option value="">Sélectionner une salle (optionnel)</option>
                                         <?php foreach ($data['salles'] as $salle): ?>
                                             <option value="<?= $salle['id_salle'] ?>"><?= htmlspecialchars($salle['nom_salle']) ?></option>
                                         <?php endforeach; ?>

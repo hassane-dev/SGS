@@ -158,6 +158,7 @@ $router->register('/eleves/process-assignment', 'EleveController', 'processAssig
 
 // Inscriptions / Reinscriptions redirects to student creation flow
 $router->register('/inscriptions', 'EleveController', 'create');
+$router->register('/reinscriptions', 'EleveController', 'archives');
 $router->register('/reinscription', 'EleveController', 'archives');
 
 // Frais (Fee management)

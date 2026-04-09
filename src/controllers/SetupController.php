@@ -92,7 +92,7 @@ class SetupController {
 
             // 3. Create a specific admin role for this Lycee
             Role::save([
-                'nom_role' => 'Admin - ' . $data['nom_lycee'],
+                'nom_role' => 'admin_local',
                 'lycee_id' => $lycee_id
             ]);
             $role_id = $db->lastInsertId();

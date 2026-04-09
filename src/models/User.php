@@ -93,7 +93,7 @@ class User {
 
     public static function findAll($lycee_id = null) {
         $db = Database::getInstance();
-        $sql = "SELECT u.id_user, u.nom, u.prenom, u.actif, r.nom_role
+        $sql = "SELECT u.id_user, u.nom, u.prenom, u.actif, u.photo, r.nom_role
                 FROM utilisateurs u
                 LEFT JOIN roles r ON u.role_id = r.id_role";
         if ($lycee_id !== null) {

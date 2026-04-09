@@ -10,8 +10,13 @@
                 <div class="row align-items-center">
                     <div class="col-md-12">
                         <div class="page-header-title">
-                            <h2 class="mb-0"><?= _('Détail du membre du personnel') ?></h2>
+                            <h5 class="m-b-10"><?= _('Détail du membre du personnel') ?></h5>
                         </div>
+                        <ul class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/home"><?= _('Tableau de Bord') ?></a></li>
+                            <li class="breadcrumb-item"><a href="/users"><?= _('Personnel') ?></a></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= _('Détails') ?></li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -23,7 +28,7 @@
             <div class="col-lg-4">
                 <div class="card">
                     <div class="card-body text-center">
-                        <img src="<?= htmlspecialchars(!empty($user['photo']) ? $user['photo'] : '/assets/img/placeholder-photo.png') ?>" alt="Photo de profil" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                        <img src="<?= !empty($user['photo']) ? htmlspecialchars($user['photo']) : '/assets/img/placeholder-photo.png' ?>" alt="Photo de profil" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
                         <h4 class="mb-1"><?= htmlspecialchars($user['prenom'] . ' ' . $user['nom']) ?></h4>
                         <p class="text-muted mb-3"><?= htmlspecialchars($user['fonction'] ?? 'Fonction non spécifiée') ?></p>
                         <?php if ($user['actif']): ?>
