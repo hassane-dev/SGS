@@ -185,6 +185,7 @@ $router->register('/evaluations/select_class', 'EvaluationController', 'selectCl
 $router->register('/evaluations/select_evaluation', 'EvaluationController', 'selectEvaluation');
 $router->register('/evaluations/form', 'EvaluationController', 'showForm');
 $router->register('/evaluations/save', 'EvaluationController', 'save');
+$router->register('/notes/saisir/{classe_id}/{matiere_id}', 'EvaluationController', 'directSaisie');
 
 // --- Paiements (Nouveau Module Unifié) ---
 $router->register('/paiements/show/{eleveId}', 'PaiementController', 'show');
@@ -257,6 +258,10 @@ $router->register('/contrats/update', 'TypeContratController', 'update');
 $router->register('/contrats/destroy', 'TypeContratController', 'destroy');
 $router->register('/emploi-du-temps/store', 'EmploiDuTempsController', 'store');
 $router->register('/emploi-du-temps/destroy', 'EmploiDuTempsController', 'destroy');
+
+// Presence
+$router->register('/presences/gerer/{classe_id}', 'PresenceController', 'gerer');
+$router->register('/presences/store', 'PresenceController', 'store');
 
 // Bulletins (Report Cards)
 $router->register('/bulletins', 'BulletinController', 'index');

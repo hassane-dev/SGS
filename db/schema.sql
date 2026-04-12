@@ -5,7 +5,7 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- Drop tables if they exist to ensure a clean slate on execution
-DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `parametres_generaux`, `annees_academiques`, `personnel_assignments`, `param_lycee`, `param_general`, `param_devoir`, `param_composition`, `bulletins`, `parametres_evaluations`;
+DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `parametres_generaux`, `annees_academiques`, `personnel_assignments`, `param_lycee`, `param_general`, `param_devoir`, `param_composition`, `bulletins`, `parametres_evaluations`, `classe_parametres`, `inscriptions`, `mensualites`, `frais`, `modele_carte`, `modele_bulletin`, `notifications`, `evaluations`, `presences`, `horaire_enseignant`, `sequences`;
 
 -- =================================================================
 -- General and Core Tables
@@ -613,6 +613,47 @@ CREATE TABLE `emploi_du_temps` (
 
 ALTER TABLE `emploi_du_temps` ADD COLUMN `lycee_id` INT NOT NULL AFTER `professeur_id`;
 ALTER TABLE `emploi_du_temps` ADD FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE;
+
+-- Table for student attendance
+CREATE TABLE `presences` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `eleve_id` INT NOT NULL,
+    `classe_id` INT NOT NULL,
+    `enseignant_id` INT NOT NULL,
+    `annee_academique_id` INT NOT NULL,
+    `lycee_id` INT NOT NULL,
+    `date_presence` DATE NOT NULL,
+    `statut` ENUM('present', 'absent', 'retard', 'justifie') NOT NULL DEFAULT 'present',
+    `commentaire` TEXT,
+    `cree_le` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
+    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
+    FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
+    UNIQUE KEY `unique_presence_day` (`eleve_id`, `date_presence`)
+);
+
+-- Table for evaluation parameters (when can teachers enter grades)
+CREATE TABLE `parametres_evaluations` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `lycee_id` INT NOT NULL,
+    `classe_id` INT NOT NULL,
+    `matiere_id` INT NOT NULL,
+    `sequence_id` INT NOT NULL,
+    `enseignant_id` INT, -- Optional: if NULL, all teachers for this class/subject can enter
+    `annee_academique_id` INT NOT NULL,
+    `date_ouverture_saisie` DATETIME NOT NULL,
+    `date_fermeture_saisie` DATETIME NOT NULL,
+    `commentaire` TEXT,
+    FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
+    FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
+    FOREIGN KEY (`sequence_id`) REFERENCES `sequences`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
+    UNIQUE KEY `unique_param_eval` (`classe_id`, `matiere_id`, `sequence_id`, `annee_academique_id`)
+);
 
 -- Table for grades (unified for homework and exams)
 CREATE TABLE `evaluations` (
