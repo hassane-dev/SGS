@@ -295,7 +295,10 @@ $router->register('/salaires/fiche', 'SalaireController', 'genererFiche');
 $router->register('/cahier-texte', 'CahierTexteController', 'index');
 $router->register('/cahier-texte/create', 'CahierTexteController', 'create');
 $router->register('/cahier-texte/store', 'CahierTexteController', 'store');
+$router->register('/cahier-texte/edit', 'CahierTexteController', 'edit');
+$router->register('/cahier-texte/update', 'CahierTexteController', 'update');
 $router->register('/cahier-texte/destroy', 'CahierTexteController', 'destroy');
+$router->register('/cahier-texte/{classe_id}/{matiere_id}', 'CahierTexteController', 'directCreate');
 
 
 // Get the requested URI

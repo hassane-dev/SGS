@@ -33,7 +33,7 @@
                     <option value=""><?= _('Toutes les classes') ?></option>
                     <?php foreach ($classes as $classe): ?>
                          <option value="<?= $classe['id_classe'] ?>" <?= ($filters['classe_id_filter'] == $classe['id_classe']) ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($classe['nom_classe'] . ' ' . $classe['serie']) ?>
+                            <?= htmlspecialchars(Classe::getFormattedName($classe)) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -80,7 +80,7 @@
                             <?php if ($is_admin): ?>
                                 <td><?= htmlspecialchars($entry['prenom_personnel'] . ' ' . $entry['nom_personnel']) ?></td>
                             <?php endif; ?>
-                            <td><?= htmlspecialchars($entry['nom_classe'] . ' ' . $entry['serie']) ?></td>
+                            <td><?= htmlspecialchars(Classe::getFormattedName($entry)) ?></td>
                             <td><?= htmlspecialchars($entry['nom_matiere']) ?></td>
                             <td class="text-truncate" style="max-width: 300px;"><?= htmlspecialchars($entry['contenu_cours']) ?></td>
                             <td class="text-end">

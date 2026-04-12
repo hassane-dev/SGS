@@ -62,7 +62,9 @@ class CahierTexteController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
             $data['personnel_id'] = Auth::get('id');
-            $data['ecole_id'] = Auth::get('lycee_id');
+            $data['lycee_id'] = Auth::get('lycee_id');
+            $active_year = AnneeAcademique::findActive();
+            $data['annee_id'] = $active_year['id'] ?? null;
 
             // Split the combined class_subject value
             if (!empty($data['class_subject'])) {
@@ -70,7 +72,11 @@ class CahierTexteController {
                 unset($data['class_subject']);
             }
 
-            CahierTexte::save($data);
+            try {
+                CahierTexte::save($data);
+            } catch (Exception $e) {
+                error_log("Error saving CahierTexte: " . $e->getMessage());
+            }
         }
         header('Location: /cahier-texte');
         exit();
@@ -111,7 +117,8 @@ class CahierTexteController {
 
             // Preserve original author and school
             $data['personnel_id'] = $entry['personnel_id'];
-            $data['ecole_id'] = $entry['ecole_id'];
+            $data['lycee_id'] = $entry['lycee_id'];
+            $data['annee_id'] = $entry['annee_id'];
 
             // Split the combined class_subject value
             if (!empty($data['class_subject'])) {
@@ -140,6 +147,19 @@ class CahierTexteController {
         }
         header('Location: /cahier-texte');
         exit();
+    }
+
+    public function directCreate($classe_id, $matiere_id) {
+        $this->checkAccess();
+        $professeur_id = Auth::get('id');
+        $assignments = User::getTeacherAssignments($professeur_id);
+
+        $entry = [
+            'classe_id' => (int)$classe_id,
+            'matiere_id' => (int)$matiere_id
+        ];
+        $is_edit = false;
+        require_once __DIR__ . '/../views/cahier_texte/create.php';
     }
 }
 ?>

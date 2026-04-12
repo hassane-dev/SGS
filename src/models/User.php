@@ -238,12 +238,12 @@ class User {
     public static function getTeacherAssignments($teacher_id) {
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            SELECT c.id_classe, c.nom_classe, c.serie, m.id_matiere, m.nom_matiere
+            SELECT c.id_classe, c.niveau, c.serie, c.numero, m.id_matiere, m.nom_matiere
             FROM enseignant_matieres em
             JOIN classes c ON em.classe_id = c.id_classe
             JOIN matieres m ON em.matiere_id = m.id_matiere
             WHERE em.enseignant_id = :teacher_id AND em.actif = 1
-            ORDER BY c.nom_classe, m.nom_matiere
+            ORDER BY c.niveau, c.serie, c.numero, m.nom_matiere
         ");
         $stmt->execute(['teacher_id' => $teacher_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
