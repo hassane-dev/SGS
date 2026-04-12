@@ -84,6 +84,8 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (64, 'cahier_texte', 'create_own', 'Can fill their own digital logbook entries'),
 (65, 'cahier_texte', 'edit_own', 'Can edit their own digital logbook entries'),
 (66, 'evaluation', 'manage_settings', 'Can configure evaluation (grading) periods'),
+(67, 'presence', 'manage', 'Can manage student attendance'),
+(68, 'presence', 'view', 'Can view student attendance'),
 
 -- Finance
 (70, 'paiement', 'manage', 'Can manage and validate student payments'),
@@ -124,7 +126,7 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (3, 48), -- Annees Academiques
 (3, 49), -- Sequences
 -- Students & Academics
-(3, 50), (3, 51), (3, 52), (3, 53), (3, 54), (3, 55), (3, 56), (3, 61), (3, 62), (3, 63), (3, 66),
+(3, 50), (3, 51), (3, 52), (3, 53), (3, 54), (3, 55), (3, 56), (3, 61), (3, 62), (3, 63), (3, 66), (3, 67), (3, 68),
 -- Finance & Settings
 (3, 71), (3, 72), (3, 73), (3, 75), (3, 76), (3, 77),
 (3, 81), (3, 82), (3, 83), (3, 84),
@@ -133,15 +135,15 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 
 -- Censeur (Academic Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(4, 1), (4, 40), (4, 51), (4, 61), (4, 62), (4, 73), (4, 75), (4, 76);
+(4, 1), (4, 40), (4, 51), (4, 61), (4, 62), (4, 73), (4, 75), (4, 76), (4, 67), (4, 68);
 
 -- Surveillant (Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(5, 1), (5, 11), (5, 12), (5, 73);
+(5, 1), (5, 11), (5, 12), (5, 73), (5, 67), (5, 68);
 
 -- Enseignant (Teacher)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(6, 1), (6, 60), (6, 64), (6, 65);
+(6, 1), (6, 60), (6, 61), (6, 64), (6, 65), (6, 67), (6, 68);
 
 -- Comptable (Accountant)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES

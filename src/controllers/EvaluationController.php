@@ -140,5 +140,35 @@ class EvaluationController {
         header('Location: /evaluations/select_class?success=grades_saved');
         exit();
     }
+
+    public function directSaisie($classe_id, $matiere_id) {
+        $this->checkAccess();
+
+        // Security check: ensure teacher is assigned to this class/subject
+        $enseignant_id = Auth::getUserId();
+        $subjects_taught = User::findSubjectsTaughtByTeacher($enseignant_id);
+        $is_authorized = false;
+        foreach($subjects_taught as $sub) {
+            if($sub['classe_id'] == $classe_id && $sub['matiere_id'] == $matiere_id) {
+                $is_authorized = true;
+                break;
+            }
+        }
+
+        if(!$is_authorized && !Auth::can('view_all', 'note')) {
+            http_response_code(403);
+            View::render('errors/403');
+            exit();
+        }
+
+        $available_evaluations = Evaluation::getAvailableEvaluations($classe_id, $matiere_id);
+
+        View::render('evaluations/select_evaluation', [
+            'classe' => Classe::findById($classe_id),
+            'matiere' => Matiere::findById($matiere_id),
+            'evaluations' => $available_evaluations,
+            'title' => 'Saisie des Notes - Étape 2/2'
+        ]);
+    }
 }
 ?>

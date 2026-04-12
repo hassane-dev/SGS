@@ -150,4 +150,15 @@ class Eleve {
         $stmt = $db->prepare("UPDATE eleves SET statut = :statut WHERE id_eleve = :id");
         return $stmt->execute(['id' => $id, 'statut' => $status]);
     }
+
+    public static function findByClass($classe_id) {
+        $db = Database::getInstance();
+        $sql = "SELECT e.*
+                FROM eleves e
+                JOIN etudes et ON e.id_eleve = et.eleve_id
+                WHERE et.classe_id = :classe_id AND et.actif = 1";
+        $stmt = $db->prepare($sql);
+        $stmt->execute(['classe_id' => $classe_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

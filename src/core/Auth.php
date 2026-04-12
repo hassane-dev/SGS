@@ -115,5 +115,10 @@ class Auth {
         self::startSession();
         return $_SESSION['user']['lycee_id'] ?? null;
     }
+
+    public static function getUserId() {
+        self::startSession();
+        return $_SESSION['user']['id'] ?? null;
+    }
 }
 ?>
