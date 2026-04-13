@@ -76,7 +76,7 @@ class EleveController {
             // 1. Photo is already in $data
 
             // 2. Save student data
-            if (!Auth::can('view_all_lycees', 'lycee')) {
+            if (empty($data['lycee_id'])) {
                 $data['lycee_id'] = Auth::get('lycee_id');
             }
             Eleve::save($data);
@@ -121,8 +121,17 @@ class EleveController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
             if (isset($_FILES['photo']) && $_FILES['photo']['error'] == UPLOAD_ERR_OK) {
-                $data['photo'] = $this->handlePhotoUpload($_FILES['photo']);
+                $photoPath = $this->handlePhotoUpload($_FILES['photo']);
+                if ($photoPath) {
+                    $data['photo'] = $photoPath;
+                }
             }
+
+            if (empty($data['lycee_id'])) {
+                $eleve = Eleve::findById($data['id_eleve']);
+                $data['lycee_id'] = $eleve['lycee_id'] ?? Auth::get('lycee_id');
+            }
+
             Eleve::save($data);
         }
         header('Location: /eleves');
@@ -162,19 +171,38 @@ class EleveController {
 
     private function handlePhotoUpload($file) {
         if ($file['error'] !== UPLOAD_ERR_OK) {
+            if ($file['error'] !== UPLOAD_ERR_NO_FILE) {
+                error_log("Photo upload error for student: " . $file['error']);
+            }
             return null;
         }
 
         $upload_path = __DIR__ . '/../../public' . self::UPLOAD_DIR;
         if (!is_dir($upload_path)) {
-            mkdir($upload_path, 0755, true);
+            if (!mkdir($upload_path, 0755, true)) {
+                error_log("Failed to create student upload directory: " . $upload_path);
+                return null;
+            }
         }
 
-        $filename = uniqid() . '-' . basename($file['name']);
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $fileInfo = finfo_open(FILEINFO_MIME_TYPE);
+        $detectedType = finfo_file($fileInfo, $file['tmp_name']);
+        finfo_close($fileInfo);
+
+        if (!in_array($detectedType, $allowedTypes) || $file['size'] > 5000000) { // 5MB limit
+            error_log("Invalid student photo file type or size. Type: " . $detectedType . ", Size: " . $file['size']);
+            return null;
+        }
+
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = uniqid() . '.' . $extension;
         $target_path = $upload_path . $filename;
 
         if (move_uploaded_file($file['tmp_name'], $target_path)) {
             return self::UPLOAD_DIR . $filename;
+        } else {
+            error_log("Failed to move student uploaded file to: " . $target_path);
         }
 
         return null;

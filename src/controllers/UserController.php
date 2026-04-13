@@ -20,20 +20,33 @@ class UserController {
         if (isset($file) && $file['error'] === UPLOAD_ERR_OK) {
             $uploadDir = __DIR__ . '/../../public/uploads/photos/';
             if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
+                if (!mkdir($uploadDir, 0755, true)) {
+                    error_log("Failed to create upload directory: " . $uploadDir);
+                    return null;
+                }
             }
 
-            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-            if (!in_array($file['type'], $allowedTypes) || $file['size'] > 5000000) { // 5MB limit
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            $fileInfo = finfo_open(FILEINFO_MIME_TYPE);
+            $detectedType = finfo_file($fileInfo, $file['tmp_name']);
+            finfo_close($fileInfo);
+
+            if (!in_array($detectedType, $allowedTypes) || $file['size'] > 5000000) { // 5MB limit
+                error_log("Invalid file type or size. Type: " . $detectedType . ", Size: " . $file['size']);
                 return null;
             }
 
-            $fileName = uniqid() . '-' . basename($file['name']);
+            $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $fileName = uniqid() . '.' . $extension;
             $targetFilePath = $uploadDir . $fileName;
 
             if (move_uploaded_file($file['tmp_name'], $targetFilePath)) {
                 return '/uploads/photos/' . $fileName; // Return path relative to public dir
+            } else {
+                error_log("Failed to move uploaded file to: " . $targetFilePath);
             }
+        } elseif (isset($file) && $file['error'] !== UPLOAD_ERR_NO_FILE) {
+            error_log("Photo upload error: " . $file['error']);
         }
         return null;
     }
