@@ -169,4 +169,10 @@ INSERT INTO `type_contrat` (`libelle`, `description`, `type_paiement`, `prise_en
 ('Fonctionnaire', 'Employé de la fonction publique', 'fixe', 'Etat', NULL),
 ('Contractuel', 'Employé sous contrat à durée déterminée ou indéterminée avec l''école', 'fixe', 'Ecole', NULL),
 ('Vacataire', 'Payé à l''heure pour des missions ponctuelles', 'a_l_heure', 'Ecole', NULL),
-('Stagiaire', 'En stage au sein de l''établissement', 'aucun', 'Ecole', NULL);
+('Stagiaire', 'En stage au sein de l''établissement', 'aucun', 'Ecole', NULL);INSERT INTO `param_lycee` (`nom_lycee`, `type_lycee`) VALUES ('Lycée de Test', 'public');
+SET @lycee_id = LAST_INSERT_ID();
+
+INSERT INTO `annees_academiques` (`libelle`, `date_debut`, `date_fin`, `est_active`) VALUES ('2023-2024', '2023-09-01', '2024-06-30', 1);
+
+INSERT INTO `utilisateurs` (`nom`, `prenom`, `email`, `mot_de_passe`, `role_id`, `lycee_id`)
+VALUES ('Admin', 'Test', 'admin@test.com', '$2y0$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1, @lycee_id);
