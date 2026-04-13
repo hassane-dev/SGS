@@ -4,17 +4,17 @@ require_once __DIR__ . '/../config/database.php';
 
 class CahierTexte {
 
-    public static function findAllByPersonnel($personnel_id, $ecole_id, $filters = []) {
+    public static function findAllByPersonnel($personnel_id, $lycee_id, $filters = []) {
         $db = Database::getInstance();
         $sql = "
-            SELECT ct.*, c.nom_classe, c.serie, m.nom_matiere, u.nom as nom_personnel, u.prenom as prenom_personnel
+            SELECT ct.*, c.niveau, c.serie, c.numero, m.nom_matiere, u.nom as nom_personnel, u.prenom as prenom_personnel
             FROM cahier_texte ct
             LEFT JOIN classes c ON ct.classe_id = c.id_classe
             LEFT JOIN matieres m ON ct.matiere_id = m.id_matiere
             LEFT JOIN utilisateurs u ON ct.personnel_id = u.id_user
-            WHERE ct.ecole_id = :ecole_id
+            WHERE ct.lycee_id = :lycee_id
         ";
-        $params = ['ecole_id' => $ecole_id];
+        $params = ['lycee_id' => $lycee_id];
 
         if ($personnel_id !== null) {
             $sql .= " AND ct.personnel_id = :personnel_id";
@@ -58,15 +58,15 @@ class CahierTexte {
                         personnel_id = :personnel_id, classe_id = :classe_id, matiere_id = :matiere_id,
                         date_cours = :date_cours, heure_debut = :heure_debut, heure_fin = :heure_fin,
                         contenu_cours = :contenu_cours, travail_donne = :travail_donne,
-                        observation = :observation, annee_id = :annee_id, ecole_id = :ecole_id
+                        observation = :observation, annee_id = :annee_id, lycee_id = :lycee_id
                     WHERE cahier_id = :cahier_id";
         } else {
             $sql = "INSERT INTO cahier_texte (
                         personnel_id, classe_id, matiere_id, date_cours, heure_debut, heure_fin,
-                        contenu_cours, travail_donne, observation, annee_id, ecole_id
+                        contenu_cours, travail_donne, observation, annee_id, lycee_id
                     ) VALUES (
                         :personnel_id, :classe_id, :matiere_id, :date_cours, :heure_debut, :heure_fin,
-                        :contenu_cours, :travail_donne, :observation, :annee_id, :ecole_id
+                        :contenu_cours, :travail_donne, :observation, :annee_id, :lycee_id
                     )";
         }
 
@@ -77,13 +77,13 @@ class CahierTexte {
             'classe_id' => $data['classe_id'],
             'matiere_id' => $data['matiere_id'],
             'date_cours' => $data['date_cours'],
-            'heure_debut' => $data['heure_debut'] ?? null,
-            'heure_fin' => $data['heure_fin'] ?? null,
+            'heure_debut' => !empty($data['heure_debut']) ? $data['heure_debut'] : null,
+            'heure_fin' => !empty($data['heure_fin']) ? $data['heure_fin'] : null,
             'contenu_cours' => $data['contenu_cours'] ?? null,
             'travail_donne' => $data['travail_donne'] ?? null,
             'observation' => $data['observation'] ?? null,
             'annee_id' => $data['annee_id'] ?? null,
-            'ecole_id' => $data['ecole_id'],
+            'lycee_id' => $data['lycee_id'],
         ];
 
         if ($isUpdate) {

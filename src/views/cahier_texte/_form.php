@@ -23,12 +23,13 @@
                 <?php foreach ($assignments as $assignment): ?>
                     <?php
                         // Reconstruct the value to match how it's saved/edited
-                        $value = $assignment['classe_id'] . '-' . $assignment['matiere_id'];
-                        $current_value = ($entry['classe_id'] ?? '') . '-' . ($entry['matiere_id'] ?? '');
-                        $selected = ($is_edit && $value === $current_value) ? 'selected' : '';
+                        $value = (string)($assignment['id_classe'] . '-' . $assignment['id_matiere']);
+                        $current_value = (isset($entry['classe_id']) && isset($entry['matiere_id'])) ? (string)($entry['classe_id'] . '-' . $entry['matiere_id']) : '';
+                        // Check if selected either because of edit or directCreate
+                        $selected = (!empty($current_value) && $value === $current_value) ? 'selected' : '';
                     ?>
                     <option value="<?= $value ?>" <?= $selected ?>>
-                        <?= htmlspecialchars($assignment['nom_classe'] . ' ' . $assignment['serie'] . ' - ' . $assignment['nom_matiere']) ?>
+                        <?= htmlspecialchars(Classe::getFormattedName($assignment) . ' - ' . $assignment['nom_matiere']) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
