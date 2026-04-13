@@ -67,13 +67,19 @@ class Eleve {
         }
 
         if ($isUpdate) {
+            // If photo is not provided during update, don't overwrite the existing one
+            if (empty($data['photo'])) {
+                $fields = array_filter($fields, fn($f) => $f !== 'photo');
+            }
             $setClauses = array_map(fn($f) => "`$f` = :$f", $fields);
             $sql = "UPDATE eleves SET " . implode(', ', $setClauses) . " WHERE id_eleve = :id_eleve";
+            $params = array_intersect_key($params, array_flip($fields));
             $params['id_eleve'] = $data['id_eleve'];
         } else {
             $columns = implode(', ', array_map(fn($f) => "`$f`", $fields));
             $placeholders = ':' . implode(', :', $fields);
             $sql = "INSERT INTO eleves ($columns) VALUES ($placeholders)";
+            $params = array_intersect_key($params, array_flip($fields));
         }
 
         $stmt = $db->prepare($sql);

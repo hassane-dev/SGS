@@ -150,7 +150,10 @@ class User {
                         nom = :nom, prenom = :prenom, sexe = :sexe, date_naissance = :date_naissance,
                         lieu_naissance = :lieu_naissance, adresse = :adresse, telephone = :telephone,
                         email = :email, fonction = :fonction, role_id = :role_id, lycee_id = :lycee_id,
-                        contrat_id = :contrat_id, date_embauche = :date_embauche, actif = :actif, photo = :photo";
+                        contrat_id = :contrat_id, date_embauche = :date_embauche, actif = :actif";
+            if (!empty($data['photo'])) {
+                $sql .= ", photo = :photo";
+            }
             if (!empty($data['mot_de_passe'])) {
                 $sql .= ", mot_de_passe = :mot_de_passe";
             }
@@ -183,13 +186,16 @@ class User {
             'contrat_id' => empty($data['contrat_id']) ? null : (int)$data['contrat_id'],
             'date_embauche' => empty($data['date_embauche']) ? null : $data['date_embauche'],
             'actif' => $data['actif'] ?? 1, // Default to active
-            'photo' => $data['photo'] ?? null,
         ];
+
+        if (!empty($data['photo']) || !$isUpdate) {
+            $params['photo'] = $data['photo'] ?? null;
+        }
 
         if (!empty($data['mot_de_passe'])) {
             $params['mot_de_passe'] = password_hash($data['mot_de_passe'], PASSWORD_DEFAULT);
         } elseif (!$isUpdate) {
-            $params['mot_de_passe'] = password_hash($data['mot_de_passe'], PASSWORD_DEFAULT);
+            $params['mot_de_passe'] = password_hash($data['mot_de_passe'] ?? '', PASSWORD_DEFAULT);
         }
 
         if ($isUpdate) {
