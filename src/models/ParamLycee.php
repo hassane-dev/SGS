@@ -16,8 +16,8 @@ class ParamLycee {
         }
         try {
             $db = Database::getInstance();
-            // Corrected to query by lycee_id
-            $stmt = $db->prepare("SELECT * FROM param_lycee WHERE lycee_id = :lycee_id");
+            // Corrected to query by id
+            $stmt = $db->prepare("SELECT * FROM param_lycee WHERE id = :lycee_id");
             $stmt->execute(['lycee_id' => $lycee_id]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
@@ -80,7 +80,7 @@ class ParamLycee {
                     logo = :logo,
                     type_lycee = :type_lycee,
                     boutique = :boutique
-                WHERE lycee_id = :lycee_id";
+                WHERE id = :lycee_id";
 
         try {
             $db = Database::getInstance();

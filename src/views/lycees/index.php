@@ -32,9 +32,9 @@
                             <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($lycee['type_lycee']) ?></td>
                             <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($lycee['ville']) ?></td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="/lycees/edit?id=<?= $lycee['id_lycee'] ?>" class="text-indigo-600 hover:text-indigo-900"><?= _('Edit') ?></a>
+                                <a href="/lycees/edit?id=<?= $lycee['id'] ?>" class="text-indigo-600 hover:text-indigo-900"><?= _('Edit') ?></a>
                                 <form action="/lycees/destroy" method="POST" class="inline-block ml-4" onsubmit="return confirm('<?= _('Are you sure you want to delete this high school?') ?>');">
-                                    <input type="hidden" name="id" value="<?= $lycee['id_lycee'] ?>">
+                                    <input type="hidden" name="id" value="<?= $lycee['id'] ?>">
                                     <button type="submit" class="text-red-600 hover:text-red-900"><?= _('Delete') ?></button>
                                 </form>
                             </td>

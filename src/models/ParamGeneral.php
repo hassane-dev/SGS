@@ -83,7 +83,8 @@ class ParamGeneral {
                     nb_langue = :nb_langue,
                     langue_1 = :langue_1,
                     langue_2 = :langue_2,
-                    sequence_annuelle = :sequence_annuelle
+                    sequence_annuelle = :sequence_annuelle,
+                    mode_cycle = :mode_cycle
                 WHERE lycee_id = :lycee_id";
 
         try {
@@ -97,6 +98,7 @@ class ParamGeneral {
                 'langue_1' => $data['langue_1'],
                 'langue_2' => $data['langue_2'] ?? null,
                 'sequence_annuelle' => $data['sequence_annuelle'],
+                'mode_cycle' => $data['mode_cycle'] ?? 'separe_ceg_lycee',
                 'lycee_id' => $lycee_id
             ]);
         } catch (PDOException $e) {
@@ -108,12 +110,12 @@ class ParamGeneral {
         $db = Database::getInstance();
 
         // Check if a record already exists for the lycee_id
-        $stmt_check = $db->prepare("SELECT id FROM param_general WHERE lycee_id = :lycee_id");
+        $stmt_check = $db->prepare("SELECT * FROM param_general WHERE lycee_id = :lycee_id");
         $stmt_check->execute(['lycee_id' => $data['lycee_id']]);
-        $exists = $stmt_check->fetchColumn();
+        $existing = $stmt_check->fetch(PDO::FETCH_ASSOC);
 
-        if ($exists) {
-            // Update
+        if ($existing) {
+            // Update only fields that are provided in $data, otherwise keep existing values
             $sql = "UPDATE param_general SET
                         devise_pays = :devise_pays,
                         monnaie = :monnaie,
@@ -121,17 +123,27 @@ class ParamGeneral {
                         nb_langue = :nb_langue,
                         langue_1 = :langue_1,
                         langue_2 = :langue_2,
-                        sequence_annuelle = :sequence_annuelle
+                        sequence_annuelle = :sequence_annuelle,
+                        mode_cycle = :mode_cycle
                     WHERE lycee_id = :lycee_id";
-        } else {
-            // Create
-            $sql = "INSERT INTO param_general (lycee_id, devise_pays, monnaie, modalite_paiement, nb_langue, langue_1, langue_2, sequence_annuelle)
-                    VALUES (:lycee_id, :devise_pays, :monnaie, :modalite_paiement, :nb_langue, :langue_1, :langue_2, :sequence_annuelle)";
-        }
 
-        try {
-            $stmt = $db->prepare($sql);
-            return $stmt->execute([
+            $params = [
+                'lycee_id' => $data['lycee_id'],
+                'devise_pays' => $data['devise_pays'] ?? $existing['devise_pays'],
+                'monnaie' => $data['monnaie'] ?? $existing['monnaie'],
+                'modalite_paiement' => $data['modalite_paiement'] ?? $existing['modalite_paiement'],
+                'nb_langue' => $data['nb_langue'] ?? $existing['nb_langue'],
+                'langue_1' => $data['langue_1'] ?? $existing['langue_1'],
+                'langue_2' => $data['langue_2'] ?? $existing['langue_2'],
+                'sequence_annuelle' => $data['sequence_annuelle'] ?? $existing['sequence_annuelle'],
+                'mode_cycle' => $data['mode_cycle'] ?? $existing['mode_cycle']
+            ];
+        } else {
+            // Create with defaults
+            $sql = "INSERT INTO param_general (lycee_id, devise_pays, monnaie, modalite_paiement, nb_langue, langue_1, langue_2, sequence_annuelle, mode_cycle)
+                    VALUES (:lycee_id, :devise_pays, :monnaie, :modalite_paiement, :nb_langue, :langue_1, :langue_2, :sequence_annuelle, :mode_cycle)";
+
+            $params = [
                 'lycee_id' => $data['lycee_id'],
                 'devise_pays' => $data['devise_pays'] ?? 'XAF',
                 'monnaie' => $data['monnaie'] ?? 'FCFA',
@@ -139,8 +151,14 @@ class ParamGeneral {
                 'nb_langue' => $data['nb_langue'] ?? 1,
                 'langue_1' => $data['langue_1'] ?? 'Francais',
                 'langue_2' => $data['langue_2'] ?? null,
-                'sequence_annuelle' => $data['sequence_annuelle'] ?? 'Trimestrielle'
-            ]);
+                'sequence_annuelle' => $data['sequence_annuelle'] ?? 'Trimestrielle',
+                'mode_cycle' => $data['mode_cycle'] ?? 'separe_ceg_lycee'
+            ];
+        }
+
+        try {
+            $stmt = $db->prepare($sql);
+            return $stmt->execute($params);
         } catch (PDOException $e) {
             error_log("Error in ParamGeneral::save: " . $e->getMessage());
             return false;

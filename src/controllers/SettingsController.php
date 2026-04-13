@@ -21,9 +21,21 @@ class SettingsController {
             $data = Validator::sanitize($_POST);
             $data['lycee_id'] = $lycee_id;
 
-            // In the old controller, this was ParamGeneral::update.
-            // Let's assume a general save/update method is better.
+            // Save general settings
             ParamGeneral::save($data);
+
+            // Save school identity settings if present in data
+            if (isset($data['nom_lycee']) || isset($data['type_lycee'])) {
+                $lycee_data = ParamLycee::findByLyceeId($lycee_id);
+                if ($lycee_data) {
+                    $update_data = array_merge($lycee_data, $data);
+                    // Logo is handled specially in ParamLycee::update,
+                    // but here we don't have file upload in the settings form,
+                    // so we make sure current_logo is set to avoid it being lost
+                    $update_data['current_logo'] = $lycee_data['logo'];
+                    ParamLycee::update($update_data);
+                }
+            }
 
             // Also handle active year change
             if(isset($data['annee_academique_id'])) {
@@ -35,7 +47,9 @@ class SettingsController {
             exit();
         }
 
-        $settings = ParamGeneral::findByLyceeId($lycee_id);
+        $gen_settings = ParamGeneral::findByLyceeId($lycee_id) ?: [];
+        $lycee_settings = ParamLycee::findByLyceeId($lycee_id) ?: [];
+        $settings = array_merge($gen_settings, $lycee_settings);
         $annees_academiques = AnneeAcademique::findAll();
 
         $data = [

@@ -30,7 +30,7 @@ class ParamComposition {
                 $stmt_create->execute([
                     'lycee_id' => $lycee_id,
                     'annee_id' => $activeYear['id'],
-                    'userId' => Auth::get('id_user')
+                    'userId' => Auth::getUserId()
                 ]);
                 // Fetch the newly created record
                 $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);

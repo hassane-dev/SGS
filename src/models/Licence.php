@@ -9,7 +9,7 @@ class Licence {
         $stmt = $db->query("
             SELECT l.*, ly.nom_lycee
             FROM licences l
-            JOIN lycees ly ON l.lycee_id = ly.id_lycee
+            JOIN param_lycee ly ON l.lycee_id = ly.id
             ORDER BY l.date_fin DESC
         ");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

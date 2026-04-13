@@ -45,7 +45,7 @@ if ($active_lycee_id) {
 // If no lycee is active (e.g., super admin first login), default to the first available one
 if (!$active_lycee && !empty($available_lycees)) {
     $active_lycee = $available_lycees[0];
-    $active_lycee_id = $active_lycee['id_lycee'];
+    $active_lycee_id = $active_lycee['id'];
 }
 
 // Fetch params for the now-determined active lycee
@@ -123,7 +123,7 @@ $notification_count = count($unread_notifications);
                     </a>
                     <div class="dropdown-menu">
                         <?php foreach ($available_lycees as $lycee): ?>
-                            <a href="/settings/change-lycee?id=<?= $lycee['id_lycee'] ?>" class="dropdown-item"><?= htmlspecialchars($lycee['nom_lycee']) ?></a>
+                            <a href="/settings/change-lycee?id=<?= $lycee['id'] ?>" class="dropdown-item"><?= htmlspecialchars($lycee['nom_lycee']) ?></a>
                         <?php endforeach; ?>
                     </div>
                 </div>

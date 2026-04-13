@@ -73,7 +73,7 @@
                                     <label for="lycee_id" class="form-label"><?= _('Lycée') ?></label>
                                     <select name="lycee_id" id="lycee_id" class="form-select" required>
                                         <?php foreach ($lycees as $lycee): ?>
-                                             <option value="<?= $lycee['id_lycee'] ?>" <?= $classe['lycee_id'] == $lycee['id_lycee'] ? 'selected' : '' ?>>
+                                             <option value="<?= $lycee['id'] ?>" <?= $classe['lycee_id'] == $lycee['id'] ? 'selected' : '' ?>>
                                                 <?= htmlspecialchars($lycee['nom_lycee']) ?>
                                             </option>
                                         <?php endforeach; ?>

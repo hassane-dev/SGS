@@ -5,7 +5,7 @@
 
     <div class="bg-white p-8 rounded-lg shadow-lg">
         <form action="/lycees/update" method="POST">
-            <input type="hidden" name="id_lycee" value="<?= htmlspecialchars($lycee['id_lycee']) ?>">
+            <input type="hidden" name="id" value="<?= htmlspecialchars($lycee['id']) ?>">
 
             <div class="grid grid-cols-1 gap-6">
 
