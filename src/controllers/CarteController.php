@@ -42,10 +42,14 @@ class CarteController {
             die("Aucun modèle de carte trouvé pour ce lycée.");
         }
 
+        $params_lycee = ParamLycee::findByLyceeId($lycee_id);
+
         $data = [
             'eleve' => $eleve,
             'classe' => $classe,
-            'modele' => $modele
+            'modele' => array_merge($modele, [
+                'logo_lycee' => $params_lycee['logo'] ?? null
+            ])
         ];
 
         require_once __DIR__ . '/../views/carte/generer.php';

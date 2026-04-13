@@ -75,29 +75,112 @@
         };
 
         // Position elements
-        for (const id in layout) {
-            if (elementData[id]) {
-                const pos = layout[id];
+        const elements = layout.elements || [];
+        let qrCounter = 0;
+
+        if (elements.length > 0) {
+            // New Format (Fabric.js)
+            elements.forEach(elData => {
                 const el = document.createElement('div');
                 el.className = 'card-element';
-                el.style.left = pos.left;
-                el.style.top = pos.top;
-                el.style.width = pos.width;
-                el.style.height = pos.height;
-                el.innerHTML = elementData[id];
+                el.style.left = elData.left + 'px';
+                el.style.top = elData.top + 'px';
+                el.style.width = elData.width + 'px';
+                el.style.height = elData.height + 'px';
+
+                if (elData.angle) {
+                    el.style.transform = `rotate(${elData.angle}deg)`;
+                }
+
+                let content = '';
+                switch (elData.type) {
+                    case 'photo':
+                        content = `<img src="${eleve.photo || '/assets/img/placeholder-photo.png'}" alt="Photo">`;
+                        break;
+                    case 'logo':
+                        content = `<img src="<?= htmlspecialchars($data['modele']['logo_lycee'] ?? '/assets/img/logo-placeholder.png') ?>" alt="Logo">`;
+                        break;
+                    case 'nom_complet':
+                        content = `${eleve.prenom} ${eleve.nom}`;
+                        break;
+                    case 'matricule':
+                        content = `Matricule: ${eleve.id_eleve}`;
+                        break;
+                    case 'classe':
+                        const className = `${classe.niveau} ${classe.serie || ''} ${classe.numero || ''}`.trim();
+                        content = `Classe: ${className}`;
+                        break;
+                    case 'qr_code':
+                        qrCounter++;
+                        content = `<div id="qrcode-${qrCounter}"></div>`;
+                        break;
+                    case 'text':
+                        content = elData.text;
+                        break;
+                    case 'rect':
+                        el.style.backgroundColor = elData.fill;
+                        break;
+                    case 'circle':
+                        el.style.backgroundColor = elData.fill;
+                        el.style.borderRadius = '50%';
+                        break;
+                    case 'header_left':
+                    case 'header_right':
+                        content = (elData.text || '').replace(/\n/g, '<br>');
+                        break;
+                }
+
+                if (elData.fontSize) {
+                    el.style.fontSize = elData.fontSize + 'px';
+                }
+                if (elData.fill && (elData.type === 'text' || elData.type === 'nom_complet' || elData.type === 'matricule' || elData.type === 'classe' || elData.type === 'header_left' || elData.type === 'header_right')) {
+                    el.style.color = elData.fill;
+                }
+                if (elData.textAlign) {
+                    el.style.textAlign = elData.textAlign;
+                }
+                if (elData.fontWeight) {
+                    el.style.fontWeight = elData.fontWeight;
+                }
+
+                el.innerHTML = content;
                 container.appendChild(el);
+
+                if (elData.type === 'qr_code') {
+                    new QRCode(document.getElementById(`qrcode-${qrCounter}`), {
+                        text: `EleveID:${eleve.id_eleve}`,
+                        width: elData.width,
+                        height: elData.height,
+                    });
+                }
+            });
+        } else {
+            // Backward Compatibility: Old format (direct keys in layout object)
+            for (const id in layout) {
+                if (elementData[id]) {
+                    const pos = layout[id];
+                    if (typeof pos !== 'object' || pos === null) continue;
+
+                    const el = document.createElement('div');
+                    el.className = 'card-element';
+                    el.style.left = pos.left;
+                    el.style.top = pos.top;
+                    el.style.width = pos.width;
+                    el.style.height = pos.height;
+                    el.innerHTML = elementData[id];
+                    container.appendChild(el);
+
+                    if (id === 'qr_code') {
+                         new QRCode(document.getElementById('qrcode-container'), {
+                            text: `EleveID:${eleve.id_eleve}`,
+                            width: parseInt(pos.width) || 100,
+                            height: parseInt(pos.height) || 100,
+                        });
+                    }
+                }
             }
         }
 
-        // Generate QR Code
-        const qrContainer = document.getElementById('qrcode-container');
-        if (qrContainer) {
-            new QRCode(qrContainer, {
-                text: `EleveID:${eleve.id_eleve}`,
-                width: parseInt(layout.qr_code.width) || 100,
-                height: parseInt(layout.qr_code.height) || 100,
-            });
-        }
     </script>
 
 </body>
