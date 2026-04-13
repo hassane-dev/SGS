@@ -5,17 +5,6 @@
 <!-- Link to the new stylesheet -->
 <link rel="stylesheet" href="/assets/css/card-editor.css">
 
-<style>
-    /* Keep the card dimensions but move other styles to the CSS file */
-    #card-preview {
-        /* Standard credit card ratio: 85.6 / 54 = ~1.585 */
-        width: 550px;
-        height: 347px; /* 550 / 1.585 = ~347 */
-        position: relative;
-        overflow: hidden;
-        margin: auto; /* Center the card */
-    }
-</style>
 
 <div class="pc-container">
     <div class="pc-content">
@@ -47,35 +36,76 @@
                              <input type="hidden" name="current_background" value="<?= htmlspecialchars($modele['background'] ?? '') ?>">
 
                             <div class="row">
-                                <!-- Card Preview Area -->
-                                <div class="col-lg-9">
-                                    <h5 class="mb-3 text-center"><?= _('Card Preview') ?></h5>
-                                    <div id="card-preview">
-                                        <!-- Static Header Elements -->
-                                        <div class="card-header-section">
-                                            <div class="header-left" id="header_left" contenteditable="true">
-                                                <!-- Content will be loaded by JS -->
-                                            </div>
-                                            <div class="header-center">
-                                                <img src="<?= htmlspecialchars($params_lycee['logo'] ?? '/assets/img/logo-placeholder.png') ?>" alt="Logo">
-                                            </div>
-                                            <div class="header-right" id="header_right" contenteditable="true">
-                                                <!-- Content will be loaded by JS -->
-                                            </div>
-                                        </div>
-                                        <!-- Draggable elements will be added here by JS -->
-                                    </div>
-                                </div>
-
-                                <!-- Available Elements & Properties -->
+                                <!-- Palette Area -->
                                 <div class="col-lg-3">
                                     <h5 class="mb-3"><?= _('Palette') ?></h5>
-                                    <div id="element-list" class="list-group">
-                                        <button type="button" data-element="photo" class="list-group-item list-group-item-action"><i class="ti ti-user-circle me-2"></i><?= _('Photo') ?></button>
-                                        <button type="button" data-element="nom_complet" class="list-group-item list-group-item-action"><i class="ti ti-text-caption me-2"></i><?= _('Full Name') ?></button>
-                                        <button type="button" data-element="matricule" class="list-group-item list-group-item-action"><i class="ti ti-hash me-2"></i><?= _('ID Number') ?></button>
-                                        <button type="button" data-element="classe" class="list-group-item list-group-item-action"><i class="ti ti-school me-2"></i><?= _('Class') ?></button>
-                                        <button type="button" data-element="qr_code" class="list-group-item list-group-item-action"><i class="ti ti-qrcode me-2"></i><?= _('QR Code') ?></button>
+                                    <div id="palette" class="row g-2">
+                                        <div class="col-6">
+                                            <div class="palette-item" draggable="true" data-type="photo" title="<?= _('Student Photo') ?>">
+                                                <i class="ti ti-user-circle fs-2"></i>
+                                                <span><?= _('Photo') ?></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="palette-item" draggable="true" data-type="logo" title="<?= _('School Logo') ?>">
+                                                <i class="ti ti-building-community fs-2"></i>
+                                                <span><?= _('Logo') ?></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="palette-item" draggable="true" data-type="nom_complet" title="<?= _('Full Name') ?>">
+                                                <i class="ti ti-text-caption fs-2"></i>
+                                                <span><?= _('Name') ?></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="palette-item" draggable="true" data-type="matricule" title="<?= _('ID Number') ?>">
+                                                <i class="ti ti-hash fs-2"></i>
+                                                <span><?= _('ID') ?></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="palette-item" draggable="true" data-type="classe" title="<?= _('Class') ?>">
+                                                <i class="ti ti-school fs-2"></i>
+                                                <span><?= _('Class') ?></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="palette-item" draggable="true" data-type="qr_code" title="<?= _('QR Code') ?>">
+                                                <i class="ti ti-qrcode fs-2"></i>
+                                                <span><?= _('QR') ?></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="palette-item" draggable="true" data-type="rect" title="<?= _('Rectangle') ?>">
+                                                <i class="ti ti-square fs-2"></i>
+                                                <span><?= _('Rect') ?></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="palette-item" draggable="true" data-type="circle" title="<?= _('Circle') ?>">
+                                                <i class="ti ti-circle fs-2"></i>
+                                                <span><?= _('Circle') ?></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="palette-item" draggable="true" data-type="text" title="<?= _('Static Text') ?>">
+                                                <i class="ti ti-typography fs-2"></i>
+                                                <span><?= _('Text') ?></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="palette-item" draggable="true" data-type="header_left" title="<?= _('Header Left') ?>">
+                                                <i class="ti ti-layout-align-left fs-2"></i>
+                                                <span><?= _('H. Left') ?></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="palette-item" draggable="true" data-type="header_right" title="<?= _('Header Right') ?>">
+                                                <i class="ti ti-layout-align-right fs-2"></i>
+                                                <span><?= _('H. Right') ?></span>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <hr>
@@ -100,6 +130,19 @@
                                     </div>
 
                                 </div>
+
+                                <!-- Card Preview Area -->
+                                <div class="col-lg-9">
+                                    <h5 class="mb-3 text-center"><?= _('Card Preview') ?></h5>
+                                    <div id="card-container" style="display: flex; justify-content: center; background: #f4f7fa; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0; overflow: auto;">
+                                        <div style="box-shadow: 0 10px 30px rgba(0,0,0,0.1); line-height: 0;">
+                                            <canvas id="card-canvas"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 text-muted text-center">
+                                        <small><i class="ti ti-info-circle"></i> <?= _('Drag items from the palette to the card. Use Delete/Backspace to remove selected items.') ?></small>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="mt-4 text-end">
@@ -115,199 +158,343 @@
     </div>
 </div>
 
-<!-- We need jQuery UI for draggable and resizable -->
-<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
-<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+<!-- Fabric.js Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 
 <script>
 $(function() {
+    // Initialize Fabric Canvas
+    const canvas = new fabric.Canvas('card-canvas', {
+        width: 550,
+        height: 347,
+        backgroundColor: '#ffffff',
+        preserveObjectStacking: true
+    });
+
     let cardModel = JSON.parse($('#layout_data_input').val() || '{"elements":[], "headers":{}}');
     let layoutElements = cardModel.elements || [];
     let headers = cardModel.headers || {
         left: `MINISTERE DE L'EDUCATION\nREGION...\nDEPARTEMENT...`,
         right: `<?= htmlspecialchars($params_lycee['nom_lycee'] ?? 'NOM DU LYCEE') ?>\n<?= htmlspecialchars($params_lycee['devise'] ?? 'DEVISE') ?>\n<?= htmlspecialchars($annee_academique['nom_annee'] ?? 'ANNEE ACADEMIQUE') ?>`
     };
-    let selectedElement = null;
 
-    // Function to save the complete card model (elements + headers)
-    function saveLayout() {
-        headers.left = $('#header_left').html().replace(/<br\s*[\/]?>/gi, "\n").trim();
-        headers.right = $('#header_right').html().replace(/<br\s*[\/]?>/gi, "\n").trim();
-
-        const newElementLayout = [];
-        $('#card-preview .draggable').each(function() {
-            const element = $(this);
-            const position = element.position();
-            newElementLayout.push({
-                id: element.attr('id'),
-                type: element.data('element-type'),
-                content: element.data('content-placeholder'),
-                x: Math.round(position.left),
-                y: Math.round(position.top),
-                width: Math.round(element.outerWidth()),
-                height: Math.round(element.outerHeight()),
-                fontSize: element.css('font-size'),
-                color: element.css('color')
+    // Helper to create objects
+    const creators = {
+        logo: (options) => {
+            fabric.Image.fromURL('<?= htmlspecialchars($params_lycee['logo'] ?? '/assets/img/logo-placeholder.png') ?>', function(img) {
+                img.set({
+                    left: options.left || 225,
+                    top: options.top || 10,
+                    scaleX: (options.width || 100) / img.width,
+                    scaleY: (options.height || 100) / img.height,
+                    ...options
+                });
+                img.set('elementType', 'logo');
+                canvas.add(img);
+                canvas.setActiveObject(img);
             });
+        },
+        header_left: (options) => {
+            const text = new fabric.IText(options.text || headers.left, {
+                left: options.left || 10,
+                top: options.top || 10,
+                fontSize: options.fontSize || 8,
+                textAlign: 'center',
+                fontFamily: 'Arial',
+                ...options
+            });
+            text.set('elementType', 'header_left');
+            canvas.add(text);
+            canvas.setActiveObject(text);
+        },
+        header_right: (options) => {
+            const text = new fabric.IText(options.text || headers.right, {
+                left: options.left || 300,
+                top: options.top || 10,
+                fontSize: options.fontSize || 8,
+                textAlign: 'center',
+                fontFamily: 'Arial',
+                ...options
+            });
+            text.set('elementType', 'header_right');
+            canvas.add(text);
+            canvas.setActiveObject(text);
+        },
+        photo: (options) => {
+            fabric.Image.fromURL('/assets/img/placeholder-photo.png', function(img) {
+                img.set({
+                    left: options.left || 20,
+                    top: options.top || 20,
+                    scaleX: (options.width || 100) / img.width,
+                    scaleY: (options.height || 120) / img.height,
+                    ...options
+                });
+                img.set('elementType', 'photo');
+                canvas.add(img);
+                canvas.setActiveObject(img);
+            });
+        },
+        qr_code: (options) => {
+            fabric.Image.fromURL('/assets/img/placeholder-qr.png', function(img) {
+                img.set({
+                    left: options.left || 430,
+                    top: options.top || 230,
+                    scaleX: (options.width || 100) / img.width,
+                    scaleY: (options.height || 100) / img.height,
+                    ...options
+                });
+                img.set('elementType', 'qr_code');
+                canvas.add(img);
+                canvas.setActiveObject(img);
+            });
+        },
+        nom_complet: (options) => {
+            const text = new fabric.IText('NOM COMPLET', {
+                left: options.left || 150,
+                top: options.top || 150,
+                fontSize: options.fontSize || 20,
+                fontWeight: 'bold',
+                fontFamily: 'Arial',
+                ...options
+            });
+            text.set('elementType', 'nom_complet');
+            canvas.add(text);
+            canvas.setActiveObject(text);
+        },
+        matricule: (options) => {
+            const text = new fabric.IText('MATRICULE: 000000', {
+                left: options.left || 150,
+                top: options.top || 180,
+                fontSize: options.fontSize || 16,
+                fontFamily: 'Arial',
+                ...options
+            });
+            text.set('elementType', 'matricule');
+            canvas.add(text);
+            canvas.setActiveObject(text);
+        },
+        classe: (options) => {
+            const text = new fabric.IText('CLASSE: 6ème', {
+                left: options.left || 150,
+                top: options.top || 210,
+                fontSize: options.fontSize || 16,
+                fontFamily: 'Arial',
+                ...options
+            });
+            text.set('elementType', 'classe');
+            canvas.add(text);
+            canvas.setActiveObject(text);
+        },
+        text: (options) => {
+            const text = new fabric.IText('Texte Statique', {
+                left: options.left || 150,
+                top: options.top || 50,
+                fontSize: options.fontSize || 14,
+                fontFamily: 'Arial',
+                ...options
+            });
+            text.set('elementType', 'text');
+            canvas.add(text);
+            canvas.setActiveObject(text);
+        },
+        rect: (options) => {
+            const rect = new fabric.Rect({
+                left: options.left || 50,
+                top: options.top || 50,
+                fill: options.fill || '#e0e0e0',
+                width: options.width || 100,
+                height: options.height || 50,
+                ...options
+            });
+            rect.set('elementType', 'rect');
+            canvas.add(rect);
+            canvas.setActiveObject(rect);
+        },
+        circle: (options) => {
+            const circle = new fabric.Circle({
+                left: options.left || 50,
+                top: options.top || 50,
+                fill: options.fill || '#e0e0e0',
+                radius: options.radius || 30,
+                ...options
+            });
+            circle.set('elementType', 'circle');
+            canvas.add(circle);
+            canvas.setActiveObject(circle);
+        }
+    };
+
+    // Function to save the complete card model
+    function saveLayout() {
+        const elements = canvas.getObjects().map(obj => {
+            const state = obj.toJSON(['elementType', 'id']);
+
+            const data = {
+                type: obj.elementType,
+                left: Math.round(obj.left),
+                top: Math.round(obj.top),
+                width: Math.round(obj.width * obj.scaleX),
+                height: Math.round(obj.height * obj.scaleY),
+                scaleX: obj.scaleX,
+                scaleY: obj.scaleY,
+                angle: obj.angle,
+                fill: obj.fill,
+                fontSize: obj.fontSize,
+                text: obj.text,
+                textAlign: obj.textAlign,
+                fontWeight: obj.fontWeight,
+                fontFamily: obj.fontFamily,
+                radius: obj.radius,
+                opacity: obj.opacity
+            };
+
+            // Remove undefined or null properties
+            Object.keys(data).forEach(key => (data[key] == null) && delete data[key]);
+            return data;
         });
 
         const fullModel = {
-            elements: newElementLayout,
+            elements: elements,
             headers: headers
         };
         $('#layout_data_input').val(JSON.stringify(fullModel));
-        console.log("Layout Saved:", JSON.stringify(fullModel, null, 2));
     }
 
-    // Function to create a draggable element on the canvas
-    function createElement(data) {
-        const { id, type, content, x, y, width, height, fontSize, color } = data;
-
-        let elementHtml = '';
-        const iconHtml = {
-            nom_complet: '<i class="ti ti-text-caption draggable-placeholder-icon"></i>',
-            matricule: '<i class="ti ti-hash draggable-placeholder-icon"></i>',
-            classe: '<i class="ti ti-school draggable-placeholder-icon"></i>'
-        };
-
-        switch(type) {
-            case 'photo':
-                elementHtml = `<img src="/assets/img/placeholder-photo.png" alt="photo" style="width:100%; height:100%; object-fit: cover;">`;
-                break;
-            case 'qr_code':
-                elementHtml = `<img src="/assets/img/placeholder-qr.png" alt="qr" style="width:100%; height:100%; object-fit: cover;">`;
-                break;
-            default:
-                // For text elements, add an icon and the placeholder content
-                elementHtml = `${iconHtml[type] || ''}<span>${content}</span>`;
-                break;
-        }
-
-        const element = $(`<div class="draggable" id="${id}" data-element-type="${type}">${elementHtml}</div>`);
-
-        // Store metadata on the element itself
-        element.data('element-type', type);
-        element.data('content-placeholder', content);
-
-        element.css({
-            left: `${x}px`,
-            top: `${y}px`,
-            width: `${width}px`,
-            height: `${height}px`,
-            fontSize: fontSize || '12px',
-            color: color || '#000000'
+    // Drag and Drop implementation
+    const paletteItems = document.querySelectorAll('.palette-item');
+    paletteItems.forEach(item => {
+        item.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('type', item.dataset.type);
         });
+    });
 
-        element.on('click', function(e) {
-            e.stopPropagation();
-            selectElement($(this));
-        });
+    const canvasContainer = document.getElementById('card-container');
+    canvasContainer.addEventListener('dragover', (e) => {
+        e.preventDefault();
+    });
 
-        element.draggable({
-            containment: '#card-preview',
-            stop: saveLayout
-        }).resizable({
-            containment: '#card-preview',
-            stop: saveLayout
-        });
+    canvasContainer.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const type = e.dataTransfer.getData('type');
+        const rect = canvas.getElement().getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
 
-        $('#card-preview').append(element);
-    }
-
-    // Function to handle element selection
-    function selectElement(element) {
-        selectedElement = element;
-        $('.draggable').css('border-color', '#a9a9a9');
-        element.css('border-color', '#007bff'); // Highlight selected
-
-        const type = element.data('element-type');
-        if (type !== 'photo' && type !== 'qr_code') {
-            $('#element-properties').removeClass('d-none');
-            $('#font_size').val(parseInt(element.css('font-size')));
-            // Need to convert rgb color to hex for the color input
-            const rgb = element.css('color').match(/\d+/g);
-            const hex = rgb ? '#' + (+rgb[0]).toString(16).padStart(2, '0') + (+rgb[1]).toString(16).padStart(2, '0') + (+rgb[2]).toString(16).padStart(2, '0') : '#000000';
-            $('#font_color').val(hex);
-        } else {
-            $('#element-properties').addClass('d-none');
-        }
-    }
-
-    function deselectAll() {
-        if (selectedElement) {
-            selectedElement.css('border-color', '#a9a9a9');
-        }
-        selectedElement = null;
-        $('#element-properties').addClass('d-none');
-    }
-
-    // Initial load of existing layout elements
-    function loadInitialLayout() {
-        // Load background
-        const initialBackground = $('input[name="current_background"]').val();
-        if (initialBackground) {
-            $('#card-preview').css('background-image', `url(${initialBackground})`);
-        }
-        // Load headers
-        $('#header_left').html(headers.left.replace(/\n/g, '<br>'));
-        $('#header_right').html(headers.right.replace(/\n/g, '<br>'));
-
-        // Load draggable elements
-        layoutElements.forEach(data => createElement(data));
-    }
-
-    loadInitialLayout();
-
-    // Event Listeners
-    $('#header_left, #header_right').on('blur', saveLayout);
-    $('#card-preview').on('click', deselectAll);
-
-    $('#font_size, #font_color').on('input', function() {
-        if (selectedElement) {
-            const prop = $(this).attr('id') === 'font_size' ? 'fontSize' : 'color';
-            const value = $(this).attr('id') === 'font_size' ? `${$(this).val()}px` : $(this).val();
-            selectedElement.css(prop, value);
-            saveLayout(); // Save on property change
+        if (creators[type]) {
+            creators[type]({ left: x, top: y });
+            saveLayout();
         }
     });
 
+    // Handle Selection & Properties
+    canvas.on('selection:created', (e) => updatePropertiesPanel(e.selected[0]));
+    canvas.on('selection:updated', (e) => updatePropertiesPanel(e.selected[0]));
+    canvas.on('selection:cleared', () => $('#element-properties').addClass('d-none'));
+    canvas.on('object:modified', saveLayout);
+
+    function updatePropertiesPanel(obj) {
+        $('#element-properties').removeClass('d-none');
+        if (obj.type === 'i-text' || obj.type === 'text' || obj.elementType?.includes('text') || obj.elementType?.includes('header') || ['nom_complet', 'matricule', 'classe'].includes(obj.elementType)) {
+            $('#font_size').closest('.mb-2').show();
+            $('#font_size').val(obj.fontSize);
+            $('#font_color').val(obj.fill);
+        } else {
+            $('#font_size').closest('.mb-2').hide();
+            $('#font_color').val(obj.fill);
+        }
+    }
+
+    $('#font_size').on('input', function() {
+        const obj = canvas.getActiveObject();
+        if (obj && (obj.type === 'i-text' || obj.type === 'text')) {
+            obj.set('fontSize', parseInt($(this).val()));
+            canvas.renderAll();
+            saveLayout();
+        }
+    });
+
+    $('#font_color').on('input', function() {
+        const obj = canvas.getActiveObject();
+        if (obj) {
+            obj.set('fill', $(this).val());
+            canvas.renderAll();
+            saveLayout();
+        }
+    });
+
+    // Background Image
     $('#background_image').on('change', function(event) {
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                $('#card-preview').css('background-image', `url(${e.target.result})`);
+                fabric.Image.fromURL(e.target.result, function(img) {
+                    canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+                        scaleX: canvas.width / img.width,
+                        scaleY: canvas.height / img.height
+                    });
+                });
             }
             reader.readAsDataURL(file);
         }
     });
 
-
-    // Add new elements from the palette
-    $('#element-list button').on('click', function() {
-        const type = $(this).data('element');
-        const id = `${type}_${new Date().getTime()}`; // Create a unique ID to allow multiple elements of the same type
-
-        if (type === 'photo' || type === 'qr_code') {
-             if ($(`#card-preview .draggable[data-element-type="${type}"]`).length > 0) {
-                alert(`L'élément "${$(this).text()}" ne peut être ajouté qu'une seule fois.`);
-                return; // Prevent adding more than one photo or qr code
-            }
+    // Initial Load
+    function loadInitialLayout() {
+        // Background
+        const initialBackground = $('input[name="current_background"]').val();
+        if (initialBackground) {
+            fabric.Image.fromURL(initialBackground, function(img) {
+                canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+                    scaleX: canvas.width / img.width,
+                    scaleY: canvas.height / img.height
+                });
+            });
         }
 
+        // Elements
+        layoutElements.forEach(el => {
+            if (creators[el.type]) {
+                creators[el.type](el);
+            }
+        });
+    }
 
-        const newElementData = {
-            id: id,
-            type: type,
-            content: $(this).text(),
-            x: 20,
-            y: 20,
-            width: 150,
-            height: (type === 'photo' || type === 'qr_code') ? 150 : 40
-        };
+    loadInitialLayout();
 
-        createElement(newElementData);
-        saveLayout(); // Immediately save the new element's position
+    // Double click to change image for Photo/Logo/QR
+    canvas.on('mouse:dblclick', function(options) {
+        if (options.target && (options.target.elementType === 'photo' || options.target.elementType === 'logo' || options.target.elementType === 'qr_code')) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(f) {
+                    const data = f.target.result;
+                    fabric.Image.fromURL(data, function(img) {
+                        const target = options.target;
+                        target.setSrc(data, function() {
+                            canvas.renderAll();
+                            saveLayout();
+                        });
+                    });
+                };
+                reader.readAsDataURL(file);
+            };
+            input.click();
+        }
+    });
+
+    // Delete object with Delete key
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+            if (canvas.getActiveObject() && !canvas.getActiveObject().isEditing) {
+                canvas.remove(canvas.getActiveObject());
+                saveLayout();
+            }
+        }
     });
 });
 </script>
