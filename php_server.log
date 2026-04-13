@@ -1,0 +1,22 @@
+[Mon Apr 13 10:55:14 2026] PHP 8.3.6 Development Server (http://0.0.0.0:8000) started
+[Mon Apr 13 10:59:01 2026] 127.0.0.1:34088 Accepted
+[Mon Apr 13 10:59:01 2026] 127.0.0.1:34088 [200]: GET /login
+[Mon Apr 13 10:59:01 2026] 127.0.0.1:34088 Closing
+[Mon Apr 13 10:59:01 2026] 127.0.0.1:34092 Accepted
+[Mon Apr 13 10:59:01 2026] 127.0.0.1:34096 Accepted
+[Mon Apr 13 10:59:01 2026] 127.0.0.1:34092 [200]: GET /assets/css/bootstrap.min.css
+[Mon Apr 13 10:59:01 2026] 127.0.0.1:34096 [200]: GET /assets/js/bootstrap.bundle.min.js
+[Mon Apr 13 10:59:01 2026] 127.0.0.1:34092 Closing
+[Mon Apr 13 10:59:01 2026] 127.0.0.1:34096 Closing
+[Mon Apr 13 10:59:02 2026] 127.0.0.1:34106 Accepted
+[Mon Apr 13 10:59:02 2026] 127.0.0.1:34106 [302]: POST /login
+[Mon Apr 13 10:59:02 2026] 127.0.0.1:34106 Closing
+[Mon Apr 13 10:59:02 2026] 127.0.0.1:34110 Accepted
+[Mon Apr 13 10:59:02 2026] 127.0.0.1:34110 [200]: GET /login?error=1
+[Mon Apr 13 10:59:02 2026] 127.0.0.1:34110 Closing
+[Mon Apr 13 10:59:02 2026] 127.0.0.1:34124 Accepted
+[Mon Apr 13 10:59:02 2026] 127.0.0.1:34132 Accepted
+[Mon Apr 13 10:59:02 2026] 127.0.0.1:34124 [200]: GET /assets/css/bootstrap.min.css
+[Mon Apr 13 10:59:02 2026] 127.0.0.1:34132 [200]: GET /assets/js/bootstrap.bundle.min.js
+[Mon Apr 13 10:59:02 2026] 127.0.0.1:34124 Closing
+[Mon Apr 13 10:59:02 2026] 127.0.0.1:34132 Closing

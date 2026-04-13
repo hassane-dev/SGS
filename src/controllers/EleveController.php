@@ -20,13 +20,27 @@ class EleveController {
     public function index() {
         $user_role = Auth::get('role_name');
         $user_id = Auth::get('id');
-        $lycee_id = Auth::getLyceeId();
+        $current_lycee_id = Auth::getLyceeId();
+
+        $filters = [
+            'lycee_id' => $_GET['lycee_id'] ?? $current_lycee_id,
+            'cycle_id' => $_GET['cycle_id'] ?? null,
+            'niveau'   => $_GET['niveau'] ?? null,
+            'serie'    => $_GET['serie'] ?? null,
+            'numero'   => $_GET['numero'] ?? null,
+        ];
 
         $eleves = [];
 
         // Censeur/Proviseur/Admin can see all students in the lycee
         if (Auth::can('view_all', 'eleve')) {
-            $eleves = Eleve::findAll($lycee_id);
+            // If it's a super admin, they might not have a lycee_id fixed
+            if (Auth::can('view_all_lycees', 'lycee')) {
+                 $eleves = Eleve::findAll($filters);
+            } else {
+                $filters['lycee_id'] = $current_lycee_id;
+                $eleves = Eleve::findAll($filters);
+            }
         }
         // Surveillant can see students from their assigned classes
         elseif ($user_role === 'surveillant') {
@@ -39,8 +53,14 @@ class EleveController {
             $this->forbidden();
         }
 
+        $lycees = Auth::can('view_all_lycees', 'lycee') ? Lycee::findAll() : [];
+        $cycles = Cycle::findAll();
+
         View::render('eleves/index', [
             'eleves' => $eleves,
+            'lycees' => $lycees,
+            'cycles' => $cycles,
+            'filters' => $filters,
             'title' => 'Liste des Élèves'
         ]);
     }

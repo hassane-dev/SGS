@@ -5,25 +5,49 @@ require_once __DIR__ . '/../config/database.php';
 class Eleve {
 
     /**
-     * Find all active students, optionally filtered by lycee_id.
-     * @param int|null $lycee_id
+     * Find all active students, with optional filtering.
+     * @param array $filters
      * @return array
      */
-    public static function findAll($lycee_id = null) {
+    public static function findAll($filters = []) {
         $db = Database::getInstance();
-        $sql = "SELECT e.*, GROUP_CONCAT(c.niveau SEPARATOR ', ') as classes
+        $sql = "SELECT e.*, c.niveau, c.serie, c.numero, cy.nom_cycle, l.nom_lycee
                 FROM eleves e
                 LEFT JOIN etudes et ON e.id_eleve = et.eleve_id
+                    AND et.annee_academique_id = (SELECT id FROM annees_academiques WHERE est_active = 1 LIMIT 1)
                 LEFT JOIN classes c ON et.classe_id = c.id_classe
+                LEFT JOIN cycles cy ON c.cycle_id = cy.id_cycle
+                LEFT JOIN param_lycee l ON e.lycee_id = l.id
                 WHERE (e.statut = 'actif' OR e.statut = 'en_attente')";
 
         $params = [];
-        if ($lycee_id !== null) {
+
+        if (!empty($filters['lycee_id'])) {
             $sql .= " AND e.lycee_id = :lycee_id";
-            $params['lycee_id'] = $lycee_id;
+            $params['lycee_id'] = $filters['lycee_id'];
         }
 
-        $sql .= " GROUP BY e.id_eleve ORDER BY e.nom, e.prenom ASC";
+        if (!empty($filters['cycle_id'])) {
+            $sql .= " AND c.cycle_id = :cycle_id";
+            $params['cycle_id'] = $filters['cycle_id'];
+        }
+
+        if (!empty($filters['niveau'])) {
+            $sql .= " AND c.niveau = :niveau";
+            $params['niveau'] = $filters['niveau'];
+        }
+
+        if (!empty($filters['serie'])) {
+            $sql .= " AND c.serie = :serie";
+            $params['serie'] = $filters['serie'];
+        }
+
+        if (!empty($filters['numero'])) {
+            $sql .= " AND c.numero = :numero";
+            $params['numero'] = $filters['numero'];
+        }
+
+        $sql .= " ORDER BY l.nom_lycee ASC, cy.id_cycle ASC, c.niveau ASC, c.serie ASC, c.numero ASC, e.nom ASC, e.prenom ASC";
 
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
