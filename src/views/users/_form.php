@@ -104,7 +104,7 @@
             <select name="lycee_id" id="lycee_id" class="form-select">
                 <option value=""><?= _('-- Aucun --') ?></option>
                 <?php foreach ($lycees as $lycee): ?>
-                    <option value="<?= $lycee['id_lycee'] ?>" <?= (isset($user['lycee_id']) && $user['lycee_id'] == $lycee['id_lycee']) ? 'selected' : '' ?>>
+                    <option value="<?= $lycee['id'] ?>" <?= (isset($user['lycee_id']) && $user['lycee_id'] == $lycee['id']) ? 'selected' : '' ?>>
                         <?= htmlspecialchars($lycee['nom_lycee']) ?>
                     </option>
                 <?php endforeach; ?>

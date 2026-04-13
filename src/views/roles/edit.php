@@ -41,7 +41,7 @@
                                         <select name="lycee_id" id="lycee_id" class="form-select">
                                             <option value="" <?= !$role['lycee_id'] ? 'selected' : '' ?>><?= _('Rôle Global') ?></option>
                                             <?php foreach ($lycees as $lycee): ?>
-                                                <option value="<?= $lycee['id_lycee'] ?>" <?= $role['lycee_id'] == $lycee['id_lycee'] ? 'selected' : '' ?>><?= _('Spécifique à') ?>: <?= htmlspecialchars($lycee['nom_lycee'] ?? '') ?></option>
+                                                <option value="<?= $lycee['id'] ?>" <?= $role['lycee_id'] == $lycee['id'] ? 'selected' : '' ?>><?= _('Spécifique à') ?>: <?= htmlspecialchars($lycee['nom_lycee'] ?? '') ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>

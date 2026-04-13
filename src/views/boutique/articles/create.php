@@ -27,7 +27,7 @@
                     <label for="lycee_id" class="block text-gray-700 text-sm font-bold mb-2"><?= _('High School') ?></label>
                     <select name="lycee_id" id="lycee_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required>
                         <?php foreach ($lycees as $lycee): ?>
-                            <option value="<?= $lycee['id_lycee'] ?>"><?= htmlspecialchars($lycee['nom_lycee']) ?></option>
+                            <option value="<?= $lycee['id'] ?>"><?= htmlspecialchars($lycee['nom_lycee']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>

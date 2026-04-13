@@ -12,7 +12,7 @@
                     <select name="lycee_id" id="lycee_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required>
                         <option value=""><?= _('-- Choose a high school --') ?></option>
                         <?php foreach ($lycees as $lycee): ?>
-                            <option value="<?= $lycee['id_lycee'] ?>"><?= htmlspecialchars($lycee['nom_lycee']) ?></option>
+                            <option value="<?= $lycee['id'] ?>"><?= htmlspecialchars($lycee['nom_lycee']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>

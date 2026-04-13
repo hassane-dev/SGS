@@ -36,7 +36,7 @@
                                     <select name="lycee_id" id="lycee_id" class="form-select">
                                         <option value=""><?= _('Rôle Global') ?></option>
                                         <?php foreach ($lycees as $lycee): ?>
-                                            <option value="<?= $lycee['id_lycee'] ?>"><?= _('Spécifique à') ?>: <?= htmlspecialchars($lycee['nom_lycee']) ?></option>
+                                            <option value="<?= $lycee['id'] ?>"><?= _('Spécifique à') ?>: <?= htmlspecialchars($lycee['nom_lycee']) ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                     <div class="form-text"><?= _('Laissez sur "Global" pour les rôles généraux (ex: Enseignant), ou assignez à une école pour un rôle local (ex: Administrateur local).') ?></div>

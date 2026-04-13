@@ -73,7 +73,7 @@
                                     <select name="lycee_id" id="lycee_id" class="form-select" required>
                                         <option value=""><?= _('-- Choisir un lycée --') ?></option>
                                         <?php foreach ($lycees as $lycee): ?>
-                                            <option value="<?= $lycee['id_lycee'] ?>"><?= htmlspecialchars($lycee['nom_lycee']) ?></option>
+                                            <option value="<?= $lycee['id'] ?>"><?= htmlspecialchars($lycee['nom_lycee']) ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>

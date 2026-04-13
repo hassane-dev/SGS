@@ -98,11 +98,11 @@ class Bulletin {
 
             // Fetch student and sequence info for the report card header
             $stmt_eleve = $db->prepare("
-                SELECT e.*, c.nom_classe, l.nom_lycee, aa.libelle as annee_academique
+                SELECT e.*, l.nom_lycee, aa.libelle as annee_academique
                 FROM eleves e
                 JOIN etudes et ON e.id_eleve = et.eleve_id
                 JOIN classes c ON et.classe_id = c.id_classe
-                JOIN lycees l ON c.lycee_id = l.id_lycee
+                JOIN param_lycee l ON c.lycee_id = l.id
                 JOIN annees_academiques aa ON et.annee_academique_id = aa.id
                 WHERE e.id_eleve = :id AND et.actif = 1
             ");
