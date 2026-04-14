@@ -40,69 +40,69 @@
                                 <div class="col-lg-3">
                                     <h5 class="mb-3"><?= _('Palette') ?></h5>
                                     <div id="palette" class="row g-2">
-                                        <div class="col-6">
+                                        <div class="col-4">
                                             <div class="palette-item" draggable="true" data-type="photo" title="<?= _('Student Photo') ?>">
-                                                <i class="ti ti-user-circle fs-2"></i>
+                                                <i class="ph-duotone ph-user-square"></i>
                                                 <span><?= _('Photo') ?></span>
                                             </div>
                                         </div>
-                                        <div class="col-6">
+                                        <div class="col-4">
                                             <div class="palette-item" draggable="true" data-type="logo" title="<?= _('School Logo') ?>">
-                                                <i class="ti ti-building-community fs-2"></i>
+                                                <i class="ph-duotone ph-buildings"></i>
                                                 <span><?= _('Logo') ?></span>
                                             </div>
                                         </div>
-                                        <div class="col-6">
+                                        <div class="col-4">
                                             <div class="palette-item" draggable="true" data-type="nom_complet" title="<?= _('Full Name') ?>">
-                                                <i class="ti ti-text-caption fs-2"></i>
+                                                <i class="ph-duotone ph-text-aa"></i>
                                                 <span><?= _('Name') ?></span>
                                             </div>
                                         </div>
-                                        <div class="col-6">
+                                        <div class="col-4">
                                             <div class="palette-item" draggable="true" data-type="matricule" title="<?= _('ID Number') ?>">
-                                                <i class="ti ti-hash fs-2"></i>
+                                                <i class="ph-duotone ph-hash"></i>
                                                 <span><?= _('ID') ?></span>
                                             </div>
                                         </div>
-                                        <div class="col-6">
+                                        <div class="col-4">
                                             <div class="palette-item" draggable="true" data-type="classe" title="<?= _('Class') ?>">
-                                                <i class="ti ti-school fs-2"></i>
+                                                <i class="ph-duotone ph-chalkboard"></i>
                                                 <span><?= _('Class') ?></span>
                                             </div>
                                         </div>
-                                        <div class="col-6">
+                                        <div class="col-4">
                                             <div class="palette-item" draggable="true" data-type="qr_code" title="<?= _('QR Code') ?>">
-                                                <i class="ti ti-qrcode fs-2"></i>
+                                                <i class="ph-duotone ph-qr-code"></i>
                                                 <span><?= _('QR') ?></span>
                                             </div>
                                         </div>
-                                        <div class="col-6">
+                                        <div class="col-4">
                                             <div class="palette-item" draggable="true" data-type="rect" title="<?= _('Rectangle') ?>">
-                                                <i class="ti ti-square fs-2"></i>
+                                                <i class="ph-duotone ph-square"></i>
                                                 <span><?= _('Rect') ?></span>
                                             </div>
                                         </div>
-                                        <div class="col-6">
+                                        <div class="col-4">
                                             <div class="palette-item" draggable="true" data-type="circle" title="<?= _('Circle') ?>">
-                                                <i class="ti ti-circle fs-2"></i>
+                                                <i class="ph-duotone ph-circle"></i>
                                                 <span><?= _('Circle') ?></span>
                                             </div>
                                         </div>
-                                        <div class="col-6">
+                                        <div class="col-4">
                                             <div class="palette-item" draggable="true" data-type="text" title="<?= _('Static Text') ?>">
-                                                <i class="ti ti-typography fs-2"></i>
+                                                <i class="ph-duotone ph-text-t"></i>
                                                 <span><?= _('Text') ?></span>
                                             </div>
                                         </div>
-                                        <div class="col-6">
+                                        <div class="col-4">
                                             <div class="palette-item" draggable="true" data-type="header_left" title="<?= _('Header Left') ?>">
-                                                <i class="ti ti-layout-align-left fs-2"></i>
+                                                <i class="ph-duotone ph-text-indent"></i>
                                                 <span><?= _('H. Left') ?></span>
                                             </div>
                                         </div>
-                                        <div class="col-6">
+                                        <div class="col-4">
                                             <div class="palette-item" draggable="true" data-type="header_right" title="<?= _('Header Right') ?>">
-                                                <i class="ti ti-layout-align-right fs-2"></i>
+                                                <i class="ph-duotone ph-text-outdent"></i>
                                                 <span><?= _('H. Right') ?></span>
                                             </div>
                                         </div>
@@ -159,7 +159,7 @@
 </div>
 
 <!-- Fabric.js Library -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<script src="/assets/libs/fabric/fabric.min.js"></script>
 
 <script>
 $(function() {
@@ -368,20 +368,26 @@ $(function() {
         });
     });
 
-    const canvasContainer = document.getElementById('card-container');
-    canvasContainer.addEventListener('dragover', (e) => {
+    const canvasElement = document.getElementById('card-canvas');
+    const canvasWrapper = canvasElement.parentElement; // Fabric wraps the canvas
+
+    canvasWrapper.addEventListener('dragover', (e) => {
         e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
     });
 
-    canvasContainer.addEventListener('drop', (e) => {
+    canvasWrapper.addEventListener('drop', (e) => {
         e.preventDefault();
         const type = e.dataTransfer.getData('type');
-        const rect = canvas.getElement().getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+
+        // Use Fabric's method to get pointer position relative to canvas
+        const pointer = canvas.getPointer(e);
 
         if (creators[type]) {
-            creators[type]({ left: x, top: y });
+            creators[type]({
+                left: pointer.x,
+                top: pointer.y
+            });
             saveLayout();
         }
     });
