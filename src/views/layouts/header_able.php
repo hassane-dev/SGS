@@ -72,7 +72,6 @@ $notification_count = count($unread_notifications);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $title ?? 'Gestion Scolaire' ?></title>
     <link rel="icon" href="<?= htmlspecialchars($lycee_params['logo'] ?? '/assets/img/favicon.svg') ?>" type="image/x-icon">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" id="main-font-link" />
     <link rel="stylesheet" href="/assets/css/style.css" id="main-style-link" >
     <link rel="stylesheet" href="/assets/css/style-preset.css" >
     <style>
