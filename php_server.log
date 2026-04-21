@@ -1,5 +1,0 @@
-[Tue Apr 14 23:17:54 2026] PHP 8.3.6 Development Server (http://127.0.0.1:8000) started
-[Tue Apr 14 23:18:10 2026] 127.0.0.1:42744 Accepted
-[Tue Apr 14 23:18:10 2026] Error in Lycee::findAll: SQLSTATE[HY000] [2002] Connection refused
-[Tue Apr 14 23:18:10 2026] 127.0.0.1:42744 [302]: HEAD /login
-[Tue Apr 14 23:18:10 2026] 127.0.0.1:42744 Closing
