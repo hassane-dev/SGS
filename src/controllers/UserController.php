@@ -20,11 +20,12 @@ class UserController {
         if (isset($file) && $file['error'] === UPLOAD_ERR_OK) {
             $uploadDir = __DIR__ . '/../../public/uploads/photos/';
             if (!is_dir($uploadDir)) {
-                if (!mkdir($uploadDir, 0755, true)) {
+                if (!mkdir($uploadDir, 0777, true)) {
                     error_log("Failed to create upload directory: " . $uploadDir);
                     return null;
                 }
             }
+            chmod($uploadDir, 0777);
 
             $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
             $fileInfo = finfo_open(FILEINFO_MIME_TYPE);

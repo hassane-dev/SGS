@@ -224,11 +224,12 @@ class EleveController {
 
         $upload_path = __DIR__ . '/../../public' . self::UPLOAD_DIR;
         if (!is_dir($upload_path)) {
-            if (!mkdir($upload_path, 0755, true)) {
+            if (!mkdir($upload_path, 0777, true)) {
                 error_log("Failed to create student upload directory: " . $upload_path);
                 return null;
             }
         }
+        chmod($upload_path, 0777);
 
         $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $fileInfo = finfo_open(FILEINFO_MIME_TYPE);

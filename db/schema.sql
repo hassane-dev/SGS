@@ -35,7 +35,7 @@ CREATE TABLE `param_lycee` (
     `arrete` VARCHAR(255),
     `arrondissement` VARCHAR(100),
     `devise` VARCHAR(255),
-    `logo` VARCHAR(255),
+    `logo` TEXT,
     `type_lycee` ENUM('public', 'prive', 'semi-public') NOT NULL,
     `boutique` BOOLEAN NOT NULL DEFAULT FALSE
 );
@@ -103,7 +103,7 @@ CREATE TABLE `utilisateurs` (
     `contrat_id` INT,
     `date_embauche` DATE,
     `actif` BOOLEAN DEFAULT TRUE,
-    `photo` VARCHAR(255),
+    `photo` TEXT,
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE SET NULL,
     FOREIGN KEY (`role_id`) REFERENCES `roles`(`id_role`) ON DELETE SET NULL
 );
@@ -288,7 +288,7 @@ CREATE TABLE `eleves` (
     `nom_mere` VARCHAR(255),
     `profession_pere` VARCHAR(255),
     `profession_mere` VARCHAR(255),
-    `photo` VARCHAR(255),
+    `photo` TEXT,
     `email` VARCHAR(255) UNIQUE,
     `telephone` VARCHAR(50),
     `statut` ENUM('en_attente', 'actif', 'transféré', 'radié', 'diplômé', 'abandonné') NOT NULL DEFAULT 'en_attente',
@@ -530,7 +530,7 @@ CREATE TABLE `modele_carte` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `lycee_id` INT NOT NULL,
     `nom_modele` VARCHAR(255) NOT NULL,
-    `background` VARCHAR(255), -- Path to image or color code
+    `background` TEXT, -- Path to image or color code
     `font_settings` JSON,
     `layout_data` JSON, -- Stores positions of all elements
     `qr_code_settings` JSON,
@@ -542,7 +542,7 @@ CREATE TABLE `modele_bulletin` (
     `lycee_id` INT NOT NULL,
     `nom_modele` VARCHAR(255) NOT NULL,
     `format` ENUM('A4_portrait', 'A4_landscape') DEFAULT 'A4_portrait',
-    `background` VARCHAR(255), -- Path to watermark image or color
+    `background` TEXT, -- Path to watermark image or color
     `font_settings` JSON,
     `header_content` TEXT,
     `footer_content` TEXT,
