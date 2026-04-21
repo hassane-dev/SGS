@@ -50,18 +50,24 @@ class ParamLycee {
         if (isset($_FILES['logo']) && $_FILES['logo']['error'] == UPLOAD_ERR_OK) {
             $uploadDir = __DIR__ . '/../../public/uploads/logos/';
             if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
+                mkdir($uploadDir, 0777, true);
             }
             $fileName = uniqid() . '-' . basename($_FILES['logo']['name']);
             $targetFilePath = $uploadDir . $fileName;
             if (move_uploaded_file($_FILES['logo']['tmp_name'], $targetFilePath)) {
+                // Delete old logo if it exists
+                if (!empty($data['current_logo'])) {
+                    $oldLogoPath = __DIR__ . '/../../public' . $data['current_logo'];
+                    if (file_exists($oldLogoPath)) {
+                        unlink($oldLogoPath);
+                    }
+                }
                 $data['logo'] = '/uploads/logos/' . $fileName;
             } else {
-                // Handle upload error if necessary
-                $data['logo'] = $data['current_logo']; // Keep old logo
+                $data['logo'] = $data['current_logo'] ?? null;
             }
         } else {
-            $data['logo'] = $data['current_logo']; // Keep old logo if no new one is uploaded
+            $data['logo'] = $data['current_logo'] ?? null;
         }
 
 

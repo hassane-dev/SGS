@@ -40,7 +40,7 @@ class ModeleCarteController {
             if (isset($_FILES['background_image']) && $_FILES['background_image']['error'] === UPLOAD_ERR_OK) {
                 $uploadDir = __DIR__ . '/../../public/uploads/card_backgrounds/';
                 if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0775, true);
+                    mkdir($uploadDir, 0777, true);
                 }
                 $fileName = uniqid() . '-' . basename($_FILES['background_image']['name']);
                 $targetFilePath = $uploadDir . $fileName;
