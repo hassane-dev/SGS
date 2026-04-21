@@ -11,12 +11,12 @@ $direction = $supported_languages[$lang]['dir'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $title ?? 'Gestion Scolaire' ?></title>
     <?php if ($direction === 'rtl'): ?>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.rtl.min.css">
+        <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
     <?php else: ?>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
     <?php endif; ?>
     <link rel="stylesheet" href="/assets/css/tailwind.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="/assets/libs/font-awesome/css/all.min.css">
 </head>
 <body>
 
@@ -150,6 +150,6 @@ $direction = $supported_languages[$lang]['dir'];
     <?= $content ?? '' ?>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

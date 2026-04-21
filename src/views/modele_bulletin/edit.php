@@ -71,8 +71,8 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
     </div>
 </div>
 
-<!-- Include Sortable.js from a CDN -->
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<!-- Include Sortable.js locally -->
+<script src="/assets/libs/sortable/Sortable.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {

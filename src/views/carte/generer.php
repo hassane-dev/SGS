@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <title>Carte d'Identité Scolaire</title>
     <!-- Using Bootstrap 5 for consistency -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <script src="/assets/libs/qrcode/qrcode.min.js"></script>
     <style>
         @media print {
             body { -webkit-print-color-adjust: exact; }
