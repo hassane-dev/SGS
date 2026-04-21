@@ -76,28 +76,41 @@ class Eleve {
 
         $fields = ['lycee_id', 'nom', 'prenom', 'date_naissance', 'lieu_naissance', 'nationalite', 'sexe', 'quartier', 'tel_parent', 'nom_pere', 'nom_mere', 'profession_pere', 'profession_mere', 'email', 'telephone', 'statut'];
 
-        $params = [];
-        foreach ($fields as $field) {
-            $params[$field] = $data[$field] ?? null;
+        if ($isUpdate) {
+            $currentData = self::findById($data['id_eleve']);
+            if (!$currentData) {
+                throw new InvalidArgumentException("Élève non trouvé.");
+            }
         }
 
-        if (!$isUpdate) {
+        $params = [];
+        foreach ($fields as $field) {
+            if (isset($data[$field])) {
+                $params[$field] = $data[$field];
+            } elseif ($isUpdate) {
+                // Keep current value if not provided during update
+                $params[$field] = $currentData[$field];
+            } else {
+                $params[$field] = null;
+            }
+        }
+
+        if (!$isUpdate && empty($params['statut'])) {
             $params['statut'] = 'en_attente';
         }
 
         if (!empty($data['photo'])) {
             $fields[] = 'photo';
             $params['photo'] = $data['photo'];
+        } elseif ($isUpdate) {
+            // Keep current photo if not provided
+            $fields[] = 'photo';
+            $params['photo'] = $currentData['photo'];
         }
 
         if ($isUpdate) {
-            // If photo is not provided during update, don't overwrite the existing one
-            if (empty($data['photo'])) {
-                $fields = array_filter($fields, fn($f) => $f !== 'photo');
-            }
             $setClauses = array_map(fn($f) => "`$f` = :$f", $fields);
             $sql = "UPDATE eleves SET " . implode(', ', $setClauses) . " WHERE id_eleve = :id_eleve";
-            $params = array_intersect_key($params, array_flip($fields));
             $params['id_eleve'] = $data['id_eleve'];
         } else {
             $columns = implode(', ', array_map(fn($f) => "`$f`", $fields));

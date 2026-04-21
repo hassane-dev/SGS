@@ -146,14 +146,17 @@ class User {
         // --- End Validation ---
 
         if ($isUpdate) {
+            $currentData = self::findById($data['id_user']);
+            if (!$currentData) {
+                throw new InvalidArgumentException("Membre du personnel non trouvé.");
+            }
+
             $sql = "UPDATE utilisateurs SET
                         nom = :nom, prenom = :prenom, sexe = :sexe, date_naissance = :date_naissance,
                         lieu_naissance = :lieu_naissance, adresse = :adresse, telephone = :telephone,
                         email = :email, fonction = :fonction, role_id = :role_id, lycee_id = :lycee_id,
-                        contrat_id = :contrat_id, date_embauche = :date_embauche, actif = :actif";
-            if (!empty($data['photo'])) {
-                $sql .= ", photo = :photo";
-            }
+                        contrat_id = :contrat_id, date_embauche = :date_embauche, actif = :actif,
+                        photo = :photo";
             if (!empty($data['mot_de_passe'])) {
                 $sql .= ", mot_de_passe = :mot_de_passe";
             }
@@ -171,25 +174,42 @@ class User {
         $db = Database::getInstance();
         $stmt = $db->prepare($sql);
 
-        $params = [
-            'nom' => $data['nom'],
-            'prenom' => $data['prenom'],
-            'sexe' => $data['sexe'] ?? null,
-            'date_naissance' => empty($data['date_naissance']) ? null : $data['date_naissance'],
-            'lieu_naissance' => $data['lieu_naissance'] ?? null,
-            'adresse' => $data['adresse'] ?? null,
-            'telephone' => $data['telephone'] ?? null,
-            'email' => $data['email'],
-            'fonction' => $data['fonction'] ?? null,
-            'role_id' => $data['role_id'],
-            'lycee_id' => empty($data['lycee_id']) ? null : (int)$data['lycee_id'],
-            'contrat_id' => empty($data['contrat_id']) ? null : (int)$data['contrat_id'],
-            'date_embauche' => empty($data['date_embauche']) ? null : $data['date_embauche'],
-            'actif' => $data['actif'] ?? 1, // Default to active
-        ];
-
-        if (!empty($data['photo']) || !$isUpdate) {
-            $params['photo'] = $data['photo'] ?? null;
+        if ($isUpdate) {
+            $params = [
+                'nom' => $data['nom'] ?? $currentData['nom'],
+                'prenom' => $data['prenom'] ?? $currentData['prenom'],
+                'sexe' => $data['sexe'] ?? $currentData['sexe'],
+                'date_naissance' => !isset($data['date_naissance']) ? $currentData['date_naissance'] : (empty($data['date_naissance']) ? null : $data['date_naissance']),
+                'lieu_naissance' => $data['lieu_naissance'] ?? $currentData['lieu_naissance'],
+                'adresse' => $data['adresse'] ?? $currentData['adresse'],
+                'telephone' => $data['telephone'] ?? $currentData['telephone'],
+                'email' => $data['email'] ?? $currentData['email'],
+                'fonction' => $data['fonction'] ?? $currentData['fonction'],
+                'role_id' => $data['role_id'] ?? $currentData['role_id'],
+                'lycee_id' => !isset($data['lycee_id']) ? $currentData['lycee_id'] : (empty($data['lycee_id']) ? null : (int)$data['lycee_id']),
+                'contrat_id' => !isset($data['contrat_id']) ? $currentData['contrat_id'] : (empty($data['contrat_id']) ? null : (int)$data['contrat_id']),
+                'date_embauche' => !isset($data['date_embauche']) ? $currentData['date_embauche'] : (empty($data['date_embauche']) ? null : $data['date_embauche']),
+                'actif' => $data['actif'] ?? $currentData['actif'],
+                'photo' => $data['photo'] ?? $currentData['photo'],
+            ];
+        } else {
+            $params = [
+                'nom' => $data['nom'],
+                'prenom' => $data['prenom'],
+                'sexe' => $data['sexe'] ?? null,
+                'date_naissance' => empty($data['date_naissance']) ? null : $data['date_naissance'],
+                'lieu_naissance' => $data['lieu_naissance'] ?? null,
+                'adresse' => $data['adresse'] ?? null,
+                'telephone' => $data['telephone'] ?? null,
+                'email' => $data['email'],
+                'fonction' => $data['fonction'] ?? null,
+                'role_id' => $data['role_id'],
+                'lycee_id' => empty($data['lycee_id']) ? null : (int)$data['lycee_id'],
+                'contrat_id' => empty($data['contrat_id']) ? null : (int)$data['contrat_id'],
+                'date_embauche' => empty($data['date_embauche']) ? null : $data['date_embauche'],
+                'actif' => $data['actif'] ?? 1,
+                'photo' => $data['photo'] ?? null,
+            ];
         }
 
         if (!empty($data['mot_de_passe'])) {
