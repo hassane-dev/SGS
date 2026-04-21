@@ -140,19 +140,44 @@ class EleveController {
         if (!Auth::can('edit', 'eleve')) { $this->forbidden(); }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
+            $id = $data['id_eleve'] ?? null;
+
+            if (!$id) {
+                header('Location: /eleves');
+                exit();
+            }
+
+            $currentEleve = Eleve::findById($id);
+            if (!$currentEleve) {
+                header('Location: /eleves');
+                exit();
+            }
+
             if (isset($_FILES['photo']) && $_FILES['photo']['error'] == UPLOAD_ERR_OK) {
                 $photoPath = $this->handlePhotoUpload($_FILES['photo']);
                 if ($photoPath) {
+                    // Delete old photo if exists
+                    if (!empty($currentEleve['photo'])) {
+                        $oldPhotoPath = __DIR__ . '/../../public' . $currentEleve['photo'];
+                        if (file_exists($oldPhotoPath)) {
+                            unlink($oldPhotoPath);
+                        }
+                    }
                     $data['photo'] = $photoPath;
                 }
             }
 
             if (empty($data['lycee_id'])) {
-                $eleve = Eleve::findById($data['id_eleve']);
-                $data['lycee_id'] = $eleve['lycee_id'] ?? Auth::get('lycee_id');
+                $data['lycee_id'] = $currentEleve['lycee_id'] ?? Auth::get('lycee_id');
             }
 
-            Eleve::save($data);
+            try {
+                Eleve::save($data);
+                $_SESSION['success_message'] = "Les informations de l'élève ont été mises à jour.";
+            } catch (Exception $e) {
+                error_log("Student update failed: " . $e->getMessage());
+                $_SESSION['error_message'] = "Erreur lors de la mise à jour : " . $e->getMessage();
+            }
         }
         header('Location: /eleves');
         exit();

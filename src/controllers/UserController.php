@@ -90,9 +90,11 @@ class UserController {
 
             try {
                 User::save($data);
+                $_SESSION['success_message'] = "Le membre du personnel a été créé avec succès.";
                 header('Location: /users');
                 exit();
-            } catch (InvalidArgumentException $e) {
+            } catch (Exception $e) {
+                error_log("User creation failed: " . $e->getMessage());
                 // Redisplay the form with an error message and pre-filled data
                 $lycee_id = Auth::get('lycee_id');
                 $lycees = (Auth::can('view_all_lycees', 'lycee')) ? Lycee::findAll() : [];
@@ -102,6 +104,7 @@ class UserController {
                 $is_edit = false;
                 $error = $e->getMessage();
                 require_once __DIR__ . '/../views/users/create.php';
+                exit();
             }
         }
     }
@@ -191,18 +194,21 @@ class UserController {
 
             try {
                 User::save($data);
+                $_SESSION['success_message'] = "Le membre du personnel a été mis à jour avec succès.";
                 header('Location: /users');
                 exit();
-            } catch (InvalidArgumentException $e) {
+            } catch (Exception $e) {
+                error_log("User update failed: " . $e->getMessage());
                 // Redisplay the form with an error message and pre-filled data
                 $id = $data['id_user'];
                 $user = $data; // Use submitted data to refill form
                 $lycees = (Auth::can('view_all_lycees', 'lycee')) ? Lycee::findAll() : [];
-                $contrats = TypeContrat::findAll($user['lycee_id']);
-                $roles = Role::findAll($user['lycee_id']);
+                $contrats = TypeContrat::findAll($user['lycee_id'] ?? Auth::get('lycee_id'));
+                $roles = Role::findAll($user['lycee_id'] ?? Auth::get('lycee_id'));
                 $is_edit = true;
                 $error = $e->getMessage();
                 require_once __DIR__ . '/../views/users/edit.php';
+                exit();
             }
         }
     }
