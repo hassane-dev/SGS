@@ -181,7 +181,22 @@ $(function() {
     // Helper to create objects
     const creators = {
         logo: (options) => {
-            fabric.Image.fromURL('<?= htmlspecialchars($params_lycee['logo'] ?? '/assets/img/logo-placeholder.png') ?>', function(img) {
+            const logoUrl = '<?= htmlspecialchars($params_lycee['logo'] ?? '') ?>' || '/assets/img/placeholder-photo.png';
+            fabric.Image.fromURL(logoUrl, function(img) {
+                if (!img) {
+                    const rect = new fabric.Rect({
+                        left: options.left || 225,
+                        top: options.top || 10,
+                        width: options.width || 100,
+                        height: options.height || 100,
+                        fill: '#eeeeee',
+                        ...options
+                    });
+                    rect.set('elementType', 'logo');
+                    canvas.add(rect);
+                    canvas.setActiveObject(rect);
+                    return;
+                }
                 img.set({
                     left: options.left || 225,
                     top: options.top || 10,
@@ -222,6 +237,21 @@ $(function() {
         },
         photo: (options) => {
             fabric.Image.fromURL('/assets/img/placeholder-photo.png', function(img) {
+                if (!img) {
+                    // Create a rectangle as fallback
+                    const rect = new fabric.Rect({
+                        left: options.left || 20,
+                        top: options.top || 20,
+                        width: options.width || 100,
+                        height: options.height || 120,
+                        fill: '#cccccc',
+                        ...options
+                    });
+                    rect.set('elementType', 'photo');
+                    canvas.add(rect);
+                    canvas.setActiveObject(rect);
+                    return;
+                }
                 img.set({
                     left: options.left || 20,
                     top: options.top || 20,
@@ -236,6 +266,20 @@ $(function() {
         },
         qr_code: (options) => {
             fabric.Image.fromURL('/assets/img/placeholder-qr.png', function(img) {
+                if (!img) {
+                    const rect = new fabric.Rect({
+                        left: options.left || 430,
+                        top: options.top || 230,
+                        width: options.width || 100,
+                        height: options.height || 100,
+                        fill: '#dddddd',
+                        ...options
+                    });
+                    rect.set('elementType', 'qr_code');
+                    canvas.add(rect);
+                    canvas.setActiveObject(rect);
+                    return;
+                }
                 img.set({
                     left: options.left || 430,
                     top: options.top || 230,
@@ -364,7 +408,7 @@ $(function() {
     const paletteItems = document.querySelectorAll('.palette-item');
     paletteItems.forEach(item => {
         item.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('type', item.dataset.type);
+            e.dataTransfer.setData('text/plain', item.dataset.type);
         });
     });
 
@@ -377,7 +421,7 @@ $(function() {
 
     canvasWrapper.addEventListener('drop', (e) => {
         e.preventDefault();
-        const type = e.dataTransfer.getData('type');
+        const type = e.dataTransfer.getData('text/plain');
 
         // Accurate coordinate calculation using pointer
         const pointer = canvas.getPointer(e);
