@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="/assets/libs/cropper/cropper.min.css">
+
 <div class="row g-3">
     <div class="col-md-6">
         <label for="nom" class="form-label"><?= _('Nom') ?></label>
@@ -74,11 +76,117 @@
     </div>
 </div>
 
-
+<h5 class="border-bottom pb-2 mt-4 mb-3"><?= _('Photo de l\'élève') ?></h5>
 <div class="mb-3">
-    <label for="photo" class="form-label"><?= _('Photo') ?></label>
-    <input type="file" class="form-control" id="photo" name="photo">
-    <?php if (isset($eleve['photo']) && $eleve['photo']): ?>
-        <img src="<?= htmlspecialchars($eleve['photo']) ?>" alt="Photo de l'élève" class="img-thumbnail mt-2" width="100">
-    <?php endif; ?>
+    <div class="d-flex align-items-center gap-3">
+        <div id="photo-preview-container">
+            <?php if (isset($eleve['photo']) && $eleve['photo']): ?>
+                <img src="<?= htmlspecialchars($eleve['photo']) ?>" alt="Photo de l'élève" class="img-thumbnail" id="photo-preview" style="width: 150px; height: 200px; object-fit: cover;">
+            <?php else: ?>
+                <img src="/assets/img/default-avatar.png" alt="Photo de l'élève" class="img-thumbnail" id="photo-preview" style="width: 150px; height: 200px; object-fit: cover;">
+            <?php endif; ?>
+        </div>
+        <div>
+            <button type="button" class="btn btn-outline-primary mb-2 d-block w-100" id="btn-browse-photo">
+                <i class="ph-duotone ph-folder-open me-2"></i><?= _('Choisir un fichier') ?>
+            </button>
+            <button type="button" class="btn btn-outline-primary d-block w-100" id="btn-camera-photo">
+                <i class="ph-duotone ph-camera me-2"></i><?= _('Prendre une photo') ?>
+            </button>
+            <input type="file" id="input-photo" accept="image/*" class="d-none">
+            <input type="file" id="input-camera" accept="image/*" capture="camera" class="d-none">
+            <input type="hidden" name="cropped_photo" id="cropped_photo">
+        </div>
+    </div>
+    <small class="text-muted d-block mt-2"><?= _('Format recommandé : Portrait (3:4). La photo sera automatiquement redimensionnée.') ?></small>
 </div>
+
+<!-- Modal de Recadrage -->
+<div class="modal fade" id="cropperModal" tabindex="-1" aria-labelledby="cropperModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cropperModalLabel"><?= _('Recadrer la photo') ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="img-container">
+                    <img id="cropper-image" src="" style="max-width: 100%;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= _('Annuler') ?></button>
+                <button type="button" class="btn btn-primary" id="btn-crop-save"><?= _('Valider le recadrage') ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/assets/libs/cropper/cropper.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const inputPhoto = document.getElementById('input-photo');
+    const inputCamera = document.getElementById('input-camera');
+    const btnBrowse = document.getElementById('btn-browse-photo');
+    const btnCamera = document.getElementById('btn-camera-photo');
+    const photoPreview = document.getElementById('photo-preview');
+    const cropperModal = new bootstrap.Modal(document.getElementById('cropperModal'));
+    const cropperImage = document.getElementById('cropper-image');
+    const btnCropSave = document.getElementById('btn-crop-save');
+    const croppedPhotoInput = document.getElementById('cropped_photo');
+
+    let cropper;
+
+    btnBrowse.addEventListener('click', () => inputPhoto.click());
+    btnCamera.addEventListener('click', () => inputCamera.click());
+
+    [inputPhoto, inputCamera].forEach(input => {
+        input.addEventListener('change', function(e) {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                const file = files[0];
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    cropperImage.src = event.target.result;
+                    cropperModal.show();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+
+    document.getElementById('cropperModal').addEventListener('shown.bs.modal', function() {
+        cropper = new Cropper(cropperImage, {
+            aspectRatio: 3 / 4,
+            viewMode: 1,
+            autoCropArea: 1,
+        });
+    });
+
+    document.getElementById('cropperModal').addEventListener('hidden.bs.modal', function() {
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+        // Reset inputs to allow selecting the same file again
+        inputPhoto.value = '';
+        inputCamera.value = '';
+    });
+
+    btnCropSave.addEventListener('click', function() {
+        if (cropper) {
+            const canvas = cropper.getCroppedCanvas({
+                width: 300,
+                height: 400,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
+            });
+
+            const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            photoPreview.src = croppedDataUrl;
+            croppedPhotoInput.value = croppedDataUrl;
+            cropperModal.hide();
+        }
+    });
+});
+</script>

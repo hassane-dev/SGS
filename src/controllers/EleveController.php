@@ -81,7 +81,12 @@ class EleveController {
         $data = Validator::sanitize($_POST);
 
         // Handle photo upload BEFORE database operation
-        if (isset($_FILES['photo']) && $_FILES['photo']['error'] == UPLOAD_ERR_OK) {
+        if (!empty($data['cropped_photo'])) {
+            $photoPath = $this->handleCroppedPhoto($data['cropped_photo']);
+            if ($photoPath) {
+                $data['photo'] = $photoPath;
+            }
+        } elseif (isset($_FILES['photo']) && $_FILES['photo']['error'] == UPLOAD_ERR_OK) {
             $photoPath = $this->handlePhotoUpload($_FILES['photo']);
             if ($photoPath) {
                 $data['photo'] = $photoPath;
@@ -153,7 +158,19 @@ class EleveController {
                 exit();
             }
 
-            if (isset($_FILES['photo']) && $_FILES['photo']['error'] == UPLOAD_ERR_OK) {
+            if (!empty($data['cropped_photo'])) {
+                $photoPath = $this->handleCroppedPhoto($data['cropped_photo']);
+                if ($photoPath) {
+                    // Delete old photo if exists
+                    if (!empty($currentEleve['photo'])) {
+                        $oldPhotoPath = __DIR__ . '/../../public' . $currentEleve['photo'];
+                        if (file_exists($oldPhotoPath)) {
+                            unlink($oldPhotoPath);
+                        }
+                    }
+                    $data['photo'] = $photoPath;
+                }
+            } elseif (isset($_FILES['photo']) && $_FILES['photo']['error'] == UPLOAD_ERR_OK) {
                 $photoPath = $this->handlePhotoUpload($_FILES['photo']);
                 if ($photoPath) {
                     // Delete old photo if exists
@@ -212,6 +229,37 @@ class EleveController {
         http_response_code(403);
         View::render('errors/403');
         exit();
+    }
+
+    private function handleCroppedPhoto($base64_string) {
+        $upload_path = __DIR__ . '/../../public' . self::UPLOAD_DIR;
+        if (!is_dir($upload_path)) {
+            if (!mkdir($upload_path, 0777, true)) {
+                error_log("Failed to create student upload directory: " . $upload_path);
+                return null;
+            }
+        }
+        chmod($upload_path, 0777);
+
+        // Extract data from base64 string
+        try {
+            list($type, $data) = explode(';', $base64_string);
+            list(, $data) = explode(',', $data);
+            $data = base64_decode($data);
+
+            $filename = uniqid() . '.jpg';
+            $target_path = $upload_path . $filename;
+
+            if (file_put_contents($target_path, $data)) {
+                return self::UPLOAD_DIR . $filename;
+            } else {
+                error_log("Failed to save cropped student photo to: " . $target_path);
+            }
+        } catch (Exception $e) {
+            error_log("Error processing cropped photo: " . $e->getMessage());
+        }
+
+        return null;
     }
 
     private function handlePhotoUpload($file) {
