@@ -9,7 +9,7 @@
                     <legend class="h5 fw-bold border-bottom pb-2 mb-3"><?= _('Informations sur l\'école') ?></legend>
                     <div class="row g-3">
                         <div class="col-md-6"><label for="nom_lycee" class="form-label"><?= _('Nom du Lycée') ?></label><input type="text" name="nom_lycee" id="nom_lycee" class="form-control" required></div>
-                        <div class="col-md-6"><label for="type_lycee" class="form-label"><?= _('Type de Lycée') ?></label><select name="type_lycee" id="type_lycee" class="form-select" required><option value="prive"><?= _('Privé') ?></option><option value="parapublic"><?= _('Parapublic') ?></option><option value="public"><?= _('Public') ?></option></select></div>
+                        <div class="col-md-6"><label for="type_lycee" class="form-label"><?= _('Type de Lycée') ?></label><select name="type_lycee" id="type_lycee" class="form-select" required><option value="prive"><?= _('Privé') ?></option><option value="semi-public"><?= _('Semi-public') ?></option><option value="public"><?= _('Public') ?></option></select></div>
                         <div class="col-12"><label for="annee_academique" class="form-label"><?= _('Année Académique Actuelle') ?></label><input type="text" name="annee_academique" id="annee_academique" class="form-control" placeholder="Ex: 2024-2025" required></div>
                     </div>
                 </fieldset>

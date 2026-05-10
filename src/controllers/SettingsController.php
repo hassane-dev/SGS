@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../models/ParamGeneral.php';
+require_once __DIR__ . '/../models/ParamLycee.php';
 require_once __DIR__ . '/../core/Validator.php';
 require_once __DIR__ . '/../core/View.php';
 
@@ -21,17 +22,19 @@ class SettingsController {
             $data = Validator::sanitize($_POST);
             $data['lycee_id'] = $lycee_id;
 
+            // Handle checkboxes/switches that are not sent in POST if unchecked
+            $data['multilingue_actif'] = isset($_POST['multilingue_actif']) ? 1 : 0;
+            $data['biometrie_actif'] = isset($_POST['biometrie_actif']) ? 1 : 0;
+            $data['confidentialite_nationale'] = isset($_POST['confidentialite_nationale']) ? 1 : 0;
+
             // Save general settings
             ParamGeneral::save($data);
 
             // Save school identity settings if present in data
-            if (isset($data['nom_lycee']) || isset($data['type_lycee'])) {
+            if (isset($data['nom_lycee']) || isset($data['type_lycee']) || isset($_FILES['logo'])) {
                 $lycee_data = ParamLycee::findByLyceeId($lycee_id);
                 if ($lycee_data) {
                     $update_data = array_merge($lycee_data, $data);
-                    // Logo is handled specially in ParamLycee::update,
-                    // but here we don't have file upload in the settings form,
-                    // so we make sure current_logo is set to avoid it being lost
                     $update_data['current_logo'] = $lycee_data['logo'];
                     ParamLycee::update($update_data);
                 }
