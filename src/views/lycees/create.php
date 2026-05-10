@@ -4,7 +4,7 @@
     <h2 class="text-2xl font-bold mb-6"><?= _('Add New High School') ?></h2>
 
     <div class="bg-white p-8 rounded-lg shadow-lg">
-        <form action="/lycees/store" method="POST">
+        <form action="/lycees/store" method="POST" enctype="multipart/form-data">
             <div class="grid grid-cols-1 gap-6">
 
                 <div>
@@ -13,11 +13,16 @@
                 </div>
 
                 <div>
+                    <label for="logo" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Logo') ?></label>
+                    <input type="file" name="logo" id="logo" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
+                </div>
+
+                <div>
                     <label for="type_lycee" class="block text-gray-700 text-sm font-bold mb-2"><?= _('High School Type') ?></label>
                     <select name="type_lycee" id="type_lycee" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required>
                         <option value="public"><?= _('Public') ?></option>
                         <option value="prive"><?= _('Private') ?></option>
-                        <option value="parapublic"><?= _('Parapublic') ?></option>
+                        <option value="semi-public"><?= _('Semi-public') ?></option>
                     </select>
                 </div>
 

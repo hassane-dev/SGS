@@ -32,7 +32,7 @@
                             </div>
                         <?php endif; ?>
 
-                        <form action="/settings" method="POST">
+                        <form action="/settings" method="POST" enctype="multipart/form-data">
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="nom_lycee" class="form-label"><?= _('Nom du Lycée') ?></label>
@@ -40,12 +40,29 @@
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label for="type_lycee" class="form-label"><?= _('Type de Lycée') ?></label>
-                                    <select name="type_lycee" id="type_lycee" class="form-select">
-                                        <option value="public" <?= ($settings['type_lycee'] ?? '') === 'public' ? 'selected' : '' ?>><?= _('Public') ?></option>
-                                        <option value="prive" <?= ($settings['type_lycee'] ?? '') === 'prive' ? 'selected' : '' ?>><?= _('Privé') ?></option>
-                                        <option value="parapublic" <?= ($settings['type_lycee'] ?? '') === 'parapublic' ? 'selected' : '' ?>><?= _('Parapublic') ?></option>
-                                    </select>
+                                    <label for="logo" class="form-label"><?= _('Logo du Lycée') ?></label>
+                                    <input type="file" name="logo" id="logo" class="form-control">
+                                    <?php if (!empty($settings['logo'])): ?>
+                                        <div class="mt-2">
+                                            <img src="<?= htmlspecialchars($settings['logo']) ?>" alt="Logo" class="img-thumbnail" style="max-height: 50px;">
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label d-block"><?= _('Type de Lycée') ?></label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="type_lycee" id="type_public" value="public" <?= ($settings['type_lycee'] ?? '') === 'public' ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="type_public"><?= _('Public') ?></label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="type_lycee" id="type_prive" value="prive" <?= ($settings['type_lycee'] ?? '') === 'prive' ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="type_prive"><?= _('Privé') ?></label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="type_lycee" id="type_semi" value="semi-public" <?= ($settings['type_lycee'] ?? '') === 'semi-public' || ($settings['type_lycee'] ?? '') === 'parapublic' ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="type_semi"><?= _('Semi-public') ?></label>
+                                    </div>
                                 </div>
 
                                 <div class="col-md-6">
@@ -66,12 +83,19 @@
                                 </div>
 
                                 <div class="col-12">
-                                    <label for="modalite_paiement" class="form-label"><?= _('Modalité de Paiement des Frais de Scolarité') ?></label>
-                                    <select name="modalite_paiement" id="modalite_paiement" class="form-select">
-                                        <option value="avant_inscription" <?= ($settings['modalite_paiement'] ?? '') === 'avant_inscription' ? 'selected' : '' ?>><?= _('Avant l\'inscription') ?></option>
-                                        <option value="apres_test" <?= ($settings['modalite_paiement'] ?? '') === 'apres_test' ? 'selected' : '' ?>><?= _('Après le test d\'entrée') ?></option>
-                                        <option value="fractionne" <?= ($settings['modalite_paiement'] ?? '') === 'fractionne' ? 'selected' : '' ?>><?= _('Paiement fractionné') ?></option>
-                                    </select>
+                                    <label class="form-label d-block"><?= _('Modalité de Paiement des Frais de Scolarité') ?></label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="modalite_paiement" id="mod_avant" value="avant_inscription" <?= ($settings['modalite_paiement'] ?? '') === 'avant_inscription' ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="mod_avant"><?= _('Avant l\'inscription') ?></label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="modalite_paiement" id="mod_apres" value="apres_test" <?= ($settings['modalite_paiement'] ?? '') === 'apres_test' ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="mod_apres"><?= _('Après le test d\'entrée') ?></label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="modalite_paiement" id="mod_frac" value="fractionne" <?= ($settings['modalite_paiement'] ?? '') === 'fractionne' ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="mod_frac"><?= _('Paiement fractionné') ?></label>
+                                    </div>
                                 </div>
 
                                 <div class="col-12 mt-4">

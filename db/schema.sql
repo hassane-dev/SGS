@@ -52,6 +52,9 @@ CREATE TABLE `param_general` (
     `langue_2` VARCHAR(50),
     `sequence_annuelle` ENUM('Semestrielle', 'Trimestrielle') NOT NULL DEFAULT 'Trimestrielle',
     `mode_cycle` ENUM('lycee_unique', 'separe_ceg_lycee') NOT NULL DEFAULT 'separe_ceg_lycee',
+    `multilingue_actif` BOOLEAN DEFAULT FALSE,
+    `biometrie_actif` BOOLEAN DEFAULT FALSE,
+    `confidentialite_nationale` BOOLEAN DEFAULT FALSE,
     `cree_le` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );

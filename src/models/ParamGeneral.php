@@ -84,7 +84,10 @@ class ParamGeneral {
                     langue_1 = :langue_1,
                     langue_2 = :langue_2,
                     sequence_annuelle = :sequence_annuelle,
-                    mode_cycle = :mode_cycle
+                    mode_cycle = :mode_cycle,
+                    multilingue_actif = :multilingue_actif,
+                    biometrie_actif = :biometrie_actif,
+                    confidentialite_nationale = :confidentialite_nationale
                 WHERE lycee_id = :lycee_id";
 
         try {
@@ -99,6 +102,9 @@ class ParamGeneral {
                 'langue_2' => $data['langue_2'] ?? null,
                 'sequence_annuelle' => $data['sequence_annuelle'],
                 'mode_cycle' => $data['mode_cycle'] ?? 'separe_ceg_lycee',
+                'multilingue_actif' => $data['multilingue_actif'] ?? 0,
+                'biometrie_actif' => $data['biometrie_actif'] ?? 0,
+                'confidentialite_nationale' => $data['confidentialite_nationale'] ?? 0,
                 'lycee_id' => $lycee_id
             ]);
         } catch (PDOException $e) {
@@ -124,7 +130,10 @@ class ParamGeneral {
                         langue_1 = :langue_1,
                         langue_2 = :langue_2,
                         sequence_annuelle = :sequence_annuelle,
-                        mode_cycle = :mode_cycle
+                        mode_cycle = :mode_cycle,
+                        multilingue_actif = :multilingue_actif,
+                        biometrie_actif = :biometrie_actif,
+                        confidentialite_nationale = :confidentialite_nationale
                     WHERE lycee_id = :lycee_id";
 
             $params = [
@@ -136,12 +145,15 @@ class ParamGeneral {
                 'langue_1' => $data['langue_1'] ?? $existing['langue_1'],
                 'langue_2' => $data['langue_2'] ?? $existing['langue_2'],
                 'sequence_annuelle' => $data['sequence_annuelle'] ?? $existing['sequence_annuelle'],
-                'mode_cycle' => $data['mode_cycle'] ?? $existing['mode_cycle']
+                'mode_cycle' => $data['mode_cycle'] ?? $existing['mode_cycle'],
+                'multilingue_actif' => $data['multilingue_actif'] ?? $existing['multilingue_actif'],
+                'biometrie_actif' => $data['biometrie_actif'] ?? $existing['biometrie_actif'],
+                'confidentialite_nationale' => $data['confidentialite_nationale'] ?? $existing['confidentialite_nationale']
             ];
         } else {
             // Create with defaults
-            $sql = "INSERT INTO param_general (lycee_id, devise_pays, monnaie, modalite_paiement, nb_langue, langue_1, langue_2, sequence_annuelle, mode_cycle)
-                    VALUES (:lycee_id, :devise_pays, :monnaie, :modalite_paiement, :nb_langue, :langue_1, :langue_2, :sequence_annuelle, :mode_cycle)";
+            $sql = "INSERT INTO param_general (lycee_id, devise_pays, monnaie, modalite_paiement, nb_langue, langue_1, langue_2, sequence_annuelle, mode_cycle, multilingue_actif, biometrie_actif, confidentialite_nationale)
+                    VALUES (:lycee_id, :devise_pays, :monnaie, :modalite_paiement, :nb_langue, :langue_1, :langue_2, :sequence_annuelle, :mode_cycle, :multilingue_actif, :biometrie_actif, :confidentialite_nationale)";
 
             $params = [
                 'lycee_id' => $data['lycee_id'],
@@ -152,7 +164,10 @@ class ParamGeneral {
                 'langue_1' => $data['langue_1'] ?? 'Francais',
                 'langue_2' => $data['langue_2'] ?? null,
                 'sequence_annuelle' => $data['sequence_annuelle'] ?? 'Trimestrielle',
-                'mode_cycle' => $data['mode_cycle'] ?? 'separe_ceg_lycee'
+                'mode_cycle' => $data['mode_cycle'] ?? 'separe_ceg_lycee',
+                'multilingue_actif' => $data['multilingue_actif'] ?? 0,
+                'biometrie_actif' => $data['biometrie_actif'] ?? 0,
+                'confidentialite_nationale' => $data['confidentialite_nationale'] ?? 0
             ];
         }
 
