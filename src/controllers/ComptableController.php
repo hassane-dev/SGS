@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../models/Eleve.php';
 require_once __DIR__ . '/../models/Etude.php';
 require_once __DIR__ . '/../models/Frais.php';
+require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Inscription.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../core/Auth.php';
@@ -44,7 +45,8 @@ class ComptableController {
         $etude = Etude::findPendingEnrollment($eleve_id, $activeYear['id']);
         if (!$etude) { die("Aucune inscription en attente trouvée pour cet élève cette année."); }
 
-        $frais = Frais::getForClasse($etude['classe_id'], $activeYear['id']);
+        $classe = Classe::findById($etude['classe_id']);
+        $frais = Frais::findForClasse($classe, $activeYear['id']);
 
         require_once __DIR__ . '/../views/comptable/validate.php';
     }
@@ -59,7 +61,8 @@ class ComptableController {
 
         $eleve = Eleve::findById($eleve_id);
         $activeYear = AnneeAcademique::findActive();
-        $frais = Frais::getForClasse($_POST['classe_id'], $activeYear['id']);
+        $classe = Classe::findById($_POST['classe_id']);
+        $frais = Frais::findForClasse($classe, $activeYear['id']);
 
         $montant_total = $frais['frais_inscription'];
         // Add other fees if they exist
@@ -76,7 +79,7 @@ class ComptableController {
             Eleve::save($eleve);
 
             // 3. Create the financial record (inscription)
-            Inscription::create([
+            Inscription::save([
                 'eleve_id' => $eleve_id,
                 'classe_id' => $_POST['classe_id'],
                 'lycee_id' => $eleve['lycee_id'],
@@ -84,8 +87,8 @@ class ComptableController {
                 'montant_total' => $montant_total,
                 'montant_verse' => $montant_verse,
                 'reste_a_payer' => $montant_total - $montant_verse,
-                'details_frais' => ['frais_inscription' => $frais['frais_inscription']],
-                'user_id' => Auth::get('id_user')
+                'details_frais' => json_encode(['frais_inscription' => $frais['frais_inscription']]),
+                'user_id' => Auth::get('id')
             ]);
 
             $db->commit();
