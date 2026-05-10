@@ -18,7 +18,7 @@ class Eleve {
                 LEFT JOIN classes c ON et.classe_id = c.id_classe
                 LEFT JOIN cycles cy ON c.cycle_id = cy.id_cycle
                 LEFT JOIN param_lycee l ON e.lycee_id = l.id
-                WHERE (e.statut = 'actif' OR e.statut = 'en_attente')";
+                WHERE (e.statut = 'actif' OR e.statut = 'en_attente' OR e.statut = 'en_attente_paiement')";
 
         $params = [];
 
@@ -192,6 +192,30 @@ class Eleve {
         $db = Database::getInstance();
         $stmt = $db->prepare("UPDATE eleves SET statut = :statut WHERE id_eleve = :id");
         return $stmt->execute(['id' => $id, 'statut' => $status]);
+    }
+
+    /**
+     * Trouve les élèves par statut et par lycée.
+     */
+    public static function findByStatus($status, $lycee_id = null) {
+        $db = Database::getInstance();
+        $sql = "SELECT e.*, c.niveau, c.serie, c.numero
+                FROM eleves e
+                LEFT JOIN etudes et ON e.id_eleve = et.eleve_id
+                    AND et.annee_academique_id = (SELECT id FROM annees_academiques WHERE est_active = 1 LIMIT 1)
+                LEFT JOIN classes c ON et.classe_id = c.id_classe
+                WHERE e.statut = :statut";
+        $params = ['statut' => $status];
+
+        if ($lycee_id) {
+            $sql .= " AND e.lycee_id = :lycee_id";
+            $params['lycee_id'] = $lycee_id;
+        }
+
+        $sql .= " ORDER BY e.nom, e.prenom ASC";
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public static function findByClass($classe_id) {

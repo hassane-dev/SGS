@@ -6,6 +6,7 @@ require_once __DIR__ . '/../models/Frais.php';
 require_once __DIR__ . '/../models/Inscription.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../core/Auth.php';
+require_once __DIR__ . '/../core/View.php';
 
 class ComptableController {
 
@@ -20,13 +21,15 @@ class ComptableController {
 
     public function listPending() {
         $this->checkAccess();
-        $lycee_id = Auth::get('lycee_id');
+        $lycee_id = Auth::getLyceeId();
 
         // Find students in this lycee with 'en_attente_paiement' status
-        // This requires adding a new method to the Eleve model.
         $eleves_en_attente = Eleve::findByStatus('en_attente_paiement', $lycee_id);
 
-        require_once __DIR__ . '/../views/comptable/pending.php';
+        View::render('comptable/pending', [
+            'eleves_en_attente' => $eleves_en_attente,
+            'title' => 'Inscriptions en Attente'
+        ]);
     }
 
     public function showValidationForm() {

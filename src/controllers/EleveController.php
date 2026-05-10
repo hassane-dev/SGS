@@ -107,12 +107,6 @@ class EleveController {
             Eleve::save($data);
             $eleve_id = $db->lastInsertId();
 
-            // Notification pour le comptable
-            $eleve_nom_complet = $data['prenom'] . ' ' . $data['nom'];
-            $message = "Un nouvel élève est en attente de paiement : {$eleve_nom_complet}. Cliquez pour procéder au paiement.";
-            $link = "/paiements/show/{$eleve_id}";
-            Notification::notifyRole('comptable', $data['lycee_id'], $message, $link);
-
             $db->commit();
 
         } catch (Exception $e) {
@@ -361,17 +355,38 @@ class EleveController {
                     throw new Exception("Aucune année académique active n'a été trouvée.");
                 }
 
+                // Get Lycee details to check type
+                require_once __DIR__ . '/../models/ParamLycee.php';
+                $lycee = ParamLycee::findByLyceeId($lycee_id);
+                $is_public = ($lycee['type_lycee'] === 'public');
+
+                $etude_active = $is_public ? 1 : 0;
+
                 // Create the study record
                 Etude::create([
                     'eleve_id' => $eleve_id,
                     'classe_id' => $classe_id,
                     'lycee_id' => $lycee_id,
                     'annee_academique_id' => $activeYear['id'],
-                    'actif' => 0 // Inactive until payment validation
+                    'actif' => $etude_active
                 ]);
 
                 // Increment the class's current number of students
                 Classe::incrementerEffectifActuel($classe_id, $activeYear['id']);
+
+                // If public, activate student immediately. Otherwise, set to 'en_attente_paiement'
+                if ($is_public) {
+                    Eleve::updateStatus($eleve_id, 'actif');
+                } else {
+                    Eleve::updateStatus($eleve_id, 'en_attente_paiement');
+
+                    // Notification pour le comptable
+                    $eleve = Eleve::findById($eleve_id);
+                    $eleve_nom_complet = $eleve['prenom'] . ' ' . $eleve['nom'];
+                    $message = "Un nouvel élève est en attente de paiement : {$eleve_nom_complet}. Cliquez pour procéder au paiement.";
+                    $link = "/paiements/show/{$eleve_id}";
+                    Notification::notifyRole('comptable', $lycee_id, $message, $link);
+                }
 
                 $db->commit();
 

@@ -52,6 +52,7 @@ CREATE TABLE `param_general` (
     `langue_2` VARCHAR(50),
     `sequence_annuelle` ENUM('Semestrielle', 'Trimestrielle') NOT NULL DEFAULT 'Trimestrielle',
     `mode_cycle` ENUM('lycee_unique', 'separe_ceg_lycee') NOT NULL DEFAULT 'separe_ceg_lycee',
+    `mensualite_obligatoire_inscription` BOOLEAN DEFAULT FALSE,
     `cree_le` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
@@ -291,7 +292,7 @@ CREATE TABLE `eleves` (
     `photo` TEXT,
     `email` VARCHAR(255) UNIQUE,
     `telephone` VARCHAR(50),
-    `statut` ENUM('en_attente', 'actif', 'transféré', 'radié', 'diplômé', 'abandonné') NOT NULL DEFAULT 'en_attente',
+    `statut` ENUM('en_attente', 'en_attente_paiement', 'actif', 'transféré', 'radié', 'diplômé', 'abandonné') NOT NULL DEFAULT 'en_attente',
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 

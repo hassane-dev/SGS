@@ -87,6 +87,10 @@
                                         <input class="form-check-input" type="checkbox" name="confidentialite_nationale" value="1" id="confidentialite_nationale" <?= !empty($settings['confidentialite_nationale']) ? 'checked' : '' ?>>
                                         <label class="form-check-label" for="confidentialite_nationale"><?= _('Appliquer la confidentialité nationale') ?></label>
                                     </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="mensualite_obligatoire_inscription" value="1" id="mensualite_obligatoire_inscription" <?= !empty($settings['mensualite_obligatoire_inscription']) ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="mensualite_obligatoire_inscription"><?= _('Exiger le paiement de la première mensualité à l\'inscription (Établissements Privés/Parapublics)') ?></label>
+                                    </div>
                                 </div>
                             </div>
 

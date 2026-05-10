@@ -84,7 +84,8 @@ class ParamGeneral {
                     langue_1 = :langue_1,
                     langue_2 = :langue_2,
                     sequence_annuelle = :sequence_annuelle,
-                    mode_cycle = :mode_cycle
+                    mode_cycle = :mode_cycle,
+                    mensualite_obligatoire_inscription = :mensualite_obligatoire_inscription
                 WHERE lycee_id = :lycee_id";
 
         try {
@@ -99,6 +100,7 @@ class ParamGeneral {
                 'langue_2' => $data['langue_2'] ?? null,
                 'sequence_annuelle' => $data['sequence_annuelle'],
                 'mode_cycle' => $data['mode_cycle'] ?? 'separe_ceg_lycee',
+                'mensualite_obligatoire_inscription' => isset($data['mensualite_obligatoire_inscription']) ? 1 : 0,
                 'lycee_id' => $lycee_id
             ]);
         } catch (PDOException $e) {
@@ -124,7 +126,8 @@ class ParamGeneral {
                         langue_1 = :langue_1,
                         langue_2 = :langue_2,
                         sequence_annuelle = :sequence_annuelle,
-                        mode_cycle = :mode_cycle
+                        mode_cycle = :mode_cycle,
+                        mensualite_obligatoire_inscription = :mensualite_obligatoire_inscription
                     WHERE lycee_id = :lycee_id";
 
             $params = [
@@ -136,12 +139,13 @@ class ParamGeneral {
                 'langue_1' => $data['langue_1'] ?? $existing['langue_1'],
                 'langue_2' => $data['langue_2'] ?? $existing['langue_2'],
                 'sequence_annuelle' => $data['sequence_annuelle'] ?? $existing['sequence_annuelle'],
-                'mode_cycle' => $data['mode_cycle'] ?? $existing['mode_cycle']
+                'mode_cycle' => $data['mode_cycle'] ?? $existing['mode_cycle'],
+                'mensualite_obligatoire_inscription' => isset($data['mensualite_obligatoire_inscription']) ? 1 : ($existing['mensualite_obligatoire_inscription'] ?? 0)
             ];
         } else {
             // Create with defaults
-            $sql = "INSERT INTO param_general (lycee_id, devise_pays, monnaie, modalite_paiement, nb_langue, langue_1, langue_2, sequence_annuelle, mode_cycle)
-                    VALUES (:lycee_id, :devise_pays, :monnaie, :modalite_paiement, :nb_langue, :langue_1, :langue_2, :sequence_annuelle, :mode_cycle)";
+            $sql = "INSERT INTO param_general (lycee_id, devise_pays, monnaie, modalite_paiement, nb_langue, langue_1, langue_2, sequence_annuelle, mode_cycle, mensualite_obligatoire_inscription)
+                    VALUES (:lycee_id, :devise_pays, :monnaie, :modalite_paiement, :nb_langue, :langue_1, :langue_2, :sequence_annuelle, :mode_cycle, :mensualite_obligatoire_inscription)";
 
             $params = [
                 'lycee_id' => $data['lycee_id'],
@@ -152,7 +156,8 @@ class ParamGeneral {
                 'langue_1' => $data['langue_1'] ?? 'Francais',
                 'langue_2' => $data['langue_2'] ?? null,
                 'sequence_annuelle' => $data['sequence_annuelle'] ?? 'Trimestrielle',
-                'mode_cycle' => $data['mode_cycle'] ?? 'separe_ceg_lycee'
+                'mode_cycle' => $data['mode_cycle'] ?? 'separe_ceg_lycee',
+                'mensualite_obligatoire_inscription' => isset($data['mensualite_obligatoire_inscription']) ? 1 : 0
             ];
         }
 
