@@ -151,17 +151,8 @@ class PaiementController {
 
             Inscription::save($data);
 
-            // Si le paiement est complet, activer l'élève et l'étude
-            if ($resteAPayer <= 0) {
-                Eleve::updateStatus($eleveId, 'actif');
-                Etude::activate($etude['id_etude']);
-
-                // Notifier l'admin local que l'inscription est finalisée
-                $eleve_nom_complet = $eleve['prenom'] . ' ' . $eleve['nom'];
-                $message = "Paiement initial validé et inscription activée pour {$eleve_nom_complet}.";
-                $link = "/eleves/details?id={$eleveId}"; // Lien vers le profil de l'élève
-                Notification::notifyRole('admin_local', Auth::getLyceeId(), $message, $link);
-            }
+            // Vérifier et activer l'élève si possible
+            $this->checkAndActivateStudent($eleveId);
 
             $db->commit();
             $_SESSION['success_message'] = "Le paiement de l'inscription a été enregistré avec succès.";
@@ -218,6 +209,9 @@ class PaiementController {
                 }
             }
 
+            // Vérifier et activer l'élève si possible
+            $this->checkAndActivateStudent($eleveId);
+
             $db->commit();
             $_SESSION['success_message'] = "Les paiements des mensualités ont été enregistrés avec succès.";
 
@@ -228,5 +222,49 @@ class PaiementController {
 
         header('Location: /paiements/show/' . $eleveId);
         exit();
+    }
+
+    /**
+     * Vérifie si l'élève peut être activé selon les règles de paiement.
+     */
+    private function checkAndActivateStudent($eleveId) {
+        require_once __DIR__ . '/../models/ParamGeneral.php';
+        $lyceeId = Auth::getLyceeId();
+        $anneeActive = AnneeAcademique::findActive();
+
+        $params = ParamGeneral::findByLyceeId($lyceeId);
+        $eleve = Eleve::findById($eleveId);
+        $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id']);
+        $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id']);
+
+        // Si déjà actif, rien à faire
+        if ($eleve['statut'] === 'actif') {
+            return;
+        }
+
+        // L'inscription doit être totalement payée
+        $inscriptionComplete = ($inscription && $inscription['reste_a_payer'] <= 0);
+
+        if (!$inscriptionComplete) {
+            return;
+        }
+
+        // Si la mensualité est obligatoire, vérifier si au moins une mensualité est payée
+        if (!empty($params['mensualite_obligatoire_inscription'])) {
+            $mensualites = Mensualite::findByEleveAndAnnee($eleveId, $anneeActive['id']);
+            if (empty($mensualites)) {
+                return;
+            }
+        }
+
+        // Si on arrive ici, toutes les conditions sont remplies
+        Eleve::updateStatus($eleveId, 'actif');
+        Etude::activate($etude['id_etude']);
+
+        // Notifier l'admin local que l'élève est désormais actif
+        $eleve_nom_complet = $eleve['prenom'] . ' ' . $eleve['nom'];
+        $message = "L'élève {$eleve_nom_complet} est désormais actif après validation des paiements requis.";
+        $link = "/eleves/details?id={$eleveId}";
+        Notification::notifyRole('admin_local', $lyceeId, $message, $link);
     }
 }

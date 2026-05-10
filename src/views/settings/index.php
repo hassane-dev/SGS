@@ -44,7 +44,7 @@
                                     <select name="type_lycee" id="type_lycee" class="form-select">
                                         <option value="public" <?= ($settings['type_lycee'] ?? '') === 'public' ? 'selected' : '' ?>><?= _('Public') ?></option>
                                         <option value="prive" <?= ($settings['type_lycee'] ?? '') === 'prive' ? 'selected' : '' ?>><?= _('Privé') ?></option>
-                                        <option value="parapublic" <?= ($settings['type_lycee'] ?? '') === 'parapublic' ? 'selected' : '' ?>><?= _('Parapublic') ?></option>
+                                        <option value="semi-public" <?= ($settings['type_lycee'] ?? '') === 'semi-public' ? 'selected' : '' ?>><?= _('Parapublic') ?></option>
                                     </select>
                                 </div>
 
@@ -86,6 +86,10 @@
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" name="confidentialite_nationale" value="1" id="confidentialite_nationale" <?= !empty($settings['confidentialite_nationale']) ? 'checked' : '' ?>>
                                         <label class="form-check-label" for="confidentialite_nationale"><?= _('Appliquer la confidentialité nationale') ?></label>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="mensualite_obligatoire_inscription" value="1" id="mensualite_obligatoire_inscription" <?= !empty($settings['mensualite_obligatoire_inscription']) ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="mensualite_obligatoire_inscription"><?= _('Exiger le paiement de la première mensualité à l\'inscription (Établissements Privés/Parapublics)') ?></label>
                                     </div>
                                 </div>
                             </div>
