@@ -5,7 +5,7 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- Drop tables if they exist to ensure a clean slate on execution
-DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `parametres_generaux`, `annees_academiques`, `personnel_assignments`, `param_lycee`, `param_general`, `param_devoir`, `param_composition`, `bulletins`, `parametres_evaluations`, `classe_parametres`, `inscriptions`, `mensualites`, `mensualite_details`, `frais`, `modele_carte`, `modele_bulletin`, `notifications`, `evaluations`, `presences`, `horaire_enseignant`, `sequences`, `surveillant_classes`, `surveillant_niveaux`, `surveillant_general`;
+DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `parametres_generaux`, `annees_academiques`, `personnel_assignments`, `param_lycee`, `param_general`, `param_devoir`, `param_composition`, `bulletins`, `parametres_evaluations`, `classe_parametres`, `inscriptions`, `mensualites`, `mensualite_details`, `frais`, `modele_carte`, `modele_bulletin`, `notifications`, `evaluations`, `presences`, `horaire_enseignant`, `sequences`, `surveillant_classes`, `surveillant_niveaux`, `surveillant_general`, `series`;
 
 -- =================================================================
 -- General and Core Tables
@@ -130,6 +130,15 @@ CREATE TABLE `cycles` (
     `nom_cycle` VARCHAR(100) NOT NULL,
     `niveau_debut` VARCHAR(40),
     `niveau_fin` VARCHAR(40),
+    FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
+);
+
+-- Table for series (e.g., A, C, D)
+CREATE TABLE `series` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `nom_serie` VARCHAR(50) NOT NULL,
+    `categorie` ENUM('Scientifique', 'Littéraire', 'Technique', 'Autre') NOT NULL,
+    `lycee_id` INT,
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 

@@ -76,5 +76,15 @@ class Cycle {
         $stmt = $db->prepare("DELETE FROM cycles WHERE id_cycle = :id");
         return $stmt->execute(['id' => $id]);
     }
+
+    /**
+     * Find a cycle by its name.
+     */
+    public static function findByNom($nom) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT * FROM cycles WHERE nom_cycle = :nom LIMIT 1");
+        $stmt->execute(['nom' => $nom]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }
 ?>
