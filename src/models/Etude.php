@@ -112,30 +112,36 @@ class Etude {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public static function isEnrolled(int $eleve_id, int $annee_academique_id): bool {
+    public static function isEnrolled(int $eleve_id, int $annee_academique_id, $lycee_id = null): bool {
         $db = Database::getInstance();
-        $stmt = $db->prepare(
-            "SELECT COUNT(*) FROM etudes
-             WHERE eleve_id = :eleve_id AND annee_academique_id = :annee_academique_id"
-        );
-        $stmt->execute([
+        $sql = "SELECT COUNT(*) FROM etudes WHERE eleve_id = :eleve_id AND annee_academique_id = :annee_academique_id";
+        $params = [
             'eleve_id' => $eleve_id,
             'annee_academique_id' => $annee_academique_id
-        ]);
+        ];
+        if ($lycee_id) {
+            $sql .= " AND lycee_id = :lycee_id";
+            $params['lycee_id'] = $lycee_id;
+        }
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchColumn() > 0;
     }
 
     /**
      * Trouve une étude par ID de l'élève et ID de l'année.
      */
-    public static function findByEleveAndAnnee($eleveId, $anneeId) {
+    public static function findByEleveAndAnnee($eleveId, $anneeId, $lycee_id = null) {
         $db = Database::getInstance();
-        $stmt = $db->prepare("
-            SELECT * FROM etudes
-            WHERE eleve_id = :eleve_id AND annee_academique_id = :annee_id
-            LIMIT 1
-        ");
-        $stmt->execute(['eleve_id' => $eleveId, 'annee_id' => $anneeId]);
+        $sql = "SELECT * FROM etudes WHERE eleve_id = :eleve_id AND annee_academique_id = :annee_id";
+        $params = ['eleve_id' => $eleveId, 'annee_id' => $anneeId];
+        if ($lycee_id) {
+            $sql .= " AND lycee_id = :lycee_id";
+            $params['lycee_id'] = $lycee_id;
+        }
+        $sql .= " LIMIT 1";
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 

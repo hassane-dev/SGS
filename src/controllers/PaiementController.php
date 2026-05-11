@@ -32,7 +32,7 @@ class PaiementController {
         }
 
         $eleve = Eleve::findById($eleveId);
-        $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id']);
+        $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id'], $eleve['lycee_id'] ?? null);
         $classe = $etude ? Classe::findById($etude['classe_id']) : null;
 
         if (!$eleve || !$classe) {
@@ -45,7 +45,7 @@ class PaiementController {
 
         // Récupérer les frais et l'inscription
         $frais = Frais::findForClasse($classe, $anneeActive['id']);
-        $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id']);
+        $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id'], $eleve['lycee_id'] ?? null);
 
         $fraisInscription = [
             'total' => $frais['frais_inscription'] ?? 0,
@@ -121,10 +121,10 @@ class PaiementController {
         try {
             $anneeActive = AnneeAcademique::findActive();
             $eleve = Eleve::findById($eleveId);
-            $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id']);
+            $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id'], $eleve['lycee_id'] ?? null);
             $classe = Classe::findById($etude['classe_id']);
             $frais = Frais::findForClasse($classe, $anneeActive['id']);
-            $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id']);
+            $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id'], $eleve['lycee_id'] ?? null);
 
             $montantVerse = (float) $_POST['montant_verse'];
             $montantTotal = (float) $frais['frais_inscription'];
@@ -200,7 +200,8 @@ class PaiementController {
 
         try {
             $anneeActive = AnneeAcademique::findActive();
-            $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id']);
+            $eleve = Eleve::findById($eleveId);
+            $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id'], $eleve['lycee_id'] ?? null);
 
             $paiements = $_POST['mensualites'];
             $userId = Auth::user()['id'];
