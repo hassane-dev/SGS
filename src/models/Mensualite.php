@@ -55,7 +55,7 @@ class Mensualite {
     public static function findByEtude($etudeId) {
         $db = Database::getInstance();
         $stmt = $db->prepare(
-            "SELECT mois_ou_sequence, SUM(montant_verse) as total_verse
+            "SELECT mois_ou_sequence, SUM(montant_verse) as total_verse, id_mensualite
              FROM mensualites
              WHERE etude_id = :etude_id
              GROUP BY mois_ou_sequence"
@@ -65,9 +65,41 @@ class Mensualite {
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $payments = [];
         foreach ($result as $row) {
-            $payments[$row['mois_ou_sequence']] = $row['total_verse'];
+            $payments[$row['mois_ou_sequence']] = [
+                'total' => $row['total_verse'],
+                'id' => $row['id_mensualite']
+            ];
         }
         return $payments;
+    }
+
+    /**
+     * Récupère les détails d'une mensualité (historique des paiements).
+     */
+    public static function getDetails($mensualiteId) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT * FROM mensualite_details WHERE mensualite_id = :mensualite_id ORDER BY date_paiement DESC");
+        $stmt->execute(['mensualite_id' => $mensualiteId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Trouve ou crée une ligne de mensualité pour un mois donné.
+     */
+    public static function findOrCreate($data) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT id_mensualite FROM mensualites WHERE etude_id = :etude_id AND mois_ou_sequence = :mois");
+        $stmt->execute(['etude_id' => $data['etude_id'], 'mois' => $data['mois_ou_sequence']]);
+        $id = $stmt->fetchColumn();
+
+        if ($id) {
+            // Mettre à jour le montant total versé
+            $stmt = $db->prepare("UPDATE mensualites SET montant_verse = montant_verse + :montant WHERE id_mensualite = :id");
+            $stmt->execute(['montant' => $data['montant_verse'], 'id' => $id]);
+            return $id;
+        } else {
+            return self::save($data);
+        }
     }
 
     /**

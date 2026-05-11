@@ -87,16 +87,47 @@
                                             </div>
                                             <div id="feedback-tranche-<?= str_replace(' ', '', $nomTranche) ?>"></div>
 
-                                            <?php foreach ($details['mois'] as $mois): ?>
-                                                <div class="row align-items-center mb-2">
+                                            <?php foreach ($details['mois'] as $mois):
+                                                $paye = $details['paye'][$mois] ?? null;
+                                                $verse = $paye ? $paye['verse'] : 0;
+                                                $reste = $details['montant_par_mois'] - $verse;
+                                            ?>
+                                                <div class="row align-items-center mb-3">
                                                     <div class="col-sm-4">
-                                                        <label for="montant_<?= strtolower($mois) ?>" class="col-form-label"><?= htmlspecialchars($mois) ?></label>
+                                                        <label for="montant_<?= strtolower($mois) ?>" class="col-form-label d-block">
+                                                            <?= htmlspecialchars($mois) ?>
+                                                            <?php if ($verse > 0): ?>
+                                                                <small class="d-block text-muted">Payé: <?= number_format($verse, 0, ',', ' ') ?> FCFA</small>
+                                                            <?php endif; ?>
+                                                        </label>
                                                     </div>
                                                     <div class="col-sm-8">
                                                         <div class="input-group">
-                                                            <input type="number" id="montant_<?= strtolower($mois) ?>" name="mensualites[<?= strtolower($mois) ?>]" class="form-control input-mois" data-tranche-id="<?= str_replace(' ', '', $nomTranche) ?>" placeholder="Montant" value="<?= htmlspecialchars($details['paye'][$mois] ?? '') ?>" <?= !$isComptable ? 'disabled' : '' ?>>
+                                                            <input type="number" id="montant_<?= strtolower($mois) ?>" name="mensualites[<?= strtolower($mois) ?>]" class="form-control input-mois" data-tranche-id="<?= str_replace(' ', '', $nomTranche) ?>" placeholder="<?= $reste > 0 ? "Reste: $reste FCFA" : "Payé" ?>" value="" <?= (!$isComptable || $reste <= 0) ? 'disabled' : '' ?>>
                                                             <span class="input-group-text">FCFA</span>
                                                         </div>
+                                                        <?php if ($paye && !empty($paye['details'])): ?>
+                                                            <div class="mt-1">
+                                                                <button type="button" class="btn btn-link btn-sm p-0" data-bs-toggle="collapse" data-bs-target="#details-<?= strtolower($mois) ?>">Voir l'historique</button>
+                                                                <div class="collapse mt-1" id="details-<?= strtolower($mois) ?>">
+                                                                    <div class="card card-body p-2 bg-light shadow-none border">
+                                                                        <ul class="list-unstyled mb-0 small">
+                                                                            <?php foreach ($paye['details'] as $d): ?>
+                                                                                <li class="d-flex justify-content-between align-items-center mb-1">
+                                                                                    <span>
+                                                                                        <?= date('d/m/Y', strtotime($d['date_paiement'])) ?> :
+                                                                                        <strong><?= number_format($d['montant'], 0, ',', ' ') ?></strong> (<?= htmlspecialchars($d['mode_paiement']) ?>)
+                                                                                    </span>
+                                                                                    <a href="/recus/mensualite?id=<?= $d['id'] ?>" class="btn btn-sm btn-icon btn-outline-secondary" title="Imprimer le reçu" target="_blank">
+                                                                                        <i class="ti ti-printer"></i>
+                                                                                    </a>
+                                                                                </li>
+                                                                            <?php endforeach; ?>
+                                                                        </ul>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        <?php endif; ?>
                                                     </div>
                                                 </div>
                                             <?php endforeach; ?>
@@ -106,6 +137,22 @@
                             <?php endforeach; ?>
 
                             <?php if ($isComptable): ?>
+                                <hr>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Mode de Paiement</label>
+                                        <select name="mode_paiement" class="form-select">
+                                            <option value="Espèces">Espèces</option>
+                                            <option value="Chèque">Chèque</option>
+                                            <option value="Versement">Versement</option>
+                                            <option value="Mobile Money">Mobile Money</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Référence / N° Chèque</label>
+                                        <input type="text" name="reference_transaction" class="form-control" placeholder="Optionnel">
+                                    </div>
+                                </div>
                                 <button type="submit" class="btn btn-success w-100 mt-3">Enregistrer le Paiement des Mensualités</button>
                             <?php endif; ?>
                         </form>
