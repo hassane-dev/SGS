@@ -71,6 +71,12 @@ class ParamLycee {
         }
 
 
+        // Normalize type_lycee
+        $type_lycee = $data['type_lycee'];
+        if ($type_lycee === 'semi-public') {
+            $type_lycee = 'parapublic';
+        }
+
         $sql = "UPDATE param_lycee SET
                     nom_lycee = :nom_lycee,
                     sigle = :sigle,
@@ -104,7 +110,7 @@ class ParamLycee {
                 'arrondissement' => $data['arrondissement'],
                 'devise' => $data['devise'],
                 'logo' => $data['logo'],
-                'type_lycee' => $data['type_lycee'],
+                'type_lycee' => $type_lycee,
                 'boutique' => isset($data['boutique']) ? 1 : 0,
                 'lycee_id' => $lycee_id
             ]);
