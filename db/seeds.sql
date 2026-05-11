@@ -104,7 +104,10 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (84, 'param_composition', 'edit', 'Can edit the exam parameters'),
 
 -- Timetable
-(90, 'timetable', 'manage', 'Can manage timetables');
+(90, 'timetable', 'manage', 'Can manage timetables'),
+
+-- Series
+(91, 'class', 'manage', 'Gérer les structures des classes (séries, etc.)');
 
 -- --------------------------------------------------------
 -- Role-Permission Assignments

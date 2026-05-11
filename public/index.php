@@ -94,6 +94,12 @@ $router->register('/cycles/edit', 'CycleController', 'edit');
 $router->register('/cycles/update', 'CycleController', 'update');
 $router->register('/cycles/destroy', 'CycleController', 'destroy');
 
+// Series CRUD
+$router->register('/series', 'SerieController', 'index');
+$router->register('/series/store', 'SerieController', 'store');
+$router->register('/series/update', 'SerieController', 'update');
+$router->register('/series/destroy', 'SerieController', 'destroy');
+
 // Classes CRUD
 $router->register('/classes', 'ClasseController', 'index');
 $router->register('/classes/show', 'ClasseController', 'show');

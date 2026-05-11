@@ -17,10 +17,16 @@ class Inscription {
     /**
      * Trouve une inscription par l'ID de l'élève et l'année académique.
      */
-    public static function findByEleveAndAnnee($eleveId, $anneeId) {
+    public static function findByEleveAndAnnee($eleveId, $anneeId, $lyceeId = null) {
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT * FROM inscriptions WHERE eleve_id = :eleve_id AND annee_academique_id = :annee_id");
-        $stmt->execute(['eleve_id' => $eleveId, 'annee_id' => $anneeId]);
+        $sql = "SELECT * FROM inscriptions WHERE eleve_id = :eleve_id AND annee_academique_id = :annee_id";
+        $params = ['eleve_id' => $eleveId, 'annee_id' => $anneeId];
+        if ($lyceeId) {
+            $sql .= " AND lycee_id = :lycee_id";
+            $params['lycee_id'] = $lyceeId;
+        }
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 

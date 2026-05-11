@@ -64,12 +64,12 @@ class ReinscriptionController {
         $classe_id = $_POST['classe_id'];
         $annee_id = $_POST['annee_academique_id'];
 
-        if (Etude::isEnrolled($eleve_id, $annee_id)) {
+        $eleve = Eleve::findById($eleve_id);
+
+        if (Etude::isEnrolled($eleve_id, $annee_id, $eleve['lycee_id'] ?? null)) {
             header('Location: /reinscription/confirm?eleve_id=' . $eleve_id . '&error=enrolled');
             exit();
         }
-
-        $eleve = Eleve::findById($eleve_id);
         $lycee = ParamLycee::findByLyceeId($eleve['lycee_id']);
         $type_lycee = $lycee['type_lycee'] ?? 'prive';
 
