@@ -138,6 +138,7 @@ class PaiementController {
 
             $data = [
                 'id_inscription' => $inscription['id_inscription'] ?? null,
+                'etude_id' => $etude['id_etude'],
                 'eleve_id' => $eleveId,
                 'classe_id' => $classe['id_classe'],
                 'lycee_id' => Auth::getLyceeId(),
@@ -154,7 +155,7 @@ class PaiementController {
             // Si le paiement est complet, activer l'élève et l'étude
             if ($resteAPayer <= 0) {
                 Eleve::updateStatus($eleveId, 'actif');
-                Etude::activate($etude['id_etude']);
+                Etude::activate($etude['id_etude'], Auth::user()['id']);
 
                 // Notifier l'admin local que l'inscription est finalisée
                 $eleve_nom_complet = $eleve['prenom'] . ' ' . $eleve['nom'];
@@ -206,6 +207,7 @@ class PaiementController {
                 $montant = (float) $montant;
                 if ($montant > 0) {
                     $data = [
+                        'etude_id' => $etude['id_etude'],
                         'eleve_id' => $eleveId,
                         'classe_id' => $classeId,
                         'lycee_id' => $lyceeId,

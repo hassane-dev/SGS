@@ -7,6 +7,7 @@ require_once __DIR__ . '/../models/Etude.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../models/Notification.php';
 require_once __DIR__ . '/../models/Cycle.php';
+require_once __DIR__ . '/../models/ParamLycee.php';
 require_once __DIR__ . '/../models/Inscription.php';
 require_once __DIR__ . '/../models/Mensualite.php';
 require_once __DIR__ . '/../core/Auth.php';
@@ -361,14 +362,32 @@ class EleveController {
                     throw new Exception("Aucune année académique active n'a été trouvée.");
                 }
 
+                // Get school type
+                $lycee = ParamLycee::findByLyceeId($lycee_id);
+                $type_lycee = $lycee['type_lycee'] ?? 'prive';
+
+                $is_active = 0;
+                $status = 'pending_payment';
+
+                if ($type_lycee === 'public') {
+                    $is_active = 1;
+                    $status = 'active';
+                }
+
                 // Create the study record
-                Etude::create([
+                $etude_id = Etude::create([
                     'eleve_id' => $eleve_id,
                     'classe_id' => $classe_id,
                     'lycee_id' => $lycee_id,
                     'annee_academique_id' => $activeYear['id'],
-                    'actif' => 0 // Inactive until payment validation
+                    'is_active' => $is_active,
+                    'status' => $status
                 ]);
+
+                if ($is_active) {
+                    Eleve::changeStatus($eleve_id, 'actif');
+                    Etude::activate($etude_id, Auth::get('id'));
+                }
 
                 // Increment the class's current number of students
                 Classe::incrementerEffectifActuel($classe_id, $activeYear['id']);

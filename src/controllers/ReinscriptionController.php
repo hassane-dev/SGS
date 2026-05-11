@@ -6,6 +6,7 @@ require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Etude.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../models/Notification.php';
+require_once __DIR__ . '/../models/ParamLycee.php';
 
 class ReinscriptionController {
 
@@ -68,14 +69,31 @@ class ReinscriptionController {
             exit();
         }
 
-        Etude::create([
+        $eleve = Eleve::findById($eleve_id);
+        $lycee = ParamLycee::findByLyceeId($eleve['lycee_id']);
+        $type_lycee = $lycee['type_lycee'] ?? 'prive';
+
+        $is_active = 0;
+        $status = 'pending_payment';
+
+        if ($type_lycee === 'public') {
+            $is_active = 1;
+            $status = 'active';
+        }
+
+        $etude_id = Etude::create([
             'eleve_id' => $eleve_id,
             'classe_id' => $classe_id,
             'annee_academique_id' => $annee_id,
-            'actif' => 0
+            'is_active' => $is_active,
+            'status' => $status
         ]);
 
-        $eleve = Eleve::findById($eleve_id);
+        if ($is_active) {
+            Eleve::changeStatus($eleve_id, 'actif');
+            Etude::activate($etude_id, Auth::get('id'));
+        }
+
         $message = "Demande de réinscription pour " . $eleve['prenom'] . " " . $eleve['nom'] . ".";
         $link = "/comptable/validate-form?eleve_id=" . $eleve_id;
         Notification::notifyAccountants($eleve['lycee_id'], $message, $link);

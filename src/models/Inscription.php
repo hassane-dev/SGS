@@ -5,6 +5,16 @@ require_once __DIR__ . '/../config/database.php';
 class Inscription {
 
     /**
+     * Trouve une inscription par l'ID de l'étude.
+     */
+    public static function findByEtudeId($etudeId) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT * FROM inscriptions WHERE etude_id = :etude_id");
+        $stmt->execute(['etude_id' => $etudeId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
      * Trouve une inscription par l'ID de l'élève et l'année académique.
      */
     public static function findByEleveAndAnnee($eleveId, $anneeId) {
@@ -15,7 +25,7 @@ class Inscription {
     }
 
     /**
-     * Crée ou met à jour une inscription.
+     * Liste les inscriptions d'un élève.
      */
     public static function findByEleveId($eleveId) {
         $db = Database::getInstance();
@@ -31,6 +41,9 @@ class Inscription {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Crée ou met à jour une inscription.
+     */
     public static function save($data) {
         $db = Database::getInstance();
 
@@ -38,6 +51,7 @@ class Inscription {
             // Mise à jour
             $stmt = $db->prepare(
                 "UPDATE inscriptions SET
+                    etude_id = :etude_id,
                     montant_verse = :montant_verse,
                     reste_a_payer = :reste_a_payer,
                     details_frais = :details_frais,
@@ -45,6 +59,7 @@ class Inscription {
                 WHERE id_inscription = :id_inscription"
             );
             $stmt->execute([
+                'etude_id' => $data['etude_id'] ?? null,
                 'montant_verse' => $data['montant_verse'],
                 'reste_a_payer' => $data['reste_a_payer'],
                 'details_frais' => $data['details_frais'],
@@ -54,10 +69,11 @@ class Inscription {
         } else {
             // Création
             $stmt = $db->prepare(
-                "INSERT INTO inscriptions (eleve_id, classe_id, lycee_id, annee_academique_id, montant_total, montant_verse, reste_a_payer, details_frais, user_id)
-                VALUES (:eleve_id, :classe_id, :lycee_id, :annee_academique_id, :montant_total, :montant_verse, :reste_a_payer, :details_frais, :user_id)"
+                "INSERT INTO inscriptions (etude_id, eleve_id, classe_id, lycee_id, annee_academique_id, montant_total, montant_verse, reste_a_payer, details_frais, user_id)
+                VALUES (:etude_id, :eleve_id, :classe_id, :lycee_id, :annee_academique_id, :montant_total, :montant_verse, :reste_a_payer, :details_frais, :user_id)"
             );
             $stmt->execute([
+                'etude_id' => $data['etude_id'] ?? null,
                 'eleve_id' => $data['eleve_id'],
                 'classe_id' => $data['classe_id'],
                 'lycee_id' => $data['lycee_id'],
