@@ -199,9 +199,22 @@ class Eleve {
         $sql = "SELECT e.*
                 FROM eleves e
                 JOIN etudes et ON e.id_eleve = et.eleve_id
-                WHERE et.classe_id = :classe_id AND et.actif = 1";
+                WHERE et.classe_id = :classe_id AND et.is_active = 1";
         $stmt = $db->prepare($sql);
         $stmt->execute(['classe_id' => $classe_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public static function findByStatus($status, $lycee_id = null) {
+        $db = Database::getInstance();
+        $sql = "SELECT * FROM eleves WHERE statut = :statut";
+        $params = ['statut' => $status];
+        if ($lycee_id) {
+            $sql .= " AND lycee_id = :lycee_id";
+            $params['lycee_id'] = $lycee_id;
+        }
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

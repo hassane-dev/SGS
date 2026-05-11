@@ -95,7 +95,7 @@ class ReinscriptionController {
         }
 
         $message = "Demande de réinscription pour " . $eleve['prenom'] . " " . $eleve['nom'] . ".";
-        $link = "/comptable/validate-form?eleve_id=" . $eleve_id;
+        $link = "/paiements/show/" . $eleve_id;
         Notification::notifyAccountants($eleve['lycee_id'], $message, $link);
 
         header('Location: /reinscription?success=1');

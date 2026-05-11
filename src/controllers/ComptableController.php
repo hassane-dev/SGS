@@ -4,97 +4,85 @@ require_once __DIR__ . '/../models/Eleve.php';
 require_once __DIR__ . '/../models/Etude.php';
 require_once __DIR__ . '/../models/Frais.php';
 require_once __DIR__ . '/../models/Inscription.php';
+require_once __DIR__ . '/../models/Mensualite.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../core/Auth.php';
+require_once __DIR__ . '/../core/View.php';
 
 class ComptableController {
 
     private function checkAccess() {
-        // We might need a more specific permission like 'validate_inscriptions'
-        if (!Auth::can('validate', 'paiement')) {
+        if (!Auth::can('manage', 'paiement')) {
             http_response_code(403);
-            echo "Accès Interdit.";
+            View::render('errors/403');
             exit();
         }
     }
 
-    public function listPending() {
+    public function index() {
         $this->checkAccess();
-        $lycee_id = Auth::get('lycee_id');
-
-        // Find students in this lycee with 'en_attente_paiement' status
-        // This requires adding a new method to the Eleve model.
-        $eleves_en_attente = Eleve::findByStatus('en_attente_paiement', $lycee_id);
-
-        require_once __DIR__ . '/../views/comptable/pending.php';
-    }
-
-    public function showValidationForm() {
-        $this->checkAccess();
-        $eleve_id = $_GET['eleve_id'] ?? null;
-        if (!$eleve_id) { header('Location: /comptable/pending'); exit(); }
-
-        $eleve = Eleve::findById($eleve_id);
+        $lycee_id = Auth::getLyceeId();
         $activeYear = AnneeAcademique::findActive();
 
-        // Find the inactive 'etude' record for the current year
-        $etude = Etude::findPendingEnrollment($eleve_id, $activeYear['id']);
-        if (!$etude) { die("Aucune inscription en attente trouvée pour cet élève cette année."); }
-
-        $frais = Frais::getForClasse($etude['classe_id'], $activeYear['id']);
-
-        require_once __DIR__ . '/../views/comptable/validate.php';
-    }
-
-    public function processValidation() {
-        $this->checkAccess();
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') { header('Location: /comptable/pending'); exit(); }
-
-        $eleve_id = $_POST['eleve_id'];
-        $etude_id = $_POST['etude_id'];
-        $montant_verse = $_POST['montant_verse'];
-
-        $eleve = Eleve::findById($eleve_id);
-        $activeYear = AnneeAcademique::findActive();
-        $frais = Frais::getForClasse($_POST['classe_id'], $activeYear['id']);
-
-        $montant_total = $frais['frais_inscription'];
-        // Add other fees if they exist
-
-        $db = Database::getInstance();
-        try {
-            $db->beginTransaction();
-
-            // 1. Activate the academic record
-            Etude::activate($etude_id);
-
-            // 2. Update student status to 'actif'
-            $eleve['statut'] = 'actif';
-            Eleve::save($eleve);
-
-            // 3. Create the financial record (inscription)
-            Inscription::create([
-                'eleve_id' => $eleve_id,
-                'classe_id' => $_POST['classe_id'],
-                'lycee_id' => $eleve['lycee_id'],
-                'annee_academique_id' => $activeYear['id'],
-                'montant_total' => $montant_total,
-                'montant_verse' => $montant_verse,
-                'reste_a_payer' => $montant_total - $montant_verse,
-                'details_frais' => ['frais_inscription' => $frais['frais_inscription']],
-                'user_id' => Auth::get('id_user')
-            ]);
-
-            $db->commit();
-        } catch (Exception $e) {
-            $db->rollBack();
-            error_log($e->getMessage());
-            die("Une erreur est survenue lors de la validation. Veuillez réessayer.");
+        if (!$activeYear) {
+            die("Aucune année académique active.");
         }
 
-        // Redirect to receipt page or student details
-        header('Location: /recu/inscription?id=' . $eleve_id); // Placeholder for receipt generation
-        exit();
+        $db = Database::getInstance();
+
+        // 1. Total Inscriptions collectées
+        $stmt = $db->prepare("SELECT SUM(montant_verse) FROM inscriptions WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id");
+        $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
+        $totalInscriptions = $stmt->fetchColumn() ?: 0;
+
+        // 2. Total Mensualités collectées
+        $stmt = $db->prepare("SELECT SUM(montant_verse) FROM mensualites WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id");
+        $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
+        $totalMensualites = $stmt->fetchColumn() ?: 0;
+
+        // 3. Arriérés (reste à payer sur inscriptions)
+        $stmt = $db->prepare("SELECT SUM(reste_a_payer) FROM inscriptions WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id");
+        $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
+        $arrieresInscriptions = $stmt->fetchColumn() ?: 0;
+
+        // 4. Dernières transactions
+        $stmt = $db->prepare("
+            (SELECT 'Inscription' as type, montant_verse, date_inscription as date, eleve_id, user_id
+             FROM inscriptions
+             WHERE lycee_id = :lycee_id)
+            UNION ALL
+            (SELECT 'Mensualité' as type, montant_verse, date_paiement as date, eleve_id, user_id
+             FROM mensualites
+             WHERE lycee_id = :lycee_id)
+            ORDER BY date DESC LIMIT 10
+        ");
+        $stmt->execute(['lycee_id' => $lycee_id]);
+        $recentTransactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Enrich transactions with student and user names
+        foreach ($recentTransactions as &$t) {
+            $e = Eleve::findById($t['eleve_id']);
+            $t['eleve_nom'] = $e['prenom'] . ' ' . $e['nom'];
+        }
+
+        View::render('comptable/index', [
+            'totalInscriptions' => $totalInscriptions,
+            'totalMensualites' => $totalMensualites,
+            'totalGlobal' => $totalInscriptions + $totalMensualites,
+            'arrieresInscriptions' => $arrieresInscriptions,
+            'recentTransactions' => $recentTransactions,
+            'title' => 'Tableau de bord Comptable'
+        ]);
+    }
+
+    public function listPending() {
+        $this->checkAccess();
+        $lycee_id = Auth::getLyceeId();
+        $eleves_en_attente = Eleve::findByStatus('en_attente', $lycee_id);
+
+        View::render('comptable/pending', [
+            'eleves' => $eleves_en_attente,
+            'title' => 'Inscriptions en Attente'
+        ]);
     }
 }
-?>

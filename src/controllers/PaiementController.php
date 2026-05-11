@@ -57,7 +57,7 @@ class PaiementController {
 
         // Dérivation automatique des mois réels à partir des séquences
         $sequences = Sequence::findAll();
-        $mensualitesPayees = Mensualite::findByEleveAndAnnee($eleveId, $anneeActive['id']);
+        $mensualitesPayees = Mensualite::findByEtude($etude['id_etude']);
         $tranches = [];
         $fmt = new IntlDateFormatter('fr_FR', IntlDateFormatter::FULL, IntlDateFormatter::NONE, 'Africa/Porto-Novo', IntlDateFormatter::GREGORIAN, 'MMMM');
 
@@ -73,8 +73,12 @@ class PaiementController {
 
             $paye = [];
             foreach($mois as $m) {
-                if (isset($mensualitesPayees[ucfirst($m)])) {
-                    $paye[ucfirst($m)] = $mensualitesPayees[ucfirst($m)];
+                $m_cap = ucfirst($m);
+                if (isset($mensualitesPayees[$m_cap])) {
+                    $paye[$m_cap] = [
+                        'verse' => $mensualitesPayees[$m_cap]['total'],
+                        'details' => Mensualite::getDetails($mensualitesPayees[$m_cap]['id'])
+                    ];
                 }
             }
 
@@ -206,17 +210,28 @@ class PaiementController {
             foreach ($paiements as $mois => $montant) {
                 $montant = (float) $montant;
                 if ($montant > 0) {
+                    $m_cap = ucfirst($mois);
                     $data = [
                         'etude_id' => $etude['id_etude'],
                         'eleve_id' => $eleveId,
                         'classe_id' => $classeId,
                         'lycee_id' => $lyceeId,
                         'annee_academique_id' => $anneeActive['id'],
-                        'mois_ou_sequence' => ucfirst($mois),
+                        'mois_ou_sequence' => $m_cap,
                         'montant_verse' => $montant,
                         'user_id' => $userId
                     ];
-                    Mensualite::save($data);
+
+                    $mensualiteId = Mensualite::findOrCreate($data);
+
+                    // Ajouter le détail
+                    Mensualite::addDetail([
+                        'mensualite_id' => $mensualiteId,
+                        'montant' => $montant,
+                        'mode_paiement' => $_POST['mode_paiement'] ?? 'Espèces',
+                        'reference_transaction' => $_POST['reference_transaction'] ?? null,
+                        'recu_numero' => 'REC-' . time() . '-' . $eleveId
+                    ]);
                 }
             }
 
