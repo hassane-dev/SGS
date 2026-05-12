@@ -82,6 +82,18 @@
                                     <input type="number" name="nombre_devoirs_par_trimestre" id="nombre_devoirs_par_trimestre" value="<?= htmlspecialchars($settings['nombre_devoirs_par_trimestre'] ?? '2') ?>" class="form-control">
                                 </div>
 
+                                <div class="col-md-6">
+                                    <label for="header_primary" class="form-label"><?= _('En-tête Administrative (Principale)') ?></label>
+                                    <textarea name="header_primary" id="header_primary" class="form-control" rows="3" placeholder="République du Tchad&#10;Unité - Travail - Progrès&#10;**********&#10;Ministère de l’Éducation Nationale"><?= htmlspecialchars($settings['header_primary'] ?? '') ?></textarea>
+                                    <small class="text-muted"><?= _('Utilisez des retours à la ligne pour structurer l\'en-tête.') ?></small>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="header_secondary" class="form-label"><?= _('En-tête Administrative (Secondaire / Arabe)') ?></label>
+                                    <textarea name="header_secondary" id="header_secondary" class="form-control" rows="3" dir="auto"><?= htmlspecialchars($settings['header_secondary'] ?? '') ?></textarea>
+                                    <small class="text-muted"><?= _('Optionnel. Utile pour les lycées bilingues.') ?></small>
+                                </div>
+
                                 <div class="col-12">
                                     <label class="form-label d-block"><?= _('Modalité de Paiement des Frais de Scolarité') ?></label>
                                     <div class="form-check form-check-inline">

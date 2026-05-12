@@ -91,7 +91,9 @@ class ParamLycee {
                     devise = :devise,
                     logo = :logo,
                     type_lycee = :type_lycee,
-                    boutique = :boutique
+                    boutique = :boutique,
+                    header_primary = :header_primary,
+                    header_secondary = :header_secondary
                 WHERE id = :lycee_id";
 
         try {
@@ -112,6 +114,8 @@ class ParamLycee {
                 'logo' => $data['logo'],
                 'type_lycee' => $type_lycee,
                 'boutique' => isset($data['boutique']) ? 1 : 0,
+                'header_primary' => $data['header_primary'] ?? null,
+                'header_secondary' => $data['header_secondary'] ?? null,
                 'lycee_id' => $lycee_id
             ]);
         } catch (PDOException $e) {

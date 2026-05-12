@@ -71,6 +71,18 @@
                                             </div>
                                         </div>
                                         <div class="col-6">
+                                            <div class="palette-item" draggable="true" data-type="serie" title="<?= _('Academic Series') ?>">
+                                                <i class="ph-duotone ph-books fs-2"></i>
+                                                <span><?= _('Série') ?></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="palette-item" draggable="true" data-type="annee" title="<?= _('Academic Year') ?>">
+                                                <i class="ph-duotone ph-calendar fs-2"></i>
+                                                <span><?= _('Année') ?></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
                                             <div class="palette-item" draggable="true" data-type="qr_code" title="<?= _('QR Code') ?>">
                                                 <i class="ph-duotone ph-qr-code fs-2"></i>
                                                 <span><?= _('QR') ?></span>
@@ -163,10 +175,13 @@
 
 <script>
 $(function() {
-    // Initialize Fabric Canvas
+    // Initialize Fabric Canvas - CR80 Standard: 85.6mm x 53.98mm
+    // At 96 DPI: ~324px x 204px. Using a multiplier (e.g. 2x) for better editing.
+    // 85.6mm is ~3.37 inches. 3.37 * 96 * 2 = 647px
+    // 53.98mm is ~2.125 inches. 2.125 * 96 * 2 = 408px
     const canvas = new fabric.Canvas('card-canvas', {
-        width: 550,
-        height: 347,
+        width: 647,
+        height: 408,
         backgroundColor: '#ffffff',
         preserveObjectStacking: true
     });
@@ -174,8 +189,8 @@ $(function() {
     let cardModel = JSON.parse($('#layout_data_input').val() || '{"elements":[], "headers":{}}');
     let layoutElements = cardModel.elements || [];
     let headers = cardModel.headers || {
-        left: `MINISTERE DE L'EDUCATION\nREGION...\nDEPARTEMENT...`,
-        right: `<?= htmlspecialchars($params_lycee['nom_lycee'] ?? 'NOM DU LYCEE') ?>\n<?= htmlspecialchars($params_lycee['devise'] ?? 'DEVISE') ?>\n<?= htmlspecialchars($annee_academique['nom_annee'] ?? 'ANNEE ACADEMIQUE') ?>`
+        left: `<?= str_replace(["\r\n", "\n", "\r"], "\\n", addslashes($params_lycee['header_primary'] ?? "REPUBLIQUE DU TCHAD\nUnité - Travail - Progrès\n**********\nMINISTERE DE L'EDUCATION")) ?>`,
+        right: `<?= str_replace(["\r\n", "\n", "\r"], "\\n", addslashes($params_lycee['header_secondary'] ?? ($params_lycee['nom_lycee'] ?? 'NOM DU LYCEE'))) ?>`
     };
 
     // Helper to create objects
@@ -185,7 +200,7 @@ $(function() {
             fabric.Image.fromURL(logoUrl, function(img) {
                 if (!img) {
                     const rect = new fabric.Rect({
-                        left: options.left || 225,
+                        left: options.left || 273,
                         top: options.top || 10,
                         width: options.width || 100,
                         height: options.height || 100,
@@ -198,7 +213,7 @@ $(function() {
                     return;
                 }
                 img.set({
-                    left: options.left || 225,
+                    left: options.left || 273,
                     top: options.top || 10,
                     scaleX: (options.width || 100) / img.width,
                     scaleY: (options.height || 100) / img.height,
@@ -213,7 +228,7 @@ $(function() {
             const text = new fabric.IText(options.text || headers.left, {
                 left: options.left || 10,
                 top: options.top || 10,
-                fontSize: options.fontSize || 8,
+                fontSize: options.fontSize || 10,
                 textAlign: 'center',
                 fontFamily: 'Arial',
                 ...options
@@ -222,11 +237,35 @@ $(function() {
             canvas.add(text);
             canvas.setActiveObject(text);
         },
+        serie: (options) => {
+            const text = new fabric.IText('SÉRIE: Scientifique', {
+                left: options.left || 200,
+                top: options.top || 280,
+                fontSize: options.fontSize || 14,
+                fontFamily: 'Arial',
+                ...options
+            });
+            text.set('elementType', 'serie');
+            canvas.add(text);
+            canvas.setActiveObject(text);
+        },
+        annee: (options) => {
+            const text = new fabric.IText('ANNÉE: 2024-2025', {
+                left: options.left || 200,
+                top: options.top || 310,
+                fontSize: options.fontSize || 14,
+                fontFamily: 'Arial',
+                ...options
+            });
+            text.set('elementType', 'annee');
+            canvas.add(text);
+            canvas.setActiveObject(text);
+        },
         header_right: (options) => {
             const text = new fabric.IText(options.text || headers.right, {
-                left: options.left || 300,
+                left: options.left || 400,
                 top: options.top || 10,
-                fontSize: options.fontSize || 8,
+                fontSize: options.fontSize || 10,
                 textAlign: 'center',
                 fontFamily: 'Arial',
                 ...options
@@ -293,10 +332,10 @@ $(function() {
             });
         },
         nom_complet: (options) => {
-            const text = new fabric.IText('NOM COMPLET', {
-                left: options.left || 150,
-                top: options.top || 150,
-                fontSize: options.fontSize || 20,
+            const text = new fabric.IText('PRÉNOM NOM', {
+                left: options.left || 200,
+                top: options.top || 180,
+                fontSize: options.fontSize || 24,
                 fontWeight: 'bold',
                 fontFamily: 'Arial',
                 ...options
@@ -306,9 +345,9 @@ $(function() {
             canvas.setActiveObject(text);
         },
         matricule: (options) => {
-            const text = new fabric.IText('MATRICULE: 000000', {
-                left: options.left || 150,
-                top: options.top || 180,
+            const text = new fabric.IText('MATRICULE: 2024-X123', {
+                left: options.left || 200,
+                top: options.top || 220,
                 fontSize: options.fontSize || 16,
                 fontFamily: 'Arial',
                 ...options
@@ -318,9 +357,9 @@ $(function() {
             canvas.setActiveObject(text);
         },
         classe: (options) => {
-            const text = new fabric.IText('CLASSE: 6ème', {
-                left: options.left || 150,
-                top: options.top || 210,
+            const text = new fabric.IText('CLASSE: Tle C', {
+                left: options.left || 200,
+                top: options.top || 250,
                 fontSize: options.fontSize || 16,
                 fontFamily: 'Arial',
                 ...options
