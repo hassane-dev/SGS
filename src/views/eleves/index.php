@@ -129,6 +129,11 @@
                                                     <?php endif; ?>
                                                 </td>
                                                 <td class="text-end">
+                                                    <?php if (Auth::can('manage', 'boutique')): ?>
+                                                        <a href="/boutique/achats?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-sm btn-light-info me-2" title="<?= _('Boutique') ?>">
+                                                            <i class="ph-duotone ph-shopping-cart"></i>
+                                                        </a>
+                                                    <?php endif; ?>
                                                     <?php if (Auth::can('paiement', 'view')): ?>
                                                         <a href="/paiements/show/<?= $eleve['id_eleve'] ?>" class="btn btn-success btn-sm" title="<?= _('Gérer les paiements') ?>"><?= _('Payer') ?></a>
                                                     <?php endif; ?>

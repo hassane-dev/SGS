@@ -17,6 +17,12 @@
                         <a href="/mensualites/show-form?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-success">
                             <?= _('Payer Mensualité') ?>
                         </a>
+                        <?php if (Auth::can('manage', 'boutique')): ?>
+                            <a href="/boutique/achats?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-primary">
+                                <i class="ph-duotone ph-shopping-cart me-1"></i>
+                                <?= _('Boutique') ?>
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
