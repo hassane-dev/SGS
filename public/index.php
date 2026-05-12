@@ -174,14 +174,12 @@ $router->register('/frais/store', 'FraisController', 'store');
 $router->register('/frais/get-niveaux', 'FraisController', 'getNiveaux');
 $router->register('/frais/get-series', 'FraisController', 'getSeries');
 
-// Comptable (Accountant) flow
-$router->register('/comptable/pending', 'ComptableController', 'listPending');
-$router->register('/comptable/validate-form', 'ComptableController', 'showValidationForm');
-$router->register('/comptable/validate', 'ComptableController', 'processValidation');
-
-// Mensualites (Monthly Payments)
-$router->register('/mensualites/show-form', 'MensualiteController', 'showForm');
-$router->register('/mensualites/store', 'MensualiteController', 'store');
+// Comptable / Paiements (Unifié)
+$router->register('/paiements', 'PaiementController', 'index');
+$router->register('/paiements/pending', 'PaiementController', 'listPending');
+$router->register('/paiements/show/{eleveId}', 'PaiementController', 'show');
+$router->register('/paiements/process-inscription/{eleveId}', 'PaiementController', 'processInscription');
+$router->register('/paiements/process-mensualites/{eleveId}', 'PaiementController', 'processMensualites');
 
 // Recus (Receipts)
 $router->register('/recu/inscription', 'RecuController', 'showInscriptionRecu');
@@ -193,10 +191,6 @@ $router->register('/evaluations/form', 'EvaluationController', 'showForm');
 $router->register('/evaluations/save', 'EvaluationController', 'save');
 $router->register('/notes/saisir/{classe_id}/{matiere_id}', 'EvaluationController', 'directSaisie');
 
-// --- Paiements (Nouveau Module Unifié) ---
-$router->register('/paiements/show/{eleveId}', 'PaiementController', 'show');
-$router->register('/paiements/process-inscription/{eleveId}', 'PaiementController', 'processInscription');
-$router->register('/paiements/process-mensualites/{eleveId}', 'PaiementController', 'processMensualites');
 
 
 // Bulletins

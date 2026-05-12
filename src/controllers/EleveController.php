@@ -108,12 +108,6 @@ class EleveController {
             Eleve::save($data);
             $eleve_id = $db->lastInsertId();
 
-            // Notification pour le comptable
-            $eleve_nom_complet = $data['prenom'] . ' ' . $data['nom'];
-            $message = "Un nouvel élève est en attente de paiement : {$eleve_nom_complet}. Cliquez pour procéder au paiement.";
-            $link = "/paiements/show/{$eleve_id}";
-            Notification::notifyRole('comptable', $data['lycee_id'], $message, $link);
-
             $db->commit();
 
         } catch (Exception $e) {
@@ -387,6 +381,13 @@ class EleveController {
                 if ($is_active) {
                     Eleve::changeStatus($eleve_id, 'actif');
                     Etude::activate($etude_id, Auth::get('id'));
+                } else {
+                    // Notification pour le comptable (seulement si non activé immédiatement)
+                    $eleve = Eleve::findById($eleve_id);
+                    $eleve_nom_complet = $eleve['prenom'] . ' ' . $eleve['nom'];
+                    $message = "Un nouvel élève est en attente de paiement : {$eleve_nom_complet}. Cliquez pour procéder au paiement.";
+                    $link = "/paiements/show/{$eleve_id}";
+                    Notification::notifyRole('comptable', $lycee_id, $message, $link);
                 }
 
                 // Increment the class's current number of students

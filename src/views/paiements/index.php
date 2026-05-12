@@ -1,59 +1,116 @@
-<?php require_once __DIR__ . '/../layouts/header.php'; ?>
+<?php require_once __DIR__ . '/../layouts/header_able.php'; ?>
+<?php require_once __DIR__ . '/../layouts/sidebar_able.php'; ?>
 
-<div class="container mx-auto">
-    <div class="flex justify-between items-center mb-6">
-        <div>
-            <h2 class="text-2xl font-bold"><?= _('Payment Tracking') ?></h2>
-            <p class="text-lg text-gray-600"><?= _('Student') ?>: <span class="font-semibold"><?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?></span></p>
+<div class="pc-container">
+    <div class="pc-content">
+        <div class="page-header">
+            <div class="page-block">
+                <div class="row align-items-center">
+                    <div class="col-md-12">
+                        <div class="page-header-title">
+                            <h2 class="mb-0"><?= $title ?></h2>
+                        </div>
+                        <ul class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/">Tableau de Bord</a></li>
+                            <li class="breadcrumb-item"><a href="/paiements">Finances</a></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= $title ?></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
-        <a href="/paiements/create?eleve_id=<?= $eleve['id_eleve'] ?>" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            <?= _('Add Payment') ?>
-        </a>
-    </div>
 
-    <div class="bg-white shadow-md rounded">
-        <table class="min-w-full table-auto">
-            <thead class="bg-gray-200">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Date') ?></th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Type') ?></th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Amount') ?></th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= _('Status') ?></th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                <?php if (empty($paiements)): ?>
-                    <tr>
-                        <td colspan="4" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">
-                            <?= _('No payments found for this student.') ?>
-                        </td>
-                    </tr>
-                <?php else: ?>
-                    <?php foreach ($paiements as $paiement): ?>
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars(date('d/m/Y H:i', strtotime($paiement['date_paiement']))) ?></td>
-                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars(ucfirst($paiement['type_paiement'])) ?></td>
-                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($paiement['montant']) ?></td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <?php
-                                    $color = 'gray';
-                                    if ($paiement['statut'] === 'paye') $color = 'green';
-                                    if ($paiement['statut'] === 'partiel') $color = 'yellow';
-                                    if ($paiement['statut'] === 'non_paye') $color = 'red';
-                                ?>
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-<?= $color ?>-100 text-<?= $color ?>-800">
-                                    <?= _(htmlspecialchars(ucfirst($paiement['statut']))) ?>
-                                </span>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
-    <div class="mt-4">
-        <a href="/eleves" class="text-blue-500 hover:underline">&larr; <?= _('Back to student list') ?></a>
+        <div class="row">
+            <!-- Statistiques -->
+            <div class="col-md-6 col-xl-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h6 class="text-white">Total Collecté</h6>
+                        <h2 class="text-white"><?= number_format($totalGlobal, 0, ',', ' ') ?> <small>FCFA</small></h2>
+                        <p class="mb-0">Inscriptions + Mensualités</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h6 class="text-white">Inscriptions</h6>
+                        <h2 class="text-white"><?= number_format($totalInscriptions, 0, ',', ' ') ?> <small>FCFA</small></h2>
+                        <p class="mb-0">Frais d'inscription versés</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h6 class="text-white">Mensualités</h6>
+                        <h2 class="text-white"><?= number_format($totalMensualites, 0, ',', ' ') ?> <small>FCFA</small></h2>
+                        <p class="mb-0">Scolarité mensuelle</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="card bg-danger text-white">
+                    <div class="card-body">
+                        <h6 class="text-white">Arriérés Inscription</h6>
+                        <h2 class="text-white"><?= number_format($arrieresInscriptions, 0, ',', ' ') ?> <small>FCFA</small></h2>
+                        <p class="mb-0">Reste à payer</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dernières Transactions -->
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5>Dernières Transactions</h5>
+                        <a href="/paiements/pending" class="btn btn-warning btn-sm">
+                            <i class="ph-duotone ph-clock-counter-clockwise me-2"></i>Inscriptions en attente
+                        </a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Élève</th>
+                                        <th>Type</th>
+                                        <th class="text-end">Montant</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($recentTransactions as $t): ?>
+                                        <tr>
+                                            <td><?= date('d/m/Y H:i', strtotime($t['date'])) ?></td>
+                                            <td><?= htmlspecialchars($t['eleve_nom']) ?></td>
+                                            <td>
+                                                <span class="badge bg-<?= $t['type'] == 'Inscription' ? 'success' : 'info' ?>">
+                                                    <?= $t['type'] ?>
+                                                </span>
+                                            </td>
+                                            <td class="text-end fw-bold"><?= number_format($t['montant_verse'], 0, ',', ' ') ?> FCFA</td>
+                                            <td class="text-center">
+                                                <a href="/paiements/show/<?= $t['eleve_id'] ?>" class="btn btn-sm btn-icon btn-outline-primary">
+                                                    <i class="ph-duotone ph-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    <?php if (empty($recentTransactions)): ?>
+                                        <tr>
+                                            <td colspan="5" class="text-center">Aucune transaction récente.</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<?php require_once __DIR__ . '/../layouts/footer.php'; ?>
+<?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>

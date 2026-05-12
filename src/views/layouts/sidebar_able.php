@@ -170,7 +170,7 @@ $navItems = [
         'icon' => 'ph-duotone ph-receipt',
         'text' => _('Paiements'),
         'title' => _('Enregistrer les paiements des frais scolaires.'),
-        'condition' => Auth::can('manage', 'paiement'),
+        'condition' => Auth::can('paiement', 'view'),
     ],
     [
         'url' => '/salaires',
