@@ -1,51 +1,72 @@
-<?php require_once __DIR__ . '/../../layouts/header.php'; ?>
+<?php require_once __DIR__ . '/../../layouts/header_able.php'; ?>
 
-<div class="max-w-2xl mx-auto">
-    <h2 class="text-2xl font-bold mb-6"><?= _('Edit Article') ?></h2>
-
-    <div class="bg-white p-8 rounded-lg shadow-lg">
-        <form action="/boutique/articles/update" method="POST">
-            <input type="hidden" name="id_article" value="<?= htmlspecialchars($article['id_article']) ?>">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <div class="md:col-span-2">
-                    <label for="nom_article" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Article Name') ?></label>
-                    <input type="text" name="nom_article" id="nom_article" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" value="<?= htmlspecialchars($article['nom_article']) ?>" required>
+<div class="pc-container">
+    <div class="pc-content">
+        <div class="page-header">
+            <div class="page-block">
+                <div class="row align-items-center">
+                    <div class="col-md-12">
+                        <ul class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/"><?= _('Tableau de Bord') ?></a></li>
+                            <li class="breadcrumb-item"><a href="/boutique/articles"><?= _('Boutique') ?></a></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= _('Modifier l\'Article') ?></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="page-header-title">
+                            <h2 class="mb-0"><?= _('Modifier l\'Article') ?></h2>
+                        </div>
+                    </div>
                 </div>
-
-                <div>
-                    <label for="prix" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Price') ?></label>
-                    <input type="number" step="0.01" name="prix" id="prix" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" value="<?= htmlspecialchars($article['prix']) ?>" required>
-                </div>
-
-                <div>
-                    <label for="stock" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Stock') ?></label>
-                    <input type="number" name="stock" id="stock" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" value="<?= htmlspecialchars($article['stock']) ?>">
-                </div>
-
-                <?php if (Auth::get('role') === 'super_admin_national'): ?>
-                <div class="md:col-span-2">
-                    <label for="lycee_id" class="block text-gray-700 text-sm font-bold mb-2"><?= _('High School') ?></label>
-                    <select name="lycee_id" id="lycee_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required>
-                        <?php foreach ($lycees as $lycee): ?>
-                            <option value="<?= $lycee['id'] ?>" <?= $article['lycee_id'] == $lycee['id'] ? 'selected' : '' ?>><?= htmlspecialchars($lycee['nom_lycee']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <?php else: ?>
-                    <input type="hidden" name="lycee_id" value="<?= $article['lycee_id'] ?>">
-                <?php endif; ?>
-
             </div>
+        </div>
 
-            <div class="mt-8 flex justify-end gap-4">
-                <a href="/boutique/articles" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"><?= _('Cancel') ?></a>
-                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    <?= _('Update') ?>
-                </button>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-body">
+                        <form action="/boutique/articles/update" method="POST">
+                            <input type="hidden" name="id_article" value="<?= htmlspecialchars($article['id_article']) ?>">
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label" for="nom_article"><?= _('Nom de l\'Article') ?></label>
+                                    <input type="text" name="nom_article" id="nom_article" class="form-control" value="<?= htmlspecialchars($article['nom_article']) ?>" required>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" for="prix"><?= _('Prix') ?></label>
+                                    <input type="number" step="0.01" name="prix" id="prix" class="form-control" value="<?= htmlspecialchars($article['prix']) ?>" required>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" for="stock"><?= _('Stock') ?></label>
+                                    <input type="number" name="stock" id="stock" class="form-control" value="<?= htmlspecialchars($article['stock']) ?>">
+                                </div>
+
+                                <?php if (Auth::get('role_name') === 'super_admin_national' || Auth::get('role_name') === 'super_admin_createur'): ?>
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label" for="lycee_id"><?= _('Lycée') ?></label>
+                                    <select name="lycee_id" id="lycee_id" class="form-select" required>
+                                        <?php foreach ($lycees as $lycee): ?>
+                                            <option value="<?= $lycee['id'] ?>" <?= $article['lycee_id'] == $lycee['id'] ? 'selected' : '' ?>><?= htmlspecialchars($lycee['nom_lycee']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <?php else: ?>
+                                    <input type="hidden" name="lycee_id" value="<?= $article['lycee_id'] ?>">
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary"><?= _('Mettre à jour') ?></button>
+                                <a href="/boutique/articles" class="btn btn-link-secondary"><?= _('Annuler') ?></a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<?php require_once __DIR__ . '/../../layouts/footer.php'; ?>
+<?php require_once __DIR__ . '/../../layouts/footer_able.php'; ?>

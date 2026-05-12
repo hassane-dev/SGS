@@ -180,6 +180,13 @@ $navItems = [
         'condition' => Auth::can('manage', 'salaire'),
     ],
     [
+        'url' => '/boutique/articles',
+        'icon' => 'ph-duotone ph-shopping-cart',
+        'text' => _('Boutique'),
+        'title' => _('Gérer les articles et les achats de la boutique.'),
+        'condition' => Auth::can('manage', 'boutique'),
+    ],
+    [
         'label' => _('Paramètres'),
         'is_caption' => true,
         'condition' => Auth::can('edit', 'param_lycee') || Auth::can('manage', 'bulletin_template'),
