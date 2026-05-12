@@ -34,13 +34,18 @@
                                 </div>
 
                                 <!-- Serie -->
-                                <div class="col-md-6">
+                                <div class="col-md-6" id="serie_container">
                                     <label for="serie" class="form-label"><?= _('Série') ?></label>
-                                    <input type="text" name="serie" id="serie" class="form-control" value="<?= htmlspecialchars($classe['serie']) ?>">
+                                    <select name="serie" id="serie" class="form-select">
+                                        <option value=""><?= _('-- Choisir une série --') ?></option>
+                                        <?php foreach ($series as $serie): ?>
+                                            <option value="<?= htmlspecialchars($serie['nom_serie']) ?>" data-categorie="<?= htmlspecialchars($serie['categorie']) ?>" <?= ($classe['serie'] ?? '') == $serie['nom_serie'] ? 'selected' : '' ?>><?= htmlspecialchars($serie['nom_serie']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
 
                                 <!-- Categorie -->
-                                <div class="col-md-6">
+                                <div class="col-md-6" id="categorie_container">
                                     <label for="categorie" class="form-label"><?= _('Catégorie') ?></label>
                                     <select name="categorie" id="categorie" class="form-select">
                                         <option value=""><?= _('-- Choisir une catégorie --') ?></option>
@@ -60,7 +65,7 @@
                                     <label for="cycle_id" class="form-label"><?= _('Cycle') ?></label>
                                     <select name="cycle_id" id="cycle_id" class="form-select" required>
                                         <?php foreach ($cycles as $cycle): ?>
-                                            <option value="<?= $cycle['id_cycle'] ?>" <?= $classe['cycle_id'] == $cycle['id_cycle'] ? 'selected' : '' ?>>
+                                            <option value="<?= $cycle['id_cycle'] ?>" data-nom-cycle="<?= htmlspecialchars($cycle['nom_cycle']) ?>" <?= $classe['cycle_id'] == $cycle['id_cycle'] ? 'selected' : '' ?>>
                                                 <?= htmlspecialchars($cycle['nom_cycle']) ?>
                                             </option>
                                         <?php endforeach; ?>
@@ -99,5 +104,43 @@
     </div>
 </div>
 <!-- [ Main Content ] end -->
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const cycleSelect = document.getElementById('cycle_id');
+        const serieSelect = document.getElementById('serie');
+        const serieContainer = document.getElementById('serie_container');
+        const categorieSelect = document.getElementById('categorie');
+        const categorieContainer = document.getElementById('categorie_container');
+
+        function toggleSerieAndCategorie() {
+            const selectedOption = cycleSelect.options[cycleSelect.selectedIndex];
+            const nomCycle = selectedOption ? selectedOption.getAttribute('data-nom-cycle') : '';
+
+            if (nomCycle === 'Lycée') {
+                serieContainer.style.display = 'block';
+                categorieContainer.style.display = 'block';
+            } else {
+                serieContainer.style.display = 'none';
+                categorieContainer.style.display = 'none';
+                serieSelect.value = '';
+                categorieSelect.value = '';
+            }
+        }
+
+        cycleSelect.addEventListener('change', toggleSerieAndCategorie);
+
+        serieSelect.addEventListener('change', function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const categorie = selectedOption ? selectedOption.getAttribute('data-categorie') : '';
+            if (categorie) {
+                categorieSelect.value = categorie;
+            }
+        });
+
+        // Initialize state on load
+        toggleSerieAndCategorie();
+    });
+</script>
 
 <?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>

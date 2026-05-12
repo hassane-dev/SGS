@@ -45,13 +45,18 @@
                                 </div>
 
                                 <!-- Serie -->
-                                <div class="col-md-6">
+                                <div class="col-md-6" id="serie_container" style="display: none;">
                                     <label for="serie" class="form-label"><?= _('Série') ?></label>
-                                    <input type="text" name="serie" id="serie" class="form-control" placeholder="<?= _('Ex: A4') ?>">
+                                    <select name="serie" id="serie" class="form-select">
+                                        <option value=""><?= _('-- Choisir une série --') ?></option>
+                                        <?php foreach ($series as $serie): ?>
+                                            <option value="<?= htmlspecialchars($serie['nom_serie']) ?>" data-categorie="<?= htmlspecialchars($serie['categorie']) ?>"><?= htmlspecialchars($serie['nom_serie']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
 
                                 <!-- Categorie -->
-                                <div class="col-md-6">
+                                <div class="col-md-6" id="categorie_container" style="display: none;">
                                     <label for="categorie" class="form-label"><?= _('Catégorie') ?></label>
                                     <select name="categorie" id="categorie" class="form-select">
                                         <option value=""><?= _('-- Choisir une catégorie --') ?></option>
@@ -96,12 +101,14 @@
 </div>
 <!-- [ Main Content ] end -->
 
-<?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>
-
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const cycleSelect = document.getElementById('cycle_id');
         const niveauSelect = document.getElementById('niveau');
+        const serieSelect = document.getElementById('serie');
+        const serieContainer = document.getElementById('serie_container');
+        const categorieSelect = document.getElementById('categorie');
+        const categorieContainer = document.getElementById('categorie_container');
 
         const niveauxParCycle = {
             'CEG': ['6e', '5e', '4e', '3e'],
@@ -111,7 +118,7 @@
         cycleSelect.addEventListener('change', function () {
             // Get the selected cycle's name from the data attribute
             const selectedOption = this.options[this.selectedIndex];
-            const nomCycle = selectedOption.getAttribute('data-nom-cycle');
+            const nomCycle = selectedOption ? selectedOption.getAttribute('data-nom-cycle') : '';
 
             // Clear previous options
             niveauSelect.innerHTML = '<option value=""><?= _('-- Choisir un niveau --') ?></option>';
@@ -131,6 +138,27 @@
                 // If no cycle is selected, disable the niveau select
                 niveauSelect.disabled = true;
             }
+
+            // Show/Hide Serie and Categorie based on Cycle
+            if (nomCycle === 'Lycée') {
+                serieContainer.style.display = 'block';
+                categorieContainer.style.display = 'block';
+            } else {
+                serieContainer.style.display = 'none';
+                categorieContainer.style.display = 'none';
+                serieSelect.value = '';
+                categorieSelect.value = '';
+            }
+        });
+
+        serieSelect.addEventListener('change', function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const categorie = selectedOption.getAttribute('data-categorie');
+            if (categorie) {
+                categorieSelect.value = categorie;
+            }
         });
     });
 </script>
+
+<?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>

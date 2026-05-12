@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Cycle.php';
+require_once __DIR__ . '/../models/Serie.php';
 require_once __DIR__ . '/../models/Lycee.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../models/Matiere.php';
@@ -110,10 +111,12 @@ class ClasseController {
         $lycee_id = Auth::getLyceeId();
         $params = ParamGeneral::findByLyceeId($lycee_id);
         $mode_cycle = $params['mode_cycle'] ?? 'separe_ceg_lycee'; // Default value
+        $series = Serie::findAll($lycee_id);
 
         View::render('classes/create', [
             'cycles' => $cycles,
             'lycees' => $lycees,
+            'series' => $series,
             'mode_cycle' => $mode_cycle,
             'title' => 'Nouvelle Classe'
         ]);
@@ -171,6 +174,7 @@ class ClasseController {
 
         $cycles = Cycle::findAll();
         $lycees = Auth::can('view_all_lycees', 'lycee') ? Lycee::findAll() : [];
+        $series = Serie::findAll($classe['lycee_id']);
 
         // Add formatted name to the classe array
         $classe['nom_complet'] = Classe::getFormattedName($classe);
@@ -179,6 +183,7 @@ class ClasseController {
             'classe' => $classe,
             'cycles' => $cycles,
             'lycees' => $lycees,
+            'series' => $series,
             'title' => 'Modifier la Classe'
         ]);
     }
