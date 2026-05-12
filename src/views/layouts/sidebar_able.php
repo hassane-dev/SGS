@@ -60,6 +60,13 @@ $navItems = [
         'condition' => Auth::can('view', 'class'),
     ],
     [
+        'url' => '/series',
+        'icon' => 'ph-duotone ph-books',
+        'text' => _('Séries'),
+        'title' => _('Gérer les séries d\'enseignement.'),
+        'condition' => Auth::can('manage', 'series'),
+    ],
+    [
         'url' => '/matieres',
         'icon' => 'ph-duotone ph-books',
         'text' => _('Matières'),

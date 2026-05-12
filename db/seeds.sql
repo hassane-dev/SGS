@@ -107,7 +107,7 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (90, 'timetable', 'manage', 'Can manage timetables'),
 
 -- Series
-(91, 'class', 'manage', 'Gérer les structures des classes (séries, etc.)');
+(91, 'series', 'manage', 'Gérer les structures des classes (séries, etc.)');
 
 -- --------------------------------------------------------
 -- Role-Permission Assignments
@@ -134,7 +134,9 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (3, 71), (3, 72), (3, 73), (3, 75), (3, 76), (3, 77),
 (3, 81), (3, 82), (3, 83), (3, 84),
 -- Timetable
-(3, 90);
+(3, 90),
+-- Series
+(3, 91);
 
 -- Censeur (Academic Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES

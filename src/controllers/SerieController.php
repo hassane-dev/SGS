@@ -8,7 +8,7 @@ require_once __DIR__ . '/../core/Validator.php';
 class SerieController {
 
     private function checkAccess() {
-        if (!Auth::can('manage', 'class')) {
+        if (!Auth::can('manage', 'series')) {
             http_response_code(403);
             View::render('errors/403');
             exit();
