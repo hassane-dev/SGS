@@ -36,7 +36,9 @@ CREATE TABLE `param_lycee` (
     `devise` VARCHAR(255),
     `logo` TEXT,
     `type_lycee` ENUM('public', 'prive', 'parapublic') NOT NULL,
-    `boutique` BOOLEAN NOT NULL DEFAULT FALSE
+    `boutique` BOOLEAN NOT NULL DEFAULT FALSE,
+    `header_primary` TEXT,
+    `header_secondary` TEXT
 );
 
 -- Table for general system settings (scoped per Lycee)
