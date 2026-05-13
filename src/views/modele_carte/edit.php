@@ -38,6 +38,40 @@
                             <div class="row">
                                 <!-- Palette Area -->
                                 <div class="col-lg-3">
+                                    <h5 class="mb-3"><?= _('Theme Colors') ?></h5>
+                                    <div class="row g-2 mb-4">
+                                        <div class="col-4">
+                                            <button type="button" class="btn btn-sm btn-outline-primary w-100 theme-preset" data-primary="#0056b3" data-header="#f0f4f8" title="Blue Business">
+                                                <div style="height:20px; background:#0056b3; border-radius:3px;"></div>
+                                            </button>
+                                        </div>
+                                        <div class="col-4">
+                                            <button type="button" class="btn btn-sm btn-outline-success w-100 theme-preset" data-primary="#198754" data-header="#f8fff9" title="Forest Green">
+                                                <div style="height:20px; background:#198754; border-radius:3px;"></div>
+                                            </button>
+                                        </div>
+                                        <div class="col-4">
+                                            <button type="button" class="btn btn-sm btn-outline-danger w-100 theme-preset" data-primary="#dc3545" data-header="#fff8f8" title="Academic Red">
+                                                <div style="height:20px; background:#dc3545; border-radius:3px;"></div>
+                                            </button>
+                                        </div>
+                                        <div class="col-4">
+                                            <button type="button" class="btn btn-sm btn-outline-dark w-100 theme-preset" data-primary="#212529" data-header="#f8f9fa" title="Classic Black">
+                                                <div style="height:20px; background:#212529; border-radius:3px;"></div>
+                                            </button>
+                                        </div>
+                                        <div class="col-4">
+                                            <button type="button" class="btn btn-sm btn-outline-warning w-100 theme-preset" data-primary="#ffc107" data-header="#fffdf5" title="Golden Sun">
+                                                <div style="height:20px; background:#ffc107; border-radius:3px;"></div>
+                                            </button>
+                                        </div>
+                                        <div class="col-4">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary w-100 theme-preset" data-primary="#6c757d" data-header="#f8f9fa" title="Corporate Grey">
+                                                <div style="height:20px; background:#6c757d; border-radius:3px;"></div>
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     <h5 class="mb-3"><?= _('Palette') ?></h5>
                                     <div id="palette" class="row g-2">
                                         <div class="col-6">
@@ -191,7 +225,7 @@ $(function() {
 
     let cardModel = JSON.parse($('#layout_data_input').val() || '{"elements":[], "headers":{}}');
     let layoutElements = cardModel.elements || [];
-    let headers = cardModel.headers || {
+    let headers = {
         left: `<?= str_replace(["\r\n", "\n", "\r"], "\\n", addslashes($params_lycee['header_primary'] ?? "REPUBLIQUE DU TCHAD\nUnité - Travail - Progrès\n**********\nMINISTERE DE L'EDUCATION")) ?>`,
         right: `<?= str_replace(["\r\n", "\n", "\r"], "\\n", addslashes($params_lycee['header_secondary'] ?? ($params_lycee['nom_lycee'] ?? 'NOM DU LYCEE'))) ?>`
     };
@@ -228,12 +262,13 @@ $(function() {
             });
         },
         header_left: (options) => {
-            const text = new fabric.IText(options.text || headers.left, {
+            const text = new fabric.IText(headers.left, {
                 left: options.left || 10,
                 top: options.top || 10,
                 fontSize: options.fontSize || 10,
                 textAlign: 'center',
                 fontFamily: 'Arial',
+                editable: false, // Administrative headers should be edited in settings
                 ...options
             });
             text.set('elementType', 'header_left');
@@ -265,12 +300,13 @@ $(function() {
             canvas.setActiveObject(text);
         },
         header_right: (options) => {
-            const text = new fabric.IText(options.text || headers.right, {
+            const text = new fabric.IText(headers.right, {
                 left: options.left || 400,
                 top: options.top || 10,
                 fontSize: options.fontSize || 10,
                 textAlign: 'center',
                 fontFamily: 'Arial',
+                editable: false,
                 ...options
             });
             text.set('elementType', 'header_right');
@@ -390,6 +426,8 @@ $(function() {
                 fill: options.fill || '#e0e0e0',
                 width: options.width || 100,
                 height: options.height || 50,
+                stroke: options.stroke || null,
+                strokeWidth: options.strokeWidth || 0,
                 ...options
             });
             rect.set('elementType', 'rect');
@@ -538,20 +576,40 @@ $(function() {
         canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
 
         const defaultModel = [
-            { type: 'rect', left: 0, top: 0, width: 647, height: 100, fill: '#f8f9fa' }, // Header Background
-            { type: 'header_left', left: 10, top: 15, fontSize: 10, textAlign: 'center' },
-            { type: 'header_right', left: 400, top: 15, fontSize: 10, textAlign: 'center' },
+            // High-end background elements
+            { type: 'rect', left: 0, top: 0, width: 647, height: 408, fill: '#ffffff', id: 'bg_main' },
+            { type: 'rect', left: 0, top: 0, width: 647, height: 110, fill: '#f0f4f8', id: 'header_bg' }, // Light blue-grey header
+            { type: 'rect', left: 0, top: 107, width: 647, height: 6, fill: '#0056b3', id: 'header_accent' }, // Thick accent line
+
+            // Header Content
+            { type: 'header_left', left: 20, top: 20, fontSize: 9, textAlign: 'center', fontWeight: 'bold', fill: '#333' },
+            { type: 'header_right', left: 420, top: 20, fontSize: 9, textAlign: 'center', fontWeight: 'bold', fill: '#333' },
             { type: 'logo', left: 283, top: 10, width: 80, height: 80 },
-            { type: 'rect', left: 0, top: 97, width: 647, height: 3, fill: '#003366' }, // Separator line
-            { type: 'photo', left: 30, top: 130, width: 140, height: 180 },
-            { type: 'nom_complet', left: 200, top: 140, fontSize: 28, fontWeight: 'bold', fill: '#003366' },
-            { type: 'matricule', left: 200, top: 190, fontSize: 18, fill: '#333333' },
-            { type: 'classe', left: 200, top: 230, fontSize: 18, fill: '#333333' },
-            { type: 'serie', left: 200, top: 270, fontSize: 16, fill: '#666666' },
-            { type: 'annee', left: 200, top: 310, fontSize: 16, fill: '#666666' },
-            { type: 'qr_code', left: 480, top: 260, width: 120, height: 120 },
-            { type: 'rect', left: 0, top: 378, width: 647, height: 30, fill: '#003366' }, // Footer Bar
-            { type: 'text', left: 10, top: 385, fontSize: 10, fill: '#ffffff', text: 'CARTE D\'IDENTITÉ SCOLAIRE OFFICIELLE' }
+
+            // Photo Area with Frame
+            { type: 'rect', left: 25, top: 135, width: 150, height: 190, fill: '#fff', stroke: '#0056b3', strokeWidth: 2, id: 'photo_frame' },
+            { type: 'photo', left: 30, top: 140, width: 140, height: 180 },
+
+            // Student Info with labels
+            { type: 'text', text: 'NOM ET PRÉNOMS', left: 200, top: 135, fontSize: 10, fontWeight: 'bold', fill: '#0056b3' },
+            { type: 'nom_complet', left: 200, top: 150, fontSize: 26, fontWeight: 'bold', fill: '#222' },
+
+            { type: 'text', text: 'MATRICULE', left: 200, top: 195, fontSize: 10, fontWeight: 'bold', fill: '#0056b3' },
+            { type: 'matricule', left: 200, top: 208, fontSize: 18, fontWeight: 'bold', fill: '#444' },
+
+            { type: 'text', text: 'CLASSE / SÉRIE', left: 200, top: 245, fontSize: 10, fontWeight: 'bold', fill: '#0056b3' },
+            { type: 'classe', left: 200, top: 258, fontSize: 18, fontWeight: 'bold', fill: '#444' },
+
+            { type: 'text', text: 'ANNÉE SCOLAIRE', left: 200, top: 295, fontSize: 10, fontWeight: 'bold', fill: '#0056b3' },
+            { type: 'annee', left: 200, top: 308, fontSize: 16, fontWeight: 'bold', fill: '#444' },
+
+            // Security QR Code Area
+            { type: 'rect', left: 480, top: 245, width: 130, height: 130, fill: '#fff', stroke: '#eee', strokeWidth: 1, id: 'qr_bg' },
+            { type: 'qr_code', left: 485, top: 250, width: 120, height: 120 },
+
+            // Professional Footer
+            { type: 'rect', left: 0, top: 383, width: 647, height: 25, fill: '#0056b3', id: 'footer_bar' },
+            { type: 'text', left: 0, top: 388, width: 647, fontSize: 10, fill: '#ffffff', text: 'CARTE D\'IDENTITÉ SCOLAIRE - DOCUMENT OFFICIEL', textAlign: 'center' }
         ];
 
         defaultModel.forEach(el => {
@@ -564,6 +622,37 @@ $(function() {
         if (confirm("<?= _('Are you sure you want to reset the template to the default professional model? This will erase your current changes.') ?>")) {
             applyDefaultLayout();
         }
+    });
+
+    $('.theme-preset').on('click', function() {
+        const primaryColor = $(this).data('primary');
+        const headerBg = $(this).data('header');
+
+        canvas.getObjects().forEach(obj => {
+            // Apply primary color to accent elements and labels
+            if (obj.id === 'header_accent' || obj.id === 'footer_bar') {
+                obj.set('fill', primaryColor);
+            }
+            if (obj.id === 'photo_frame') {
+                obj.set('stroke', primaryColor);
+            }
+            if (obj.id === 'header_bg') {
+                obj.set('fill', headerBg);
+            }
+
+            // Text elements that act as labels (NOM ET PRÉNOMS, etc)
+            if (obj.type === 'i-text' && ['NOM ET PRÉNOMS', 'MATRICULE', 'CLASSE / SÉRIE', 'ANNÉE SCOLAIRE'].includes(obj.text)) {
+                obj.set('fill', primaryColor);
+            }
+
+            // Name highlighted with primary color
+            if (obj.elementType === 'nom_complet') {
+                obj.set('fill', primaryColor);
+            }
+        });
+
+        canvas.renderAll();
+        saveLayout();
     });
 
     // Initial Load

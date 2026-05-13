@@ -171,8 +171,15 @@
             if (elData.fontSize) {
                 el.style.fontSize = (elData.fontSize * scale) + 'px';
             }
-            if (elData.fill && ['text', 'nom_complet', 'matricule', 'classe', 'serie', 'annee', 'header_left', 'header_right'].includes(elData.type)) {
-                el.style.color = elData.fill;
+            if (elData.fill) {
+                if (['text', 'nom_complet', 'matricule', 'classe', 'serie', 'annee', 'header_left', 'header_right'].includes(elData.type)) {
+                    el.style.color = elData.fill;
+                } else if (['rect', 'circle'].includes(elData.type)) {
+                    el.style.backgroundColor = elData.fill;
+                }
+            }
+            if (elData.stroke) {
+                el.style.border = `${(elData.strokeWidth || 1) * scale}px solid ${elData.stroke}`;
             }
             if (elData.textAlign) {
                 el.style.textAlign = elData.textAlign;
