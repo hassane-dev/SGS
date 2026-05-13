@@ -103,6 +103,7 @@
         }
 
         const elements = layout.elements || [];
+        const isMultilingual = <?= (!empty($data['lycee']['multilingue_actif']) && ($data['lycee']['nb_langue'] ?? 1) > 1) ? 'true' : 'false' ?>;
         let qrCounter = 0;
 
         elements.forEach(elData => {
@@ -160,11 +161,14 @@
                     el.style.borderRadius = '50%';
                     break;
                 case 'header_left':
+                    // If isMultilingual and this is the original "primary" placeholder, but it's on the left, it might be the secondary language.
+                    // But our logic in editor now swaps them.
                     content = (elData.text || lycee.header_primary || '').replace(/\n/g, '<br>');
+                    el.setAttribute('dir', 'auto');
                     break;
                 case 'header_right':
                     content = (elData.text || lycee.header_secondary || lycee.nom_lycee || '').replace(/\n/g, '<br>');
-                    if (lycee.header_secondary) el.setAttribute('dir', 'auto');
+                    el.setAttribute('dir', 'auto');
                     break;
             }
 

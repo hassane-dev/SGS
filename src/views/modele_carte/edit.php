@@ -575,6 +575,16 @@ $(function() {
         canvas.clear();
         canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
 
+        const isMultilingual = <?= (!empty($params_generaux['multilingue_actif']) && ($params_generaux['nb_langue'] ?? 1) > 1) ? 'true' : 'false' ?>;
+
+        // If 2nd language is active, we might need to swap positions (Primary on Right, Secondary on Left)
+        // Usually, in bilingual contexts like Chad, if Primary is French and Secondary is Arabic,
+        // the Arabic header often goes to the right and French to the left.
+        // We'll place Primary on RIGHT and Secondary on LEFT for the bilingual model as requested.
+
+        const hLeftPos = isMultilingual ? 20 : 0; // If single lang, we'll hide one or center
+        const hRightPos = isMultilingual ? 420 : 0;
+
         const defaultModel = [
             // High-end background elements
             { type: 'rect', left: 0, top: 0, width: 647, height: 408, fill: '#ffffff', id: 'bg_main' },
@@ -582,10 +592,19 @@ $(function() {
             { type: 'rect', left: 0, top: 107, width: 647, height: 6, fill: '#0056b3', id: 'header_accent' }, // Thick accent line
 
             // Header Content
-            { type: 'header_left', left: 20, top: 20, fontSize: 9, textAlign: 'center', fontWeight: 'bold', fill: '#333' },
-            { type: 'header_right', left: 420, top: 20, fontSize: 9, textAlign: 'center', fontWeight: 'bold', fill: '#333' },
-            { type: 'logo', left: 283, top: 10, width: 80, height: 80 },
+            { type: 'logo', left: 283, top: 10, width: 80, height: 80 }
+        ];
 
+        if (isMultilingual) {
+            // Primary on RIGHT, Secondary on LEFT for bilingual model
+            defaultModel.push({ type: 'header_right', text: headers.left, left: 420, top: 20, fontSize: 9, textAlign: 'center', fontWeight: 'bold', fill: '#333' });
+            defaultModel.push({ type: 'header_left', text: headers.right, left: 20, top: 20, fontSize: 9, textAlign: 'center', fontWeight: 'bold', fill: '#333' });
+        } else {
+            // Single language centered header
+            defaultModel.push({ type: 'header_left', text: headers.left, left: 10, top: 20, width: 627, fontSize: 10, textAlign: 'center', fontWeight: 'bold', fill: '#333' });
+        }
+
+        const moreElements = [
             // Photo Area with Frame
             { type: 'rect', left: 25, top: 135, width: 150, height: 190, fill: '#fff', stroke: '#0056b3', strokeWidth: 2, id: 'photo_frame' },
             { type: 'photo', left: 30, top: 140, width: 140, height: 180 },
@@ -612,7 +631,9 @@ $(function() {
             { type: 'text', left: 0, top: 388, width: 647, fontSize: 10, fill: '#ffffff', text: 'CARTE D\'IDENTITÉ SCOLAIRE - DOCUMENT OFFICIEL', textAlign: 'center' }
         ];
 
-        defaultModel.forEach(el => {
+        const finalModel = [...defaultModel, ...moreElements];
+
+        finalModel.forEach(el => {
             if (creators[el.type]) creators[el.type](el);
         });
         setTimeout(saveLayout, 1000);
