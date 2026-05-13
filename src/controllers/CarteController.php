@@ -48,7 +48,7 @@ class CarteController {
         $annee = AnneeAcademique::findActive();
 
         // Secure QR Data: hash combining student ID, school ID and a secret (if available)
-        $secure_token = hash('sha256', $eleve['id_eleve'] . $lycee_id . 'SECRET_SALT');
+        $secure_token = hash('sha256', $eleve['id_eleve'] . $lycee_id . 'SECURE_SCHOOL_APP_2024');
 
         $data = [
             'eleve' => $eleve,

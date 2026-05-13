@@ -141,6 +141,18 @@
                                                     <span><?= _('Sexe') ?></span>
                                                 </div>
                                             </div>
+                                            <div class="col-6">
+                                                <div class="palette-item" draggable="true" data-type="signature_directeur" title="<?= _('Director Signature') ?>">
+                                                    <i class="ph-duotone ph-signature fs-2"></i>
+                                                    <span><?= _('Signature') ?></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="palette-item" draggable="true" data-type="tampon_ecole" title="<?= _('School Stamp') ?>">
+                                                    <i class="ph-duotone ph-seal fs-2"></i>
+                                                    <span><?= _('Tampon') ?></span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -209,8 +221,8 @@ $(function() {
     let cardModel = JSON.parse($('#layout_data_input').val() || '{"elements":[], "headers":{}}');
     let layoutElements = cardModel.elements || [];
     let headers = {
-        left: `<?= str_replace(["\r\n", "\n", "\r"], "\\n", addslashes($params_lycee['header_primary'] ?? "REPUBLIQUE DU TCHAD\nUnité - Travail - Progrès\n**********\nMINISTERE DE L'EDUCATION")) ?>`,
-        right: `<?= str_replace(["\r\n", "\n", "\r"], "\\n", addslashes($params_lycee['header_secondary'] ?? ($params_lycee['nom_lycee'] ?? 'NOM DU LYCEE'))) ?>`
+        left: `<?= str_replace(["\r\n", "\n", "\r"], "\\n", addslashes($params_lycee['header_primary'] ?? "RÉPUBLIQUE DU TCHAD\nUnité - Travail - Progrès\n**********\nMINISTÈRE DE L'ÉDUCATION NATIONALE")) ?>`,
+        right: `<?= str_replace(["\r\n", "\n", "\r"], "\\n", addslashes($params_lycee['header_secondary'] ?? ($params_lycee['nom_lycee'] ?? 'NOM DU LYCÉE'))) ?>`
     };
 
     // Helper to create objects
@@ -452,6 +464,63 @@ $(function() {
             text.set('elementType', 'sexe');
             canvas.add(text);
             canvas.setActiveObject(text);
+        },
+        signature_directeur: (options) => {
+            const signatureUrl = '<?= htmlspecialchars($params_lycee['signature_directeur'] ?? '') ?>' || '/assets/img/placeholder-signature.png';
+            fabric.Image.fromURL(signatureUrl, function(img) {
+                if (!img) {
+                    const rect = new fabric.Rect({
+                        left: options.left !== undefined ? options.left : 450,
+                        top: options.top !== undefined ? options.top : 330,
+                        width: options.width || 120,
+                        height: options.height || 50,
+                        fill: '#eeeeee',
+                        ...options
+                    });
+                    rect.set('elementType', 'signature_directeur');
+                    canvas.add(rect);
+                    return;
+                }
+                img.set({
+                    left: options.left !== undefined ? options.left : 450,
+                    top: options.top !== undefined ? options.top : 330,
+                    scaleX: (options.width || 120) / img.width,
+                    scaleY: (options.height || 50) / img.height,
+                    ...options
+                });
+                img.set('elementType', 'signature_directeur');
+                canvas.add(img);
+                canvas.setActiveObject(img);
+            });
+        },
+        tampon_ecole: (options) => {
+            const tamponUrl = '<?= htmlspecialchars($params_lycee['tampon_ecole'] ?? '') ?>' || '/assets/img/placeholder-tampon.png';
+            fabric.Image.fromURL(tamponUrl, function(img) {
+                if (!img) {
+                    const circle = new fabric.Circle({
+                        left: options.left !== undefined ? options.left : 400,
+                        top: options.top !== undefined ? options.top : 280,
+                        radius: 40,
+                        fill: '#eeeeee',
+                        opacity: 0.5,
+                        ...options
+                    });
+                    circle.set('elementType', 'tampon_ecole');
+                    canvas.add(circle);
+                    return;
+                }
+                img.set({
+                    left: options.left !== undefined ? options.left : 400,
+                    top: options.top !== undefined ? options.top : 280,
+                    scaleX: (options.width || 80) / img.width,
+                    scaleY: (options.height || 80) / img.height,
+                    opacity: 0.6,
+                    ...options
+                });
+                img.set('elementType', 'tampon_ecole');
+                canvas.add(img);
+                canvas.setActiveObject(img);
+            });
         }
     };
 
@@ -488,7 +557,7 @@ $(function() {
         const fullModel = {
             elements: elements,
             headers: headers,
-            version: '2.0' // Mark as new professional model
+            version: '2.1' // Updated professional model version
         };
         $('#layout_data_input').val(JSON.stringify(fullModel));
     }
@@ -621,9 +690,14 @@ $(function() {
             { type: 'text', text: 'ANNÉE SCOLAIRE', left: 210, top: 335, fontSize: 11, fontWeight: 'bold', fill: '#0056b3' },
             { type: 'annee', left: 210, top: 355, fontSize: 18, fontWeight: 'bold', fill: '#444' },
 
+            // Signature & Stamp
+            { type: 'signature_directeur', left: 480, top: 340, width: 100, height: 40 },
+            { type: 'tampon_ecole', left: 450, top: 310, width: 70, height: 70 },
+            { type: 'text', text: 'LE DIRECTEUR', left: 480, top: 325, fontSize: 9, fontWeight: 'bold', fill: '#333', id: 'dir_label' },
+
             // Security QR Code Area
-            { type: 'qr_code', left: 490, top: 260, width: 120, height: 120 },
-            { type: 'text', text: 'SECURE QR CODE', left: 490, top: 245, fontSize: 8, fill: '#999', id: 'qr_label' },
+            { type: 'qr_code', left: 510, top: 145, width: 100, height: 100 },
+            { type: 'text', text: 'SECURE QR CODE', left: 510, top: 130, fontSize: 8, fill: '#999', id: 'qr_label' },
 
             // Professional Footer
             { type: 'rect', left: 0, top: 383, width: 647, height: 25, fill: '#0056b3', id: 'footer_bar' },
@@ -698,9 +772,10 @@ $(function() {
         }
 
         // Force transition to new model if version is old or missing
-        const isNewModel = cardModel.version === '2.0';
+        const currentVersion = '2.1';
+        const isCompatibleModel = cardModel.version === currentVersion;
 
-        if (layoutElements.length === 0 || !isNewModel) {
+        if (layoutElements.length === 0 || !isCompatibleModel) {
             applyDefaultLayout();
         } else {
             // Elements saved in DB

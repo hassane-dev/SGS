@@ -38,7 +38,9 @@ CREATE TABLE `param_lycee` (
     `type_lycee` ENUM('public', 'prive', 'parapublic') NOT NULL,
     `boutique` BOOLEAN NOT NULL DEFAULT FALSE,
     `header_primary` TEXT,
-    `header_secondary` TEXT
+    `header_secondary` TEXT,
+    `signature_directeur` TEXT,
+    `tampon_ecole` TEXT
 );
 
 -- Table for general system settings (scoped per Lycee)
@@ -580,15 +582,33 @@ CREATE TABLE `salaires` (
 -- Template Tables
 -- =================================================================
 
-CREATE TABLE `modele_carte` (
+CREATE TABLE `carte_templates` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `lycee_id` INT NOT NULL,
     `nom_modele` VARCHAR(255) NOT NULL,
+    `orientation` ENUM('landscape', 'portrait') DEFAULT 'landscape',
+    `width_mm` DECIMAL(5,2) DEFAULT 85.60,
+    `height_mm` DECIMAL(5,2) DEFAULT 53.98,
     `background` TEXT,
-    `font_settings` JSON,
-    `layout_data` JSON,
-    `qr_code_settings` JSON,
+    `styles` JSON,
+    `layout_data` JSON, -- Keep for backward compatibility or complex layouts
+    `config_visuelle` JSON,
+    `version` VARCHAR(10) DEFAULT '2.1',
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
+);
+
+CREATE TABLE `carte_objects` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `template_id` INT NOT NULL,
+    `type_objet` VARCHAR(50) NOT NULL,
+    `pos_x` INT,
+    `pos_y` INT,
+    `width` INT,
+    `height` INT,
+    `z_index` INT DEFAULT 0,
+    `styles` JSON,
+    `placeholder` VARCHAR(100),
+    FOREIGN KEY (`template_id`) REFERENCES `carte_templates`(`id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `modele_bulletin` (

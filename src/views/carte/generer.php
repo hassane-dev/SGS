@@ -148,6 +148,12 @@
                 case 'sexe':
                     content = `${eleve.sexe || 'N/A'}`;
                     break;
+                case 'signature_directeur':
+                    content = `<img src="${lycee.signature_directeur || '/assets/img/placeholder-signature.png'}" alt="Signature">`;
+                    break;
+                case 'tampon_ecole':
+                    content = `<img src="${lycee.tampon_ecole || '/assets/img/placeholder-tampon.png'}" alt="Tampon" style="opacity:0.6;">`;
+                    break;
                 case 'qr_code':
                     qrCounter++;
                     el.classList.add('qr-code-container');
