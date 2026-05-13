@@ -130,17 +130,23 @@
                     content = `${eleve.prenom} ${eleve.nom}`.toUpperCase();
                     break;
                 case 'matricule':
-                    content = `MATRICULE: ${eleve.id_eleve}`; // Should be formatted as per requirement
+                    content = `${eleve.id_eleve}`;
                     break;
                 case 'classe':
-                    const className = `${classe.niveau} ${classe.serie || ''} ${classe.numero || ''}`.trim();
-                    content = `CLASSE: ${className}`;
+                    const className = `${classe.niveau} ${classe.serie ? ' / ' + classe.serie : ''} ${classe.numero || ''}`.trim();
+                    content = className;
                     break;
                 case 'serie':
-                    content = `SÉRIE: ${classe.serie || 'N/A'}`;
+                    content = `${classe.serie || 'N/A'}`;
                     break;
                 case 'annee':
-                    content = `ANNÉE: ${annee ? annee.libelle : '2024-2025'}`;
+                    content = `${annee ? annee.libelle : '2024-2025'}`;
+                    break;
+                case 'date_naissance':
+                    content = `${eleve.date_naissance || 'N/A'}`;
+                    break;
+                case 'sexe':
+                    content = `${eleve.sexe || 'N/A'}`;
                     break;
                 case 'qr_code':
                     qrCounter++;
