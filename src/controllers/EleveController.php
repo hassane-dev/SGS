@@ -329,6 +329,7 @@ class EleveController {
         View::render('eleves/assign_class', [
             'eleve' => $eleve,
             'cycles' => $cycles,
+            'lycee_id' => $eleve['lycee_id'],
             'title' => 'Assigner une Classe'
         ]);
     }
@@ -342,7 +343,15 @@ class EleveController {
 
         $data = Validator::sanitize($_POST);
         $eleve_id = $data['eleve_id'];
-        $lycee_id = Auth::getLyceeId();
+
+        $eleve = Eleve::findById($eleve_id);
+        if (!$eleve) {
+            $_SESSION['error_message'] = "Élève non trouvé.";
+            header('Location: /eleves');
+            exit();
+        }
+
+        $lycee_id = $eleve['lycee_id'];
 
         $classe_id = Classe::findIdByDetails($lycee_id, $data['niveau'], $data['serie'] ?? null, $data['numero']);
 
@@ -358,7 +367,7 @@ class EleveController {
 
                 // Get school type
                 $lycee = ParamLycee::findByLyceeId($lycee_id);
-                $type_lycee = $lycee['type_lycee'] ?? 'prive';
+                $type_lycee = ($lycee && isset($lycee['type_lycee'])) ? $lycee['type_lycee'] : 'prive';
 
                 $is_active = 0;
                 $status = 'pending_payment';
@@ -380,10 +389,9 @@ class EleveController {
 
                 if ($is_active) {
                     Eleve::changeStatus($eleve_id, 'actif');
-                    Etude::activate($etude_id, Auth::get('id'));
+                    Etude::activate($etude_id, Auth::getUserId());
                 } else {
                     // Notification pour le comptable (seulement si non activé immédiatement)
-                    $eleve = Eleve::findById($eleve_id);
                     $eleve_nom_complet = $eleve['prenom'] . ' ' . $eleve['nom'];
                     $message = "Un nouvel élève est en attente de paiement : {$eleve_nom_complet}. Cliquez pour procéder au paiement.";
                     $link = "/paiements/show/{$eleve_id}";
@@ -396,10 +404,12 @@ class EleveController {
                 $db->commit();
 
                 $_SESSION['success_message'] = "L'élève a été assigné à la classe avec succès.";
-            } catch (Exception $e) {
-                $db->rollBack();
+            } catch (Throwable $e) {
+                if ($db->inTransaction()) {
+                    $db->rollBack();
+                }
                 error_log("Erreur lors de l'assignation de la classe : " . $e->getMessage());
-                $_SESSION['error_message'] = "Une erreur est survenue. L'assignation a été annulée.";
+                $_SESSION['error_message'] = "Une erreur est survenue lors de l'assignation : " . $e->getMessage();
                 header('Location: /eleves/assign-class?eleve_id=' . $eleve_id);
                 exit();
             }

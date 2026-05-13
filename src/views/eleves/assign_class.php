@@ -78,7 +78,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const serieContainer = document.getElementById('serie-container');
     const serieSelect = document.getElementById('serie');
     const numeroSelect = document.getElementById('numero');
-    const lyceeId = <?= Auth::getLyceeId() ?>;
+    const lyceeId = <?= $lycee_id ?? 'null' ?>;
+
+    if (!lyceeId) {
+        console.error('School ID (lycee_id) is missing.');
+    }
 
     function resetSelect(select, defaultOptionText) {
         select.innerHTML = `<option value="">${defaultOptionText}</option>`;
