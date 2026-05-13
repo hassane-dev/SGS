@@ -157,9 +157,12 @@
                                 </div>
                             </div>
 
-                            <div class="mt-4 text-end">
+                                    <div class="mt-4 d-flex justify-content-between">
+                                        <button type="button" id="reset-template" class="btn btn-outline-danger">
+                                            <i class="ph-duotone ph-arrow-counter-clockwise"></i> <?= _('Reset to Default') ?>
+                                        </button>
                                 <button type="submit" class="btn btn-primary">
-                                    <?= _('Save Template') ?>
+                                            <i class="ph-duotone ph-floppy-disk"></i> <?= _('Save Template') ?>
                                 </button>
                             </div>
                         </form>
@@ -529,6 +532,40 @@ $(function() {
         }
     });
 
+    // Function to apply default professional layout
+    function applyDefaultLayout() {
+        canvas.clear();
+        canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
+
+        const defaultModel = [
+            { type: 'rect', left: 0, top: 0, width: 647, height: 100, fill: '#f8f9fa' }, // Header Background
+            { type: 'header_left', left: 10, top: 15, fontSize: 10, textAlign: 'center' },
+            { type: 'header_right', left: 400, top: 15, fontSize: 10, textAlign: 'center' },
+            { type: 'logo', left: 283, top: 10, width: 80, height: 80 },
+            { type: 'rect', left: 0, top: 97, width: 647, height: 3, fill: '#003366' }, // Separator line
+            { type: 'photo', left: 30, top: 130, width: 140, height: 180 },
+            { type: 'nom_complet', left: 200, top: 140, fontSize: 28, fontWeight: 'bold', fill: '#003366' },
+            { type: 'matricule', left: 200, top: 190, fontSize: 18, fill: '#333333' },
+            { type: 'classe', left: 200, top: 230, fontSize: 18, fill: '#333333' },
+            { type: 'serie', left: 200, top: 270, fontSize: 16, fill: '#666666' },
+            { type: 'annee', left: 200, top: 310, fontSize: 16, fill: '#666666' },
+            { type: 'qr_code', left: 480, top: 260, width: 120, height: 120 },
+            { type: 'rect', left: 0, top: 378, width: 647, height: 30, fill: '#003366' }, // Footer Bar
+            { type: 'text', left: 10, top: 385, fontSize: 10, fill: '#ffffff', text: 'CARTE D\'IDENTITÉ SCOLAIRE OFFICIELLE' }
+        ];
+
+        defaultModel.forEach(el => {
+            if (creators[el.type]) creators[el.type](el);
+        });
+        setTimeout(saveLayout, 1000);
+    }
+
+    $('#reset-template').on('click', function() {
+        if (confirm("<?= _('Are you sure you want to reset the template to the default professional model? This will erase your current changes.') ?>")) {
+            applyDefaultLayout();
+        }
+    });
+
     // Initial Load
     function loadInitialLayout() {
         // Background
@@ -542,12 +579,17 @@ $(function() {
             });
         }
 
-        // Elements
-        layoutElements.forEach(el => {
-            if (creators[el.type]) {
-                creators[el.type](el);
-            }
-        });
+        // If no elements saved, load a professional default model
+        if (layoutElements.length === 0) {
+            applyDefaultLayout();
+        } else {
+            // Elements saved in DB
+            layoutElements.forEach(el => {
+                if (creators[el.type]) {
+                    creators[el.type](el);
+                }
+            });
+        }
     }
 
     loadInitialLayout();
