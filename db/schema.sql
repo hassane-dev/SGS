@@ -415,6 +415,7 @@ CREATE TABLE `boutique_articles` (
     `nom_article` VARCHAR(255) NOT NULL,
     `prix` DECIMAL(10, 2) NOT NULL,
     `stock` INT,
+    `image` TEXT,
     `lycee_id` INT NOT NULL,
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );

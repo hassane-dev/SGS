@@ -31,9 +31,33 @@ class BoutiqueArticle {
     public static function save($data) {
         $isUpdate = !empty($data['id_article']);
 
+        // Handle image upload if provided
+        if (isset($_FILES['image']) && $_FILES['image']['error'] == UPLOAD_ERR_OK) {
+            $uploadDir = __DIR__ . '/../../public/uploads/boutique/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            $fileName = uniqid() . '-' . basename($_FILES['image']['name']);
+            $targetFilePath = $uploadDir . $fileName;
+            if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFilePath)) {
+                // Delete old image if it's an update
+                if ($isUpdate && !empty($data['current_image'])) {
+                    $oldImagePath = __DIR__ . '/../../public' . $data['current_image'];
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
+                }
+                $data['image'] = '/uploads/boutique/' . $fileName;
+            } else {
+                $data['image'] = $data['current_image'] ?? null;
+            }
+        } else {
+            $data['image'] = $data['current_image'] ?? null;
+        }
+
         $sql = $isUpdate
-            ? "UPDATE boutique_articles SET nom_article = :nom_article, prix = :prix, stock = :stock, lycee_id = :lycee_id WHERE id_article = :id_article"
-            : "INSERT INTO boutique_articles (nom_article, prix, stock, lycee_id) VALUES (:nom_article, :prix, :stock, :lycee_id)";
+            ? "UPDATE boutique_articles SET nom_article = :nom_article, prix = :prix, stock = :stock, image = :image, lycee_id = :lycee_id WHERE id_article = :id_article"
+            : "INSERT INTO boutique_articles (nom_article, prix, stock, image, lycee_id) VALUES (:nom_article, :prix, :stock, :image, :lycee_id)";
 
         $db = Database::getInstance();
         $stmt = $db->prepare($sql);
@@ -42,6 +66,7 @@ class BoutiqueArticle {
             'nom_article' => $data['nom_article'],
             'prix' => $data['prix'],
             'stock' => $data['stock'] ?: 0,
+            'image' => $data['image'],
             'lycee_id' => $data['lycee_id'],
         ];
 
@@ -54,6 +79,14 @@ class BoutiqueArticle {
 
     public static function delete($id) {
         $db = Database::getInstance();
+        // Delete image file before deleting record
+        $article = self::findById($id);
+        if ($article && !empty($article['image'])) {
+            $imagePath = __DIR__ . '/../../public' . $article['image'];
+            if (file_exists($imagePath)) {
+                unlink($imagePath);
+            }
+        }
         $stmt = $db->prepare("DELETE FROM boutique_articles WHERE id_article = :id");
         return $stmt->execute(['id' => $id]);
     }

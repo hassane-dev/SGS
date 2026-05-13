@@ -25,7 +25,7 @@
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-body">
-                        <form action="/boutique/articles/store" method="POST">
+                        <form action="/boutique/articles/store" method="POST" enctype="multipart/form-data">
                             <div class="row">
                                 <div class="col-md-12 mb-3">
                                     <label class="form-label" for="nom_article"><?= _('Nom de l\'Article') ?></label>
@@ -40,6 +40,11 @@
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label" for="stock"><?= _('Stock Initial') ?></label>
                                     <input type="number" name="stock" id="stock" class="form-control" placeholder="<?= _('0') ?>">
+                                </div>
+
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label" for="image"><?= _('Image de l\'Article') ?></label>
+                                    <input type="file" name="image" id="image" class="form-control" accept="image/*">
                                 </div>
 
                                 <?php if (Auth::get('role_name') === 'super_admin_national' || Auth::get('role_name') === 'super_admin_createur'): ?>

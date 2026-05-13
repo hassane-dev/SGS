@@ -37,6 +37,7 @@
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
+                                        <th><?= _('Image') ?></th>
                                         <th><?= _('Article') ?></th>
                                         <th><?= _('Prix') ?></th>
                                         <th><?= _('Stock') ?></th>
@@ -46,6 +47,15 @@
                                 <tbody>
                                     <?php foreach ($articles as $article): ?>
                                         <tr>
+                                            <td>
+                                                <?php if (!empty($article['image'])): ?>
+                                                    <img src="<?= htmlspecialchars($article['image']) ?>" alt="<?= htmlspecialchars($article['nom_article']) ?>" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                                <?php else: ?>
+                                                    <div class="bg-light d-flex align-items-center justify-content-center rounded" style="width: 50px; height: 50px;">
+                                                        <i class="ph-duotone ph-image text-muted"></i>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </td>
                                             <td><?= htmlspecialchars($article['nom_article']) ?></td>
                                             <td><?= htmlspecialchars($article['prix']) ?></td>
                                             <td><?= htmlspecialchars($article['stock']) ?></td>
@@ -64,7 +74,7 @@
                                     <?php endforeach; ?>
                                     <?php if (empty($articles)): ?>
                                         <tr>
-                                            <td colspan="4" class="text-center"><?= _('Aucun article trouvé') ?></td>
+                                            <td colspan="5" class="text-center"><?= _('Aucun article trouvé') ?></td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
