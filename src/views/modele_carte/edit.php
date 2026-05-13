@@ -654,6 +654,7 @@ $(function() {
         canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
 
         const isMultilingual = <?= (!empty($params_generaux['multilingue_actif']) && ($params_generaux['nb_langue'] ?? 1) > 1) ? 'true' : 'false' ?>;
+        const schoolName = `<?= addslashes($params_lycee['nom_lycee'] ?? 'NOM DU LYCÉE') ?>`.toUpperCase();
 
         const defaultModel = [
             // High-end background elements
@@ -666,10 +667,13 @@ $(function() {
             { type: 'logo', left: 283, top: 15, width: 80, height: 80 },
 
             // Institutional Header (Left as in image)
-            { type: 'header_left', text: headers.left, left: 20, top: 25, width: 200, fontSize: 9, textAlign: 'center', fontWeight: 'bold', fill: '#333' },
+            { type: 'header_left', text: headers.left, left: 20, top: 20, width: 200, fontSize: 8, textAlign: 'center', fontWeight: 'bold', fill: '#333' },
 
             // School Header (Right as in image)
-            { type: 'header_right', text: headers.right, left: 427, top: 25, width: 200, fontSize: 9, textAlign: 'center', fontWeight: 'bold', fill: '#333' }
+            { type: 'header_right', text: headers.right, left: 427, top: 20, width: 200, fontSize: 8, textAlign: 'center', fontWeight: 'bold', fill: '#333' },
+
+            // Centered Document Title
+            { type: 'text', text: 'CARTE D\'IDENTITÉ SCOLAIRE', left: 0, top: 85, width: 647, fontSize: 14, textAlign: 'center', fontWeight: 'bold', fill: '#0056b3', id: 'doc_title' }
         ];
 
         const moreElements = [
@@ -775,7 +779,11 @@ $(function() {
         const currentVersion = '2.1';
         const isCompatibleModel = cardModel.version === currentVersion;
 
-        if (layoutElements.length === 0 || !isCompatibleModel) {
+        // Diagnostic check: if layout_data is effectively empty ({}) even if layoutElements exists
+        const isEmptyLayout = !layoutElements || layoutElements.length === 0 || (layoutElements.length === 1 && layoutElements[0].type === 'rect' && layoutElements[0].id === 'bg_main');
+
+        if (isEmptyLayout || !isCompatibleModel) {
+            console.log("Applying professional default layout (v2.1)");
             applyDefaultLayout();
         } else {
             // Elements saved in DB

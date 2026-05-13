@@ -47,8 +47,15 @@ class ModeleCarte {
         $template_id = $existing ? $existing['id'] : $db->lastInsertId();
 
         // If we have granular objects, save them too
-        if (isset($data['objects']) && is_array($data['objects'])) {
-            self::saveObjects($template_id, $data['objects']);
+        // Fabric.js elements are often passed in layout_data, let's parse them if objects are not directly provided
+        $objects_to_save = $data['objects'] ?? null;
+        if (!$objects_to_save && isset($data['layout_data'])) {
+            $layout = json_decode($data['layout_data'], true);
+            $objects_to_save = $layout['elements'] ?? null;
+        }
+
+        if (isset($objects_to_save) && is_array($objects_to_save)) {
+            self::saveObjects($template_id, $objects_to_save);
         }
 
         return $template_id;
@@ -66,16 +73,23 @@ class ModeleCarte {
                 (:template_id, :type_objet, :pos_x, :pos_y, :width, :height, :z_index, :styles, :placeholder)";
 
         $stmt = $db->prepare($sql);
-        foreach ($objects as $obj) {
+        foreach ($objects as $index => $obj) {
+            // Map Fabric.js keys to Database columns
+            $type = $obj['type'] ?? $obj['type_objet'] ?? 'text';
+            $x = $obj['left'] ?? $obj['pos_x'] ?? 0;
+            $y = $obj['top'] ?? $obj['pos_y'] ?? 0;
+            $w = $obj['width'] ?? 0;
+            $h = $obj['height'] ?? 0;
+
             $stmt->execute([
                 'template_id' => $template_id,
-                'type_objet' => $obj['type_objet'],
-                'pos_x' => $obj['pos_x'] ?? 0,
-                'pos_y' => $obj['pos_y'] ?? 0,
-                'width' => $obj['width'] ?? 0,
-                'height' => $obj['height'] ?? 0,
-                'z_index' => $obj['z_index'] ?? 0,
-                'styles' => isset($obj['styles']) ? json_encode($obj['styles']) : '{}',
+                'type_objet' => $type,
+                'pos_x' => $x,
+                'pos_y' => $y,
+                'width' => $w,
+                'height' => $h,
+                'z_index' => $obj['z_index'] ?? $index,
+                'styles' => isset($obj['styles']) ? json_encode($obj['styles']) : json_encode($obj),
                 'placeholder' => $obj['placeholder'] ?? null
             ]);
         }

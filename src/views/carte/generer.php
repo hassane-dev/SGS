@@ -117,6 +117,9 @@
             if (elData.angle) {
                 el.style.transform = `rotate(${elData.angle}deg)`;
             }
+            if (elData.opacity !== undefined) {
+                el.style.opacity = elData.opacity;
+            }
 
             let content = '';
             switch (elData.type) {
