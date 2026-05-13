@@ -38,7 +38,11 @@
                             <div class="row">
                                 <!-- Palette Area -->
                                 <div class="col-lg-3">
-                                    <h5 class="mb-3"><?= _('Theme Colors') ?></h5>
+                                    <div class="alert alert-primary py-2 mb-3" style="font-size: 0.85rem;">
+                                        <i class="ph-duotone ph-info fs-5"></i> <?= _('Le modèle professionnel CR80 est prêt. Ajustez simplement les couleurs et le fond.') ?>
+                                    </div>
+
+                                    <h5 class="mb-3"><?= _('1. Couleurs du Thème') ?></h5>
                                     <div class="row g-2 mb-4">
                                         <div class="col-4">
                                             <button type="button" class="btn btn-sm btn-outline-primary w-100 theme-preset" data-primary="#0056b3" data-header="#f0f4f8" title="Blue Business">
@@ -72,95 +76,60 @@
                                         </div>
                                     </div>
 
-                                    <hr>
-                                    <h5 class="mb-3"><?= _('Palette (Ajout d\'éléments)') ?></h5>
-                                    <div id="palette" class="row g-2">
-                                        <div class="col-6">
-                                            <div class="palette-item" draggable="true" data-type="photo" title="<?= _('Student Photo') ?>">
-                                                <i class="ph-duotone ph-user-circle fs-2"></i>
-                                                <span><?= _('Photo') ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="palette-item" draggable="true" data-type="logo" title="<?= _('School Logo') ?>">
-                                                <i class="ph-duotone ph-building fs-2"></i>
-                                                <span><?= _('Logo') ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="palette-item" draggable="true" data-type="nom_complet" title="<?= _('Full Name') ?>">
-                                                <i class="ph-duotone ph-text-aa fs-2"></i>
-                                                <span><?= _('Name') ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="palette-item" draggable="true" data-type="matricule" title="<?= _('ID Number') ?>">
-                                                <i class="ph-duotone ph-identification-card fs-2"></i>
-                                                <span><?= _('ID') ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="palette-item" draggable="true" data-type="classe" title="<?= _('Class') ?>">
-                                                <i class="ph-duotone ph-graduation-cap fs-2"></i>
-                                                <span><?= _('Class') ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="palette-item" draggable="true" data-type="serie" title="<?= _('Academic Series') ?>">
-                                                <i class="ph-duotone ph-books fs-2"></i>
-                                                <span><?= _('Série') ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="palette-item" draggable="true" data-type="annee" title="<?= _('Academic Year') ?>">
-                                                <i class="ph-duotone ph-calendar fs-2"></i>
-                                                <span><?= _('Année') ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="palette-item" draggable="true" data-type="qr_code" title="<?= _('QR Code') ?>">
-                                                <i class="ph-duotone ph-qr-code fs-2"></i>
-                                                <span><?= _('QR') ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="palette-item" draggable="true" data-type="rect" title="<?= _('Rectangle') ?>">
-                                                <i class="ph-duotone ph-square fs-2"></i>
-                                                <span><?= _('Rect') ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="palette-item" draggable="true" data-type="circle" title="<?= _('Circle') ?>">
-                                                <i class="ph-duotone ph-circle fs-2"></i>
-                                                <span><?= _('Circle') ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="palette-item" draggable="true" data-type="text" title="<?= _('Static Text') ?>">
-                                                <i class="ph-duotone ph-text-t fs-2"></i>
-                                                <span><?= _('Text') ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="palette-item" draggable="true" data-type="header_left" title="<?= _('Header Left') ?>">
-                                                <i class="ph-duotone ph-layout fs-2"></i>
-                                                <span><?= _('H. Left') ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="palette-item" draggable="true" data-type="header_right" title="<?= _('Header Right') ?>">
-                                                <i class="ph-duotone ph-layout fs-2"></i>
-                                                <span><?= _('H. Right') ?></span>
-                                            </div>
-                                        </div>
+                                    <h5 class="mb-3 mt-4"><?= _('2. Fond & Filigrane') ?></h5>
+                                    <div class="mb-4">
+                                        <input class="form-control form-control-sm" type="file" id="background_image" name="background_image" accept="image/*">
+                                        <small class="text-muted" style="font-size: 0.75rem;"><?= _('Sélectionnez une image pour l\'arrière-plan.') ?></small>
                                     </div>
 
                                     <hr>
 
-                                    <h5 class="mb-3 mt-4"><?= _('Card Properties') ?></h5>
-                                    <div class="mb-3">
-                                        <label for="background_image" class="form-label"><?= _('Background Image') ?></label>
-                                        <input class="form-control" type="file" id="background_image" name="background_image" accept="image/*">
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-sm btn-light text-start" type="button" data-bs-toggle="collapse" data-bs-target="#advancedPalette">
+                                            <i class="ph-duotone ph-caret-down"></i> <?= _('Personnalisation Manuelle (Avancé)') ?>
+                                        </button>
+                                    </div>
+
+                                    <div class="collapse mt-3" id="advancedPalette">
+                                        <h6 class="mb-3 text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;"><?= _('Ajouter des éléments') ?></h6>
+                                        <div id="palette" class="row g-2">
+                                            <div class="col-6">
+                                                <div class="palette-item" draggable="true" data-type="photo" title="<?= _('Student Photo') ?>">
+                                                    <i class="ph-duotone ph-user-circle fs-2"></i>
+                                                    <span><?= _('Photo') ?></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="palette-item" draggable="true" data-type="logo" title="<?= _('School Logo') ?>">
+                                                    <i class="ph-duotone ph-building fs-2"></i>
+                                                    <span><?= _('Logo') ?></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="palette-item" draggable="true" data-type="nom_complet" title="<?= _('Full Name') ?>">
+                                                    <i class="ph-duotone ph-text-aa fs-2"></i>
+                                                    <span><?= _('Nom') ?></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="palette-item" draggable="true" data-type="qr_code" title="<?= _('QR Code') ?>">
+                                                    <i class="ph-duotone ph-qr-code fs-2"></i>
+                                                    <span><?= _('QR Code') ?></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="palette-item" draggable="true" data-type="rect" title="<?= _('Rectangle') ?>">
+                                                    <i class="ph-duotone ph-square fs-2"></i>
+                                                    <span><?= _('Forme') ?></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="palette-item" draggable="true" data-type="text" title="<?= _('Static Text') ?>">
+                                                    <i class="ph-duotone ph-text-t fs-2"></i>
+                                                    <span><?= _('Texte') ?></span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div id="element-properties" class="d-none">
@@ -581,17 +550,10 @@ $(function() {
 
         const isMultilingual = <?= (!empty($params_generaux['multilingue_actif']) && ($params_generaux['nb_langue'] ?? 1) > 1) ? 'true' : 'false' ?>;
 
-        // If 2nd language is active, we might need to swap positions (Primary on Right, Secondary on Left)
-        // Usually, in bilingual contexts like Chad, if Primary is French and Secondary is Arabic,
-        // the Arabic header often goes to the right and French to the left.
-        // We'll place Primary on RIGHT and Secondary on LEFT for the bilingual model as requested.
-
-        const hLeftPos = isMultilingual ? 20 : 0; // If single lang, we'll hide one or center
-        const hRightPos = isMultilingual ? 420 : 0;
-
         const defaultModel = [
             // High-end background elements
             { type: 'rect', left: 0, top: 0, width: 647, height: 408, fill: '#ffffff', id: 'bg_main' },
+            { type: 'text', text: 'OFFICIEL'.repeat(10), left: -50, top: 200, fontSize: 40, fill: '#f1f1f1', opacity: 0.3, angle: -30, selectable: false, id: 'watermark' },
             { type: 'rect', left: 0, top: 0, width: 647, height: 110, fill: '#f0f4f8', id: 'header_bg' }, // Light blue-grey header
             { type: 'rect', left: 0, top: 107, width: 647, height: 6, fill: '#0056b3', id: 'header_accent' }, // Thick accent line
 
@@ -600,9 +562,9 @@ $(function() {
         ];
 
         if (isMultilingual) {
-            // Primary on RIGHT, Secondary on LEFT for bilingual model
-            defaultModel.push({ type: 'header_right', text: headers.left, left: 420, top: 20, fontSize: 9, textAlign: 'center', fontWeight: 'bold', fill: '#333' });
-            defaultModel.push({ type: 'header_left', text: headers.right, left: 20, top: 20, fontSize: 9, textAlign: 'center', fontWeight: 'bold', fill: '#333' });
+            // Primary on RIGHT, Secondary on LEFT as requested for Mirror effect
+            defaultModel.push({ type: 'header_right', text: headers.left, left: 427, top: 20, width: 200, fontSize: 9, textAlign: 'center', fontWeight: 'bold', fill: '#333' });
+            defaultModel.push({ type: 'header_left', text: headers.right, left: 20, top: 20, width: 200, fontSize: 9, textAlign: 'center', fontWeight: 'bold', fill: '#333' });
         } else {
             // Single language centered header
             defaultModel.push({ type: 'header_left', text: headers.left, left: 10, top: 20, width: 627, fontSize: 10, textAlign: 'center', fontWeight: 'bold', fill: '#333' });
@@ -641,9 +603,9 @@ $(function() {
             if (creators[el.type]) creators[el.type](el);
         });
 
-        // Ensure background elements stay at the bottom
+        // Ensure background elements stay at the bottom and are locked
         canvas.getObjects().forEach(obj => {
-            if (obj.id && (obj.id.includes('bg') || obj.id.includes('accent'))) {
+            if (obj.id && (obj.id.includes('bg') || obj.id.includes('accent') || obj.id.includes('watermark'))) {
                 obj.set('selectable', false);
                 obj.set('evented', false);
                 canvas.sendToBack(obj);
@@ -717,7 +679,7 @@ $(function() {
             // Re-apply background locks
             setTimeout(() => {
                 canvas.getObjects().forEach(obj => {
-                    if (obj.id && (obj.id.includes('bg') || obj.id.includes('accent'))) {
+                    if (obj.id && (obj.id.includes('bg') || obj.id.includes('accent') || obj.id.includes('watermark'))) {
                         obj.set('selectable', false);
                         obj.set('evented', false);
                         canvas.sendToBack(obj);
