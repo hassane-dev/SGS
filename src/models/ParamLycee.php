@@ -93,7 +93,9 @@ class ParamLycee {
                     type_lycee = :type_lycee,
                     boutique = :boutique,
                     header_primary = :header_primary,
-                    header_secondary = :header_secondary
+                    header_secondary = :header_secondary,
+                    signature_directeur = :signature_directeur,
+                    tampon_ecole = :tampon_ecole
                 WHERE id = :lycee_id";
 
         try {
@@ -116,6 +118,8 @@ class ParamLycee {
                 'boutique' => isset($data['boutique']) ? 1 : 0,
                 'header_primary' => $data['header_primary'] ?? null,
                 'header_secondary' => $data['header_secondary'] ?? null,
+                'signature_directeur' => $data['signature_directeur'] ?? null,
+                'tampon_ecole' => $data['tampon_ecole'] ?? null,
                 'lycee_id' => $lycee_id
             ]);
         } catch (PDOException $e) {

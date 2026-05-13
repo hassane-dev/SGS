@@ -129,6 +129,30 @@
                                                     <span><?= _('Texte') ?></span>
                                                 </div>
                                             </div>
+                                            <div class="col-6">
+                                                <div class="palette-item" draggable="true" data-type="date_naissance" title="<?= _('Birth Date') ?>">
+                                                    <i class="ph-duotone ph-calendar fs-2"></i>
+                                                    <span><?= _('Né(e) le') ?></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="palette-item" draggable="true" data-type="sexe" title="<?= _('Gender') ?>">
+                                                    <i class="ph-duotone ph-gender-intersex fs-2"></i>
+                                                    <span><?= _('Sexe') ?></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="palette-item" draggable="true" data-type="signature_directeur" title="<?= _('Director Signature') ?>">
+                                                    <i class="ph-duotone ph-signature fs-2"></i>
+                                                    <span><?= _('Signature') ?></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="palette-item" draggable="true" data-type="tampon_ecole" title="<?= _('School Stamp') ?>">
+                                                    <i class="ph-duotone ph-seal fs-2"></i>
+                                                    <span><?= _('Tampon') ?></span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -197,8 +221,8 @@ $(function() {
     let cardModel = JSON.parse($('#layout_data_input').val() || '{"elements":[], "headers":{}}');
     let layoutElements = cardModel.elements || [];
     let headers = {
-        left: `<?= str_replace(["\r\n", "\n", "\r"], "\\n", addslashes($params_lycee['header_primary'] ?? "REPUBLIQUE DU TCHAD\nUnité - Travail - Progrès\n**********\nMINISTERE DE L'EDUCATION")) ?>`,
-        right: `<?= str_replace(["\r\n", "\n", "\r"], "\\n", addslashes($params_lycee['header_secondary'] ?? ($params_lycee['nom_lycee'] ?? 'NOM DU LYCEE'))) ?>`
+        left: `<?= str_replace(["\r\n", "\n", "\r"], "\\n", addslashes($params_lycee['header_primary'] ?? "RÉPUBLIQUE DU TCHAD\nUnité - Travail - Progrès\n**********\nMINISTÈRE DE L'ÉDUCATION NATIONALE")) ?>`,
+        right: `<?= str_replace(["\r\n", "\n", "\r"], "\\n", addslashes($params_lycee['header_secondary'] ?? ($params_lycee['nom_lycee'] ?? 'NOM DU LYCÉE'))) ?>`
     };
 
     // Helper to create objects
@@ -416,6 +440,87 @@ $(function() {
             circle.set('elementType', 'circle');
             canvas.add(circle);
             canvas.setActiveObject(circle);
+        },
+        date_naissance: (options) => {
+            const text = new fabric.IText('Né le: 01/01/2010', {
+                left: options.left !== undefined ? options.left : 210,
+                top: options.top !== undefined ? options.top : 350,
+                fontSize: 14,
+                fontFamily: 'Arial',
+                ...options
+            });
+            text.set('elementType', 'date_naissance');
+            canvas.add(text);
+            canvas.setActiveObject(text);
+        },
+        sexe: (options) => {
+            const text = new fabric.IText('Sexe: M', {
+                left: options.left !== undefined ? options.left : 210,
+                top: options.top !== undefined ? options.top : 370,
+                fontSize: 14,
+                fontFamily: 'Arial',
+                ...options
+            });
+            text.set('elementType', 'sexe');
+            canvas.add(text);
+            canvas.setActiveObject(text);
+        },
+        signature_directeur: (options) => {
+            const signatureUrl = '<?= htmlspecialchars($params_lycee['signature_directeur'] ?? '') ?>' || '/assets/img/placeholder-signature.png';
+            fabric.Image.fromURL(signatureUrl, function(img) {
+                if (!img) {
+                    const rect = new fabric.Rect({
+                        left: options.left !== undefined ? options.left : 450,
+                        top: options.top !== undefined ? options.top : 330,
+                        width: options.width || 120,
+                        height: options.height || 50,
+                        fill: '#eeeeee',
+                        ...options
+                    });
+                    rect.set('elementType', 'signature_directeur');
+                    canvas.add(rect);
+                    return;
+                }
+                img.set({
+                    left: options.left !== undefined ? options.left : 450,
+                    top: options.top !== undefined ? options.top : 330,
+                    scaleX: (options.width || 120) / img.width,
+                    scaleY: (options.height || 50) / img.height,
+                    ...options
+                });
+                img.set('elementType', 'signature_directeur');
+                canvas.add(img);
+                canvas.setActiveObject(img);
+            });
+        },
+        tampon_ecole: (options) => {
+            const tamponUrl = '<?= htmlspecialchars($params_lycee['tampon_ecole'] ?? '') ?>' || '/assets/img/placeholder-tampon.png';
+            fabric.Image.fromURL(tamponUrl, function(img) {
+                if (!img) {
+                    const circle = new fabric.Circle({
+                        left: options.left !== undefined ? options.left : 400,
+                        top: options.top !== undefined ? options.top : 280,
+                        radius: 40,
+                        fill: '#eeeeee',
+                        opacity: 0.5,
+                        ...options
+                    });
+                    circle.set('elementType', 'tampon_ecole');
+                    canvas.add(circle);
+                    return;
+                }
+                img.set({
+                    left: options.left !== undefined ? options.left : 400,
+                    top: options.top !== undefined ? options.top : 280,
+                    scaleX: (options.width || 80) / img.width,
+                    scaleY: (options.height || 80) / img.height,
+                    opacity: 0.6,
+                    ...options
+                });
+                img.set('elementType', 'tampon_ecole');
+                canvas.add(img);
+                canvas.setActiveObject(img);
+            });
         }
     };
 
@@ -452,7 +557,7 @@ $(function() {
         const fullModel = {
             elements: elements,
             headers: headers,
-            version: '2.0' // Mark as new professional model
+            version: '2.1' // Updated professional model version
         };
         $('#layout_data_input').val(JSON.stringify(fullModel));
     }
@@ -553,44 +658,46 @@ $(function() {
         const defaultModel = [
             // High-end background elements
             { type: 'rect', left: 0, top: 0, width: 647, height: 408, fill: '#ffffff', id: 'bg_main' },
-            { type: 'text', text: 'OFFICIEL'.repeat(10), left: -50, top: 200, fontSize: 40, fill: '#f1f1f1', opacity: 0.3, angle: -30, selectable: false, id: 'watermark' },
-            { type: 'rect', left: 0, top: 0, width: 647, height: 110, fill: '#f0f4f8', id: 'header_bg' }, // Light blue-grey header
-            { type: 'rect', left: 0, top: 107, width: 647, height: 6, fill: '#0056b3', id: 'header_accent' }, // Thick accent line
+            { type: 'text', text: 'OFFICIEL '.repeat(20), left: -100, top: 200, fontSize: 40, fill: '#f1f1f1', opacity: 0.2, angle: -30, selectable: false, id: 'watermark' },
+            { type: 'rect', left: 0, top: 0, width: 647, height: 110, fill: '#f8f9fa', id: 'header_bg' },
+            { type: 'rect', left: 0, top: 107, width: 647, height: 6, fill: '#0056b3', id: 'header_accent' },
 
             // Header Content
-            { type: 'logo', left: 283, top: 10, width: 80, height: 80 }
-        ];
+            { type: 'logo', left: 283, top: 15, width: 80, height: 80 },
 
-        if (isMultilingual) {
-            // Primary on RIGHT, Secondary on LEFT as requested for Mirror effect
-            defaultModel.push({ type: 'header_right', text: headers.left, left: 427, top: 20, width: 200, fontSize: 9, textAlign: 'center', fontWeight: 'bold', fill: '#333' });
-            defaultModel.push({ type: 'header_left', text: headers.right, left: 20, top: 20, width: 200, fontSize: 9, textAlign: 'center', fontWeight: 'bold', fill: '#333' });
-        } else {
-            // Single language centered header
-            defaultModel.push({ type: 'header_left', text: headers.left, left: 10, top: 20, width: 627, fontSize: 10, textAlign: 'center', fontWeight: 'bold', fill: '#333' });
-        }
+            // Institutional Header (Left as in image)
+            { type: 'header_left', text: headers.left, left: 20, top: 25, width: 200, fontSize: 9, textAlign: 'center', fontWeight: 'bold', fill: '#333' },
+
+            // School Header (Right as in image)
+            { type: 'header_right', text: headers.right, left: 427, top: 25, width: 200, fontSize: 9, textAlign: 'center', fontWeight: 'bold', fill: '#333' }
+        ];
 
         const moreElements = [
             // Photo Area with Frame
-            { type: 'rect', left: 25, top: 135, width: 150, height: 190, fill: '#fff', stroke: '#0056b3', strokeWidth: 2, id: 'photo_frame' },
-            { type: 'photo', left: 30, top: 140, width: 140, height: 180 },
+            { type: 'rect', left: 35, top: 145, width: 150, height: 190, fill: '#fff', stroke: '#0056b3', strokeWidth: 2, id: 'photo_frame' },
+            { type: 'photo', left: 40, top: 150, width: 140, height: 180 },
 
-            // Student Info with labels
-            { type: 'text', text: 'NOM ET PRÉNOMS', left: 200, top: 135, fontSize: 10, fontWeight: 'bold', fill: '#0056b3' },
-            { type: 'nom_complet', left: 200, top: 150, fontSize: 26, fontWeight: 'bold', fill: '#222' },
+            // Student Info with labels (Matching image spacing)
+            { type: 'text', text: 'NOM ET PRÉNOMS', left: 210, top: 145, fontSize: 11, fontWeight: 'bold', fill: '#0056b3' },
+            { type: 'nom_complet', left: 210, top: 165, fontSize: 32, fontWeight: 'bold', fill: '#222' },
 
-            { type: 'text', text: 'MATRICULE', left: 200, top: 195, fontSize: 10, fontWeight: 'bold', fill: '#0056b3' },
-            { type: 'matricule', left: 200, top: 208, fontSize: 18, fontWeight: 'bold', fill: '#444' },
+            { type: 'text', text: 'MATRICULE', left: 210, top: 215, fontSize: 11, fontWeight: 'bold', fill: '#0056b3' },
+            { type: 'matricule', left: 210, top: 235, fontSize: 22, fontWeight: 'bold', fill: '#444' },
 
-            { type: 'text', text: 'CLASSE / SÉRIE', left: 200, top: 245, fontSize: 10, fontWeight: 'bold', fill: '#0056b3' },
-            { type: 'classe', left: 200, top: 258, fontSize: 18, fontWeight: 'bold', fill: '#444' },
+            { type: 'text', text: 'CLASSE / SÉRIE', left: 210, top: 275, fontSize: 11, fontWeight: 'bold', fill: '#0056b3' },
+            { type: 'classe', left: 210, top: 295, fontSize: 20, fontWeight: 'bold', fill: '#444' },
 
-            { type: 'text', text: 'ANNÉE SCOLAIRE', left: 200, top: 295, fontSize: 10, fontWeight: 'bold', fill: '#0056b3' },
-            { type: 'annee', left: 200, top: 308, fontSize: 16, fontWeight: 'bold', fill: '#444' },
+            { type: 'text', text: 'ANNÉE SCOLAIRE', left: 210, top: 335, fontSize: 11, fontWeight: 'bold', fill: '#0056b3' },
+            { type: 'annee', left: 210, top: 355, fontSize: 18, fontWeight: 'bold', fill: '#444' },
+
+            // Signature & Stamp
+            { type: 'signature_directeur', left: 480, top: 340, width: 100, height: 40 },
+            { type: 'tampon_ecole', left: 450, top: 310, width: 70, height: 70 },
+            { type: 'text', text: 'LE DIRECTEUR', left: 480, top: 325, fontSize: 9, fontWeight: 'bold', fill: '#333', id: 'dir_label' },
 
             // Security QR Code Area
-            { type: 'rect', left: 480, top: 245, width: 130, height: 130, fill: '#fff', stroke: '#eee', strokeWidth: 1, id: 'qr_bg' },
-            { type: 'qr_code', left: 485, top: 250, width: 120, height: 120 },
+            { type: 'qr_code', left: 510, top: 145, width: 100, height: 100 },
+            { type: 'text', text: 'SECURE QR CODE', left: 510, top: 130, fontSize: 8, fill: '#999', id: 'qr_label' },
 
             // Professional Footer
             { type: 'rect', left: 0, top: 383, width: 647, height: 25, fill: '#0056b3', id: 'footer_bar' },
@@ -665,9 +772,10 @@ $(function() {
         }
 
         // Force transition to new model if version is old or missing
-        const isNewModel = cardModel.version === '2.0';
+        const currentVersion = '2.1';
+        const isCompatibleModel = cardModel.version === currentVersion;
 
-        if (layoutElements.length === 0 || !isNewModel) {
+        if (layoutElements.length === 0 || !isCompatibleModel) {
             applyDefaultLayout();
         } else {
             // Elements saved in DB
