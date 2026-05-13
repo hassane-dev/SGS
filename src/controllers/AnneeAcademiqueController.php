@@ -8,7 +8,7 @@ require_once __DIR__ . '/../core/View.php';
 class AnneeAcademiqueController {
 
     public function index() {
-        if (!Auth::can('manage', 'annee_academique')) {
+        if (!Auth::can('manage', 'annee_academique') && !Auth::can('view_all_lycees', 'lycee')) {
             View::render('errors/403');
             exit();
         }
@@ -17,7 +17,7 @@ class AnneeAcademiqueController {
     }
 
     public function create() {
-        if (!Auth::can('manage', 'annee_academique')) {
+        if (!Auth::can('manage', 'annee_academique') && !Auth::can('view_all_lycees', 'lycee')) {
             View::render('errors/403');
             exit();
         }
@@ -25,7 +25,7 @@ class AnneeAcademiqueController {
     }
 
     public function store() {
-        if (!Auth::can('manage', 'annee_academique')) {
+        if (!Auth::can('manage', 'annee_academique') && !Auth::can('view_all_lycees', 'lycee')) {
             View::render('errors/403');
             exit();
         }
@@ -47,7 +47,7 @@ class AnneeAcademiqueController {
     }
 
     public function edit() {
-        if (!Auth::can('manage', 'annee_academique')) {
+        if (!Auth::can('manage', 'annee_academique') && !Auth::can('view_all_lycees', 'lycee')) {
             View::render('errors/403');
             exit();
         }
@@ -66,7 +66,7 @@ class AnneeAcademiqueController {
     }
 
     public function update() {
-        if (!Auth::can('manage', 'annee_academique')) {
+        if (!Auth::can('manage', 'annee_academique') && !Auth::can('view_all_lycees', 'lycee')) {
             View::render('errors/403');
             exit();
         }
@@ -88,7 +88,7 @@ class AnneeAcademiqueController {
     }
 
     public function destroy() {
-        if (!Auth::can('manage', 'annee_academique')) {
+        if (!Auth::can('manage', 'annee_academique') && !Auth::can('view_all_lycees', 'lycee')) {
             View::render('errors/403');
             exit();
         }
@@ -108,7 +108,7 @@ class AnneeAcademiqueController {
     }
 
     public function activate() {
-        if (!Auth::can('manage', 'annee_academique')) {
+        if (!Auth::can('manage', 'annee_academique') && !Auth::can('view_all_lycees', 'lycee')) {
             View::render('errors/403');
             exit();
         }

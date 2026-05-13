@@ -103,8 +103,20 @@ class EleveController {
 
             // 2. Save student data
             if (empty($data['lycee_id'])) {
-                $data['lycee_id'] = Auth::get('lycee_id');
+                $data['lycee_id'] = Auth::getLyceeId();
             }
+
+            // For super admins, if lycee_id is still empty, we might have a problem
+            if (empty($data['lycee_id'])) {
+                // Default to the first school if none in session (should not happen if they used change-lycee)
+                $all_lycees = Lycee::findAll();
+                if (!empty($all_lycees)) {
+                    $data['lycee_id'] = $all_lycees[0]['id'];
+                } else {
+                    throw new Exception("Aucun établissement trouvé pour l'inscription.");
+                }
+            }
+
             Eleve::save($data);
             $eleve_id = $db->lastInsertId();
 

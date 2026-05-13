@@ -123,14 +123,14 @@ $navItems = [
         'icon' => 'ph-duotone ph-calendar-check',
         'text' => _('Années Académiques'),
         'title' => _('Gérer les années académiques et définir l\'année active.'),
-        'condition' => Auth::can('manage', 'annee_academique'),
+        'condition' => Auth::can('manage', 'annee_academique') || Auth::can('view_all_lycees', 'lycee'),
     ],
     [
         'url' => '/sequences',
         'icon' => 'ph-duotone ph-flag',
         'text' => _('Séquences'),
         'title' => _('Gérer les séquences et les périodes d\'évaluation.'),
-        'condition' => Auth::can('manage', 'sequence'),
+        'condition' => Auth::can('manage', 'sequence') || Auth::can('view_all_lycees', 'lycee'),
     ],
     [
         'url' => '/cycles',
