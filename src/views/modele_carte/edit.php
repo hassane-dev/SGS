@@ -72,7 +72,8 @@
                                         </div>
                                     </div>
 
-                                    <h5 class="mb-3"><?= _('Palette') ?></h5>
+                                    <hr>
+                                    <h5 class="mb-3"><?= _('Palette (Ajout d\'éléments)') ?></h5>
                                     <div id="palette" class="row g-2">
                                         <div class="col-6">
                                             <div class="palette-item" draggable="true" data-type="photo" title="<?= _('Student Photo') ?>">
@@ -186,7 +187,8 @@
                                         </div>
                                     </div>
                                     <div class="mt-3 text-muted text-center">
-                                        <small><i class="ph-duotone ph-info"></i> <?= _('Drag items from the palette to the card. Use Delete/Backspace to remove selected items.') ?></small>
+                                        <p class="mb-1"><strong><?= _('Conseil de Personnalisation :') ?></strong></p>
+                                        <small><i class="ph-duotone ph-info"></i> <?= _('Utilisez les "Theme Colors" à gauche pour changer instantanément le style. Vous pouvez déplacer les éléments existants, mais nous recommandons de garder la structure professionnelle par défaut.') ?></small>
                                     </div>
                                 </div>
                             </div>
@@ -237,8 +239,8 @@ $(function() {
             fabric.Image.fromURL(logoUrl, function(img) {
                 if (!img) {
                     const rect = new fabric.Rect({
-                        left: options.left || 273,
-                        top: options.top || 10,
+                        left: options.left !== undefined ? options.left : 273,
+                        top: options.top !== undefined ? options.top : 10,
                         width: options.width || 100,
                         height: options.height || 100,
                         fill: '#eeeeee',
@@ -250,8 +252,8 @@ $(function() {
                     return;
                 }
                 img.set({
-                    left: options.left || 273,
-                    top: options.top || 10,
+                    left: options.left !== undefined ? options.left : 273,
+                    top: options.top !== undefined ? options.top : 10,
                     scaleX: (options.width || 100) / img.width,
                     scaleY: (options.height || 100) / img.height,
                     ...options
@@ -263,8 +265,8 @@ $(function() {
         },
         header_left: (options) => {
             const text = new fabric.IText(headers.left, {
-                left: options.left || 10,
-                top: options.top || 10,
+                left: options.left !== undefined ? options.left : 10,
+                top: options.top !== undefined ? options.top : 10,
                 fontSize: options.fontSize || 10,
                 textAlign: 'center',
                 fontFamily: 'Arial',
@@ -277,8 +279,8 @@ $(function() {
         },
         serie: (options) => {
             const text = new fabric.IText('SÉRIE: Scientifique', {
-                left: options.left || 200,
-                top: options.top || 280,
+                left: options.left !== undefined ? options.left : 200,
+                top: options.top !== undefined ? options.top : 280,
                 fontSize: options.fontSize || 14,
                 fontFamily: 'Arial',
                 ...options
@@ -289,8 +291,8 @@ $(function() {
         },
         annee: (options) => {
             const text = new fabric.IText('ANNÉE: 2024-2025', {
-                left: options.left || 200,
-                top: options.top || 310,
+                left: options.left !== undefined ? options.left : 200,
+                top: options.top !== undefined ? options.top : 310,
                 fontSize: options.fontSize || 14,
                 fontFamily: 'Arial',
                 ...options
@@ -301,8 +303,8 @@ $(function() {
         },
         header_right: (options) => {
             const text = new fabric.IText(headers.right, {
-                left: options.left || 400,
-                top: options.top || 10,
+                left: options.left !== undefined ? options.left : 400,
+                top: options.top !== undefined ? options.top : 10,
                 fontSize: options.fontSize || 10,
                 textAlign: 'center',
                 fontFamily: 'Arial',
@@ -318,8 +320,8 @@ $(function() {
                 if (!img) {
                     // Create a rectangle as fallback
                     const rect = new fabric.Rect({
-                        left: options.left || 20,
-                        top: options.top || 20,
+                        left: options.left !== undefined ? options.left : 20,
+                        top: options.top !== undefined ? options.top : 20,
                         width: options.width || 100,
                         height: options.height || 120,
                         fill: '#cccccc',
@@ -331,8 +333,8 @@ $(function() {
                     return;
                 }
                 img.set({
-                    left: options.left || 20,
-                    top: options.top || 20,
+                    left: options.left !== undefined ? options.left : 20,
+                    top: options.top !== undefined ? options.top : 20,
                     scaleX: (options.width || 100) / img.width,
                     scaleY: (options.height || 120) / img.height,
                     ...options
@@ -346,8 +348,8 @@ $(function() {
             fabric.Image.fromURL('/assets/img/placeholder-qr.png', function(img) {
                 if (!img) {
                     const rect = new fabric.Rect({
-                        left: options.left || 430,
-                        top: options.top || 230,
+                        left: options.left !== undefined ? options.left : 430,
+                        top: options.top !== undefined ? options.top : 230,
                         width: options.width || 100,
                         height: options.height || 100,
                         fill: '#dddddd',
@@ -359,8 +361,8 @@ $(function() {
                     return;
                 }
                 img.set({
-                    left: options.left || 430,
-                    top: options.top || 230,
+                    left: options.left !== undefined ? options.left : 430,
+                    top: options.top !== undefined ? options.top : 230,
                     scaleX: (options.width || 100) / img.width,
                     scaleY: (options.height || 100) / img.height,
                     ...options
@@ -372,8 +374,8 @@ $(function() {
         },
         nom_complet: (options) => {
             const text = new fabric.IText('PRÉNOM NOM', {
-                left: options.left || 200,
-                top: options.top || 180,
+                left: options.left !== undefined ? options.left : 200,
+                top: options.top !== undefined ? options.top : 180,
                 fontSize: options.fontSize || 24,
                 fontWeight: 'bold',
                 fontFamily: 'Arial',
@@ -385,8 +387,8 @@ $(function() {
         },
         matricule: (options) => {
             const text = new fabric.IText('MATRICULE: 2024-X123', {
-                left: options.left || 200,
-                top: options.top || 220,
+                left: options.left !== undefined ? options.left : 200,
+                top: options.top !== undefined ? options.top : 220,
                 fontSize: options.fontSize || 16,
                 fontFamily: 'Arial',
                 ...options
@@ -397,8 +399,8 @@ $(function() {
         },
         classe: (options) => {
             const text = new fabric.IText('CLASSE: Tle C', {
-                left: options.left || 200,
-                top: options.top || 250,
+                left: options.left !== undefined ? options.left : 200,
+                top: options.top !== undefined ? options.top : 250,
                 fontSize: options.fontSize || 16,
                 fontFamily: 'Arial',
                 ...options
@@ -409,8 +411,8 @@ $(function() {
         },
         text: (options) => {
             const text = new fabric.IText('Texte Statique', {
-                left: options.left || 150,
-                top: options.top || 50,
+                left: options.left !== undefined ? options.left : 150,
+                top: options.top !== undefined ? options.top : 50,
                 fontSize: options.fontSize || 14,
                 fontFamily: 'Arial',
                 ...options
@@ -421,8 +423,8 @@ $(function() {
         },
         rect: (options) => {
             const rect = new fabric.Rect({
-                left: options.left || 50,
-                top: options.top || 50,
+                left: options.left !== undefined ? options.left : 50,
+                top: options.top !== undefined ? options.top : 50,
                 fill: options.fill || '#e0e0e0',
                 width: options.width || 100,
                 height: options.height || 50,
@@ -436,8 +438,8 @@ $(function() {
         },
         circle: (options) => {
             const circle = new fabric.Circle({
-                left: options.left || 50,
-                top: options.top || 50,
+                left: options.left !== undefined ? options.left : 50,
+                top: options.top !== undefined ? options.top : 50,
                 fill: options.fill || '#e0e0e0',
                 radius: options.radius || 30,
                 ...options
@@ -451,9 +453,8 @@ $(function() {
     // Function to save the complete card model
     function saveLayout() {
         const elements = canvas.getObjects().map(obj => {
-            const state = obj.toJSON(['elementType', 'id']);
-
             const data = {
+                id: obj.id || null,
                 type: obj.elementType,
                 left: Math.round(obj.left),
                 top: Math.round(obj.top),
@@ -463,6 +464,8 @@ $(function() {
                 scaleY: obj.scaleY,
                 angle: obj.angle,
                 fill: obj.fill,
+                stroke: obj.stroke || null,
+                strokeWidth: obj.strokeWidth || 0,
                 fontSize: obj.fontSize,
                 text: obj.text,
                 textAlign: obj.textAlign,
@@ -479,7 +482,8 @@ $(function() {
 
         const fullModel = {
             elements: elements,
-            headers: headers
+            headers: headers,
+            version: '2.0' // Mark as new professional model
         };
         $('#layout_data_input').val(JSON.stringify(fullModel));
     }
@@ -636,6 +640,15 @@ $(function() {
         finalModel.forEach(el => {
             if (creators[el.type]) creators[el.type](el);
         });
+
+        // Ensure background elements stay at the bottom
+        canvas.getObjects().forEach(obj => {
+            if (obj.id && (obj.id.includes('bg') || obj.id.includes('accent'))) {
+                obj.set('selectable', false);
+                obj.set('evented', false);
+                canvas.sendToBack(obj);
+            }
+        });
         setTimeout(saveLayout, 1000);
     }
 
@@ -689,8 +702,10 @@ $(function() {
             });
         }
 
-        // If no elements saved, load a professional default model
-        if (layoutElements.length === 0) {
+        // Force transition to new model if version is old or missing
+        const isNewModel = cardModel.version === '2.0';
+
+        if (layoutElements.length === 0 || !isNewModel) {
             applyDefaultLayout();
         } else {
             // Elements saved in DB
@@ -699,6 +714,17 @@ $(function() {
                     creators[el.type](el);
                 }
             });
+            // Re-apply background locks
+            setTimeout(() => {
+                canvas.getObjects().forEach(obj => {
+                    if (obj.id && (obj.id.includes('bg') || obj.id.includes('accent'))) {
+                        obj.set('selectable', false);
+                        obj.set('evented', false);
+                        canvas.sendToBack(obj);
+                    }
+                });
+                canvas.renderAll();
+            }, 500);
         }
     }
 
