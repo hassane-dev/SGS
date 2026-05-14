@@ -38,134 +38,170 @@
                             <div class="row">
                                 <!-- Palette Area -->
                                 <div class="col-lg-3">
-                                    <div class="alert alert-primary py-2 mb-3" style="font-size: 0.85rem;">
-                                        <i class="ph-duotone ph-info fs-5"></i> <?= _('Le modèle professionnel CR80 est prêt. Ajustez simplement les couleurs et le fond.') ?>
+                                    <div class="alert alert-primary py-3 mb-4" style="font-size: 0.85rem;">
+                                        <i class="ph-duotone ph-sparkle fs-4 d-block mb-2"></i>
+                                        <strong><?= _('Modèle Professionnel Actif') ?></strong><br>
+                                        <?= _('La structure de base est déjà optimisée. Personnalisez les couleurs et le fond pour l\'adapter à votre établissement.') ?>
                                     </div>
 
-                                    <h5 class="mb-3"><?= _('1. Couleurs du Thème') ?></h5>
-                                    <div class="row g-2 mb-4">
-                                        <div class="col-4">
-                                            <button type="button" class="btn btn-sm btn-outline-primary w-100 theme-preset" data-primary="#0056b3" data-header="#f0f4f8" title="Blue Business">
-                                                <div style="height:20px; background:#0056b3; border-radius:3px;"></div>
-                                            </button>
+                                    <div class="accordion accordion-flush" id="editorAccordion">
+                                        <!-- Step 1: Themes -->
+                                        <div class="accordion-item bg-transparent">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button px-0 bg-transparent fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThemes">
+                                                    <i class="ph-duotone ph-palette me-2 fs-5"></i> <?= _('1. Couleurs & Thèmes') ?>
+                                                </button>
+                                            </h2>
+                                            <div id="collapseThemes" class="accordion-collapse collapse show" data-bs-parent="#editorAccordion">
+                                                <div class="accordion-body px-0 pt-0">
+                                                    <div class="row g-2 mb-3">
+                                                        <div class="col-4">
+                                                            <button type="button" class="btn btn-sm btn-outline-primary w-100 theme-preset" data-primary="#0056b3" data-header="#f0f4f8" title="Blue Business">
+                                                                <div style="height:20px; background:#0056b3; border-radius:3px;"></div>
+                                                            </button>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <button type="button" class="btn btn-sm btn-outline-success w-100 theme-preset" data-primary="#198754" data-header="#f8fff9" title="Forest Green">
+                                                                <div style="height:20px; background:#198754; border-radius:3px;"></div>
+                                                            </button>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <button type="button" class="btn btn-sm btn-outline-danger w-100 theme-preset" data-primary="#dc3545" data-header="#fff8f8" title="Academic Red">
+                                                                <div style="height:20px; background:#dc3545; border-radius:3px;"></div>
+                                                            </button>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <button type="button" class="btn btn-sm btn-outline-dark w-100 theme-preset" data-primary="#212529" data-header="#f8f9fa" title="Classic Black">
+                                                                <div style="height:20px; background:#212529; border-radius:3px;"></div>
+                                                            </button>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <button type="button" class="btn btn-sm btn-outline-warning w-100 theme-preset" data-primary="#ffc107" data-header="#fffdf5" title="Golden Sun">
+                                                                <div style="height:20px; background:#ffc107; border-radius:3px;"></div>
+                                                            </button>
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary w-100 theme-preset" data-primary="#6c757d" data-header="#f8f9fa" title="Corporate Grey">
+                                                                <div style="height:20px; background:#6c757d; border-radius:3px;"></div>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="col-4">
-                                            <button type="button" class="btn btn-sm btn-outline-success w-100 theme-preset" data-primary="#198754" data-header="#f8fff9" title="Forest Green">
-                                                <div style="height:20px; background:#198754; border-radius:3px;"></div>
-                                            </button>
-                                        </div>
-                                        <div class="col-4">
-                                            <button type="button" class="btn btn-sm btn-outline-danger w-100 theme-preset" data-primary="#dc3545" data-header="#fff8f8" title="Academic Red">
-                                                <div style="height:20px; background:#dc3545; border-radius:3px;"></div>
-                                            </button>
-                                        </div>
-                                        <div class="col-4">
-                                            <button type="button" class="btn btn-sm btn-outline-dark w-100 theme-preset" data-primary="#212529" data-header="#f8f9fa" title="Classic Black">
-                                                <div style="height:20px; background:#212529; border-radius:3px;"></div>
-                                            </button>
-                                        </div>
-                                        <div class="col-4">
-                                            <button type="button" class="btn btn-sm btn-outline-warning w-100 theme-preset" data-primary="#ffc107" data-header="#fffdf5" title="Golden Sun">
-                                                <div style="height:20px; background:#ffc107; border-radius:3px;"></div>
-                                            </button>
-                                        </div>
-                                        <div class="col-4">
-                                            <button type="button" class="btn btn-sm btn-outline-secondary w-100 theme-preset" data-primary="#6c757d" data-header="#f8f9fa" title="Corporate Grey">
-                                                <div style="height:20px; background:#6c757d; border-radius:3px;"></div>
-                                            </button>
-                                        </div>
-                                    </div>
 
-                                    <h5 class="mb-3 mt-4"><?= _('2. Fond & Filigrane') ?></h5>
-                                    <div class="mb-4">
-                                        <input class="form-control form-control-sm" type="file" id="background_image" name="background_image" accept="image/*">
-                                        <small class="text-muted" style="font-size: 0.75rem;"><?= _('Sélectionnez une image pour l\'arrière-plan.') ?></small>
-                                    </div>
-
-                                    <hr>
-
-                                    <div class="d-grid gap-2">
-                                        <button class="btn btn-sm btn-light text-start" type="button" data-bs-toggle="collapse" data-bs-target="#advancedPalette">
-                                            <i class="ph-duotone ph-caret-down"></i> <?= _('Personnalisation Manuelle (Avancé)') ?>
-                                        </button>
-                                    </div>
-
-                                    <div class="collapse mt-3" id="advancedPalette">
-                                        <h6 class="mb-3 text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;"><?= _('Ajouter des éléments') ?></h6>
-                                        <div id="palette" class="row g-2">
-                                            <div class="col-6">
-                                                <div class="palette-item" draggable="true" data-type="photo" title="<?= _('Student Photo') ?>">
-                                                    <i class="ph-duotone ph-user-circle fs-2"></i>
-                                                    <span><?= _('Photo') ?></span>
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="palette-item" draggable="true" data-type="logo" title="<?= _('School Logo') ?>">
-                                                    <i class="ph-duotone ph-building fs-2"></i>
-                                                    <span><?= _('Logo') ?></span>
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="palette-item" draggable="true" data-type="nom_complet" title="<?= _('Full Name') ?>">
-                                                    <i class="ph-duotone ph-text-aa fs-2"></i>
-                                                    <span><?= _('Nom') ?></span>
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="palette-item" draggable="true" data-type="qr_code" title="<?= _('QR Code') ?>">
-                                                    <i class="ph-duotone ph-qr-code fs-2"></i>
-                                                    <span><?= _('QR Code') ?></span>
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="palette-item" draggable="true" data-type="rect" title="<?= _('Rectangle') ?>">
-                                                    <i class="ph-duotone ph-square fs-2"></i>
-                                                    <span><?= _('Forme') ?></span>
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="palette-item" draggable="true" data-type="text" title="<?= _('Static Text') ?>">
-                                                    <i class="ph-duotone ph-text-t fs-2"></i>
-                                                    <span><?= _('Texte') ?></span>
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="palette-item" draggable="true" data-type="date_naissance" title="<?= _('Birth Date') ?>">
-                                                    <i class="ph-duotone ph-calendar fs-2"></i>
-                                                    <span><?= _('Né(e) le') ?></span>
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="palette-item" draggable="true" data-type="sexe" title="<?= _('Gender') ?>">
-                                                    <i class="ph-duotone ph-gender-intersex fs-2"></i>
-                                                    <span><?= _('Sexe') ?></span>
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="palette-item" draggable="true" data-type="signature_directeur" title="<?= _('Director Signature') ?>">
-                                                    <i class="ph-duotone ph-signature fs-2"></i>
-                                                    <span><?= _('Signature') ?></span>
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="palette-item" draggable="true" data-type="tampon_ecole" title="<?= _('School Stamp') ?>">
-                                                    <i class="ph-duotone ph-seal fs-2"></i>
-                                                    <span><?= _('Tampon') ?></span>
+                                        <!-- Step 2: Background -->
+                                        <div class="accordion-item bg-transparent">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed px-0 bg-transparent fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBg">
+                                                    <i class="ph-duotone ph-image me-2 fs-5"></i> <?= _('2. Fond de Carte') ?>
+                                                </button>
+                                            </h2>
+                                            <div id="collapseBg" class="accordion-collapse collapse" data-bs-parent="#editorAccordion">
+                                                <div class="accordion-body px-0 pt-0">
+                                                    <div class="mb-3">
+                                                        <input class="form-control form-control-sm" type="file" id="background_image" name="background_image" accept="image/*">
+                                                        <small class="text-muted d-block mt-1" style="font-size: 0.75rem;"><?= _('Format recommandé : CR80 (85.6 x 53.98mm)') ?></small>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div id="element-properties" class="d-none">
-                                        <hr>
-                                        <h5 class="mb-3 mt-4"><?= _('Element Properties') ?></h5>
-                                        <div class="mb-2">
-                                            <label for="font_size" class="form-label"><?= _('Font Size (px)') ?></label>
-                                            <input type="number" id="font_size" class="form-control form-control-sm" min="8">
+                                        <!-- Step 3: Elements Properties -->
+                                        <div class="accordion-item bg-transparent">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed px-0 bg-transparent fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProps">
+                                                    <i class="ph-duotone ph-pencil-circle me-2 fs-5"></i> <?= _('3. Style des Éléments') ?>
+                                                </button>
+                                            </h2>
+                                            <div id="collapseProps" class="accordion-collapse collapse" data-bs-parent="#editorAccordion">
+                                                <div class="accordion-body px-0 pt-0">
+                                                    <div id="element-properties-placeholder" class="text-muted py-3 text-center" style="font-size: 0.85rem;">
+                                                        <i class="ph-duotone ph-cursor-click fs-3 d-block mb-2"></i>
+                                                        <?= _('Cliquez sur un élément de la carte pour modifier ses propriétés.') ?>
+                                                    </div>
+                                                    <div id="element-properties" class="d-none">
+                                                        <div class="mb-3 property-text">
+                                                            <label class="form-label small fw-bold mb-1"><?= _('Taille du texte (px)') ?></label>
+                                                            <input type="number" id="font_size" class="form-control form-control-sm" min="6">
+                                                        </div>
+                                                        <div class="mb-3 property-text">
+                                                            <label class="form-label small fw-bold mb-1"><?= _('Police') ?></label>
+                                                            <select id="font_family" class="form-select form-select-sm">
+                                                                <option value="Arial">Arial</option>
+                                                                <option value="Verdana">Verdana</option>
+                                                                <option value="Times New Roman">Times New Roman</option>
+                                                                <option value="Courier New">Courier New</option>
+                                                                <option value="Georgia">Georgia</option>
+                                                                <option value="Impact">Impact</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label small fw-bold mb-1"><?= _('Couleur') ?></label>
+                                                            <input type="color" id="font_color" class="form-control form-control-sm form-control-color w-100">
+                                                        </div>
+                                                        <div class="mb-3" id="opacity-control">
+                                                            <label class="form-label small fw-bold mb-1"><?= _('Opacité') ?></label>
+                                                            <input type="range" id="element_opacity" class="form-range" min="0" max="1" step="0.1">
+                                                        </div>
+                                                        <div class="mb-3 property-shape">
+                                                            <label class="form-label small fw-bold mb-1"><?= _('Épaisseur bordure') ?></label>
+                                                            <input type="number" id="stroke_width" class="form-control form-control-sm" min="0" max="10">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="mb-2">
-                                            <label for="font_color" class="form-label"><?= _('Color') ?></label>
-                                            <input type="color" id="font_color" class="form-control form-control-sm form-control-color">
+
+                                        <!-- Step 4: Add Elements (Optional) -->
+                                        <div class="accordion-item bg-transparent border-bottom-0">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed px-0 bg-transparent fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdvanced">
+                                                    <i class="ph-duotone ph-plus-circle me-2 fs-5"></i> <?= _('4. Ajout Manuel (Avancé)') ?>
+                                                </button>
+                                            </h2>
+                                            <div id="collapseAdvanced" class="accordion-collapse collapse" data-bs-parent="#editorAccordion">
+                                                <div class="accordion-body px-0 pt-0">
+                                                    <div id="palette" class="row g-2 mt-1">
+                                                        <div class="col-6">
+                                                            <div class="palette-item" draggable="true" data-type="photo" title="<?= _('Photo') ?>">
+                                                                <i class="ph-duotone ph-user-circle fs-3"></i>
+                                                                <span><?= _('Photo') ?></span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <div class="palette-item" draggable="true" data-type="logo" title="<?= _('Logo') ?>">
+                                                                <i class="ph-duotone ph-building fs-3"></i>
+                                                                <span><?= _('Logo') ?></span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <div class="palette-item" draggable="true" data-type="qr_code" title="<?= _('QR Code') ?>">
+                                                                <i class="ph-duotone ph-qr-code fs-3"></i>
+                                                                <span><?= _('QR') ?></span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <div class="palette-item" draggable="true" data-type="text" title="<?= _('Texte') ?>">
+                                                                <i class="ph-duotone ph-text-t fs-3"></i>
+                                                                <span><?= _('Texte') ?></span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <div class="palette-item" draggable="true" data-type="rect" title="<?= _('Rectangle') ?>">
+                                                                <i class="ph-duotone ph-square fs-3"></i>
+                                                                <span><?= _('Forme') ?></span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <div class="palette-item" draggable="true" data-type="tampon_ecole" title="<?= _('Tampon') ?>">
+                                                                <i class="ph-duotone ph-seal fs-3"></i>
+                                                                <span><?= _('Tampon') ?></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -557,7 +593,7 @@ $(function() {
         const fullModel = {
             elements: elements,
             headers: headers,
-            version: '2.1' // Updated professional model version
+            version: '3.0' // New refined professional model
         };
         $('#layout_data_input').val(JSON.stringify(fullModel));
     }
@@ -598,25 +634,79 @@ $(function() {
     // Handle Selection & Properties
     canvas.on('selection:created', (e) => updatePropertiesPanel(e.selected[0]));
     canvas.on('selection:updated', (e) => updatePropertiesPanel(e.selected[0]));
-    canvas.on('selection:cleared', () => $('#element-properties').addClass('d-none'));
+    canvas.on('selection:cleared', () => {
+        $('#element-properties').addClass('d-none');
+        $('#element-properties-placeholder').removeClass('d-none');
+    });
     canvas.on('object:modified', saveLayout);
 
     function updatePropertiesPanel(obj) {
         $('#element-properties').removeClass('d-none');
-        if (obj.type === 'i-text' || obj.type === 'text' || obj.elementType?.includes('text') || obj.elementType?.includes('header') || ['nom_complet', 'matricule', 'classe'].includes(obj.elementType)) {
-            $('#font_size').closest('.mb-2').show();
-            $('#font_size').val(obj.fontSize);
-            $('#font_color').val(obj.fill);
+        $('#element-properties-placeholder').addClass('d-none');
+
+        // Text specific controls
+        if (obj.type === 'i-text' || obj.type === 'text' || (obj.elementType && ['nom_complet', 'matricule', 'classe', 'annee', 'header_left', 'header_right'].includes(obj.elementType))) {
+            $('.property-text').show();
+            $('#font_size').val(Math.round(obj.fontSize));
+            $('#font_family').val(obj.fontFamily || 'Arial');
         } else {
-            $('#font_size').closest('.mb-2').hide();
-            $('#font_color').val(obj.fill);
+            $('.property-text').hide();
+        }
+
+        // Shape specific controls
+        if (obj.type === 'rect' || obj.type === 'circle') {
+            $('.property-shape').show();
+            $('#stroke_width').val(obj.strokeWidth || 0);
+        } else {
+            $('.property-shape').hide();
+        }
+
+        $('#font_color').val(obj.fill);
+
+        // Always show opacity for all elements
+        $('#element_opacity').val(obj.opacity || 1);
+
+        // Open properties accordion if not already open
+        if (!$('#collapseProps').hasClass('show')) {
+            const collapseProps = document.getElementById('collapseProps');
+            if (collapseProps) {
+                const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseProps);
+                bsCollapse.show();
+            }
         }
     }
 
+    $('#element_opacity').on('input', function() {
+        const obj = canvas.getActiveObject();
+        if (obj) {
+            obj.set('opacity', parseFloat($(this).val()));
+            canvas.renderAll();
+            saveLayout();
+        }
+    });
+
     $('#font_size').on('input', function() {
         const obj = canvas.getActiveObject();
-        if (obj && (obj.type === 'i-text' || obj.type === 'text')) {
+        if (obj) {
             obj.set('fontSize', parseInt($(this).val()));
+            canvas.renderAll();
+            saveLayout();
+        }
+    });
+
+    $('#font_family').on('change', function() {
+        const obj = canvas.getActiveObject();
+        if (obj) {
+            obj.set('fontFamily', $(this).val());
+            canvas.renderAll();
+            saveLayout();
+        }
+    });
+
+    $('#stroke_width').on('input', function() {
+        const obj = canvas.getActiveObject();
+        if (obj) {
+            obj.set('strokeWidth', parseInt($(this).val()));
             canvas.renderAll();
             saveLayout();
         }
@@ -653,60 +743,54 @@ $(function() {
         canvas.clear();
         canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
 
-        const isMultilingual = <?= (!empty($params_generaux['multilingue_actif']) && ($params_generaux['nb_langue'] ?? 1) > 1) ? 'true' : 'false' ?>;
-
         const defaultModel = [
             // High-end background elements
             { type: 'rect', left: 0, top: 0, width: 647, height: 408, fill: '#ffffff', id: 'bg_main' },
-            { type: 'text', text: 'OFFICIEL '.repeat(20), left: -100, top: 200, fontSize: 40, fill: '#f1f1f1', opacity: 0.2, angle: -30, selectable: false, id: 'watermark' },
+            { type: 'text', text: 'OFFICIEL '.repeat(20), left: -100, top: 200, fontSize: 40, fill: '#f1f1f1', opacity: 0.15, angle: -30, selectable: false, id: 'watermark' },
             { type: 'rect', left: 0, top: 0, width: 647, height: 110, fill: '#f8f9fa', id: 'header_bg' },
-            { type: 'rect', left: 0, top: 107, width: 647, height: 6, fill: '#0056b3', id: 'header_accent' },
+            { type: 'rect', left: 0, top: 107, width: 647, height: 4, fill: '#0056b3', id: 'header_accent' },
 
             // Header Content
-            { type: 'logo', left: 283, top: 15, width: 80, height: 80 },
+            { type: 'logo', left: 283, top: 10, width: 80, height: 80 },
 
-            // Institutional Header (Left as in image)
-            { type: 'header_left', text: headers.left, left: 20, top: 25, width: 200, fontSize: 9, textAlign: 'center', fontWeight: 'bold', fill: '#333' },
+            // Institutional Header (Left)
+            { type: 'header_left', text: headers.left, left: 15, top: 20, width: 220, fontSize: 8.5, textAlign: 'center', fontWeight: 'bold', fill: '#333' },
 
-            // School Header (Right as in image)
-            { type: 'header_right', text: headers.right, left: 427, top: 25, width: 200, fontSize: 9, textAlign: 'center', fontWeight: 'bold', fill: '#333' }
+            // School Header (Right)
+            { type: 'header_right', text: headers.right, left: 412, top: 20, width: 220, fontSize: 8.5, textAlign: 'center', fontWeight: 'bold', fill: '#333' },
+
+            // Photo Area with modern styling
+            { type: 'rect', left: 30, top: 140, width: 140, height: 175, fill: '#fff', stroke: '#0056b3', strokeWidth: 1.5, id: 'photo_frame' },
+            { type: 'photo', left: 35, top: 145, width: 130, height: 165 },
+
+            // Student Info Labels
+            { type: 'text', text: 'NOM ET PRÉNOMS', left: 190, top: 140, fontSize: 9, fontWeight: 'bold', fill: '#0056b3' },
+            { type: 'nom_complet', left: 190, top: 155, fontSize: 26, fontWeight: 'bold', fill: '#222' },
+
+            { type: 'text', text: 'MATRICULE', left: 190, top: 200, fontSize: 9, fontWeight: 'bold', fill: '#0056b3' },
+            { type: 'matricule', left: 190, top: 215, fontSize: 20, fontWeight: 'bold', fill: '#444' },
+
+            { type: 'text', text: 'CLASSE / SÉRIE', left: 190, top: 250, fontSize: 9, fontWeight: 'bold', fill: '#0056b3' },
+            { type: 'classe', left: 190, top: 265, fontSize: 18, fontWeight: 'bold', fill: '#444' },
+
+            { type: 'text', text: 'ANNÉE SCOLAIRE', left: 190, top: 300, fontSize: 9, fontWeight: 'bold', fill: '#0056b3' },
+            { type: 'annee', left: 190, top: 315, fontSize: 16, fontWeight: 'bold', fill: '#444' },
+
+            // Bottom Area: QR & Director
+            { type: 'qr_code', left: 30, top: 325, width: 60, height: 60 },
+            { type: 'text', text: 'VALIDITÉ', left: 100, top: 330, fontSize: 8, fontWeight: 'bold', fill: '#666', id: 'validity_label' },
+            { type: 'text', text: '2024 - 2025', left: 100, top: 345, fontSize: 10, fontWeight: 'normal', fill: '#333' },
+
+            { type: 'text', text: 'LE DIRECTEUR', left: 450, top: 300, fontSize: 9, fontWeight: 'bold', fill: '#333', textAlign: 'center', width: 150, id: 'dir_label' },
+            { type: 'signature_directeur', left: 475, top: 315, width: 100, height: 50 },
+            { type: 'tampon_ecole', left: 440, top: 280, width: 80, height: 80, opacity: 0.5 },
+
+            // Modern Footer
+            { type: 'rect', left: 0, top: 388, width: 647, height: 20, fill: '#0056b3', id: 'footer_bar' },
+            { type: 'text', left: 0, top: 393, width: 647, fontSize: 8, fill: '#ffffff', text: 'CARTE D\'IDENTITÉ SCOLAIRE - DOCUMENT OFFICIEL', textAlign: 'center' }
         ];
 
-        const moreElements = [
-            // Photo Area with Frame
-            { type: 'rect', left: 35, top: 145, width: 150, height: 190, fill: '#fff', stroke: '#0056b3', strokeWidth: 2, id: 'photo_frame' },
-            { type: 'photo', left: 40, top: 150, width: 140, height: 180 },
-
-            // Student Info with labels (Matching image spacing)
-            { type: 'text', text: 'NOM ET PRÉNOMS', left: 210, top: 145, fontSize: 11, fontWeight: 'bold', fill: '#0056b3' },
-            { type: 'nom_complet', left: 210, top: 165, fontSize: 32, fontWeight: 'bold', fill: '#222' },
-
-            { type: 'text', text: 'MATRICULE', left: 210, top: 215, fontSize: 11, fontWeight: 'bold', fill: '#0056b3' },
-            { type: 'matricule', left: 210, top: 235, fontSize: 22, fontWeight: 'bold', fill: '#444' },
-
-            { type: 'text', text: 'CLASSE / SÉRIE', left: 210, top: 275, fontSize: 11, fontWeight: 'bold', fill: '#0056b3' },
-            { type: 'classe', left: 210, top: 295, fontSize: 20, fontWeight: 'bold', fill: '#444' },
-
-            { type: 'text', text: 'ANNÉE SCOLAIRE', left: 210, top: 335, fontSize: 11, fontWeight: 'bold', fill: '#0056b3' },
-            { type: 'annee', left: 210, top: 355, fontSize: 18, fontWeight: 'bold', fill: '#444' },
-
-            // Signature & Stamp
-            { type: 'signature_directeur', left: 480, top: 340, width: 100, height: 40 },
-            { type: 'tampon_ecole', left: 450, top: 310, width: 70, height: 70 },
-            { type: 'text', text: 'LE DIRECTEUR', left: 480, top: 325, fontSize: 9, fontWeight: 'bold', fill: '#333', id: 'dir_label' },
-
-            // Security QR Code Area
-            { type: 'qr_code', left: 510, top: 145, width: 100, height: 100 },
-            { type: 'text', text: 'SECURE QR CODE', left: 510, top: 130, fontSize: 8, fill: '#999', id: 'qr_label' },
-
-            // Professional Footer
-            { type: 'rect', left: 0, top: 383, width: 647, height: 25, fill: '#0056b3', id: 'footer_bar' },
-            { type: 'text', left: 0, top: 388, width: 647, fontSize: 10, fill: '#ffffff', text: 'CARTE D\'IDENTITÉ SCOLAIRE - DOCUMENT OFFICIEL', textAlign: 'center' }
-        ];
-
-        const finalModel = [...defaultModel, ...moreElements];
-
-        finalModel.forEach(el => {
+        defaultModel.forEach(el => {
             if (creators[el.type]) creators[el.type](el);
         });
 
@@ -772,7 +856,7 @@ $(function() {
         }
 
         // Force transition to new model if version is old or missing
-        const currentVersion = '2.1';
+        const currentVersion = '3.0';
         const isCompatibleModel = cardModel.version === currentVersion;
 
         if (layoutElements.length === 0 || !isCompatibleModel) {
