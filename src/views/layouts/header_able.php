@@ -143,7 +143,7 @@ $notification_count = count($unread_notifications);
                     </a>
                     <div class="dropdown-menu dropdown-menu-end pc-h-dropdown">
                         <?php foreach ($all_years as $year): ?>
-                            <a href="/settings/change-year?id=<?= $year['id'] ?>" class="dropdown-item <?= $year['id'] == $active_year['id'] ? 'active' : '' ?>"><?= htmlspecialchars($year['libelle']) ?></a>
+                            <a href="/settings/change-year?id=<?= $year['id'] ?>" class="dropdown-item <?= (isset($active_year['id']) && $year['id'] == $active_year['id']) ? 'active' : '' ?>"><?= htmlspecialchars($year['libelle']) ?></a>
                         <?php endforeach; ?>
                     </div>
                 </li>
