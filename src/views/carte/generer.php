@@ -152,7 +152,7 @@
                     content = `<img src="${lycee.signature_directeur || '/assets/img/placeholder-signature.png'}" alt="Signature">`;
                     break;
                 case 'tampon_ecole':
-                    content = `<img src="${lycee.tampon_ecole || '/assets/img/placeholder-tampon.png'}" alt="Tampon" style="opacity:0.6;">`;
+                    content = `<img src="${lycee.tampon_ecole || '/assets/img/placeholder-tampon.png'}" alt="Tampon">`;
                     break;
                 case 'qr_code':
                     qrCounter++;
@@ -202,6 +202,12 @@
             }
             if (elData.fontWeight) {
                 el.style.fontWeight = elData.fontWeight;
+            }
+            if (elData.fontFamily) {
+                el.style.fontFamily = elData.fontFamily;
+            }
+            if (elData.opacity !== undefined) {
+                el.style.opacity = elData.opacity;
             }
 
             el.innerHTML = content;
