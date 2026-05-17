@@ -302,7 +302,7 @@ CREATE TABLE `eleves` (
     `photo` TEXT,
     `email` VARCHAR(255) UNIQUE,
     `telephone` VARCHAR(50),
-    `statut` ENUM('en_attente', 'actif', 'transféré', 'radié', 'diplômé', 'abandonné') NOT NULL DEFAULT 'en_attente',
+    `statut` ENUM('en_attente', 'en_attente_paiement', 'actif', 'transféré', 'radié', 'diplômé', 'abandonné') NOT NULL DEFAULT 'en_attente',
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 
@@ -313,7 +313,7 @@ CREATE TABLE `etudes` (
     `classe_id` INT NOT NULL,
     `lycee_id` INT NOT NULL,
     `annee_academique_id` INT,
-    `status` ENUM('pending_payment', 'active', 'inactive', 'suspended') DEFAULT 'pending_payment',
+    `status` ENUM('en_attente_paiement', 'active', 'inactive', 'suspended') DEFAULT 'en_attente_paiement',
     `is_active` BOOLEAN DEFAULT FALSE,
     `date_activation` DATETIME DEFAULT NULL,
     `active_par` INT DEFAULT NULL,

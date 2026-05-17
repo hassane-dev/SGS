@@ -41,6 +41,11 @@ try {
         FOREIGN KEY (template_id) REFERENCES carte_templates(id) ON DELETE CASCADE
     );");
 
+    // Update ENUM for eleves.statut and etudes.status
+    // This is a bit tricky with raw SQL but we try to be safe.
+    $db->exec("ALTER TABLE eleves MODIFY COLUMN statut ENUM('en_attente', 'en_attente_paiement', 'actif', 'transféré', 'radié', 'diplômé', 'abandonné') NOT NULL DEFAULT 'en_attente'");
+    $db->exec("ALTER TABLE etudes MODIFY COLUMN status ENUM('en_attente_paiement', 'active', 'inactive', 'suspended') DEFAULT 'en_attente_paiement'");
+
     echo "Migration successful\n";
 } catch (Exception $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";

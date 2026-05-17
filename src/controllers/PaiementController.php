@@ -83,7 +83,7 @@ class PaiementController {
     public function listPending() {
         $this->checkAccess('view');
         $lycee_id = Auth::getLyceeId();
-        $eleves_en_attente = Eleve::findByStatus('en_attente', $lycee_id);
+        $eleves_en_attente = Eleve::findByStatus('en_attente_paiement', $lycee_id);
 
         View::render('paiements/pending', [
             'eleves' => $eleves_en_attente,
@@ -189,8 +189,17 @@ class PaiementController {
 
         try {
             $anneeActive = AnneeAcademique::findActive();
+            if (!$anneeActive) {
+                throw new Exception("Aucune année académique active.");
+            }
             $eleve = Eleve::findById($eleveId);
+            if (!$eleve) {
+                throw new Exception("Élève non trouvé.");
+            }
             $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id'], $eleve['lycee_id'] ?? null);
+            if (!$etude) {
+                throw new Exception("Dossier académique non trouvé.");
+            }
             $classe = Classe::findById($etude['classe_id']);
             $frais = Frais::findForClasse($classe, $anneeActive['id']);
             $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id'], $eleve['lycee_id'] ?? null);
@@ -234,7 +243,7 @@ class PaiementController {
                 $eleve_nom_complet = $eleve['prenom'] . ' ' . $eleve['nom'];
                 $message = "Paiement initial validé et inscription activée pour {$eleve_nom_complet}.";
                 $link = "/eleves/details?id={$eleveId}";
-                Notification::notifyRole('admin_local', Auth::getLyceeId(), $message, $link);
+                Notification::notifyRole('admin_local', $eleve['lycee_id'] ?? Auth::getLyceeId(), $message, $link);
             }
 
             $db->commit();
@@ -265,12 +274,21 @@ class PaiementController {
 
         try {
             $anneeActive = AnneeAcademique::findActive();
+            if (!$anneeActive) {
+                throw new Exception("Aucune année académique active.");
+            }
             $eleve = Eleve::findById($eleveId);
+            if (!$eleve) {
+                throw new Exception("Élève non trouvé.");
+            }
             $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id'], $eleve['lycee_id'] ?? null);
+            if (!$etude) {
+                throw new Exception("Dossier académique non trouvé.");
+            }
 
             $paiements = $_POST['mensualites'];
             $userId = Auth::user()['id'];
-            $lyceeId = Auth::getLyceeId();
+            $lyceeId = $eleve['lycee_id'] ?? Auth::getLyceeId();
             $classeId = $etude['classe_id'];
 
             foreach ($paiements as $mois => $montant) {

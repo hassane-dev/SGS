@@ -51,11 +51,19 @@
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td><?= htmlspecialchars($e['nationalite']) ?></td>
-                                            <td><?= htmlspecialchars($e['sexe']) ?></td>
+                                            <td>
+                                                <span class="badge bg-light-secondary text-secondary">
+                                                    <?= htmlspecialchars($e['nationalite']) ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light-info text-info">
+                                                    <?= $e['sexe'] === 'M' ? 'Masculin' : 'Féminin' ?>
+                                                </span>
+                                            </td>
                                             <td class="text-center">
-                                                <a href="/paiements/show/<?= $e['id_eleve'] ?>" class="btn btn-primary btn-sm">
-                                                    <i class="ph-duotone ph-receipt me-2"></i>Procéder au paiement
+                                                <a href="/paiements/show/<?= $e['id_eleve'] ?>" class="btn btn-icon btn-light-primary" title="Procéder au paiement">
+                                                    <i class="ph-duotone ph-receipt"></i>
                                                 </a>
                                             </td>
                                         </tr>
