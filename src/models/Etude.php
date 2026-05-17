@@ -70,7 +70,7 @@ class Etude {
             'lycee_id' => $data['lycee_id'],
             'annee_academique_id' => $data['annee_academique_id'],
             'is_active' => $data['is_active'] ?? 0,
-            'status' => $data['status'] ?? 'pending_payment',
+            'status' => $data['status'] ?? 'en_attente_paiement',
         ]);
         return $db->lastInsertId();
     }
@@ -105,7 +105,7 @@ class Etude {
             JOIN classes c ON et.classe_id = c.id_classe
             WHERE et.eleve_id = :eleve_id
             AND et.annee_academique_id = :annee_academique_id
-            AND et.status = 'pending_payment'
+            AND et.status = 'en_attente_paiement'
             LIMIT 1
         ");
         $stmt->execute(['eleve_id' => $eleve_id, 'annee_academique_id' => $annee_academique_id]);

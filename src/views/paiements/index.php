@@ -84,15 +84,21 @@
                                     <?php foreach ($recentTransactions as $t): ?>
                                         <tr>
                                             <td><?= date('d/m/Y H:i', strtotime($t['date'])) ?></td>
-                                            <td><?= htmlspecialchars($t['eleve_nom']) ?></td>
                                             <td>
-                                                <span class="badge bg-<?= $t['type'] == 'Inscription' ? 'success' : 'info' ?>">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="flex-grow-1">
+                                                        <h6 class="mb-0"><?= htmlspecialchars($t['eleve_nom']) ?></h6>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light-<?= $t['type'] == 'Inscription' ? 'success' : 'info' ?> text-<?= $t['type'] == 'Inscription' ? 'success' : 'info' ?>">
                                                     <?= $t['type'] ?>
                                                 </span>
                                             </td>
-                                            <td class="text-end fw-bold"><?= number_format($t['montant_verse'], 0, ',', ' ') ?> FCFA</td>
+                                            <td class="text-end fw-bold"><?= number_format($t['montant_verse'], 0, ',', ' ') ?> <small class="text-muted">FCFA</small></td>
                                             <td class="text-center">
-                                                <a href="/paiements/show/<?= $t['eleve_id'] ?>" class="btn btn-sm btn-icon btn-outline-primary">
+                                                <a href="/paiements/show/<?= $t['eleve_id'] ?>" class="btn btn-icon btn-light-primary" title="Voir les détails">
                                                     <i class="ph-duotone ph-eye"></i>
                                                 </a>
                                             </td>

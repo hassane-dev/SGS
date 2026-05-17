@@ -191,7 +191,7 @@
                                                 <option value="Espèces">Espèces</option>
                                                 <option value="Chèque">Chèque</option>
                                                 <option value="Versement">Versement Bancaire</option>
-                                                <option value="Mobile Money">Mobile Money</option>
+                                                <option value="Mobile Money">Orange Money / Moov Money</option>
                                             </select>
                                         </div>
                                         <div class="col-md-6">

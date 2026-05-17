@@ -403,6 +403,7 @@ class EleveController {
                     Eleve::changeStatus($eleve_id, 'actif');
                     Etude::activate($etude_id, Auth::getUserId());
                 } else {
+                    Eleve::changeStatus($eleve_id, 'en_attente_paiement');
                     // Notification pour le comptable (seulement si non activé immédiatement)
                     $eleve_nom_complet = $eleve['prenom'] . ' ' . $eleve['nom'];
                     $message = "Un nouvel élève est en attente de paiement : {$eleve_nom_complet}. Cliquez pour procéder au paiement.";

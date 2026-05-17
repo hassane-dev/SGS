@@ -18,7 +18,7 @@ class Eleve {
                 LEFT JOIN classes c ON et.classe_id = c.id_classe
                 LEFT JOIN cycles cy ON c.cycle_id = cy.id_cycle
                 LEFT JOIN param_lycee l ON e.lycee_id = l.id
-                WHERE (e.statut = 'actif' OR e.statut = 'en_attente')";
+                WHERE (e.statut = 'actif' OR e.statut = 'en_attente' OR e.statut = 'en_attente_paiement')";
 
         $params = [];
 
@@ -142,7 +142,7 @@ class Eleve {
      */
     public static function findAllArchived($lycee_id = null) {
         $db = Database::getInstance();
-        $sql = "SELECT * FROM eleves WHERE statut NOT IN ('actif', 'en_attente')";
+        $sql = "SELECT * FROM eleves WHERE statut NOT IN ('actif', 'en_attente', 'en_attente_paiement')";
 
         $params = [];
         if ($lycee_id !== null) {
