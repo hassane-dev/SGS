@@ -26,6 +26,10 @@ class HomeController {
             $navLinks[] = ['url' => '/boutique/articles', 'text' => _('Gérer la Boutique')];
         }
 
+        if (Auth::can('manage', 'annee_academique') || Auth::can('view_all_lycees', 'lycee')) {
+            $navLinks[] = ['url' => '/annees-academiques', 'text' => _('Gérer les Années Académiques')];
+        }
+
         if (Auth::can('edit', 'param_lycee')) {
             $navLinks[] = ['url' => '/modele-carte/edit', 'text' => _('Éditeur de Carte')];
         }

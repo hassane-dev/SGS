@@ -72,7 +72,7 @@
                                                     <?php if (!$annee['est_active']): ?>
                                                         <form action="/annees-academiques/activate" method="POST" class="d-inline">
                                                             <input type="hidden" name="id" value="<?= $annee['id'] ?>">
-                                                            <button type-="submit" class="btn btn-sm btn-success" title="<?= _('Activer cette année') ?>">
+                                                            <button type="submit" class="btn btn-sm btn-success" title="<?= _('Activer cette année') ?>">
                                                                 <i class="ti ti-check"></i>
                                                             </button>
                                                         </form>
