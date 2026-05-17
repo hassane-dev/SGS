@@ -70,7 +70,7 @@
                                     <select name="annee_academique_id" id="annee_academique_id" class="form-select">
                                         <option value=""><?= _('-- Sélectionner une année --') ?></option>
                                         <?php foreach ($annees_academiques as $annee): ?>
-                                            <option value="<?= $annee['id'] ?>" <?= ($settings['annee_academique_id'] ?? '') == $annee['id'] ? 'selected' : '' ?>>
+                                            <option value="<?= $annee['id'] ?>" <?= (isset($active_year['id']) && $active_year['id'] == $annee['id']) ? 'selected' : '' ?>>
                                                 <?= htmlspecialchars($annee['libelle']) ?>
                                             </option>
                                         <?php endforeach; ?>

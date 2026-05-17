@@ -139,12 +139,18 @@ $notification_count = count($unread_notifications);
                 <li class="dropdown pc-h-item">
                      <a class="pc-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
                         <i class="ph-duotone ph-calendar-blank"></i>
-                        <span><?= _('Année') ?>: <?= htmlspecialchars($active_year['libelle'] ?? 'N/A') ?></span>
+                        <span><?= _('Année') ?>: <?= htmlspecialchars($active_year['libelle'] ?? _('Non définie')) ?></span>
                     </a>
                     <div class="dropdown-menu dropdown-menu-end pc-h-dropdown">
-                        <?php foreach ($all_years as $year): ?>
-                            <a href="/settings/change-year?id=<?= $year['id'] ?>" class="dropdown-item <?= (isset($active_year['id']) && $year['id'] == $active_year['id']) ? 'active' : '' ?>"><?= htmlspecialchars($year['libelle']) ?></a>
-                        <?php endforeach; ?>
+                        <?php if (empty($all_years)): ?>
+                            <a href="/annees-academiques/create" class="dropdown-item text-danger"><?= _('Aucune année définie') ?></a>
+                        <?php else: ?>
+                            <?php foreach ($all_years as $year): ?>
+                                <a href="/settings/change-year?id=<?= $year['id'] ?>" class="dropdown-item <?= (isset($active_year['id']) && $year['id'] == $active_year['id']) ? 'active' : '' ?>"><?= htmlspecialchars($year['libelle']) ?></a>
+                            <?php endforeach; ?>
+                            <div class="dropdown-divider"></div>
+                            <a href="/annees-academiques" class="dropdown-item"><i class="ph-duotone ph-gear me-2"></i><?= _('Gérer les années') ?></a>
+                        <?php endif; ?>
                     </div>
                 </li>
 
