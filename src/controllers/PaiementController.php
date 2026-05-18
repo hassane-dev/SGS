@@ -35,30 +35,69 @@ class PaiementController {
 
         $db = Database::getInstance();
 
-        // 1. Total Inscriptions collectées
+        // 1. Statistiques Globales (Inscriptions + Mensualités)
         $stmt = $db->prepare("SELECT SUM(montant_verse) FROM inscriptions WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id");
         $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
         $totalInscriptions = $stmt->fetchColumn() ?: 0;
 
-        // 2. Total Mensualités collectées
         $stmt = $db->prepare("SELECT SUM(montant_verse) FROM mensualites WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id");
         $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
         $totalMensualites = $stmt->fetchColumn() ?: 0;
 
-        // 3. Arriérés (reste à payer sur inscriptions)
+        $totalGlobal = $totalInscriptions + $totalMensualites;
+
+        // 2. Statistiques Temporelles (Aujourd'hui et Ce mois)
+        $today = date('Y-m-d');
+        $thisMonth = date('Y-m');
+
+        $stmt = $db->prepare("
+            SELECT SUM(montant) FROM (
+                SELECT montant_verse as montant FROM inscriptions WHERE lycee_id = :lycee_id AND DATE(date_inscription) = :today
+                UNION ALL
+                SELECT montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :lycee_id AND DATE(md.date_paiement) = :today
+            ) as t
+        ");
+        $stmt->execute(['lycee_id' => $lycee_id, 'today' => $today]);
+        $totalToday = $stmt->fetchColumn() ?: 0;
+
+        $stmt = $db->prepare("
+            SELECT SUM(montant) FROM (
+                SELECT montant_verse as montant FROM inscriptions WHERE lycee_id = :lycee_id AND DATE_FORMAT(date_inscription, '%Y-%m') = :thisMonth
+                UNION ALL
+                SELECT montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :lycee_id AND DATE_FORMAT(md.date_paiement, '%Y-%m') = :thisMonth
+            ) as t
+        ");
+        $stmt->execute(['lycee_id' => $lycee_id, 'thisMonth' => $thisMonth]);
+        $totalMonth = $stmt->fetchColumn() ?: 0;
+
+        // 3. Statuts des élèves
+        $stmt = $db->prepare("SELECT COUNT(*) FROM eleves WHERE lycee_id = :lycee_id AND statut = 'en_attente_paiement'");
+        $stmt->execute(['lycee_id' => $lycee_id]);
+        $nbEnAttente = $stmt->fetchColumn() ?: 0;
+
+        $stmt = $db->prepare("SELECT COUNT(*) FROM inscriptions WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id AND reste_a_payer > 0");
+        $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
+        $nbPartiel = $stmt->fetchColumn() ?: 0;
+
+        $stmt = $db->prepare("SELECT COUNT(*) FROM eleves WHERE lycee_id = :lycee_id AND statut = 'actif'");
+        $stmt->execute(['lycee_id' => $lycee_id]);
+        $nbActif = $stmt->fetchColumn() ?: 0;
+
+        // 4. Arriérés (reste à payer sur inscriptions)
         $stmt = $db->prepare("SELECT SUM(reste_a_payer) FROM inscriptions WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id");
         $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
         $arrieresInscriptions = $stmt->fetchColumn() ?: 0;
 
-        // 4. Dernières transactions
+        // 5. Dernières transactions (plus détaillées)
         $stmt = $db->prepare("
-            (SELECT 'Inscription' as type, montant_verse, date_inscription as date, eleve_id, user_id
+            (SELECT 'Inscription' as type, montant_verse as montant, date_inscription as date, eleve_id, user_id, NULL as mode
              FROM inscriptions
              WHERE lycee_id = :lycee_id)
             UNION ALL
-            (SELECT 'Mensualité' as type, montant_verse, date_paiement as date, eleve_id, user_id
-             FROM mensualites
-             WHERE lycee_id = :lycee_id)
+            (SELECT 'Mensualité' as type, md.montant, md.date_paiement as date, m.eleve_id, m.user_id, md.mode_paiement as mode
+             FROM mensualite_details md
+             JOIN mensualites m ON md.mensualite_id = m.id_mensualite
+             WHERE m.lycee_id = :lycee_id)
             ORDER BY date DESC LIMIT 10
         ");
         $stmt->execute(['lycee_id' => $lycee_id]);
@@ -68,12 +107,18 @@ class PaiementController {
         foreach ($recentTransactions as &$t) {
             $e = Eleve::findById($t['eleve_id']);
             $t['eleve_nom'] = ($e['prenom'] ?? '') . ' ' . ($e['nom'] ?? '');
+
+            $u = User::findById($t['user_id']);
+            $t['caissier'] = ($u['prenom'] ?? '') . ' ' . ($u['nom'] ?? '');
         }
 
         View::render('paiements/index', [
-            'totalInscriptions' => $totalInscriptions,
-            'totalMensualites' => $totalMensualites,
-            'totalGlobal' => $totalInscriptions + $totalMensualites,
+            'totalGlobal' => $totalGlobal,
+            'totalToday' => $totalToday,
+            'totalMonth' => $totalMonth,
+            'nbEnAttente' => $nbEnAttente,
+            'nbPartiel' => $nbPartiel,
+            'nbActif' => $nbActif,
             'arrieresInscriptions' => $arrieresInscriptions,
             'recentTransactions' => $recentTransactions,
             'title' => 'Tableau de bord Comptable'
@@ -83,11 +128,42 @@ class PaiementController {
     public function listPending() {
         $this->checkAccess('view');
         $lycee_id = Auth::getLyceeId();
-        $eleves_en_attente = Eleve::findByStatus('en_attente_paiement', $lycee_id);
+        $activeYear = AnneeAcademique::findActive();
+
+        $db = Database::getInstance();
+
+        // Elèves en attente de paiement initial (jamais payé)
+        $stmt = $db->prepare("
+            SELECT e.*, c.niveau as nom_classe, 'En attente' as etat_finance, 0 as verse, 0 as reste
+            FROM eleves e
+            JOIN etudes et ON e.id_eleve = et.eleve_id
+            JOIN classes c ON et.classe_id = c.id_classe
+            WHERE e.lycee_id = :lycee_id
+            AND e.statut = 'en_attente_paiement'
+            AND et.annee_academique_id = :annee_id
+            AND NOT EXISTS (SELECT 1 FROM inscriptions i WHERE i.eleve_id = e.id_eleve AND i.annee_academique_id = :annee_id)
+        ");
+        $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
+        $en_attente = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Elèves avec paiement partiel
+        $stmt = $db->prepare("
+            SELECT e.*, c.niveau as nom_classe, 'Partiel' as etat_finance, i.montant_verse as verse, i.reste_a_payer as reste
+            FROM eleves e
+            JOIN etudes et ON e.id_eleve = et.eleve_id
+            JOIN classes c ON et.classe_id = c.id_classe
+            JOIN inscriptions i ON e.id_eleve = i.eleve_id AND i.annee_academique_id = :annee_id
+            WHERE e.lycee_id = :lycee_id
+            AND i.reste_a_payer > 0
+        ");
+        $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
+        $partiels = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $eleves = array_merge($en_attente, $partiels);
 
         View::render('paiements/pending', [
-            'eleves' => $eleves_en_attente,
-            'title' => 'Inscriptions en Attente'
+            'eleves' => $eleves,
+            'title' => 'File d\'attente Comptable'
         ]);
     }
 

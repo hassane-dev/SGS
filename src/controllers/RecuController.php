@@ -28,6 +28,7 @@ class RecuController {
         $inscription = $inscriptions[0];
 
         $lycee = ParamLycee::findByLyceeId($eleve['lycee_id']);
+        $caissier = User::findById($inscription['user_id']);
 
         require_once __DIR__ . '/../views/recus/inscription.php';
     }
@@ -45,7 +46,7 @@ class RecuController {
 
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            SELECT md.*, m.mois_ou_sequence, m.eleve_id, m.classe_id, aa.libelle as annee_academique
+            SELECT md.*, m.mois_ou_sequence, m.eleve_id, m.classe_id, m.user_id, aa.libelle as annee_academique
             FROM mensualite_details md
             JOIN mensualites m ON md.mensualite_id = m.id_mensualite
             JOIN annees_academiques aa ON m.annee_academique_id = aa.id
@@ -59,6 +60,7 @@ class RecuController {
         }
 
         $eleve = Eleve::findById($paiement['eleve_id']);
+        $caissier = User::findById($paiement['user_id']);
         $classe = Classe::findById($paiement['classe_id']);
         $lycee = ParamLycee::findByLyceeId($eleve['lycee_id']);
 
