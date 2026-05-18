@@ -40,7 +40,7 @@ class PaiementController {
         $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
         $totalInscriptions = $stmt->fetchColumn() ?: 0;
 
-        $stmt = $db->prepare("SELECT SUM(montant_verse) FROM mensualites WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id");
+        $stmt = $db->prepare("SELECT SUM(montant) FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :lycee_id AND m.annee_academique_id = :annee_id");
         $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
         $totalMensualites = $stmt->fetchColumn() ?: 0;
 
@@ -70,25 +70,43 @@ class PaiementController {
         $stmt->execute(['lycee_id' => $lycee_id, 'thisMonth' => $thisMonth]);
         $totalMonth = $stmt->fetchColumn() ?: 0;
 
-        // 3. Statuts des élèves
-        $stmt = $db->prepare("SELECT COUNT(*) FROM eleves WHERE lycee_id = :lycee_id AND statut = 'en_attente_paiement'");
-        $stmt->execute(['lycee_id' => $lycee_id]);
+        // 3. Statuts des élèves (Financier)
+        // En attente de validation = Dossier créé mais aucun paiement initial
+        $stmt = $db->prepare("
+            SELECT COUNT(*) FROM eleves e
+            WHERE e.lycee_id = :lycee_id
+            AND e.statut = 'en_attente_paiement'
+            AND NOT EXISTS (SELECT 1 FROM inscriptions i WHERE i.eleve_id = e.id_eleve AND i.annee_academique_id = :annee_id)
+        ");
+        $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
         $nbEnAttente = $stmt->fetchColumn() ?: 0;
 
+        // Partiellement payés = Inscription existante mais reste_a_payer > 0
         $stmt = $db->prepare("SELECT COUNT(*) FROM inscriptions WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id AND reste_a_payer > 0");
         $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
         $nbPartiel = $stmt->fetchColumn() ?: 0;
 
+        // Totalement validés = Statut Actif (ce qui implique paiement initial OK)
         $stmt = $db->prepare("SELECT COUNT(*) FROM eleves WHERE lycee_id = :lycee_id AND statut = 'actif'");
         $stmt->execute(['lycee_id' => $lycee_id]);
         $nbActif = $stmt->fetchColumn() ?: 0;
 
-        // 4. Arriérés (reste à payer sur inscriptions)
+        // 4. Arriérés de scolarité (Inscriptions non soldées)
         $stmt = $db->prepare("SELECT SUM(reste_a_payer) FROM inscriptions WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id");
         $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
         $arrieresInscriptions = $stmt->fetchColumn() ?: 0;
 
-        // 5. Dernières transactions (plus détaillées)
+        // 5. Alertes Financières (Ex: Paiements partiels dépassant un certain délai - simulation pour le dashboard)
+        $alerts = [];
+        if ($nbPartiel > 0) {
+            $alerts[] = [
+                'type' => 'warning',
+                'message' => "Il y a $nbPartiel élèves avec des inscriptions incomplètes.",
+                'link' => '/paiements/pending'
+            ];
+        }
+
+        // 6. Dernières transactions (plus détaillées)
         $stmt = $db->prepare("
             (SELECT 'Inscription' as type, montant_verse as montant, date_inscription as date, eleve_id, user_id, NULL as mode
              FROM inscriptions
@@ -121,6 +139,7 @@ class PaiementController {
             'nbActif' => $nbActif,
             'arrieresInscriptions' => $arrieresInscriptions,
             'recentTransactions' => $recentTransactions,
+            'alerts' => $alerts,
             'title' => 'Tableau de bord Comptable'
         ]);
     }
@@ -197,12 +216,17 @@ class PaiementController {
         $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id'], $eleve['lycee_id'] ?? null);
 
         $fraisInscription = [
-            'total' => $frais['frais_inscription'] ?? 0,
-            'verse' => $inscription['montant_verse'] ?? 0,
+            'total' => (float) ($frais['frais_inscription'] ?? 0),
+            'verse' => (float) ($inscription['montant_verse'] ?? 0),
         ];
-        $fraisInscription['reste'] = $fraisInscription['total'] - $fraisInscription['verse'];
 
         $options = $inscription ? json_decode($inscription['details_frais'], true) : ['logo' => false, 'carte' => false];
+
+        // Ajouter les frais d'options au total si cochés
+        if (!empty($options['logo'])) $fraisInscription['total'] += 2000; // Exemple: 2000 FCFA
+        if (!empty($options['carte'])) $fraisInscription['total'] += 3000; // Exemple: 3000 FCFA
+
+        $fraisInscription['reste'] = $fraisInscription['total'] - $fraisInscription['verse'];
 
         // Dérivation automatique des mois réels à partir des séquences
         $sequences = Sequence::findAll();
@@ -281,7 +305,13 @@ class PaiementController {
             $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id'], $eleve['lycee_id'] ?? null);
 
             $montantVerse = (float) $_POST['montant_verse'];
+
             $montantTotal = (float) $frais['frais_inscription'];
+            $hasLogo = isset($_POST['options']['logo']);
+            $hasCarte = isset($_POST['options']['carte']);
+
+            if ($hasLogo) $montantTotal += 2000;
+            if ($hasCarte) $montantTotal += 3000;
 
             if ($montantVerse > $montantTotal) {
                 throw new Exception("Le montant versé ne peut pas être supérieur au montant total de l'inscription.");
@@ -290,8 +320,8 @@ class PaiementController {
             $resteAPayer = $montantTotal - $montantVerse;
 
             $detailsFrais = json_encode([
-                'logo' => isset($_POST['options']['logo']),
-                'carte' => isset($_POST['options']['carte'])
+                'logo' => $hasLogo,
+                'carte' => $hasCarte
             ]);
 
             $data = [
@@ -325,8 +355,10 @@ class PaiementController {
             $db->commit();
             $_SESSION['success_message'] = "Le paiement de l'inscription a été enregistré avec succès.";
 
-        } catch (Exception $e) {
-            $db->rollBack();
+        } catch (Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
             $_SESSION['error_message'] = "Erreur lors de l'enregistrement du paiement : " . $e->getMessage();
         }
 
@@ -398,8 +430,10 @@ class PaiementController {
             $db->commit();
             $_SESSION['success_message'] = "Les paiements des mensualités ont été enregistrés avec succès.";
 
-        } catch (Exception $e) {
-            $db->rollBack();
+        } catch (Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
             $_SESSION['error_message'] = "Erreur lors de l'enregistrement des mensualités : " . $e->getMessage();
         }
 

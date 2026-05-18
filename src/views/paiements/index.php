@@ -92,6 +92,28 @@
             </div>
         </div>
 
+        <!-- Alertes Section -->
+        <?php if (!empty($alerts)): ?>
+            <div class="row">
+                <div class="col-12">
+                    <?php foreach ($alerts as $alert): ?>
+                        <div class="alert alert-<?= $alert['type'] ?> alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+                            <div class="d-flex align-items-center">
+                                <i class="ph-duotone ph-warning-circle fs-2 me-3"></i>
+                                <div>
+                                    <strong>Attention !</strong> <?= htmlspecialchars($alert['message']) ?>
+                                    <?php if (!empty($alert['link'])): ?>
+                                        <a href="<?= $alert['link'] ?>" class="alert-link ms-2 text-decoration-underline">Consulter la liste</a>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <!-- État des Inscriptions -->
         <div class="row">
             <div class="col-md-4">
