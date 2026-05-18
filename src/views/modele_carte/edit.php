@@ -261,6 +261,25 @@ $(function() {
         right: `<?= str_replace(["\r\n", "\n", "\r"], "\\n", addslashes($params_lycee['header_secondary'] ?? ($params_lycee['nom_lycee'] ?? 'NOM DU LYCÉE'))) ?>`
     };
 
+    // CR80 visualization in editor
+    function drawCR80Guideline() {
+        const guideline = new fabric.Rect({
+            width: canvas.width - 2,
+            height: canvas.height - 2,
+            left: 1,
+            top: 1,
+            fill: 'transparent',
+            stroke: '#0056b3',
+            strokeWidth: 1,
+            strokeDashArray: [5, 5],
+            selectable: false,
+            evented: false,
+            id: 'cr80_guideline'
+        });
+        canvas.add(guideline);
+        canvas.sendToBack(guideline);
+    }
+
     // Helper to create objects
     const creators = {
         logo: (options) => {
@@ -307,7 +326,7 @@ $(function() {
             canvas.setActiveObject(text);
         },
         serie: (options) => {
-            const text = new fabric.IText('SÉRIE: Scientifique', {
+            const text = new fabric.IText('{serie}', {
                 left: options.left !== undefined ? options.left : 200,
                 top: options.top !== undefined ? options.top : 280,
                 fontSize: options.fontSize || 14,
@@ -319,7 +338,7 @@ $(function() {
             canvas.setActiveObject(text);
         },
         annee: (options) => {
-            const text = new fabric.IText('ANNÉE: 2024-2025', {
+            const text = new fabric.IText('{annee}', {
                 left: options.left !== undefined ? options.left : 200,
                 top: options.top !== undefined ? options.top : 310,
                 fontSize: options.fontSize || 14,
@@ -402,7 +421,7 @@ $(function() {
             });
         },
         nom_complet: (options) => {
-            const text = new fabric.IText('PRÉNOM NOM', {
+            const text = new fabric.IText('{nom_complet}', {
                 left: options.left !== undefined ? options.left : 200,
                 top: options.top !== undefined ? options.top : 180,
                 fontSize: options.fontSize || 24,
@@ -415,7 +434,7 @@ $(function() {
             canvas.setActiveObject(text);
         },
         matricule: (options) => {
-            const text = new fabric.IText('MATRICULE: 2024-X123', {
+            const text = new fabric.IText('{matricule}', {
                 left: options.left !== undefined ? options.left : 200,
                 top: options.top !== undefined ? options.top : 220,
                 fontSize: options.fontSize || 16,
@@ -427,7 +446,7 @@ $(function() {
             canvas.setActiveObject(text);
         },
         classe: (options) => {
-            const text = new fabric.IText('CLASSE: Tle C', {
+            const text = new fabric.IText('{classe}', {
                 left: options.left !== undefined ? options.left : 200,
                 top: options.top !== undefined ? options.top : 250,
                 fontSize: options.fontSize || 16,
@@ -478,7 +497,7 @@ $(function() {
             canvas.setActiveObject(circle);
         },
         date_naissance: (options) => {
-            const text = new fabric.IText('Né le: 01/01/2010', {
+            const text = new fabric.IText('{date_naissance}', {
                 left: options.left !== undefined ? options.left : 210,
                 top: options.top !== undefined ? options.top : 350,
                 fontSize: 14,
@@ -490,7 +509,7 @@ $(function() {
             canvas.setActiveObject(text);
         },
         sexe: (options) => {
-            const text = new fabric.IText('Sexe: M', {
+            const text = new fabric.IText('{sexe}', {
                 left: options.left !== undefined ? options.left : 210,
                 top: options.top !== undefined ? options.top : 370,
                 fontSize: 14,
@@ -779,7 +798,7 @@ $(function() {
             // Bottom Area: QR & Director
             { type: 'qr_code', left: 30, top: 325, width: 60, height: 60 },
             { type: 'text', text: 'VALIDITÉ', left: 100, top: 330, fontSize: 8, fontWeight: 'bold', fill: '#666', id: 'validity_label' },
-            { type: 'text', text: '2024 - 2025', left: 100, top: 345, fontSize: 10, fontWeight: 'normal', fill: '#333' },
+            { type: 'annee', left: 100, top: 345, fontSize: 10, fontWeight: 'normal', fill: '#333' },
 
             { type: 'text', text: 'LE DIRECTEUR', left: 450, top: 300, fontSize: 9, fontWeight: 'bold', fill: '#333', textAlign: 'center', width: 150, id: 'dir_label' },
             { type: 'signature_directeur', left: 475, top: 315, width: 100, height: 50 },
@@ -844,6 +863,8 @@ $(function() {
 
     // Initial Load
     function loadInitialLayout() {
+        drawCR80Guideline();
+
         // Background
         const initialBackground = $('input[name="current_background"]').val();
         if (initialBackground) {

@@ -40,7 +40,7 @@ class ModeleCarte {
             'styles' => $data['styles'] ?? '{}',
             'layout_data' => $data['layout_data'] ?? '{}',
             'config_visuelle' => $data['config_visuelle'] ?? '{}',
-            'version' => $data['version'] ?? '2.1'
+            'version' => $data['version'] ?? '3.0'
         ];
 
         $stmt->execute($params);
