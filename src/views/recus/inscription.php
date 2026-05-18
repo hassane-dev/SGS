@@ -3,93 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <title>Reçu d'Inscription - <?= htmlspecialchars($eleve['nom'] . ' ' . $eleve['prenom']) ?></title>
-    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .receipt-container {
-            max-width: 800px;
-            margin: 50px auto;
-            border: 2px solid #000;
-            padding: 30px;
-            background-color: #f9f9f9;
-        }
-        .receipt-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        .receipt-header h1 {
-            font-size: 2.5rem;
-            margin: 0;
-        }
-        .receipt-header p {
-            font-size: 1rem;
-            margin: 0;
-        }
-        .receipt-footer {
-            text-align: center;
-            margin-top: 50px;
-            font-size: 0.9rem;
-            color: #555;
-        }
+        body { font-family: 'Arial', sans-serif; color: #333; margin: 0; padding: 20px; font-size: 14px; line-height: 1.4; }
+        .receipt-container { max-width: 800px; margin: auto; border: 2px solid #333; padding: 20px; position: relative; background: #fff; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+        .header img { max-width: 100px; max-height: 100px; }
+        .header-text { text-align: center; flex-grow: 1; }
+        .header-text h1 { margin: 0; font-size: 20px; text-transform: uppercase; color: #000; }
+        .header-text p { margin: 2px 0; font-size: 11px; }
+        .receipt-title { text-align: center; margin-bottom: 20px; }
+        .receipt-title h2 { margin: 0; border: 2px solid #000; display: inline-block; padding: 8px 30px; background: #f8f9fa; text-transform: uppercase; font-size: 18px; }
+        .info-section { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .info-box { border: 1px solid #ddd; padding: 10px; border-radius: 4px; }
+        .info-label { font-weight: bold; color: #555; font-size: 11px; text-transform: uppercase; display: block; margin-bottom: 3px; }
+        .info-value { font-size: 14px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        table th, table td { border: 1px solid #333; padding: 12px; text-align: left; }
+        table th { background: #f0f0f0; font-size: 12px; text-transform: uppercase; }
+        .amount-words { font-style: italic; margin-bottom: 20px; padding: 10px; background: #fdfdfe; border-left: 4px solid #333; }
+        .footer { display: flex; justify-content: space-between; margin-top: 40px; }
+        .signature-box { text-align: center; width: 220px; }
+        .signature-line { margin-top: 45px; border-top: 1px solid #333; padding-top: 5px; font-weight: bold; }
+        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 80px; color: rgba(0,0,0,0.05); pointer-events: none; white-space: nowrap; font-weight: bold; text-transform: uppercase; }
         @media print {
-            body { -webkit-print-color-adjust: exact; }
             .no-print { display: none; }
+            body { padding: 0; background: #fff; }
+            .receipt-container { border: 2px solid #000; }
         }
     </style>
 </head>
 <body>
-
-<div class="receipt-container">
-    <div class="receipt-header">
-        <h1>REÇU DE PAIEMENT</h1>
-        <p><?= htmlspecialchars($lycee['nom_lycee']) ?></p>
-        <p><?= htmlspecialchars($lycee['adresse'] . ' - ' . $lycee['ville']) ?></p>
-        <p>Tel: <?= htmlspecialchars($lycee['telephone']) ?></p>
+    <div class="no-print" style="margin-bottom: 20px; text-align: center;">
+        <button onclick="window.print();" style="padding: 12px 25px; cursor: pointer; background: #007bff; color: #fff; border: none; border-radius: 4px; font-weight: bold; font-size: 16px;">
+            🖨️ IMPRIMER LE REÇU
+        </button>
+        <button onclick="window.close();" style="padding: 12px 25px; cursor: pointer; background: #6c757d; color: #fff; border: none; border-radius: 4px; font-weight: bold; font-size: 16px; margin-left: 10px;">
+            Fermer
+        </button>
     </div>
 
-    <h4>Reçu N°: <?= htmlspecialchars($inscription['id_inscription']) ?></h4>
-    <p><strong>Date:</strong> <?= date('d/m/Y', strtotime($inscription['date_inscription'])) ?></p>
+    <div class="receipt-container">
+        <div class="watermark">ORIGINAL</div>
 
-    <hr>
+        <div class="header">
+            <?php if (!empty($lycee['logo'])): ?>
+                <img src="<?= htmlspecialchars($lycee['logo']) ?>" alt="Logo">
+            <?php else: ?>
+                <div style="width: 100px;"></div>
+            <?php endif; ?>
+            <div class="header-text">
+            <?php if (!empty($lycee['header_primary'])): ?>
+                <div style="font-weight: bold; font-size: 16px;"><?= $lycee['header_primary'] ?></div>
+                <div style="font-size: 14px;"><?= $lycee['header_secondary'] ?></div>
+            <?php else: ?>
+                <h1><?= htmlspecialchars($lycee['nom_lycee']) ?></h1>
+                <p><?= htmlspecialchars($lycee['devise'] ?? '') ?></p>
+            <?php endif; ?>
+            <p><?= htmlspecialchars(($lycee['quartier'] ?? '') . ' ' . ($lycee['ville'] ?? '')) ?> - BP: <?= htmlspecialchars($lycee['boite_postale'] ?? 'N/A') ?></p>
+            <p>Tel: <?= htmlspecialchars($lycee['tel'] ?? '') ?> / Email: <?= htmlspecialchars($lycee['email'] ?? '') ?></p>
+            </div>
+            <div style="width: 100px; text-align: right;">
+                <span class="info-label">N° Reçu</span>
+                <span class="info-value" style="font-size: 16px; color: #d9534f;">INS-<?= str_pad($inscription['id_inscription'], 5, '0', STR_PAD_LEFT) ?></span>
+            </div>
+        </div>
 
-    <p><strong>Reçu de:</strong> <?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?></p>
-    <p><strong>Classe:</strong> <?= htmlspecialchars($inscription['nom_classe']) ?></p>
-    <p><strong>Année Académique:</strong> <?= htmlspecialchars($inscription['annee_academique']) ?></p>
+        <div class="receipt-title">
+            <h2>Reçu de Frais d'Inscription</h2>
+        </div>
 
-    <table class="table table-bordered mt-4">
-        <thead>
-            <tr>
-                <th>Description</th>
-                <th class="text-right">Montant (XOF)</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Frais d'inscription</td>
-                <td class="text-right"><?= htmlspecialchars(number_format($inscription['montant_total'], 2)) ?></td>
-            </tr>
-        </tbody>
-        <tfoot>
-            <tr class="font-weight-bold">
-                <td>Montant Versé</td>
-                <td class="text-right"><?= htmlspecialchars(number_format($inscription['montant_verse'], 2)) ?></td>
-            </tr>
-            <tr class="font-weight-bold <?= $inscription['reste_a_payer'] > 0 ? 'text-danger' : '' ?>">
-                <td>Reste à Payer</td>
-                <td class="text-right"><?= htmlspecialchars(number_format($inscription['reste_a_payer'], 2)) ?></td>
-            </tr>
-        </tfoot>
-    </table>
+        <div class="info-section">
+            <div class="info-box">
+                <span class="info-label">Élève</span>
+                <span class="info-value"><?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?></span>
+            </div>
+            <div class="info-box">
+                <span class="info-label">Année Académique</span>
+                <span class="info-value"><?= htmlspecialchars($inscription['annee_academique']) ?></span>
+            </div>
+            <div class="info-box">
+                <span class="info-label">Classe</span>
+                <span class="info-value"><?= htmlspecialchars($inscription['nom_classe']) ?></span>
+            </div>
+            <div class="info-box">
+                <span class="info-label">Date de Paiement</span>
+                <span class="info-value"><?= date('d/m/Y à H:i', strtotime($inscription['date_inscription'])) ?></span>
+            </div>
+        </div>
 
-    <div class="receipt-footer">
-        <p>Merci pour votre paiement.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Désignation des frais</th>
+                    <th style="text-align: right;">Montant Total</th>
+                    <th style="text-align: right;">Montant Versé</th>
+                    <th style="text-align: right;">Reste à payer</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        Frais d'inscription annuel<br>
+                        <small style="color: #666;">
+                            Options:
+                            - Logo: <?= !empty(json_decode($inscription['details_frais'], true)['logo']) ? 'OUI' : 'NON' ?>
+                            - Carte: <?= !empty(json_decode($inscription['details_frais'], true)['carte']) ? 'OUI' : 'NON' ?>
+                        </small>
+                    </td>
+                    <td style="text-align: right;"><?= number_format($inscription['montant_total'], 0, ',', ' ') ?></td>
+                    <td style="text-align: right; font-weight: bold;"><?= number_format($inscription['montant_verse'], 0, ',', ' ') ?></td>
+                    <td style="text-align: right; color: <?= $inscription['reste_a_payer'] > 0 ? '#d9534f' : '#5cb85c' ?>; font-weight: bold;">
+                        <?= number_format($inscription['reste_a_payer'], 0, ',', ' ') ?> FCFA
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="amount-words">
+            <strong>Arrêté le présent reçu à la somme de :</strong><br>
+            <span style="text-transform: capitalize;"><?= number_format($inscription['montant_verse'], 0, ',', ' ') ?> Francs CFA</span>
+        </div>
+
+        <div class="footer">
+            <div class="signature-box">
+                <p>Le Parent / L'Élève</p>
+                <div class="signature-line">Signature</div>
+            </div>
+            <div class="signature-box">
+                <p>Le Caissier / Comptable</p>
+                <div class="signature-line">
+                    <?= htmlspecialchars(($caissier['prenom'] ?? '') . ' ' . ($caissier['nom'] ?? '')) ?>
+                </div>
+                <p style="font-size: 10px; margin-top: 5px;">Validé informatiquement</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; text-align: center; font-size: 10px; color: #999; border-top: 1px dashed #ddd; padding-top: 10px;">
+            Ce reçu est une pièce comptable officielle. Merci de le conserver pour toute réclamation.<br>
+            Généré le <?= date('d/m/Y H:i:s') ?>
+        </div>
     </div>
-</div>
-
-<div class="text-center mt-4 no-print">
-    <button onclick="window.print();" class="btn btn-primary">Imprimer le Reçu</button>
-    <a href="/eleves/details?id=<?= $eleve['id_eleve'] ?>" class="btn btn-secondary">Retour aux Détails</a>
-</div>
-
 </body>
 </html>

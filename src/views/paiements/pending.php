@@ -24,7 +24,7 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5>Liste des élèves en attente de paiement initial</h5>
+                        <h5>File d'attente des validations financières</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -32,8 +32,10 @@
                                 <thead>
                                     <tr>
                                         <th>Élève</th>
-                                        <th>Nationalité</th>
-                                        <th>Sexe</th>
+                                        <th>Classe</th>
+                                        <th>Statut</th>
+                                        <th class="text-end">Déjà Versé</th>
+                                        <th class="text-end text-danger">Reste à Payer</th>
                                         <th class="text-center">Action</th>
                                     </tr>
                                 </thead>
@@ -47,30 +49,34 @@
                                                     </div>
                                                     <div class="flex-grow-1 ms-3">
                                                         <h6 class="mb-0"><?= htmlspecialchars($e['prenom'] . ' ' . $e['nom']) ?></h6>
-                                                        <p class="mb-0 text-muted">Né(e) le <?= date('d/m/Y', strtotime($e['date_naissance'])) ?></p>
+                                                        <p class="mb-0 text-muted small">Né(e) le <?= date('d/m/Y', strtotime($e['date_naissance'])) ?></p>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td>
-                                                <span class="badge bg-light-secondary text-secondary">
-                                                    <?= htmlspecialchars($e['nationalite']) ?>
+                                                <span class="badge bg-light-primary text-primary">
+                                                    <?= htmlspecialchars($e['nom_classe']) ?>
                                                 </span>
                                             </td>
                                             <td>
-                                                <span class="badge bg-light-info text-info">
-                                                    <?= $e['sexe'] === 'M' ? 'Masculin' : 'Féminin' ?>
-                                                </span>
+                                                <?php if ($e['etat_finance'] === 'Partiel'): ?>
+                                                    <span class="badge bg-light-warning text-warning">Paiement Partiel</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-light-danger text-danger">En attente</span>
+                                                <?php endif; ?>
                                             </td>
+                                            <td class="text-end"><?= number_format($e['verse'], 0, ',', ' ') ?> FCFA</td>
+                                            <td class="text-end fw-bold text-danger"><?= number_format($e['reste'], 0, ',', ' ') ?> FCFA</td>
                                             <td class="text-center">
-                                                <a href="/paiements/show/<?= $e['id_eleve'] ?>" class="btn btn-icon btn-light-primary" title="Procéder au paiement">
-                                                    <i class="ph-duotone ph-receipt"></i>
+                                                <a href="/paiements/show/<?= $e['id_eleve'] ?>" class="btn btn-icon btn-light-success" title="Procéder au paiement">
+                                                    <i class="ph-duotone ph-currency-circle-dollar"></i>
                                                 </a>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
                                     <?php if (empty($eleves)): ?>
                                         <tr>
-                                            <td colspan="4" class="text-center">Aucun élève en attente de paiement.</td>
+                                            <td colspan="6" class="text-center py-4">Aucun élève en attente de validation financière.</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
