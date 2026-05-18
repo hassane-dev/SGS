@@ -110,12 +110,12 @@
                                 <div class="card-body p-3">
                                     <h6 class="mb-3 text-muted">Options & Services Additionnels</h6>
                                     <div class="form-check form-switch mb-2">
-                                        <input class="form-check-input" type="checkbox" id="logo_paye" name="options[logo]" <?= !empty($options['logo']) ? 'checked' : '' ?> <?= !$isComptable ? 'disabled' : '' ?>>
-                                        <label class="form-check-label" for="logo_paye">Frais de Logo (Macaron)</label>
+                                        <input class="form-check-input option-checkbox" type="checkbox" id="logo_paye" name="options[logo]" data-price="2000" <?= !empty($options['logo']) ? 'checked' : '' ?> <?= !$isComptable ? 'disabled' : '' ?>>
+                                        <label class="form-check-label" for="logo_paye">Frais de Logo (Macaron) <small class="text-muted">(+2 000 FCFA)</small></label>
                                     </div>
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="carte_scolaire_payee" name="options[carte]" <?= !empty($options['carte']) ? 'checked' : '' ?> <?= !$isComptable ? 'disabled' : '' ?>>
-                                        <label class="form-check-label" for="carte_scolaire_payee">Carte scolaire informatisée</label>
+                                        <input class="form-check-input option-checkbox" type="checkbox" id="carte_scolaire_payee" name="options[carte]" data-price="3000" <?= !empty($options['carte']) ? 'checked' : '' ?> <?= !$isComptable ? 'disabled' : '' ?>>
+                                        <label class="form-check-label" for="carte_scolaire_payee">Carte scolaire informatisée <small class="text-muted">(+3 000 FCFA)</small></label>
                                     </div>
                                 </div>
                             </div>
@@ -310,13 +310,19 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Gestion de la section inscription
-    const montantTotal = <?= (float)($fraisInscription['total'] ?? 0) ?>;
+    let baseMontantTotal = <?= (float)($frais['frais_inscription'] ?? 0) ?>;
     const montantVerseInput = document.getElementById('montant_verse_inscription');
     const statusDiv = document.getElementById('status-inscription');
+    const optionCheckboxes = document.querySelectorAll('.option-checkbox');
 
     function updateInscriptionStatus() {
+        let currentTotal = baseMontantTotal;
+        optionCheckboxes.forEach(cb => {
+            if (cb.checked) currentTotal += parseFloat(cb.dataset.price);
+        });
+
         const montantVerse = parseFloat(montantVerseInput.value) || 0;
-        const reste = montantTotal - montantVerse;
+        const reste = currentTotal - montantVerse;
 
         statusDiv.innerHTML = '';
 
@@ -336,6 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (montantVerseInput) {
         montantVerseInput.addEventListener('input', updateInscriptionStatus);
+        optionCheckboxes.forEach(cb => cb.addEventListener('change', updateInscriptionStatus));
         updateInscriptionStatus();
     }
 
