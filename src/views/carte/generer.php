@@ -127,26 +127,26 @@
                     content = `<img src="${modelData.logo_lycee || '/assets/img/logo-placeholder.png'}" alt="Logo">`;
                     break;
                 case 'nom_complet':
-                    content = `${eleve.prenom} ${eleve.nom}`.toUpperCase();
+                    content = (elData.text || '{nom_complet}').replace('{nom_complet}', `${eleve.prenom} ${eleve.nom}`.toUpperCase());
                     break;
                 case 'matricule':
-                    content = `${eleve.id_eleve}`;
+                    content = (elData.text || '{matricule}').replace('{matricule}', `${eleve.id_eleve}`);
                     break;
                 case 'classe':
                     const className = `${classe.niveau} ${classe.serie ? ' / ' + classe.serie : ''} ${classe.numero || ''}`.trim();
-                    content = className;
+                    content = (elData.text || '{classe}').replace('{classe}', className);
                     break;
                 case 'serie':
-                    content = `${classe.serie || 'N/A'}`;
+                    content = (elData.text || '{serie}').replace('{serie}', `${classe.serie || 'N/A'}`);
                     break;
                 case 'annee':
-                    content = `${annee ? annee.libelle : '2024-2025'}`;
+                    content = (elData.text || '{annee}').replace('{annee}', `${annee ? annee.libelle : '2024-2025'}`);
                     break;
                 case 'date_naissance':
-                    content = `${eleve.date_naissance || 'N/A'}`;
+                    content = (elData.text || '{date_naissance}').replace('{date_naissance}', `${eleve.date_naissance || 'N/A'}`);
                     break;
                 case 'sexe':
-                    content = `${eleve.sexe || 'N/A'}`;
+                    content = (elData.text || '{sexe}').replace('{sexe}', `${eleve.sexe || 'N/A'}`);
                     break;
                 case 'signature_directeur':
                     content = `<img src="${lycee.signature_directeur || '/assets/img/placeholder-signature.png'}" alt="Signature">`;
@@ -157,9 +157,9 @@
                 case 'qr_code':
                     qrCounter++;
                     el.classList.add('qr-code-container');
-                    content = `<div id="qrcode-${qrCounter}" style="width:100%; height:100%;"></div>`;
+                    content = `<div id="qrcode-${qrCounter}" style="width:100%; height:100%; position: relative;"></div>`;
                     if (modelData.logo_lycee) {
-                        content += `<div class="qr-logo-overlay"><img src="${modelData.logo_lycee}"></div>`;
+                        content += `<div class="qr-logo-overlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 25%; height: 25%; background: white; padding: 2px; border-radius: 2px; display: flex; align-items: center; justify-content: center;"><img src="${modelData.logo_lycee}" style="max-width: 100%; max-height: 100%; object-fit: contain;"></div>`;
                     }
                     break;
                 case 'text':
@@ -173,13 +173,11 @@
                     el.style.borderRadius = '50%';
                     break;
                 case 'header_left':
-                    // If isMultilingual and this is the original "primary" placeholder, but it's on the left, it might be the secondary language.
-                    // But our logic in editor now swaps them.
-                    content = (elData.text || lycee.header_primary || '').replace(/\n/g, '<br>');
+                    content = (lycee.header_primary || elData.text || '').replace(/\n/g, '<br>');
                     el.setAttribute('dir', 'auto');
                     break;
                 case 'header_right':
-                    content = (elData.text || lycee.header_secondary || lycee.nom_lycee || '').replace(/\n/g, '<br>');
+                    content = (lycee.header_secondary || lycee.nom_lycee || elData.text || '').replace(/\n/g, '<br>');
                     el.setAttribute('dir', 'auto');
                     break;
             }

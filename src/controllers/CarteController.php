@@ -47,15 +47,17 @@ class CarteController {
         // Get active academic year
         $annee = AnneeAcademique::findActive();
 
-        // Secure QR Data: hash combining student ID, school ID and a secret (if available)
-        $secure_token = hash('sha256', $eleve['id_eleve'] . $lycee_id . 'SECURE_SCHOOL_APP_2024');
+        // Secure QR Data: unique ID with signature
+        $data_to_sign = $eleve['id_eleve'] . '-' . $lycee_id . '-' . date('Y');
+        $signature = hash_hmac('sha256', $data_to_sign, 'SECURE_SCHOOL_APP_2024');
+        $secure_token = $data_to_sign . '|' . $signature;
 
         $data = [
             'eleve' => $eleve,
             'classe' => $classe,
             'lycee' => $params_lycee,
             'annee' => $annee,
-            'secure_token' => $secure_token,
+            'secure_token' => "https://" . ($_SERVER['HTTP_HOST'] ?? 'localhost') . "/verify-student?data=" . urlencode($secure_token),
             'modele' => array_merge($modele, [
                 'logo_lycee' => $params_lycee['logo'] ?? null
             ])
