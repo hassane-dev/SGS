@@ -134,7 +134,7 @@
                                                             <i class="ph-duotone ph-shopping-cart"></i>
                                                         </a>
                                                     <?php endif; ?>
-                                                    <?php if (Auth::can('paiement', 'view')): ?>
+                                                    <?php if (Auth::can('view', 'paiement')): ?>
                                                         <a href="/paiements/show/<?= $eleve['id_eleve'] ?>" class="btn btn-success btn-sm" title="<?= _('Gérer les paiements') ?>"><?= _('Payer') ?></a>
                                                     <?php endif; ?>
                                                     <a href="/eleves/details?id=<?= $eleve['id_eleve'] ?>" class="btn btn-info btn-sm ms-2" title="<?= _('Dossier complet') ?>"><?= _('Détails') ?></a>

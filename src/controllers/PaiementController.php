@@ -15,7 +15,7 @@ require_once __DIR__ . '/../core/View.php';
 class PaiementController {
 
     private function checkAccess($action = 'manage') {
-        if (!Auth::can('paiement', $action)) {
+        if (!Auth::can($action, 'paiement')) {
             http_response_code(403);
             View::render('errors/403');
             exit();
@@ -269,7 +269,7 @@ class PaiementController {
             'options' => $options,
             'tranches' => $tranches,
             'mensualitesPayees' => $mensualitesPayees,
-            'isComptable' => Auth::can('paiement', 'manage')
+            'isComptable' => Auth::can('manage', 'paiement')
         ]);
     }
 
