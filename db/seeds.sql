@@ -157,7 +157,7 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 
 -- Comptable (Accountant)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(7, 1), (7, 70), (7, 71);
+(7, 1), (7, 70), (7, 71), (7, 73);
 
 -- Eleve (Student)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
