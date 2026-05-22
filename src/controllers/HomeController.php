@@ -64,6 +64,13 @@ class HomeController {
             $teacherSubjects = User::findSubjectsTaughtByTeacher(Auth::get('id'));
         }
 
+        // If the user is a comptable, we redirect them to the accounting dashboard directly
+        // as it is their primary workstation.
+        if (Auth::get('role_name') === 'comptable') {
+            header('Location: /paiements');
+            exit();
+        }
+
         // Pass data to the view
         $data = [
             'navLinks' => $navLinks,
