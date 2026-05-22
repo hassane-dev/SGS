@@ -52,22 +52,22 @@ class PaiementController {
 
         $stmt = $db->prepare("
             SELECT SUM(montant) FROM (
-                SELECT montant_verse as montant FROM inscriptions WHERE lycee_id = :lycee_id AND DATE(date_inscription) = :today
+                SELECT montant_verse as montant FROM inscriptions WHERE lycee_id = :l_id1 AND DATE(date_inscription) = :d1
                 UNION ALL
-                SELECT montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :lycee_id AND DATE(md.date_paiement) = :today
+                SELECT montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l_id2 AND DATE(md.date_paiement) = :d2
             ) as t
         ");
-        $stmt->execute(['lycee_id' => $lycee_id, 'today' => $today]);
+        $stmt->execute(['l_id1' => $lycee_id, 'd1' => $today, 'l_id2' => $lycee_id, 'd2' => $today]);
         $totalToday = $stmt->fetchColumn() ?: 0;
 
         $stmt = $db->prepare("
             SELECT SUM(montant) FROM (
-                SELECT montant_verse as montant FROM inscriptions WHERE lycee_id = :lycee_id AND DATE_FORMAT(date_inscription, '%Y-%m') = :thisMonth
+                SELECT montant_verse as montant FROM inscriptions WHERE lycee_id = :l_id1 AND DATE_FORMAT(date_inscription, '%Y-%m') = :m1
                 UNION ALL
-                SELECT montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :lycee_id AND DATE_FORMAT(md.date_paiement, '%Y-%m') = :thisMonth
+                SELECT montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l_id2 AND DATE_FORMAT(md.date_paiement, '%Y-%m') = :m2
             ) as t
         ");
-        $stmt->execute(['lycee_id' => $lycee_id, 'thisMonth' => $thisMonth]);
+        $stmt->execute(['l_id1' => $lycee_id, 'm1' => $thisMonth, 'l_id2' => $lycee_id, 'm2' => $thisMonth]);
         $totalMonth = $stmt->fetchColumn() ?: 0;
 
         // 3. Statuts des élèves (Financier)
@@ -110,15 +110,15 @@ class PaiementController {
         $stmt = $db->prepare("
             (SELECT 'Inscription' as type, montant_verse as montant, date_inscription as date, eleve_id, user_id, NULL as mode
              FROM inscriptions
-             WHERE lycee_id = :lycee_id)
+             WHERE lycee_id = :l1)
             UNION ALL
             (SELECT 'Mensualité' as type, md.montant, md.date_paiement as date, m.eleve_id, m.user_id, md.mode_paiement as mode
              FROM mensualite_details md
              JOIN mensualites m ON md.mensualite_id = m.id_mensualite
-             WHERE m.lycee_id = :lycee_id)
+             WHERE m.lycee_id = :l2)
             ORDER BY date DESC LIMIT 10
         ");
-        $stmt->execute(['lycee_id' => $lycee_id]);
+        $stmt->execute(['l1' => $lycee_id, 'l2' => $lycee_id]);
         $recentTransactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Enrich transactions with student and user names
