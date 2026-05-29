@@ -3,6 +3,7 @@
 // Force file recognition
 require_once __DIR__ . '/../models/ModeleCarte.php';
 require_once __DIR__ . '/../models/ParamLycee.php';
+require_once __DIR__ . '/../models/ParamGeneral.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 
 
