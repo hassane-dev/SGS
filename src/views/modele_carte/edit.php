@@ -282,11 +282,8 @@
 <script src="/assets/libs/fabric/fabric.min.js"></script>
 
 <script>
-$(function() {
+document.addEventListener('DOMContentLoaded', function() {
     // Initialize Fabric Canvas - CR80 Standard: 85.6mm x 53.98mm
-    // At 96 DPI: ~324px x 204px. Using a multiplier (e.g. 2x) for better editing.
-    // 85.6mm is ~3.37 inches. 3.37 * 96 * 2 = 647px
-    // 53.98mm is ~2.125 inches. 2.125 * 96 * 2 = 408px
     const canvas = new fabric.Canvas('card-canvas', {
         width: 647,
         height: 408,
@@ -294,11 +291,11 @@ $(function() {
         preserveObjectStacking: true
     });
 
-    let cardModel = JSON.parse($('#layout_data_input').val() || '{"elements":[], "headers":{}}');
+    let cardModel = JSON.parse(document.getElementById('layout_data_input').value || '{"elements":[], "headers":{}}');
     let layoutElements = cardModel.elements || [];
     let headers = {
-        left: `<?= str_replace(["\r\n", "\n", "\r"], "\\n", addslashes($params_lycee['header_primary'] ?? "RÉPUBLIQUE DU TCHAD\nUnité - Travail - Progrès\n**********\nMINISTÈRE DE L'ÉDUCATION NATIONALE")) ?>`,
-        right: `<?= str_replace(["\r\n", "\n", "\r"], "\\n", addslashes($params_lycee['header_secondary'] ?? ($params_lycee['nom_lycee'] ?? 'NOM DU LYCÉE'))) ?>`
+        left: <?= json_encode($params_lycee['header_primary'] ?? "RÉPUBLIQUE DU TCHAD\nUnité - Travail - Progrès\n**********\nMINISTÈRE DE L'ÉDUCATION NATIONALE") ?>,
+        right: <?= json_encode($params_lycee['header_secondary'] ?? ($params_lycee['nom_lycee'] ?? 'NOM DU LYCÉE')) ?>
     };
 
     // CR80 visualization in editor
@@ -654,7 +651,7 @@ $(function() {
             headers: headers,
             version: '3.0' // New refined professional model
         };
-        $('#layout_data_input').val(JSON.stringify(fullModel));
+        document.getElementById('layout_data_input').value = JSON.stringify(fullModel);
     }
 
     // Drag and Drop implementation
@@ -694,94 +691,95 @@ $(function() {
     canvas.on('selection:created', (e) => updatePropertiesPanel(e.selected[0]));
     canvas.on('selection:updated', (e) => updatePropertiesPanel(e.selected[0]));
     canvas.on('selection:cleared', () => {
-        $('#element-properties').addClass('d-none');
-        $('#element-properties-placeholder').removeClass('d-none');
+        document.getElementById('element-properties').classList.add('d-none');
+        document.getElementById('element-properties-placeholder').classList.remove('d-none');
     });
     canvas.on('object:modified', saveLayout);
 
     function updatePropertiesPanel(obj) {
-        $('#element-properties').removeClass('d-none');
-        $('#element-properties-placeholder').addClass('d-none');
+        document.getElementById('element-properties').classList.remove('d-none');
+        document.getElementById('element-properties-placeholder').classList.add('d-none');
+
+        const textProperties = document.querySelectorAll('.property-text');
+        const shapeProperties = document.querySelectorAll('.property-shape');
 
         // Text specific controls
         if (obj.type === 'i-text' || obj.type === 'text' || (obj.elementType && ['nom_complet', 'matricule', 'classe', 'annee', 'header_left', 'header_right'].includes(obj.elementType))) {
-            $('.property-text').show();
-            $('#font_size').val(Math.round(obj.fontSize));
-            $('#font_family').val(obj.fontFamily || 'Arial');
+            textProperties.forEach(el => el.style.display = 'block');
+            document.getElementById('font_size').value = Math.round(obj.fontSize);
+            document.getElementById('font_family').value = obj.fontFamily || 'Arial';
         } else {
-            $('.property-text').hide();
+            textProperties.forEach(el => el.style.display = 'none');
         }
 
         // Shape specific controls
         if (obj.type === 'rect' || obj.type === 'circle') {
-            $('.property-shape').show();
-            $('#stroke_width').val(obj.strokeWidth || 0);
+            shapeProperties.forEach(el => el.style.display = 'block');
+            document.getElementById('stroke_width').value = obj.strokeWidth || 0;
         } else {
-            $('.property-shape').hide();
+            shapeProperties.forEach(el => el.style.display = 'none');
         }
 
-        $('#font_color').val(obj.fill);
+        document.getElementById('font_color').value = obj.fill;
 
         // Always show opacity for all elements
-        $('#element_opacity').val(obj.opacity || 1);
+        document.getElementById('element_opacity').value = obj.opacity || 1;
 
         // Open properties accordion if not already open
-        if (!$('#collapseProps').hasClass('show')) {
-            const collapseProps = document.getElementById('collapseProps');
-            if (collapseProps) {
-                const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseProps);
-                bsCollapse.show();
-            }
+        const collapsePropsEl = document.getElementById('collapseProps');
+        if (collapsePropsEl && !collapsePropsEl.classList.contains('show')) {
+            const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapsePropsEl);
+            bsCollapse.show();
         }
     }
 
-    $('#element_opacity').on('input', function() {
+    document.getElementById('element_opacity').addEventListener('input', function() {
         const obj = canvas.getActiveObject();
         if (obj) {
-            obj.set('opacity', parseFloat($(this).val()));
+            obj.set('opacity', parseFloat(this.value));
             canvas.renderAll();
             saveLayout();
         }
     });
 
-    $('#font_size').on('input', function() {
+    document.getElementById('font_size').addEventListener('input', function() {
         const obj = canvas.getActiveObject();
         if (obj) {
-            obj.set('fontSize', parseInt($(this).val()));
+            obj.set('fontSize', parseInt(this.value));
             canvas.renderAll();
             saveLayout();
         }
     });
 
-    $('#font_family').on('change', function() {
+    document.getElementById('font_family').addEventListener('change', function() {
         const obj = canvas.getActiveObject();
         if (obj) {
-            obj.set('fontFamily', $(this).val());
+            obj.set('fontFamily', this.value);
             canvas.renderAll();
             saveLayout();
         }
     });
 
-    $('#stroke_width').on('input', function() {
+    document.getElementById('stroke_width').addEventListener('input', function() {
         const obj = canvas.getActiveObject();
         if (obj) {
-            obj.set('strokeWidth', parseInt($(this).val()));
+            obj.set('strokeWidth', parseInt(this.value));
             canvas.renderAll();
             saveLayout();
         }
     });
 
-    $('#font_color').on('input', function() {
+    document.getElementById('font_color').addEventListener('input', function() {
         const obj = canvas.getActiveObject();
         if (obj) {
-            obj.set('fill', $(this).val());
+            obj.set('fill', this.value);
             canvas.renderAll();
             saveLayout();
         }
     });
 
     // Background Image
-    $('#background_image').on('change', function(event) {
+    document.getElementById('background_image').addEventListener('change', function(event) {
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
@@ -881,69 +879,76 @@ $(function() {
         setTimeout(saveLayout, 1500);
     }
 
-    $('#reset-template').on('click', function() {
+    document.getElementById('reset-template').addEventListener('click', function() {
         if (confirm("<?= _('Êtes-vous sûr de vouloir réinitialiser la carte ? Vos personnalisations actuelles seront perdues et le modèle professionnel d\'origine sera restauré.') ?>")) {
             applyDefaultLayout();
         }
     });
 
     // Quick Action: Flip Photo position
-    $('.action-flip-photo').on('click', function() {
-        const photoFrame = canvas.getObjects().find(o => o.id === 'photo_frame');
-        const photo = canvas.getObjects().find(o => o.elementType === 'photo');
-        const infoElements = canvas.getObjects().filter(o =>
-            ['nom_complet', 'matricule', 'classe', 'annee'].includes(o.elementType) ||
-            (o.id && o.id.startsWith('label_') && o.id !== 'label_qr')
-        );
+    document.querySelectorAll('.action-flip-photo').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const photoFrame = canvas.getObjects().find(o => o.id === 'photo_frame');
+            const photo = canvas.getObjects().find(o => o.elementType === 'photo');
+            const infoElements = canvas.getObjects().filter(o =>
+                ['nom_complet', 'matricule', 'classe', 'annee'].includes(o.elementType) ||
+                (o.id && o.id.startsWith('label_') && o.id !== 'label_qr')
+            );
 
-        if (!photoFrame || !photo) return;
+            if (!photoFrame || !photo) return;
 
-        const leftX = 40;
-        const rightX = 465;
-        const infoLeftX = 210;
-        const infoRightX = 40;
+            const leftX = 40;
+            const rightX = 465;
+            const infoLeftX = 210;
+            const infoRightX = 40;
 
-        // Use actual position to determine flip state
-        const currentIsLeft = Math.abs(photoFrame.left - leftX) < 10;
+            // Use actual position to determine flip state
+            const currentIsLeft = Math.abs(photoFrame.left - leftX) < 10;
 
-        if (currentIsLeft) {
-            photoFrame.set('left', rightX);
-            photo.set('left', rightX + 5);
-            infoElements.forEach(el => el.set('left', infoRightX));
-        } else {
-            photoFrame.set('left', leftX);
-            photo.set('left', leftX + 5);
-            infoElements.forEach(el => el.set('left', infoLeftX));
-        }
-        canvas.renderAll();
-        saveLayout();
+            if (currentIsLeft) {
+                photoFrame.set('left', rightX);
+                photo.set('left', rightX + 5);
+                infoElements.forEach(el => el.set('left', infoRightX));
+            } else {
+                photoFrame.set('left', leftX);
+                photo.set('left', leftX + 5);
+                infoElements.forEach(el => el.set('left', infoLeftX));
+            }
+            canvas.renderAll();
+            saveLayout();
+        });
     });
 
     // Quick Action: Toggle Pattern
-    $('.action-toggle-pattern').on('click', function() {
-        const pattern = canvas.getObjects().find(o => o.id === 'bg_pattern');
-        if (pattern) {
-            pattern.set('visible', !pattern.visible);
-            canvas.renderAll();
-            saveLayout();
-        }
+    document.querySelectorAll('.action-toggle-pattern').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const pattern = canvas.getObjects().find(o => o.id === 'bg_pattern');
+            if (pattern) {
+                pattern.set('visible', !pattern.visible);
+                canvas.renderAll();
+                saveLayout();
+            }
+        });
     });
 
     // Quick Action: Center Logo
-    $('.action-center-logo').on('click', function() {
-        const logo = canvas.getObjects().find(o => o.elementType === 'logo');
-        if (logo) {
-            logo.centerH();
-            canvas.renderAll();
-            saveLayout();
-        }
+    document.querySelectorAll('.action-center-logo').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const logo = canvas.getObjects().find(o => o.elementType === 'logo');
+            if (logo) {
+                logo.centerH();
+                canvas.renderAll();
+                saveLayout();
+            }
+        });
     });
 
-    $('.theme-preset').on('click', function() {
-        const primaryColor = $(this).data('primary');
-        const headerBg = $(this).data('header');
+    document.querySelectorAll('.theme-preset').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const primaryColor = this.getAttribute('data-primary');
+            const headerBg = this.getAttribute('data-header');
 
-        canvas.getObjects().forEach(obj => {
+            canvas.getObjects().forEach(obj => {
             // Background & Accents
             if (['header_accent', 'footer_bar', 'side_accent'].includes(obj.id)) {
                 obj.set('fill', primaryColor);
@@ -980,7 +985,7 @@ $(function() {
         drawCR80Guideline();
 
         // Background
-        const initialBackground = $('input[name="current_background"]').val();
+        const initialBackground = document.querySelector('input[name="current_background"]').value;
         if (initialBackground) {
             fabric.Image.fromURL(initialBackground, function(img) {
                 canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
