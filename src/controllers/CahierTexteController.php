@@ -9,7 +9,7 @@ class CahierTexteController {
 
     private function checkAccess() {
         // Allow access if user is a teacher or has permission to manage logbooks
-        if (Auth::get('role_name') === 'enseignant' || Auth::can('manage', 'cahier_texte')) {
+        if (Auth::get('role_name') === 'enseignant' || Auth::can('manage', 'cahier_texte') || Auth::can('view_all', 'cahier_texte')) {
             return true;
         }
         http_response_code(403);
@@ -19,9 +19,9 @@ class CahierTexteController {
 
     public function index() {
         $this->checkAccess();
-        $user_id = Auth::get('id');
-        $lycee_id = Auth::get('lycee_id');
-        $is_admin = Auth::can('manage', 'cahier_texte');
+        $user_id = Auth::getUserId();
+        $lycee_id = Auth::getLyceeId();
+        $is_admin = Auth::can('manage', 'cahier_texte') || Auth::can('view_all', 'cahier_texte');
 
         $filters = [
             'personnel_id_filter' => $_GET['personnel_id'] ?? null,
@@ -49,7 +49,7 @@ class CahierTexteController {
 
     public function create() {
         $this->checkAccess();
-        $professeur_id = Auth::get('id');
+        $professeur_id = Auth::getUserId();
         $assignments = User::getTeacherAssignments($professeur_id);
 
         $entry = [];
@@ -61,8 +61,8 @@ class CahierTexteController {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
-            $data['personnel_id'] = Auth::get('id');
-            $data['lycee_id'] = Auth::get('lycee_id');
+            $data['personnel_id'] = Auth::getUserId();
+            $data['lycee_id'] = Auth::getLyceeId();
             $active_year = AnneeAcademique::findActive();
             $data['annee_id'] = $active_year['id'] ?? null;
 
@@ -90,7 +90,7 @@ class CahierTexteController {
         $entry = CahierTexte::findById($id);
 
         // Security check: Teacher can only edit their own entries
-        if (Auth::get('role_name') === 'enseignant' && $entry['personnel_id'] != Auth::get('id')) {
+        if (Auth::get('role_name') === 'enseignant' && $entry['personnel_id'] != Auth::getUserId()) {
             http_response_code(403);
             echo "Accès Interdit.";
             exit();
@@ -109,7 +109,7 @@ class CahierTexteController {
             $entry = CahierTexte::findById($data['cahier_id']);
 
             // Security check
-            if (Auth::get('role_name') === 'enseignant' && $entry['personnel_id'] != Auth::get('id')) {
+            if (Auth::get('role_name') === 'enseignant' && $entry['personnel_id'] != Auth::getUserId()) {
                  http_response_code(403);
                  echo "Accès Interdit.";
                  exit();
@@ -138,7 +138,7 @@ class CahierTexteController {
         if ($id) {
             $entry = CahierTexte::findById($id);
             // Security check
-            if (Auth::get('role_name') === 'enseignant' && $entry['personnel_id'] != Auth::get('id')) {
+            if (Auth::get('role_name') === 'enseignant' && $entry['personnel_id'] != Auth::getUserId()) {
                  http_response_code(403);
                  echo "Accès Interdit.";
                  exit();
@@ -151,7 +151,7 @@ class CahierTexteController {
 
     public function directCreate($classe_id, $matiere_id) {
         $this->checkAccess();
-        $professeur_id = Auth::get('id');
+        $professeur_id = Auth::getUserId();
         $assignments = User::getTeacherAssignments($professeur_id);
 
         $entry = [
