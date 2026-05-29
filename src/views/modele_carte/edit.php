@@ -13,7 +13,8 @@
                 <div class="row align-items-center">
                     <div class="col-md-12">
                         <div class="page-header-title">
-                            <h2 class="mb-0"><?= _('Card Template Editor') ?></h2>
+                            <h2 class="mb-0"><?= _('Personnalisation de la Carte Scolaire') ?></h2>
+                            <p class="text-muted mb-0"><?= _('Ajustez votre modèle professionnel prêt à l\'emploi.') ?></p>
                         </div>
                     </div>
                 </div>
@@ -38,51 +39,84 @@
                             <div class="row">
                                 <!-- Palette Area -->
                                 <div class="col-lg-3">
-                                    <div class="alert alert-primary py-3 mb-4" style="font-size: 0.85rem;">
-                                        <i class="ph-duotone ph-sparkle fs-4 d-block mb-2"></i>
-                                        <strong><?= _('Modèle Professionnel Actif') ?></strong><br>
-                                        <?= _('La structure de base est déjà optimisée. Personnalisez les couleurs et le fond pour l\'adapter à votre établissement.') ?>
+                                    <div class="alert alert-info border-0 shadow-sm mb-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                <div class="avtar avtar-s bg-light-info text-info">
+                                                    <i class="ph-duotone ph-magic-wand fs-4"></i>
+                                                </div>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <h6 class="mb-0 text-info"><?= _('Modèle Prêt à l\'Emploi') ?></h6>
+                                                <p class="mb-0 small text-muted"><?= _('Personnalisez les couleurs et ajustez les positions selon vos besoins.') ?></p>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div class="accordion accordion-flush" id="editorAccordion">
-                                        <!-- Step 1: Themes -->
+                                        <!-- Step 1: Layout Quick Actions -->
                                         <div class="accordion-item bg-transparent">
                                             <h2 class="accordion-header">
-                                                <button class="accordion-button px-0 bg-transparent fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThemes">
-                                                    <i class="ph-duotone ph-palette me-2 fs-5"></i> <?= _('1. Couleurs & Thèmes') ?>
+                                                <button class="accordion-button px-0 bg-transparent fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseQuick">
+                                                    <i class="ph-duotone ph-lightning me-2 fs-5 text-warning"></i> <?= _('1. Ajustements Rapides') ?>
                                                 </button>
                                             </h2>
-                                            <div id="collapseThemes" class="accordion-collapse collapse show" data-bs-parent="#editorAccordion">
+                                            <div id="collapseQuick" class="accordion-collapse collapse show" data-bs-parent="#editorAccordion">
                                                 <div class="accordion-body px-0 pt-0">
+                                                    <div class="d-grid gap-2 mb-3">
+                                                        <button type="button" class="btn btn-sm btn-light-primary text-start action-flip-photo">
+                                                            <i class="ph-duotone ph-arrows-left-right me-2"></i> <?= _('Inverser Photo / Infos') ?>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-light-secondary text-start action-center-logo">
+                                                            <i class="ph-duotone ph-align-center-horizontal me-2"></i> <?= _('Centrer le Logo') ?>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-light-info text-start action-toggle-pattern">
+                                                            <i class="ph-duotone ph-intersect me-2"></i> <?= _('Afficher/Masquer le Motif') ?>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Step 2: Themes -->
+                                        <div class="accordion-item bg-transparent">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed px-0 bg-transparent fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThemes">
+                                                    <i class="ph-duotone ph-palette me-2 fs-5"></i> <?= _('2. Couleurs & Style Global') ?>
+                                                </button>
+                                            </h2>
+                                            <div id="collapseThemes" class="accordion-collapse collapse" data-bs-parent="#editorAccordion">
+                                                <div class="accordion-body px-0 pt-0">
+                                                    <p class="small text-muted mb-3"><?= _('Choisissez une palette de couleurs pour votre établissement :') ?></p>
                                                     <div class="row g-2 mb-3">
                                                         <div class="col-4">
-                                                            <button type="button" class="btn btn-sm btn-outline-primary w-100 theme-preset" data-primary="#0056b3" data-header="#f0f4f8" title="Blue Business">
-                                                                <div style="height:20px; background:#0056b3; border-radius:3px;"></div>
+                                                            <button type="button" class="btn btn-sm btn-outline-primary w-100 theme-preset" data-primary="#0056b3" data-header="#f0f4f8" title="Royal Blue">
+                                                                <div style="height:24px; background:#0056b3; border-radius:4px;"></div>
                                                             </button>
                                                         </div>
                                                         <div class="col-4">
                                                             <button type="button" class="btn btn-sm btn-outline-success w-100 theme-preset" data-primary="#198754" data-header="#f8fff9" title="Forest Green">
-                                                                <div style="height:20px; background:#198754; border-radius:3px;"></div>
+                                                                <div style="height:24px; background:#198754; border-radius:4px;"></div>
                                                             </button>
                                                         </div>
                                                         <div class="col-4">
                                                             <button type="button" class="btn btn-sm btn-outline-danger w-100 theme-preset" data-primary="#dc3545" data-header="#fff8f8" title="Academic Red">
-                                                                <div style="height:20px; background:#dc3545; border-radius:3px;"></div>
+                                                                <div style="height:24px; background:#dc3545; border-radius:4px;"></div>
                                                             </button>
                                                         </div>
                                                         <div class="col-4">
-                                                            <button type="button" class="btn btn-sm btn-outline-dark w-100 theme-preset" data-primary="#212529" data-header="#f8f9fa" title="Classic Black">
-                                                                <div style="height:20px; background:#212529; border-radius:3px;"></div>
+                                                            <button type="button" class="btn btn-sm btn-outline-warning w-100 theme-preset" data-primary="#f39c12" data-header="#fff9f0" title="Bright Gold">
+                                                                <div style="height:24px; background:#f39c12; border-radius:4px;"></div>
                                                             </button>
                                                         </div>
                                                         <div class="col-4">
-                                                            <button type="button" class="btn btn-sm btn-outline-warning w-100 theme-preset" data-primary="#ffc107" data-header="#fffdf5" title="Golden Sun">
-                                                                <div style="height:20px; background:#ffc107; border-radius:3px;"></div>
+                                                            <button type="button" class="btn btn-sm btn-outline-dark w-100 theme-preset" data-primary="#2c3e50" data-header="#ecf0f1" title="Deep Midnight">
+                                                                <div style="height:24px; background:#2c3e50; border-radius:4px;"></div>
                                                             </button>
                                                         </div>
                                                         <div class="col-4">
-                                                            <button type="button" class="btn btn-sm btn-outline-secondary w-100 theme-preset" data-primary="#6c757d" data-header="#f8f9fa" title="Corporate Grey">
-                                                                <div style="height:20px; background:#6c757d; border-radius:3px;"></div>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary w-100 theme-preset" data-primary="#8e44ad" data-header="#f4ecf7" title="Amethyst">
+                                                                <div style="height:24px; background:#8e44ad; border-radius:4px;"></div>
                                                             </button>
                                                         </div>
                                                     </div>
@@ -90,28 +124,11 @@
                                             </div>
                                         </div>
 
-                                        <!-- Step 2: Background -->
-                                        <div class="accordion-item bg-transparent">
-                                            <h2 class="accordion-header">
-                                                <button class="accordion-button collapsed px-0 bg-transparent fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBg">
-                                                    <i class="ph-duotone ph-image me-2 fs-5"></i> <?= _('2. Fond de Carte') ?>
-                                                </button>
-                                            </h2>
-                                            <div id="collapseBg" class="accordion-collapse collapse" data-bs-parent="#editorAccordion">
-                                                <div class="accordion-body px-0 pt-0">
-                                                    <div class="mb-3">
-                                                        <input class="form-control form-control-sm" type="file" id="background_image" name="background_image" accept="image/*">
-                                                        <small class="text-muted d-block mt-1" style="font-size: 0.75rem;"><?= _('Format recommandé : CR80 (85.6 x 53.98mm)') ?></small>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Step 3: Elements Properties -->
+                                        <!-- Step 3: Elements Properties (Main Personalization Tool) -->
                                         <div class="accordion-item bg-transparent">
                                             <h2 class="accordion-header">
                                                 <button class="accordion-button collapsed px-0 bg-transparent fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProps">
-                                                    <i class="ph-duotone ph-pencil-circle me-2 fs-5"></i> <?= _('3. Style des Éléments') ?>
+                                                    <i class="ph-duotone ph-pencil-circle me-2 fs-5"></i> <?= _('3. Personnaliser un Élément') ?>
                                                 </button>
                                             </h2>
                                             <div id="collapseProps" class="accordion-collapse collapse" data-bs-parent="#editorAccordion">
@@ -153,11 +170,29 @@
                                             </div>
                                         </div>
 
-                                        <!-- Step 4: Add Elements (Optional) -->
+                                        <!-- Step 4: Background -->
+                                        <div class="accordion-item bg-transparent">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed px-0 bg-transparent fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBg">
+                                                    <i class="ph-duotone ph-image me-2 fs-5"></i> <?= _('4. Fond de Carte & Image') ?>
+                                                </button>
+                                            </h2>
+                                            <div id="collapseBg" class="accordion-collapse collapse" data-bs-parent="#editorAccordion">
+                                                <div class="accordion-body px-0 pt-0">
+                                                    <p class="small text-muted mb-2"><?= _('Remplacez le fond blanc par une image personnalisée :') ?></p>
+                                                    <div class="mb-3">
+                                                        <input class="form-control form-control-sm" type="file" id="background_image" name="background_image" accept="image/*">
+                                                        <small class="text-muted d-block mt-1" style="font-size: 0.75rem;"><?= _('Format recommandé : 85.6 x 53.98mm') ?></small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Step 5: Add Elements (Optional) -->
                                         <div class="accordion-item bg-transparent border-bottom-0">
                                             <h2 class="accordion-header">
                                                 <button class="accordion-button collapsed px-0 bg-transparent fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdvanced">
-                                                    <i class="ph-duotone ph-plus-circle me-2 fs-5"></i> <?= _('4. Ajout Manuel (Avancé)') ?>
+                                                    <i class="ph-duotone ph-plus-circle me-2 fs-5"></i> <?= _('5. Outils Avancés') ?>
                                                 </button>
                                             </h2>
                                             <div id="collapseAdvanced" class="accordion-collapse collapse" data-bs-parent="#editorAccordion">
@@ -209,7 +244,12 @@
 
                                 <!-- Card Preview Area -->
                                 <div class="col-lg-9">
-                                    <h5 class="mb-3 text-center"><?= _('Card Preview') ?></h5>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="mb-0 fw-bold"><?= _('Aperçu de la Carte') ?></h5>
+                                        <div class="badge bg-light-primary text-primary px-3 py-2">
+                                            <i class="ph-duotone ph-layout me-1"></i> <?= _('Format Standard CR80') ?>
+                                        </div>
+                                    </div>
                                     <div id="card-container" style="display: flex; justify-content: center; background: #f4f7fa; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0; overflow: auto;">
                                         <div style="box-shadow: 0 10px 30px rgba(0,0,0,0.1); line-height: 0;">
                                             <canvas id="card-canvas"></canvas>
@@ -223,13 +263,13 @@
                             </div>
 
                                     <div class="mt-4 d-flex justify-content-between">
-                                        <button type="button" id="reset-template" class="btn btn-outline-danger">
-                                            <i class="ph-duotone ph-arrow-counter-clockwise"></i> <?= _('Reset to Default') ?>
+                                        <button type="button" id="reset-template" class="btn btn-outline-danger shadow-sm">
+                                            <i class="ph-duotone ph-arrow-counter-clockwise"></i> <?= _('Réinitialiser au Modèle Pro') ?>
                                         </button>
-                                <button type="submit" class="btn btn-primary">
-                                            <i class="ph-duotone ph-floppy-disk"></i> <?= _('Save Template') ?>
-                                </button>
-                            </div>
+                                        <button type="submit" class="btn btn-primary shadow">
+                                            <i class="ph-duotone ph-floppy-disk"></i> <?= _('Enregistrer ma Personnalisation') ?>
+                                        </button>
+                                    </div>
                         </form>
                     </div>
                 </div>
@@ -763,70 +803,139 @@ $(function() {
         canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
 
         const defaultModel = [
-            // High-end background elements
+            // Base layer
             { type: 'rect', left: 0, top: 0, width: 647, height: 408, fill: '#ffffff', id: 'bg_main' },
-            { type: 'text', text: 'OFFICIEL '.repeat(20), left: -100, top: 200, fontSize: 40, fill: '#f1f1f1', opacity: 0.15, angle: -30, selectable: false, id: 'watermark' },
-            { type: 'rect', left: 0, top: 0, width: 647, height: 110, fill: '#f8f9fa', id: 'header_bg' },
-            { type: 'rect', left: 0, top: 107, width: 647, height: 4, fill: '#0056b3', id: 'header_accent' },
 
-            // Header Content
-            { type: 'logo', left: 283, top: 10, width: 80, height: 80 },
+            // Decorative background pattern (subtle)
+            { type: 'text', text: '★'.repeat(50) + '\n' + '★'.repeat(50), left: 0, top: 0, fontSize: 20, fill: '#f1f1f1', opacity: 0.2, selectable: false, id: 'bg_pattern' },
+
+            // Header bar
+            { type: 'rect', left: 0, top: 0, width: 647, height: 115, fill: '#f8f9fa', id: 'header_bg' },
+            { type: 'rect', left: 0, top: 112, width: 647, height: 3, fill: '#0056b3', id: 'header_accent' },
+
+            // Side accent (professional touch)
+            { type: 'rect', left: 0, top: 0, width: 8, height: 408, fill: '#0056b3', id: 'side_accent' },
 
             // Institutional Header (Left)
-            { type: 'header_left', text: headers.left, left: 15, top: 20, width: 220, fontSize: 8.5, textAlign: 'center', fontWeight: 'bold', fill: '#333' },
+            { type: 'header_left', text: headers.left, left: 25, top: 25, width: 210, fontSize: 8.5, textAlign: 'center', fontWeight: 'bold', fill: '#333' },
+
+            // Center Logo
+            { type: 'logo', left: 283, top: 15, width: 80, height: 80 },
 
             // School Header (Right)
-            { type: 'header_right', text: headers.right, left: 412, top: 20, width: 220, fontSize: 8.5, textAlign: 'center', fontWeight: 'bold', fill: '#333' },
+            { type: 'header_right', text: headers.right, left: 412, top: 25, width: 210, fontSize: 8.5, textAlign: 'center', fontWeight: 'bold', fill: '#333' },
 
-            // Photo Area with modern styling
-            { type: 'rect', left: 30, top: 140, width: 140, height: 175, fill: '#fff', stroke: '#0056b3', strokeWidth: 1.5, id: 'photo_frame' },
-            { type: 'photo', left: 35, top: 145, width: 130, height: 165 },
+            // Photo Area
+            { type: 'rect', left: 40, top: 145, width: 140, height: 175, fill: '#fff', stroke: '#0056b3', strokeWidth: 2, id: 'photo_frame', rx: 5, ry: 5 },
+            { type: 'photo', left: 45, top: 150, width: 130, height: 165 },
 
-            // Student Info Labels
-            { type: 'text', text: 'NOM ET PRÉNOMS', left: 190, top: 140, fontSize: 9, fontWeight: 'bold', fill: '#0056b3' },
-            { type: 'nom_complet', left: 190, top: 155, fontSize: 26, fontWeight: 'bold', fill: '#222' },
+            // Student Info - Main Block
+            { type: 'text', text: 'NOM ET PRÉNOMS', left: 210, top: 145, fontSize: 9, fontWeight: 'bold', fill: '#0056b3', id: 'label_nom' },
+            { type: 'nom_complet', left: 210, top: 158, fontSize: 28, fontWeight: 'bold', fill: '#1a1a1a' },
 
-            { type: 'text', text: 'MATRICULE', left: 190, top: 200, fontSize: 9, fontWeight: 'bold', fill: '#0056b3' },
-            { type: 'matricule', left: 190, top: 215, fontSize: 20, fontWeight: 'bold', fill: '#444' },
+            { type: 'text', text: 'MATRICULE', left: 210, top: 205, fontSize: 9, fontWeight: 'bold', fill: '#0056b3', id: 'label_mat' },
+            { type: 'matricule', left: 210, top: 218, fontSize: 22, fontWeight: 'bold', fill: '#333' },
 
-            { type: 'text', text: 'CLASSE / SÉRIE', left: 190, top: 250, fontSize: 9, fontWeight: 'bold', fill: '#0056b3' },
-            { type: 'classe', left: 190, top: 265, fontSize: 18, fontWeight: 'bold', fill: '#444' },
+            { type: 'text', text: 'CLASSE / SÉRIE', left: 210, top: 255, fontSize: 9, fontWeight: 'bold', fill: '#0056b3', id: 'label_classe' },
+            { type: 'classe', left: 210, top: 268, fontSize: 18, fontWeight: 'bold', fill: '#333' },
 
-            { type: 'text', text: 'ANNÉE SCOLAIRE', left: 190, top: 300, fontSize: 9, fontWeight: 'bold', fill: '#0056b3' },
-            { type: 'annee', left: 190, top: 315, fontSize: 16, fontWeight: 'bold', fill: '#444' },
+            { type: 'text', text: 'ANNÉE SCOLAIRE', left: 210, top: 305, fontSize: 9, fontWeight: 'bold', fill: '#0056b3', id: 'label_annee' },
+            { type: 'annee', left: 210, top: 318, fontSize: 16, fontWeight: 'bold', fill: '#333' },
 
-            // Bottom Area: QR & Director
-            { type: 'qr_code', left: 30, top: 325, width: 60, height: 60 },
-            { type: 'text', text: 'VALIDITÉ', left: 100, top: 330, fontSize: 8, fontWeight: 'bold', fill: '#666', id: 'validity_label' },
-            { type: 'annee', left: 100, top: 345, fontSize: 10, fontWeight: 'normal', fill: '#333' },
+            // Security & Signature Area
+            { type: 'qr_code', left: 40, top: 335, width: 55, height: 55 },
+            { type: 'text', text: 'VÉRIFICATION SÉCURISÉE', left: 105, top: 345, fontSize: 7, fontWeight: 'bold', fill: '#999', id: 'label_qr' },
 
-            { type: 'text', text: 'LE DIRECTEUR', left: 450, top: 300, fontSize: 9, fontWeight: 'bold', fill: '#333', textAlign: 'center', width: 150, id: 'dir_label' },
-            { type: 'signature_directeur', left: 475, top: 315, width: 100, height: 50 },
-            { type: 'tampon_ecole', left: 440, top: 280, width: 80, height: 80, opacity: 0.5 },
+            { type: 'tampon_ecole', left: 430, top: 270, width: 90, height: 90, opacity: 0.4 },
+            { type: 'text', text: 'LE DIRECTEUR GÉNÉRAL', left: 440, top: 305, fontSize: 9, fontWeight: 'bold', fill: '#333', textAlign: 'center', width: 160, id: 'label_dir' },
+            { type: 'signature_directeur', left: 470, top: 325, width: 100, height: 50 },
 
             // Modern Footer
-            { type: 'rect', left: 0, top: 388, width: 647, height: 20, fill: '#0056b3', id: 'footer_bar' },
-            { type: 'text', left: 0, top: 393, width: 647, fontSize: 8, fill: '#ffffff', text: 'CARTE D\'IDENTITÉ SCOLAIRE - DOCUMENT OFFICIEL', textAlign: 'center' }
+            { type: 'rect', left: 0, top: 390, width: 647, height: 18, fill: '#0056b3', id: 'footer_bar' },
+            { type: 'text', left: 0, top: 394, width: 647, fontSize: 8, fill: '#ffffff', text: 'CARTE D\'IDENTITÉ SCOLAIRE - DOCUMENT OFFICIEL DE L\'ÉTABLISSEMENT', textAlign: 'center', fontWeight: 'bold' }
         ];
 
         defaultModel.forEach(el => {
             if (creators[el.type]) creators[el.type](el);
         });
 
-        // Ensure background elements stay at the bottom and are locked
-        canvas.getObjects().forEach(obj => {
-            if (obj.id && (obj.id.includes('bg') || obj.id.includes('accent') || obj.id.includes('watermark'))) {
-                obj.set('selectable', false);
-                obj.set('evented', false);
-                canvas.sendToBack(obj);
-            }
-        });
-        setTimeout(saveLayout, 1000);
+        // Locking background elements
+        setTimeout(() => {
+            canvas.getObjects().forEach(obj => {
+                if (obj.id && (obj.id.includes('bg') || obj.id.includes('accent') || obj.id.includes('pattern'))) {
+                    obj.set({
+                        selectable: false,
+                        evented: false,
+                        lockMovementX: true,
+                        lockMovementY: true,
+                        lockScalingX: true,
+                        lockScalingY: true,
+                        lockRotation: true
+                    });
+                    canvas.sendToBack(obj);
+                }
+            });
+            canvas.renderAll();
+        }, 1000);
+
+        setTimeout(saveLayout, 1500);
     }
 
     $('#reset-template').on('click', function() {
-        if (confirm("<?= _('Are you sure you want to reset the template to the default professional model? This will erase your current changes.') ?>")) {
+        if (confirm("<?= _('Êtes-vous sûr de vouloir réinitialiser la carte ? Vos personnalisations actuelles seront perdues et le modèle professionnel d\'origine sera restauré.') ?>")) {
             applyDefaultLayout();
+        }
+    });
+
+    // Quick Action: Flip Photo position
+    $('.action-flip-photo').on('click', function() {
+        const photoFrame = canvas.getObjects().find(o => o.id === 'photo_frame');
+        const photo = canvas.getObjects().find(o => o.elementType === 'photo');
+        const infoElements = canvas.getObjects().filter(o =>
+            ['nom_complet', 'matricule', 'classe', 'annee'].includes(o.elementType) ||
+            (o.id && o.id.startsWith('label_') && o.id !== 'label_qr')
+        );
+
+        if (!photoFrame || !photo) return;
+
+        const leftX = 40;
+        const rightX = 465;
+        const infoLeftX = 210;
+        const infoRightX = 40;
+
+        // Use actual position to determine flip state
+        const currentIsLeft = Math.abs(photoFrame.left - leftX) < 10;
+
+        if (currentIsLeft) {
+            photoFrame.set('left', rightX);
+            photo.set('left', rightX + 5);
+            infoElements.forEach(el => el.set('left', infoRightX));
+        } else {
+            photoFrame.set('left', leftX);
+            photo.set('left', leftX + 5);
+            infoElements.forEach(el => el.set('left', infoLeftX));
+        }
+        canvas.renderAll();
+        saveLayout();
+    });
+
+    // Quick Action: Toggle Pattern
+    $('.action-toggle-pattern').on('click', function() {
+        const pattern = canvas.getObjects().find(o => o.id === 'bg_pattern');
+        if (pattern) {
+            pattern.set('visible', !pattern.visible);
+            canvas.renderAll();
+            saveLayout();
+        }
+    });
+
+    // Quick Action: Center Logo
+    $('.action-center-logo').on('click', function() {
+        const logo = canvas.getObjects().find(o => o.elementType === 'logo');
+        if (logo) {
+            logo.centerH();
+            canvas.renderAll();
+            saveLayout();
         }
     });
 
@@ -835,8 +944,8 @@ $(function() {
         const headerBg = $(this).data('header');
 
         canvas.getObjects().forEach(obj => {
-            // Apply primary color to accent elements and labels
-            if (obj.id === 'header_accent' || obj.id === 'footer_bar') {
+            // Background & Accents
+            if (['header_accent', 'footer_bar', 'side_accent'].includes(obj.id)) {
                 obj.set('fill', primaryColor);
             }
             if (obj.id === 'photo_frame') {
@@ -846,12 +955,17 @@ $(function() {
                 obj.set('fill', headerBg);
             }
 
-            // Text elements that act as labels (NOM ET PRÉNOMS, etc)
+            // Labels
+            if (obj.id && obj.id.startsWith('label_') && obj.id !== 'label_qr') {
+                obj.set('fill', primaryColor);
+            }
+
+            // Text elements that act as labels (fallback)
             if (obj.type === 'i-text' && ['NOM ET PRÉNOMS', 'MATRICULE', 'CLASSE / SÉRIE', 'ANNÉE SCOLAIRE'].includes(obj.text)) {
                 obj.set('fill', primaryColor);
             }
 
-            // Name highlighted with primary color
+            // Highlight name with primary color
             if (obj.elementType === 'nom_complet') {
                 obj.set('fill', primaryColor);
             }
