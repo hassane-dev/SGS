@@ -19,14 +19,20 @@ class SalaireController {
         $this->checkAccess();
         $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::get('lycee_id') : null;
         $salaires = Salaire::findAll($lycee_id);
-        require_once __DIR__ . '/../views/salaires/index.php';
+        View::render('salaires/index', [
+            'salaires' => $salaires,
+            'title' => 'Gestion des Salaires'
+        ]);
     }
 
     public function create() {
         $this->checkAccess();
         $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::get('lycee_id') : null;
         $personnels = User::findAll($lycee_id); // Simplified, should filter by contract type
-        require_once __DIR__ . '/../views/salaires/create.php';
+        View::render('salaires/create', [
+            'personnels' => $personnels,
+            'title' => 'Enregistrer un Paiement de Salaire'
+        ]);
     }
 
     public function store() {

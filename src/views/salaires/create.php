@@ -1,57 +1,86 @@
-<?php require_once __DIR__ . '/../layouts/header.php'; ?>
+<?php require_once __DIR__ . '/../layouts/header_able.php'; ?>
+<?php require_once __DIR__ . '/../layouts/sidebar_able.php'; ?>
 
-<div class="max-w-2xl mx-auto">
-    <h2 class="text-2xl font-bold mb-6"><?= _('Record a Salary Payment') ?></h2>
-
-    <div class="bg-white p-8 rounded-lg shadow-lg">
-        <form action="/salaires/store" method="POST">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <div class="md:col-span-2">
-                    <label for="personnel_id" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Staff Member') ?></label>
-                    <select name="personnel_id" id="personnel_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required>
-                        <?php foreach ($personnels as $personnel): ?>
-                            <option value="<?= $personnel['id_user'] ?>"><?= htmlspecialchars($personnel['prenom'] . ' ' . $personnel['nom']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-
-                <div class="flex gap-4">
-                    <div>
-                        <label for="mois" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Month') ?></label>
-                        <input type="number" name="mois" id="mois" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" value="<?= date('m') ?>" required>
-                    </div>
-                    <div>
-                        <label for="annee" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Year') ?></label>
-                        <input type="number" name="annee" id="annee" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" value="<?= date('Y') ?>" required>
+<div class="pc-container">
+    <div class="pc-content">
+        <div class="page-header">
+            <div class="page-block">
+                <div class="row align-items-center">
+                    <div class="col-md-12">
+                        <div class="page-header-title">
+                            <h2 class="mb-0"><?= $title ?></h2>
+                        </div>
+                        <ul class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/">Tableau de Bord</a></li>
+                            <li class="breadcrumb-item"><a href="/salaires">Salaires</a></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= $title ?></li>
+                        </ul>
                     </div>
                 </div>
-
-                <div>
-                    <label for="date_paiement" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Payment Date') ?></label>
-                    <input type="date" name="date_paiement" id="date_paiement" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" value="<?= date('Y-m-d') ?>">
-                </div>
-
-                <div>
-                    <label for="montant_brut" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Gross Amount') ?></label>
-                    <input type="number" step="0.01" name="montant_brut" id="montant_brut" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
-                </div>
-
-                <div>
-                    <label for="montant_net" class="block text-gray-700 text-sm font-bold mb-2"><?= _('Net Amount') ?></label>
-                    <input type="number" step="0.01" name="montant_net" id="montant_net" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required>
-                </div>
-
             </div>
+        </div>
 
-            <div class="mt-8 flex justify-end gap-4">
-                <a href="/salaires" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"><?= _('Cancel') ?></a>
-                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    <?= _('Save') ?>
-                </button>
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Détails du Paiement</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/salaires/store" method="POST">
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Membre du Personnel</label>
+                                    <select name="personnel_id" class="form-select" required>
+                                        <option value="">Sélectionner un employé...</option>
+                                        <?php foreach ($personnels as $personnel): ?>
+                                            <option value="<?= $personnel['id_user'] ?>"><?= htmlspecialchars($personnel['prenom'] . ' ' . $personnel['nom']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Mois</label>
+                                    <input type="number" name="mois" class="form-control" value="<?= date('m') ?>" min="1" max="12" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Année</label>
+                                    <input type="number" name="annee" class="form-control" value="<?= date('Y') ?>" required>
+                                </div>
+
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Date de Paiement</label>
+                                    <input type="date" name="date_paiement" class="form-control" value="<?= date('Y-m-d') ?>">
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Montant Brut</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" name="montant_brut" class="form-control" placeholder="0.00">
+                                        <span class="input-group-text">FCFA</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Montant Net</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" name="montant_net" class="form-control" placeholder="0.00" required>
+                                        <span class="input-group-text">FCFA</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-end mt-4">
+                                <a href="/salaires" class="btn btn-light-secondary me-2">Annuler</a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="ph-duotone ph-floppy-disk me-2"></i>Enregistrer le Paiement
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<?php require_once __DIR__ . '/../layouts/footer.php'; ?>
+<?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>

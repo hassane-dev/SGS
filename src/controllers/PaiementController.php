@@ -153,17 +153,25 @@ class PaiementController {
 
         // Elèves en attente de paiement initial (jamais payé)
         $stmt = $db->prepare("
-            SELECT e.*, c.niveau as nom_classe, 'En attente' as etat_finance, 0 as verse, 0 as reste
+            SELECT e.*, c.id_classe, c.niveau, c.serie, c.cycle_id, c.niveau as nom_classe, 'En attente' as etat_finance, 0 as verse, 0 as reste
             FROM eleves e
             JOIN etudes et ON e.id_eleve = et.eleve_id
             JOIN classes c ON et.classe_id = c.id_classe
             WHERE e.lycee_id = :lycee_id
             AND e.statut = 'en_attente_paiement'
-            AND et.annee_academique_id = :annee_id
-            AND NOT EXISTS (SELECT 1 FROM inscriptions i WHERE i.eleve_id = e.id_eleve AND i.annee_academique_id = :annee_id)
+            AND et.annee_academique_id = :annee_id1
+            AND NOT EXISTS (SELECT 1 FROM inscriptions i WHERE i.eleve_id = e.id_eleve AND i.annee_academique_id = :annee_id2)
         ");
-        $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
+        $stmt->execute(['lycee_id' => $lycee_id, 'annee_id1' => $activeYear['id'], 'annee_id2' => $activeYear['id']]);
         $en_attente = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Calculer le montant réel attendu pour ceux qui n'ont rien payé
+        foreach ($en_attente as &$e) {
+            $frais = Frais::findForClasse($e, $activeYear['id']);
+            if ($frais) {
+                $e['reste'] = (float)$frais['frais_inscription'];
+            }
+        }
 
         // Elèves avec paiement partiel
         $stmt = $db->prepare("
