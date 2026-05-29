@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../core/Validator.php';
 require_once __DIR__ . '/Classe.php'; // Include Classe model for level sorting
+require_once __DIR__ . '/Cycle.php';
 
 class Frais {
 
