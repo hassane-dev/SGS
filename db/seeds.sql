@@ -59,12 +59,14 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (41, 'class', 'create', 'Can create new classes'),
 (42, 'class', 'edit', 'Can edit existing classes'),
 (43, 'class', 'delete', 'Can delete classes'),
+(35, 'class', 'manage', 'Global permission for class management section'),
 (44, 'matiere', 'view', 'Can view the list of subjects'),
 (45, 'matiere', 'create', 'Can create new subjects'),
 (46, 'matiere', 'edit', 'Can edit existing subjects'),
 (47, 'matiere', 'delete', 'Can delete subjects'),
 (48, 'annee_academique', 'manage', 'Can manage academic years'),
 (49, 'sequence', 'manage', 'Can manage academic sequences (trimesters, semesters)'),
+(100, 'cycle', 'manage', 'Can manage academic cycles'),
 
 
 -- Students
@@ -83,6 +85,7 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (63, 'cahier_texte', 'edit_all', 'Can edit any digital logbook entry'),
 (64, 'cahier_texte', 'create_own', 'Can fill their own digital logbook entries'),
 (65, 'cahier_texte', 'edit_own', 'Can edit their own digital logbook entries'),
+(69, 'cahier_texte', 'manage', 'Global permission for cahier de texte section'),
 (66, 'evaluation', 'manage_settings', 'Can configure evaluation (grading) periods'),
 (67, 'presence', 'manage', 'Can manage student attendance'),
 (68, 'presence', 'view', 'Can view student attendance'),
@@ -110,7 +113,10 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (91, 'series', 'manage', 'Gérer les structures des classes (séries, etc.)'),
 
 -- Boutique
-(95, 'boutique', 'manage', 'Gérer la boutique (articles et achats)');
+(95, 'boutique', 'manage', 'Gérer la boutique (articles et achats)'),
+
+-- Test Entree
+(96, 'tests_entree', 'manage', 'Gérer les tests d\'entrée');
 
 -- --------------------------------------------------------
 -- Role-Permission Assignments
@@ -127,21 +133,24 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Dashboard & Users & Roles
 (3, 1), (3, 10), (3, 11), (3, 12), (3, 13), (3, 14), (3, 15), (3, 20), (3, 21), (3, 22), (3, 23), (3, 24),
 -- Academic Structure
-(3, 40), (3, 41), (3, 42), (3, 43), -- Classes
+(3, 40), (3, 41), (3, 42), (3, 43), (3, 35), -- Classes & manage:class
 (3, 44), (3, 45), (3, 46), (3, 47), -- Matieres
 (3, 48), -- Annees Academiques
 (3, 49), -- Sequences
+(3, 100), -- Cycles
 -- Students & Academics
-(3, 50), (3, 51), (3, 52), (3, 53), (3, 54), (3, 55), (3, 56), (3, 61), (3, 62), (3, 63), (3, 66), (3, 67), (3, 68),
+(3, 50), (3, 51), (3, 52), (3, 53), (3, 54), (3, 55), (3, 56), (3, 61), (3, 62), (3, 63), (3, 69), (3, 66), (3, 67), (3, 68),
 -- Finance & Settings
-(3, 71), (3, 72), (3, 73), (3, 75), (3, 76), (3, 77),
+(3, 70), (3, 71), (3, 72), (3, 73), (3, 75), (3, 76), (3, 77),
 (3, 81), (3, 82), (3, 83), (3, 84),
 -- Timetable
 (3, 90),
 -- Series
 (3, 91),
 -- Boutique
-(3, 95);
+(3, 95),
+-- Test Entree
+(3, 96);
 
 -- Censeur (Academic Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
