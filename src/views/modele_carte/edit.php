@@ -21,11 +21,17 @@
             </div>
         </div>
 
-        <?php if (isset($_GET['success'])): ?>
+        <?php
+            if (isset($_GET['success'])): ?>
             <div class="alert alert-success" role="alert">
                 <?= _('Template saved successfully!') ?>
             </div>
-        <?php endif; ?>
+        <?php endif;
+
+        // Ensure $params_lycee and $modele are arrays to avoid TypeErrors in PHP 8
+        $params_lycee = $params_lycee ?: [];
+        $modele = $modele ?: [];
+        ?>
 
         <div class="row">
             <div class="col-md-12">
@@ -322,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function() {
         logo: (options) => {
             const logoUrl = '<?= htmlspecialchars($params_lycee['logo'] ?? '') ?>' || '/assets/img/placeholder-photo.png';
             fabric.Image.fromURL(logoUrl, function(img) {
-                if (!img) {
+                if (!img || img.width === 0) {
                     const rect = new fabric.Rect({
                         left: options.left !== undefined ? options.left : 273,
                         top: options.top !== undefined ? options.top : 10,
@@ -339,8 +345,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 img.set({
                     left: options.left !== undefined ? options.left : 273,
                     top: options.top !== undefined ? options.top : 10,
-                    scaleX: (options.width || 100) / img.width,
-                    scaleY: (options.height || 100) / img.height,
+                    scaleX: img.width ? (options.width || 100) / img.width : 1,
+                    scaleY: img.height ? (options.height || 100) / img.height : 1,
                     ...options
                 });
                 img.set('elementType', 'logo');
@@ -402,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         photo: (options) => {
             fabric.Image.fromURL('/assets/img/placeholder-photo.png', function(img) {
-                if (!img) {
+                if (!img || img.width === 0) {
                     // Create a rectangle as fallback
                     const rect = new fabric.Rect({
                         left: options.left !== undefined ? options.left : 20,
@@ -420,8 +426,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 img.set({
                     left: options.left !== undefined ? options.left : 20,
                     top: options.top !== undefined ? options.top : 20,
-                    scaleX: (options.width || 100) / img.width,
-                    scaleY: (options.height || 120) / img.height,
+                    scaleX: img.width ? (options.width || 100) / img.width : 1,
+                    scaleY: img.height ? (options.height || 120) / img.height : 1,
                     ...options
                 });
                 img.set('elementType', 'photo');
@@ -431,7 +437,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         qr_code: (options) => {
             fabric.Image.fromURL('/assets/img/placeholder-qr.png', function(img) {
-                if (!img) {
+                if (!img || img.width === 0) {
                     const rect = new fabric.Rect({
                         left: options.left !== undefined ? options.left : 430,
                         top: options.top !== undefined ? options.top : 230,
@@ -448,8 +454,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 img.set({
                     left: options.left !== undefined ? options.left : 430,
                     top: options.top !== undefined ? options.top : 230,
-                    scaleX: (options.width || 100) / img.width,
-                    scaleY: (options.height || 100) / img.height,
+                    scaleX: img.width ? (options.width || 100) / img.width : 1,
+                    scaleY: img.height ? (options.height || 100) / img.height : 1,
                     ...options
                 });
                 img.set('elementType', 'qr_code');
@@ -495,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function() {
             canvas.setActiveObject(text);
         },
         text: (options) => {
-            const text = new fabric.IText('Texte Statique', {
+            const text = new fabric.IText(options.text || 'Texte Statique', {
                 left: options.left !== undefined ? options.left : 150,
                 top: options.top !== undefined ? options.top : 50,
                 fontSize: options.fontSize || 14,
@@ -560,7 +566,7 @@ document.addEventListener('DOMContentLoaded', function() {
         signature_directeur: (options) => {
             const signatureUrl = '<?= htmlspecialchars($params_lycee['signature_directeur'] ?? '') ?>' || '/assets/img/placeholder-signature.png';
             fabric.Image.fromURL(signatureUrl, function(img) {
-                if (!img) {
+                if (!img || img.width === 0) {
                     const rect = new fabric.Rect({
                         left: options.left !== undefined ? options.left : 450,
                         top: options.top !== undefined ? options.top : 330,
@@ -576,8 +582,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 img.set({
                     left: options.left !== undefined ? options.left : 450,
                     top: options.top !== undefined ? options.top : 330,
-                    scaleX: (options.width || 120) / img.width,
-                    scaleY: (options.height || 50) / img.height,
+                    scaleX: img.width ? (options.width || 120) / img.width : 1,
+                    scaleY: img.height ? (options.height || 50) / img.height : 1,
                     ...options
                 });
                 img.set('elementType', 'signature_directeur');
@@ -588,7 +594,7 @@ document.addEventListener('DOMContentLoaded', function() {
         tampon_ecole: (options) => {
             const tamponUrl = '<?= htmlspecialchars($params_lycee['tampon_ecole'] ?? '') ?>' || '/assets/img/placeholder-tampon.png';
             fabric.Image.fromURL(tamponUrl, function(img) {
-                if (!img) {
+                if (!img || img.width === 0) {
                     const circle = new fabric.Circle({
                         left: options.left !== undefined ? options.left : 400,
                         top: options.top !== undefined ? options.top : 280,
@@ -604,8 +610,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 img.set({
                     left: options.left !== undefined ? options.left : 400,
                     top: options.top !== undefined ? options.top : 280,
-                    scaleX: (options.width || 80) / img.width,
-                    scaleY: (options.height || 80) / img.height,
+                    scaleX: img.width ? (options.width || 80) / img.width : 1,
+                    scaleY: img.height ? (options.height || 80) / img.height : 1,
                     opacity: 0.6,
                     ...options
                 });
@@ -798,6 +804,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to apply default professional layout
     function applyDefaultLayout() {
         canvas.clear();
+        drawCR80Guideline();
         canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
 
         const defaultModel = [
@@ -805,7 +812,7 @@ document.addEventListener('DOMContentLoaded', function() {
             { type: 'rect', left: 0, top: 0, width: 647, height: 408, fill: '#ffffff', id: 'bg_main' },
 
             // Decorative background pattern (subtle)
-            { type: 'text', text: '★'.repeat(50) + '\n' + '★'.repeat(50), left: 0, top: 0, fontSize: 20, fill: '#f1f1f1', opacity: 0.2, selectable: false, id: 'bg_pattern' },
+            { type: 'text', text: '★'.repeat(25) + '\n' + '★'.repeat(25), left: 0, top: 0, fontSize: 40, fill: '#f1f1f1', opacity: 0.2, selectable: false, id: 'bg_pattern' },
 
             // Header bar
             { type: 'rect', left: 0, top: 0, width: 647, height: 115, fill: '#f8f9fa', id: 'header_bg' },
@@ -850,7 +857,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Modern Footer
             { type: 'rect', left: 0, top: 390, width: 647, height: 18, fill: '#0056b3', id: 'footer_bar' },
-            { type: 'text', left: 0, top: 394, width: 647, fontSize: 8, fill: '#ffffff', text: 'CARTE D\'IDENTITÉ SCOLAIRE - DOCUMENT OFFICIEL DE L\'ÉTABLISSEMENT', textAlign: 'center', fontWeight: 'bold' }
+            { type: 'text', left: 0, top: 394, width: 647, fontSize: 8, fill: '#ffffff', text: 'CARTE D\'IDENTITÉ SCOLAIRE - DOCUMENT OFFICIEL DE L\'ÉTABLISSEMENT', textAlign: 'center', fontWeight: 'bold', id: 'footer_text' }
         ];
 
         defaultModel.forEach(el => {
@@ -982,6 +989,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial Load
     function loadInitialLayout() {
+        console.log("Initializing Card Editor...");
         drawCR80Guideline();
 
         // Background
@@ -1000,8 +1008,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const isCompatibleModel = cardModel.version === currentVersion;
 
         if (layoutElements.length === 0 || !isCompatibleModel) {
+            console.log("No layout or incompatible version found. Applying default layout.");
             applyDefaultLayout();
         } else {
+            console.log("Loading existing layout from database.");
             // Elements saved in DB
             layoutElements.forEach(el => {
                 if (creators[el.type]) {
