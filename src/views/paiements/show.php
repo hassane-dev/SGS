@@ -109,14 +109,19 @@
                             <div class="card bg-light border-0 mb-4">
                                 <div class="card-body p-3">
                                     <h6 class="mb-3 text-muted">Options & Services Additionnels</h6>
+                                    <?php if ((float)($frais['frais_logo'] ?? 0) > 0): ?>
                                     <div class="form-check form-switch mb-2">
-                                        <input class="form-check-input option-checkbox" type="checkbox" id="logo_paye" name="options[logo]" data-price="2000" <?= !empty($options['logo']) ? 'checked' : '' ?> <?= !$isComptable ? 'disabled' : '' ?>>
-                                        <label class="form-check-label" for="logo_paye">Frais de Logo (Macaron) <small class="text-muted">(+2 000 FCFA)</small></label>
+                                        <input class="form-check-input option-checkbox" type="checkbox" id="logo_paye" name="options[logo]" data-price="<?= (float)$frais['frais_logo'] ?>" <?= !empty($options['logo']) ? 'checked' : '' ?> <?= !$isComptable ? 'disabled' : '' ?>>
+                                        <label class="form-check-label" for="logo_paye">Frais de Logo (Macaron) <small class="text-muted">(+<?= number_format($frais['frais_logo'], 0, ',', ' ') ?> FCFA)</small></label>
                                     </div>
+                                    <?php endif; ?>
+
+                                    <?php if ((float)($frais['frais_carte'] ?? 0) > 0): ?>
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input option-checkbox" type="checkbox" id="carte_scolaire_payee" name="options[carte]" data-price="3000" <?= !empty($options['carte']) ? 'checked' : '' ?> <?= !$isComptable ? 'disabled' : '' ?>>
-                                        <label class="form-check-label" for="carte_scolaire_payee">Carte scolaire informatisée <small class="text-muted">(+3 000 FCFA)</small></label>
+                                        <input class="form-check-input option-checkbox" type="checkbox" id="carte_scolaire_payee" name="options[carte]" data-price="<?= (float)$frais['frais_carte'] ?>" <?= !empty($options['carte']) ? 'checked' : '' ?> <?= !$isComptable ? 'disabled' : '' ?>>
+                                        <label class="form-check-label" for="carte_scolaire_payee">Carte scolaire informatisée <small class="text-muted">(+<?= number_format($frais['frais_carte'], 0, ',', ' ') ?> FCFA)</small></label>
                                     </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
 
