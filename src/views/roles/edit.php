@@ -32,7 +32,10 @@
                                     <h5 class="border-bottom pb-2 mb-3"><?= _('Détails du Rôle') ?></h5>
                                     <div class="mb-3">
                                         <label for="nom_role" class="form-label"><?= _('Nom du Rôle') ?></label>
-                                        <input type="text" name="nom_role" id="nom_role" class="form-control" value="<?= htmlspecialchars($role['nom_role'] ?? '') ?>" required>
+                                        <input type="text" name="nom_role" id="nom_role" class="form-control" value="<?= htmlspecialchars($role['nom_role'] ?? '') ?>" required <?= ($role['id_role'] <= 8 && Auth::get('role_name') === 'admin_local') ? 'readonly' : '' ?>>
+                                        <?php if ($role['id_role'] <= 8 && Auth::get('role_name') === 'admin_local'): ?>
+                                            <div class="form-text text-warning"><?= _('Le nom des rôles par défaut ne peut pas être modifié.') ?></div>
+                                        <?php endif; ?>
                                     </div>
 
                                     <?php if (Auth::can('view_all_lycees', 'lycee')): ?>
