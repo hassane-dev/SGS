@@ -144,4 +144,39 @@ class Mensualite {
             'recu_numero' => $data['recu_numero'] ?? null
         ]);
     }
+
+    /**
+     * Génère automatiquement le prochain numéro de reçu.
+     */
+    public static function generateReceiptNumber($lyceeId) {
+        $db = Database::getInstance();
+
+        // Chercher le dernier numéro de reçu dans mensualite_details et inscriptions pour ce lycée
+        $stmt = $db->prepare("
+            SELECT recu_numero FROM (
+                SELECT md.recu_numero
+                FROM mensualite_details md
+                JOIN mensualites m ON md.mensualite_id = m.id_mensualite
+                WHERE m.lycee_id = :l1 AND md.recu_numero LIKE 'REC-%'
+                UNION ALL
+                SELECT recu_numero
+                FROM inscriptions
+                WHERE lycee_id = :l2 AND recu_numero LIKE 'REC-%'
+            ) as t
+            ORDER BY recu_numero DESC
+            LIMIT 1
+        ");
+        $stmt->execute(['l1' => $lyceeId, 'l2' => $lyceeId]);
+        $lastRecu = $stmt->fetchColumn();
+
+        if ($lastRecu) {
+            // Extraire le numéro (ex: REC-000125 -> 125)
+            $number = (int) substr($lastRecu, 4);
+            $nextNumber = $number + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        return 'REC-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+    }
 }

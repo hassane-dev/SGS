@@ -219,6 +219,9 @@ class PaiementController {
 
         $eleve['nom_classe'] = $classe ? Classe::getFormattedName($classe) : 'Non assignée';
 
+        // Récupérer les paramètres généraux (pour les modes de paiement)
+        $paramGeneral = ParamGeneral::findByLyceeId($eleve['lycee_id'] ?? Auth::getLyceeId());
+
         // Récupérer les frais et l'inscription
         $frais = Frais::findForClasse($classe, $anneeActive['id']);
         $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id'], $eleve['lycee_id'] ?? null);
@@ -241,6 +244,8 @@ class PaiementController {
         $mensualitesPayees = Mensualite::findByEtude($etude['id_etude']);
         $tranches = [];
         $fmt = new IntlDateFormatter('fr_FR', IntlDateFormatter::FULL, IntlDateFormatter::NONE, 'Africa/Porto-Novo', IntlDateFormatter::GREGORIAN, 'MMMM');
+
+        $nextRecu = Mensualite::generateReceiptNumber($eleve['lycee_id'] ?? Auth::getLyceeId());
 
         foreach ($sequences as $i => $sequence) {
             $mois = [];
@@ -278,6 +283,8 @@ class PaiementController {
             'options' => $options,
             'tranches' => $tranches,
             'mensualitesPayees' => $mensualitesPayees,
+            'paramGeneral' => $paramGeneral,
+            'nextRecu' => $nextRecu,
             'isComptable' => Auth::can('manage', 'paiement')
         ]);
     }
@@ -333,18 +340,26 @@ class PaiementController {
                 'carte' => $hasCarte
             ]);
 
+            $lyceeId = Auth::getLyceeId();
+
+            $recuNum = $_POST['reference_transaction'] ?? null;
+            if (empty($recuNum)) {
+                $recuNum = Mensualite::generateReceiptNumber($lyceeId);
+            }
+
             $data = [
                 'id_inscription' => $inscription['id_inscription'] ?? null,
                 'etude_id' => $etude['id_etude'],
                 'eleve_id' => $eleveId,
                 'classe_id' => $classe['id_classe'],
-                'lycee_id' => Auth::getLyceeId(),
+                'lycee_id' => $lyceeId,
                 'annee_academique_id' => $anneeActive['id'],
                 'montant_total' => $montantTotal,
                 'montant_verse' => $montantVerse,
                 'reste_a_payer' => $resteAPayer,
                 'details_frais' => $detailsFrais,
-                'user_id' => Auth::user()['id']
+                'user_id' => Auth::user()['id'],
+                'recu_numero' => $recuNum
             ];
 
             Inscription::save($data);
@@ -408,6 +423,11 @@ class PaiementController {
             $lyceeId = $eleve['lycee_id'] ?? Auth::getLyceeId();
             $classeId = $etude['classe_id'];
 
+            $reference = $_POST['reference_transaction'] ?? null;
+            if (empty($reference)) {
+                $reference = Mensualite::generateReceiptNumber($lyceeId);
+            }
+
             foreach ($paiements as $mois => $montant) {
                 $montant = (float) $montant;
                 if ($montant > 0) {
@@ -430,8 +450,8 @@ class PaiementController {
                         'mensualite_id' => $mensualiteId,
                         'montant' => $montant,
                         'mode_paiement' => $_POST['mode_paiement'] ?? 'Espèces',
-                        'reference_transaction' => $_POST['reference_transaction'] ?? null,
-                        'recu_numero' => 'REC-' . time() . '-' . $eleveId
+                        'reference_transaction' => $reference,
+                        'recu_numero' => $reference
                     ]);
                 }
             }
