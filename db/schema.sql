@@ -405,6 +405,8 @@ CREATE TABLE `frais` (
     `serie` VARCHAR(50),
     `frais_inscription` DECIMAL(10, 2) NOT NULL,
     `frais_mensuel` DECIMAL(10, 2) NOT NULL,
+    `frais_logo` DECIMAL(10, 2) DEFAULT NULL,
+    `frais_carte` DECIMAL(10, 2) DEFAULT NULL,
     `autres_frais` JSON,
     `annee_academique_id` INT,
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,

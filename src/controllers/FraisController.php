@@ -37,11 +37,13 @@ class FraisController {
         $this->checkAccess();
         $lycee_id = Auth::get('lycee_id');
         $activeYear = AnneeAcademique::findActive();
+        $cycles = Cycle::findByLycee($lycee_id);
 
         View::render('frais/create', [
             'title' => 'Ajouter une Grille Tarifaire',
             'lycee_id' => $lycee_id,
-            'activeYear' => $activeYear
+            'activeYear' => $activeYear,
+            'cycles' => $cycles
         ]);
     }
 

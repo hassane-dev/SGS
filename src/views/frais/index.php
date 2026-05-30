@@ -42,15 +42,17 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                                     <tr>
                                         <th>Configuration</th>
                                         <th>Détails</th>
-                                        <th>Frais d'Inscription</th>
+                                        <th>Inscription</th>
                                         <th>Mensualité</th>
+                                        <th>Logo</th>
+                                        <th>Carte</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php if (empty($frais)): ?>
                                         <tr>
-                                            <td colspan="5" class="text-center">Aucune grille tarifaire définie pour cette année.</td>
+                                            <td colspan="7" class="text-center">Aucune grille tarifaire définie pour cette année.</td>
                                         </tr>
                                     <?php else: ?>
                                         <?php foreach ($frais as $f): ?>
@@ -72,8 +74,10 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                                                         <?php endif; ?>
                                                     <?php endif; ?>
                                                 </td>
-                                                <td><?= htmlspecialchars(number_format($f['frais_inscription'], 2)) ?></td>
-                                                <td><?= htmlspecialchars(number_format($f['frais_mensuel'], 2)) ?></td>
+                                                <td><?= htmlspecialchars(number_format($f['frais_inscription'], 0, ',', ' ')) ?></td>
+                                                <td><?= htmlspecialchars(number_format($f['frais_mensuel'], 0, ',', ' ')) ?></td>
+                                                <td><?= $f['frais_logo'] ? htmlspecialchars(number_format($f['frais_logo'], 0, ',', ' ')) : '-' ?></td>
+                                                <td><?= $f['frais_carte'] ? htmlspecialchars(number_format($f['frais_carte'], 0, ',', ' ')) : '-' ?></td>
                                                 <td>
                                                     <!-- Actions buttons (edit, delete) can be added here -->
                                                     <a href="#" class="btn btn-sm btn-outline-primary">Modifier</a>

@@ -57,6 +57,8 @@ class Frais {
             ':annee_academique_id' => $data['annee_academique_id'],
             ':frais_inscription' => $data['frais_inscription'],
             ':frais_mensuel' => $data['frais_mensuel'],
+            ':frais_logo' => !empty($data['frais_logo']) ? $data['frais_logo'] : null,
+            ':frais_carte' => !empty($data['frais_carte']) ? $data['frais_carte'] : null,
             ':autres_frais' => !empty($data['autres_frais']) ? json_encode($data['autres_frais']) : null,
             ':cycle' => null,
             ':niveau_debut' => null,
@@ -69,6 +71,9 @@ class Frais {
                 throw new InvalidArgumentException("Le champ Cycle est requis pour ce type de configuration.");
             }
             $params[':cycle'] = $data['cycle'];
+            $params[':niveau_debut'] = null;
+            $params[':niveau_fin'] = null;
+            $params[':serie'] = null;
         } elseif ($data['type_config'] === 'plage') {
             if (empty($data['niveau_debut']) || empty($data['niveau_fin'])) {
                 throw new InvalidArgumentException("Niveau début et Niveau fin sont requis pour ce type de configuration.");
@@ -76,13 +81,14 @@ class Frais {
             $params[':niveau_debut'] = $data['niveau_debut'];
             $params[':niveau_fin'] = $data['niveau_fin'];
             $params[':serie'] = !empty($data['serie']) ? $data['serie'] : null;
+            $params[':cycle'] = null;
         } else {
             throw new InvalidArgumentException("Type de configuration non valide.");
         }
 
         // For now, we only handle creation (INSERT). Update logic can be added later.
-        $sql = "INSERT INTO frais (lycee_id, annee_academique_id, frais_inscription, frais_mensuel, autres_frais, cycle, niveau_debut, niveau_fin, serie)
-                VALUES (:lycee_id, :annee_academique_id, :frais_inscription, :frais_mensuel, :autres_frais, :cycle, :niveau_debut, :niveau_fin, :serie)";
+        $sql = "INSERT INTO frais (lycee_id, annee_academique_id, frais_inscription, frais_mensuel, frais_logo, frais_carte, autres_frais, cycle, niveau_debut, niveau_fin, serie)
+                VALUES (:lycee_id, :annee_academique_id, :frais_inscription, :frais_mensuel, :frais_logo, :frais_carte, :autres_frais, :cycle, :niveau_debut, :niveau_fin, :serie)";
 
         $stmt = $db->prepare($sql);
         if ($stmt->execute($params)) {

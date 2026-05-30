@@ -22,8 +22,14 @@
             <label for="cycle" class="col-sm-3 col-form-label">Cycle</label>
             <div class="col-sm-9">
                 <select class="form-select" id="cycle" name="cycle">
-                    <option value="CEG">CEG</option>
-                    <option value="Lycée">Lycée</option>
+                    <option value="">Sélectionnez un cycle</option>
+                    <?php if (isset($cycles)): ?>
+                        <?php foreach ($cycles as $c): ?>
+                            <option value="<?= htmlspecialchars($c['nom_cycle']) ?>" <?= ($old_input['cycle'] ?? '') === $c['nom_cycle'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($c['nom_cycle']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </select>
             </div>
         </div>
@@ -70,23 +76,17 @@
         </div>
     </div>
 
-    <!-- Frais optionnels -->
-    <hr>
     <div class="row mb-3">
-        <label class="col-sm-3 col-form-label">Frais Optionnels</label>
+        <label for="frais_logo" class="col-sm-3 col-form-label">Frais Logo (Optionnel)</label>
         <div class="col-sm-9">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="autres_frais[logo_scolaire]" id="logo_scolaire" value="1">
-                <label class="form-check-label" for="logo_scolaire">
-                    Logo scolaire
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="autres_frais[carte_identite]" id="carte_identite" value="1">
-                <label class="form-check-label" for="carte_identite">
-                    Carte d’identité scolaire
-                </label>
-            </div>
+            <input type="number" step="0.01" class="form-control" id="frais_logo" name="frais_logo" value="<?= $old_input['frais_logo'] ?? '' ?>" placeholder="Ex: 2000">
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <label for="frais_carte" class="col-sm-3 col-form-label">Frais Carte d'identité (Optionnel)</label>
+        <div class="col-sm-9">
+            <input type="number" step="0.01" class="form-control" id="frais_carte" name="frais_carte" value="<?= $old_input['frais_carte'] ?? '' ?>" placeholder="Ex: 3000">
         </div>
     </div>
 

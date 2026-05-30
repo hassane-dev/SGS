@@ -230,9 +230,9 @@ class PaiementController {
 
         $options = $inscription ? json_decode($inscription['details_frais'], true) : ['logo' => false, 'carte' => false];
 
-        // Ajouter les frais d'options au total si cochés
-        if (!empty($options['logo'])) $fraisInscription['total'] += 2000; // Exemple: 2000 FCFA
-        if (!empty($options['carte'])) $fraisInscription['total'] += 3000; // Exemple: 3000 FCFA
+        // Ajouter les frais d'options au total si cochés, en utilisant les frais configurés
+        if (!empty($options['logo'])) $fraisInscription['total'] += (float)($frais['frais_logo'] ?? 0);
+        if (!empty($options['carte'])) $fraisInscription['total'] += (float)($frais['frais_carte'] ?? 0);
 
         $fraisInscription['reste'] = $fraisInscription['total'] - $fraisInscription['verse'];
 
@@ -272,6 +272,7 @@ class PaiementController {
 
         View::render('paiements/show', [
             'eleve' => $eleve,
+            'frais' => $frais,
             'fraisInscription' => $fraisInscription,
             'inscription' => $inscription,
             'options' => $options,
@@ -318,8 +319,8 @@ class PaiementController {
             $hasLogo = isset($_POST['options']['logo']);
             $hasCarte = isset($_POST['options']['carte']);
 
-            if ($hasLogo) $montantTotal += 2000;
-            if ($hasCarte) $montantTotal += 3000;
+            if ($hasLogo) $montantTotal += (float)($frais['frais_logo'] ?? 0);
+            if ($hasCarte) $montantTotal += (float)($frais['frais_carte'] ?? 0);
 
             if ($montantVerse > $montantTotal) {
                 throw new Exception("Le montant versé ne peut pas être supérieur au montant total de l'inscription.");
