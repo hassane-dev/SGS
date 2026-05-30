@@ -75,8 +75,8 @@ class Inscription {
         } else {
             // Création
             $stmt = $db->prepare(
-                "INSERT INTO inscriptions (etude_id, eleve_id, classe_id, lycee_id, annee_academique_id, montant_total, montant_verse, reste_a_payer, details_frais, user_id)
-                VALUES (:etude_id, :eleve_id, :classe_id, :lycee_id, :annee_academique_id, :montant_total, :montant_verse, :reste_a_payer, :details_frais, :user_id)"
+                "INSERT INTO inscriptions (etude_id, eleve_id, classe_id, lycee_id, annee_academique_id, montant_total, montant_verse, reste_a_payer, details_frais, user_id, recu_numero)
+                VALUES (:etude_id, :eleve_id, :classe_id, :lycee_id, :annee_academique_id, :montant_total, :montant_verse, :reste_a_payer, :details_frais, :user_id, :recu_numero)"
             );
             $stmt->execute([
                 'etude_id' => $data['etude_id'] ?? null,
@@ -88,7 +88,8 @@ class Inscription {
                 'montant_verse' => $data['montant_verse'],
                 'reste_a_payer' => $data['reste_a_payer'],
                 'details_frais' => $data['details_frais'],
-                'user_id' => $data['user_id']
+                'user_id' => $data['user_id'],
+                'recu_numero' => $data['recu_numero'] ?? null
             ]);
             return $db->lastInsertId();
         }

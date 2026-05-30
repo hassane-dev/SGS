@@ -194,7 +194,7 @@
                                         <div id="collapse-<?= $trancheClean ?>" class="accordion-collapse collapse" data-bs-parent="#accordionMensualites">
                                             <div class="accordion-body bg-light-layout">
                                                 <div class="form-check form-switch mb-4 p-3 bg-white rounded shadow-sm">
-                                                    <input class="form-check-input checkbox-tranche ms-1" type="checkbox" id="tranche_payee_<?= $trancheClean ?>" data-tranche-id="<?= $trancheClean ?>" data-montant-total="<?= htmlspecialchars($details['montant_par_mois']) ?>" <?= (!$isComptable || $nbPayes === $nbMois) ? 'disabled' : '' ?>>
+                                                    <input class="form-check-input checkbox-tranche ms-1" type="checkbox" id="tranche_payee_<?= $trancheClean ?>" data-tranche-id="<?= $trancheClean ?>" data-montant-mensuel="<?= htmlspecialchars($details['montant_par_mois']) ?>" <?= (!$isComptable || $nbPayes === $nbMois) ? 'disabled' : '' ?>>
                                                     <label class="form-check-label fw-bold text-success ms-2" for="tranche_payee_<?= $trancheClean ?>">
                                                         Payer toute la <?= htmlspecialchars($nomTranche) ?>
                                                     </label>
@@ -276,19 +276,27 @@
 
                             <?php if ($isComptable): ?>
                                 <div class="bg-light-success p-4 rounded-3 border border-success border-opacity-25 mt-4">
+                                    <div id="total-scolarite-display" class="mb-3 p-2 bg-white rounded border border-success text-center d-none">
+                                        <span class="h5 mb-0 text-success">Total à payer : <strong id="total-scolarite-amount">0</strong> FCFA</span>
+                                    </div>
                                     <div class="row g-3">
                                         <div class="col-md-6">
                                             <label class="form-label fw-bold">Mode de Règlement</label>
                                             <select name="mode_paiement" class="form-select shadow-none">
-                                                <option value="Espèces">Espèces (Liquide)</option>
-                                                <option value="Bordereau">Versement / Virement Bancaire</option>
-                                                <option value="Chèque">Chèque</option>
-                                                <option value="Mobile">Mobile Money</option>
+                                                <?php
+                                                $modes = !empty($paramGeneral['modalite_paiement'])
+                                                    ? explode(',', $paramGeneral['modalite_paiement'])
+                                                    : ['Espèces', 'Bordereau', 'Chèque', 'Mobile'];
+                                                foreach ($modes as $mode):
+                                                    $mode = trim($mode);
+                                                ?>
+                                                    <option value="<?= htmlspecialchars($mode) ?>"><?= htmlspecialchars($mode) ?></option>
+                                                <?php endforeach; ?>
                                             </select>
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label fw-bold">Référence / N° Bordereau</label>
-                                            <input type="text" name="reference_transaction" class="form-control shadow-none" placeholder="Ex: TX-90234">
+                                            <input type="text" name="reference_transaction" class="form-control shadow-none" placeholder="Auto-généré si vide" value="<?= $nextRecu ?>">
                                         </div>
                                     </div>
                                     <div class="d-grid mt-4">
@@ -348,28 +356,57 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Gestion de la section mensualités
     const trancheCheckboxes = document.querySelectorAll('.checkbox-tranche');
+    const moisInputs = document.querySelectorAll('.input-mois');
+    const totalDisplay = document.getElementById('total-scolarite-display');
+    const totalAmount = document.getElementById('total-scolarite-amount');
+
+    function updateTotalScolarite() {
+        let total = 0;
+        moisInputs.forEach(input => {
+            total += parseFloat(input.value) || 0;
+        });
+
+        if (total > 0) {
+            totalDisplay.classList.remove('d-none');
+            totalAmount.textContent = total.toLocaleString('fr-FR');
+        } else {
+            totalDisplay.classList.add('d-none');
+        }
+    }
 
     trancheCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const trancheId = this.dataset.trancheId;
-            const moisInputs = document.querySelectorAll(`.input-mois[data-tranche-id="${trancheId}"]`);
+            const trancheMoisInputs = document.querySelectorAll(`.input-mois[data-tranche-id="${trancheId}"]`);
 
             if (this.checked) {
-                const montantParMois = parseFloat(this.dataset.montantTotal);
-                moisInputs.forEach(input => {
+                const montantParMois = parseFloat(this.dataset.montantMensuel);
+                trancheMoisInputs.forEach(input => {
                     if (!input.readOnly) {
                         input.value = montantParMois;
                         input.closest('.card').classList.add('bg-light-success');
                     }
                 });
             } else {
-                 moisInputs.forEach(input => {
+                 trancheMoisInputs.forEach(input => {
                     if (!input.readOnly) {
                         input.value = '';
                         input.closest('.card').classList.remove('bg-light-success');
                     }
                 });
             }
+            updateTotalScolarite();
+        });
+    });
+
+    moisInputs.forEach(input => {
+        input.addEventListener('input', () => {
+            if (input.value !== '') {
+                input.closest('.card').classList.add('bg-light-warning');
+            } else {
+                input.closest('.card').classList.remove('bg-light-warning');
+            }
+            updateTotalScolarite();
         });
     });
 });
