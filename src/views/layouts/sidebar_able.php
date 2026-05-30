@@ -240,7 +240,7 @@ $navItems = [
     <div class="m-header">
       <a href="/" class="b-brand text-primary">
         <!-- ========   Change your logo from here   ============ -->
-        <img src="/assets/img/logo-dark.svg" alt="logo image" class="logo-lg" />
+        <img src="/assets/img/placeholder-photo.png" alt="logo image" class="logo-lg" style="height: 40px;"/>
         <span class="badge bg-light-success rounded-pill ms-2 theme-version">v1.0</span>
       </a>
     </div>

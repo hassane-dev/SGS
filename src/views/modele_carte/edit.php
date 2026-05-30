@@ -986,6 +986,7 @@ document.addEventListener('DOMContentLoaded', function() {
         canvas.renderAll();
         saveLayout();
     });
+    });
 
     // Initial Load
     function loadInitialLayout() {
