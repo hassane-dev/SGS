@@ -80,12 +80,22 @@ class RoleController {
         $role = Role::findById($id);
         if (!$role) { header('Location: /roles'); exit(); }
 
-        // Security check for local admins: they can only edit roles for their own lycee.
-        // They cannot edit global roles (where lycee_id is NULL).
-        if (Auth::get('role_name') === 'admin_local' && $role['lycee_id'] != Auth::getLyceeId()) {
-             http_response_code(403);
-             View::render('errors/403');
-             exit();
+        // Security check for local admins: they can edit roles for their own lycee.
+        // They can also edit global roles if they have role:manage permission (which they do).
+        // However, we MUST prevent them from editing critical super admin roles.
+        if (Auth::get('role_name') === 'admin_local') {
+             // Block editing of Super Admin Creator (1) and Super Admin National (2)
+             if ($role['id_role'] == 1 || $role['id_role'] == 2) {
+                 http_response_code(403);
+                 View::render('errors/403');
+                 exit();
+             }
+             // Also block if it belongs to another school
+             if ($role['lycee_id'] !== null && $role['lycee_id'] != Auth::getLyceeId()) {
+                 http_response_code(403);
+                 View::render('errors/403');
+                 exit();
+             }
         }
 
         $permissions = Permission::findAll();
@@ -114,12 +124,35 @@ class RoleController {
             exit();
         }
 
-        // Security check for local admins: they can only update roles for their own lycee.
+        // Security check for local admins:
         $role = Role::findById($role_id);
-        if (!$role || (Auth::get('role_name') === 'admin_local' && $role['lycee_id'] != Auth::getLyceeId())) {
-            http_response_code(403);
-            View::render('errors/403');
+        if (!$role) {
+            http_response_code(404);
             exit();
+        }
+
+        if (Auth::get('role_name') === 'admin_local') {
+            // Block update of Super Admin roles
+            if ($role['id_role'] == 1 || $role['id_role'] == 2) {
+                http_response_code(403);
+                View::render('errors/403');
+                exit();
+            }
+            // Block update of roles belonging to other schools
+            if ($role['lycee_id'] !== null && $role['lycee_id'] != Auth::getLyceeId()) {
+                http_response_code(403);
+                View::render('errors/403');
+                exit();
+            }
+        }
+
+        // Re-read data to ensure any local admin overrides aren't lost if we moved the data gathering
+        $data = Validator::sanitize($_POST);
+
+        if (Auth::get('role_name') === 'admin_local') {
+            // Force lycee_id to remain as it is if they are not super admin
+            // (Local admin cannot make a local role global or change its school)
+            $data['lycee_id'] = $role['lycee_id'];
         }
 
         $db = Database::getInstance();
