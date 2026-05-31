@@ -354,6 +354,7 @@ CREATE TABLE `inscriptions` (
     `reste_a_payer` DECIMAL(10, 2) NOT NULL,
     `details_frais` JSON,
     `user_id` INT,
+    `recu_numero` VARCHAR(50),
     `date_inscription` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`etude_id`) REFERENCES `etudes`(`id_etude`) ON DELETE CASCADE,
     FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
