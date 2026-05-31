@@ -86,7 +86,8 @@ class Eleve {
         $params = [];
         foreach ($fields as $field) {
             if (isset($data[$field])) {
-                $params[$field] = $data[$field];
+                // Convert empty strings to NULL for optional fields to avoid UNIQUE constraint issues (like email)
+                $params[$field] = ($data[$field] === '') ? null : $data[$field];
             } elseif ($isUpdate) {
                 // Keep current value if not provided during update
                 $params[$field] = $currentData[$field];
@@ -213,6 +214,27 @@ class Eleve {
             $sql .= " AND lycee_id = :lycee_id";
             $params['lycee_id'] = $lycee_id;
         }
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Recherche des élèves par matricule, nom ou prénom.
+     * @param string $term
+     * @param int|null $lycee_id
+     * @return array
+     */
+    public static function search($term, $lycee_id = null) {
+        $db = Database::getInstance();
+        $sql = "SELECT * FROM eleves WHERE (nom LIKE :term OR prenom LIKE :term OR CAST(id_eleve AS CHAR) LIKE :term)";
+        $params = ['term' => '%' . $term . '%'];
+
+        if ($lycee_id) {
+            $sql .= " AND lycee_id = :lycee_id";
+            $params['lycee_id'] = $lycee_id;
+        }
+
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
