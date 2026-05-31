@@ -71,7 +71,7 @@ $notification_count = count($unread_notifications);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $title ?? 'Gestion Scolaire' ?></title>
-    <link rel="icon" href="<?= htmlspecialchars($lycee_params['logo'] ?? '/assets/img/favicon.svg') ?>" type="image/x-icon">
+    <link rel="icon" href="<?= htmlspecialchars($lycee_params['logo'] ?? '/assets/img/placeholder-photo.png') ?>" type="image/x-icon">
     <link rel="stylesheet" href="/assets/css/style.css" id="main-style-link" >
     <link rel="stylesheet" href="/assets/css/style-preset.css" >
     <style>
@@ -117,7 +117,7 @@ $notification_count = count($unread_notifications);
              <?php if ($is_multilycee): ?>
                 <div class="dropdown">
                     <a class="pc-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
-                        <img src="<?= htmlspecialchars($lycee_params['logo'] ?? '/assets/img/favicon.svg') ?>" alt="logo" class="logo-lg" style="height: 30px;">
+                        <img src="<?= htmlspecialchars($lycee_params['logo'] ?? '/assets/img/placeholder-photo.png') ?>" alt="logo" class="logo-lg" style="height: 30px;">
                         <span class="ms-2"><?= htmlspecialchars($active_lycee['nom_lycee'] ?? _('Aucun lycée configuré')) ?></span>
                     </a>
                     <div class="dropdown-menu">
@@ -127,7 +127,7 @@ $notification_count = count($unread_notifications);
                     </div>
                 </div>
             <?php else: ?>
-                <img src="<?= htmlspecialchars($lycee_params['logo'] ?? '/assets/img/favicon.svg') ?>" alt="logo" class="logo-lg" style="height: 30px;">
+                <img src="<?= htmlspecialchars($lycee_params['logo'] ?? '/assets/img/placeholder-photo.png') ?>" alt="logo" class="logo-lg" style="height: 30px;">
                 <span class="ms-2"><?= htmlspecialchars($active_lycee['nom_lycee'] ?? _('Aucun lycée configuré')) ?></span>
             <?php endif; ?>
         </div>
