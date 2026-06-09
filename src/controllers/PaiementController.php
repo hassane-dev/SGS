@@ -9,6 +9,7 @@ require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../models/Sequence.php';
 require_once __DIR__ . '/../models/Notification.php';
 require_once __DIR__ . '/../models/Classe.php';
+require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
 
@@ -290,9 +291,9 @@ class PaiementController {
     }
 
     /**
-     * Traite le paiement des frais d'inscription.
+     * Traite le paiement unifié (Inscription + Mensualités).
      */
-    public function processInscription($eleveId) {
+    public function processPayment($eleveId) {
         $this->checkAccess('manage');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -305,165 +306,110 @@ class PaiementController {
 
         try {
             $anneeActive = AnneeAcademique::findActive();
-            if (!$anneeActive) {
-                throw new Exception("Aucune année académique active.");
-            }
+            if (!$anneeActive) throw new Exception("Aucune année académique active.");
+
             $eleve = Eleve::findById($eleveId);
-            if (!$eleve) {
-                throw new Exception("Élève non trouvé.");
-            }
+            if (!$eleve) throw new Exception("Élève non trouvé.");
+
             $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id'], $eleve['lycee_id'] ?? null);
-            if (!$etude) {
-                throw new Exception("Dossier académique non trouvé.");
-            }
-            $classe = Classe::findById($etude['classe_id']);
-            $frais = Frais::findForClasse($classe, $anneeActive['id']);
-            $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id'], $eleve['lycee_id'] ?? null);
+            if (!$etude) throw new Exception("Dossier académique non trouvé.");
 
-            $montantVerse = (float) $_POST['montant_verse'];
-
-            $montantTotal = (float) $frais['frais_inscription'];
-            $hasLogo = isset($_POST['options']['logo']);
-            $hasCarte = isset($_POST['options']['carte']);
-
-            if ($hasLogo) $montantTotal += (float)($frais['frais_logo'] ?? 0);
-            if ($hasCarte) $montantTotal += (float)($frais['frais_carte'] ?? 0);
-
-            if ($montantVerse > $montantTotal) {
-                throw new Exception("Le montant versé ne peut pas être supérieur au montant total de l'inscription.");
-            }
-
-            $resteAPayer = $montantTotal - $montantVerse;
-
-            $detailsFrais = json_encode([
-                'logo' => $hasLogo,
-                'carte' => $hasCarte
-            ]);
-
-            $lyceeId = Auth::getLyceeId();
-
-            $recuNum = $_POST['reference_transaction'] ?? null;
-            if (empty($recuNum)) {
-                $recuNum = Mensualite::generateReceiptNumber($lyceeId);
-            }
-
-            $data = [
-                'id_inscription' => $inscription['id_inscription'] ?? null,
-                'etude_id' => $etude['id_etude'],
-                'eleve_id' => $eleveId,
-                'classe_id' => $classe['id_classe'],
-                'lycee_id' => $lyceeId,
-                'annee_academique_id' => $anneeActive['id'],
-                'montant_total' => $montantTotal,
-                'montant_verse' => $montantVerse,
-                'reste_a_payer' => $resteAPayer,
-                'details_frais' => $detailsFrais,
-                'user_id' => Auth::user()['id'],
-                'recu_numero' => $recuNum
-            ];
-
-            Inscription::save($data);
-
-            // Si le paiement est complet, activer l'élève et l'étude
-            if ($resteAPayer <= 0) {
-                Eleve::updateStatus($eleveId, 'actif');
-                Etude::activate($etude['id_etude'], Auth::user()['id']);
-
-                // Notifier l'admin local que l'inscription est finalisée
-                $eleve_nom_complet = $eleve['prenom'] . ' ' . $eleve['nom'];
-                $message = "Paiement initial validé et inscription activée pour {$eleve_nom_complet}.";
-                $link = "/eleves/details?id={$eleveId}";
-                Notification::notifyRole('admin_local', $eleve['lycee_id'] ?? Auth::getLyceeId(), $message, $link);
-            }
-
-            $db->commit();
-            $_SESSION['success_message'] = "Le paiement de l'inscription a été enregistré avec succès.";
-
-        } catch (Throwable $e) {
-            if ($db->inTransaction()) {
-                $db->rollBack();
-            }
-            $_SESSION['error_message'] = "Erreur lors de l'enregistrement du paiement : " . $e->getMessage();
-        }
-
-        header('Location: /paiements/show/' . $eleveId);
-        exit();
-    }
-
-    /**
-     * Traite le paiement des mensualités.
-     */
-    public function processMensualites($eleveId) {
-        $this->checkAccess('manage');
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_POST['mensualites'])) {
-            header('Location: /paiements/show/' . $eleveId);
-            exit();
-        }
-
-        $db = Database::getInstance();
-        $db->beginTransaction();
-
-        try {
-            $anneeActive = AnneeAcademique::findActive();
-            if (!$anneeActive) {
-                throw new Exception("Aucune année académique active.");
-            }
-            $eleve = Eleve::findById($eleveId);
-            if (!$eleve) {
-                throw new Exception("Élève non trouvé.");
-            }
-            $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id'], $eleve['lycee_id'] ?? null);
-            if (!$etude) {
-                throw new Exception("Dossier académique non trouvé.");
-            }
-
-            $paiements = $_POST['mensualites'];
-            $userId = Auth::user()['id'];
             $lyceeId = $eleve['lycee_id'] ?? Auth::getLyceeId();
-            $classeId = $etude['classe_id'];
+            $userId = Auth::user()['id'];
+            $modePaiement = $_POST['mode_paiement'] ?? 'Espèces';
 
             $reference = $_POST['reference_transaction'] ?? null;
             if (empty($reference)) {
                 $reference = Mensualite::generateReceiptNumber($lyceeId);
             }
 
-            foreach ($paiements as $mois => $montant) {
-                $montant = (float) $montant;
-                if ($montant > 0) {
-                    $m_cap = ucfirst($mois);
-                    $data = [
-                        'etude_id' => $etude['id_etude'],
-                        'eleve_id' => $eleveId,
-                        'classe_id' => $classeId,
-                        'lycee_id' => $lyceeId,
-                        'annee_academique_id' => $anneeActive['id'],
-                        'mois_ou_sequence' => $m_cap,
-                        'montant_verse' => $montant,
-                        'user_id' => $userId
-                    ];
+            $paiementEffectue = false;
 
-                    $mensualiteId = Mensualite::findOrCreate($data);
+            // 1. Traitement Inscription
+            $montantInscription = (float) ($_POST['montant_inscription'] ?? 0);
+            if ($montantInscription > 0 || isset($_POST['options'])) {
+                $classe = Classe::findById($etude['classe_id']);
+                $frais = Frais::findForClasse($classe, $anneeActive['id']);
+                $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id'], $lyceeId);
 
-                    // Ajouter le détail
-                    Mensualite::addDetail([
-                        'mensualite_id' => $mensualiteId,
-                        'montant' => $montant,
-                        'mode_paiement' => $_POST['mode_paiement'] ?? 'Espèces',
-                        'reference_transaction' => $reference,
-                        'recu_numero' => $reference
-                    ]);
+                $hasLogo = isset($_POST['options']['logo']) || (!empty($inscription) && json_decode($inscription['details_frais'] ?? '[]', true)['logo']);
+                $hasCarte = isset($_POST['options']['carte']) || (!empty($inscription) && json_decode($inscription['details_frais'] ?? '[]', true)['carte']);
+
+                $montantTotalInscription = (float) $frais['frais_inscription'];
+                if ($hasLogo) $montantTotalInscription += (float)($frais['frais_logo'] ?? 0);
+                if ($hasCarte) $montantTotalInscription += (float)($frais['frais_carte'] ?? 0);
+
+                $nouveauVerse = (float)($inscription['montant_verse'] ?? 0) + $montantInscription;
+
+                if ($nouveauVerse > $montantTotalInscription + 0.01) { // Tolérance float
+                    throw new Exception("Le versement inscription dépasse le total attendu.");
+                }
+
+                $dataInscription = [
+                    'id_inscription' => $inscription['id_inscription'] ?? null,
+                    'etude_id' => $etude['id_etude'],
+                    'eleve_id' => $eleveId,
+                    'classe_id' => $etude['classe_id'],
+                    'lycee_id' => $lyceeId,
+                    'annee_academique_id' => $anneeActive['id'],
+                    'montant_total' => $montantTotalInscription,
+                    'montant_verse' => $nouveauVerse,
+                    'reste_a_payer' => max(0, $montantTotalInscription - $nouveauVerse),
+                    'details_frais' => json_encode(['logo' => $hasLogo, 'carte' => $hasCarte]),
+                    'user_id' => $userId,
+                    'recu_numero' => $reference
+                ];
+
+                Inscription::save($dataInscription);
+                $paiementEffectue = true;
+
+                // Activation si soldé
+                if ($dataInscription['reste_a_payer'] <= 0) {
+                    Eleve::updateStatus($eleveId, 'actif');
+                    Etude::activate($etude['id_etude'], $userId);
+                    Notification::notifyRole('admin_local', $lyceeId, "Inscription soldée pour {$eleve['prenom']} {$eleve['nom']}.", "/eleves/details?id={$eleveId}");
                 }
             }
 
+            // 2. Traitement Mensualités
+            if (!empty($_POST['mensualites'])) {
+                foreach ($_POST['mensualites'] as $mois => $montant) {
+                    $montant = (float) $montant;
+                    if ($montant > 0) {
+                        $dataMensualite = [
+                            'etude_id' => $etude['id_etude'],
+                            'eleve_id' => $eleveId,
+                            'classe_id' => $etude['classe_id'],
+                            'lycee_id' => $lyceeId,
+                            'annee_academique_id' => $anneeActive['id'],
+                            'mois_ou_sequence' => ucfirst($mois),
+                            'montant_verse' => $montant,
+                            'user_id' => $userId
+                        ];
+
+                        $mensualiteId = Mensualite::findOrCreate($dataMensualite);
+                        Mensualite::addDetail([
+                            'mensualite_id' => $mensualiteId,
+                            'montant' => $montant,
+                            'mode_paiement' => $modePaiement,
+                            'reference_transaction' => $reference,
+                            'recu_numero' => $reference
+                        ]);
+                        $paiementEffectue = true;
+                    }
+                }
+            }
+
+            if (!$paiementEffectue) {
+                throw new Exception("Aucun montant à encaisser n'a été saisi.");
+            }
+
             $db->commit();
-            $_SESSION['success_message'] = "Les paiements des mensualités ont été enregistrés avec succès.";
+            $_SESSION['success_message'] = "Opération d'encaissement réussie. Reçu N° {$reference}";
 
         } catch (Throwable $e) {
-            if ($db->inTransaction()) {
-                $db->rollBack();
-            }
-            $_SESSION['error_message'] = "Erreur lors de l'enregistrement des mensualités : " . $e->getMessage();
+            if (isset($db) && $db->inTransaction()) $db->rollBack();
+            $_SESSION['error_message'] = "Erreur lors de l'encaissement : " . $e->getMessage();
         }
 
         header('Location: /paiements/show/' . $eleveId);
