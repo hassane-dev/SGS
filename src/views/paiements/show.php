@@ -23,66 +23,66 @@
         <!-- [ breadcrumb ] end -->
 
         <!-- [ Main Content ] start -->
-        <div class="row">
-            <!-- Student Info Summary -->
-            <div class="col-12 mb-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-auto">
-                                <div class="position-relative">
-                                    <img src="<?= $eleve['photo'] ?: '/assets/img/default-avatar.png' ?>" alt="student image" class="img-radius wid-80 shadow-sm border border-2 border-white">
-                                    <span class="position-absolute bottom-0 end-0 badge rounded-pill bg-<?= $eleve['statut'] === 'actif' ? 'success' : 'warning' ?> p-2 border border-2 border-white">
-                                        <span class="visually-hidden">Statut</span>
-                                    </span>
+        <form id="form-paiement-unique" action="/paiements/process-payment/<?= $eleve['id_eleve'] ?>" method="POST">
+            <div class="row">
+                <!-- Student Info Summary -->
+                <div class="col-12 mb-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <div class="position-relative">
+                                        <img src="<?= $eleve['photo'] ?: '/assets/img/default-avatar.png' ?>" alt="student image" class="img-radius wid-80 shadow-sm border border-2 border-white">
+                                        <span class="position-absolute bottom-0 end-0 badge rounded-pill bg-<?= $eleve['statut'] === 'actif' ? 'success' : 'warning' ?> p-2 border border-2 border-white">
+                                            <span class="visually-hidden">Statut</span>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col">
-                                <h4 class="mb-1 text-primary"><?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?></h4>
-                                <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
-                                    <span class="badge bg-light-primary text-primary fs-6">
-                                        <i class="ph-duotone ph-chalkboard-teacher me-1"></i> <?= htmlspecialchars($eleve['nom_classe']) ?>
-                                    </span>
-                                    <span class="badge bg-light-secondary text-secondary fs-6">
-                                        <i class="ph-duotone ph-identification-card me-1"></i> Mat: <?= htmlspecialchars($eleve['matricule'] ?? 'N/A') ?>
-                                    </span>
-                                    <span class="badge bg-light-info text-info fs-6">
-                                        <i class="ph-duotone ph-calendar me-1"></i> Né(e) le <?= date('d/m/Y', strtotime($eleve['date_naissance'])) ?>
-                                    </span>
+                                <div class="col">
+                                    <h4 class="mb-1 text-primary"><?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?></h4>
+                                    <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                                        <span class="badge bg-light-primary text-primary fs-6">
+                                            <i class="ph-duotone ph-chalkboard-teacher me-1"></i> <?= htmlspecialchars($eleve['nom_classe']) ?>
+                                        </span>
+                                        <span class="badge bg-light-secondary text-secondary fs-6">
+                                            <i class="ph-duotone ph-identification-card me-1"></i> Mat: <?= htmlspecialchars($eleve['matricule'] ?? 'N/A') ?>
+                                        </span>
+                                        <span class="badge bg-light-info text-info fs-6">
+                                            <i class="ph-duotone ph-calendar me-1"></i> Né(e) le <?= date('d/m/Y', strtotime($eleve['date_naissance'])) ?>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-auto text-end">
-                                <div class="btn-group shadow-sm">
-                                    <a href="/eleves/details?id=<?= $eleve['id_eleve'] ?>" class="btn btn-outline-secondary">
-                                        <i class="ph-duotone ph-user-focus me-2"></i>Profil
-                                    </a>
-                                    <button type="button" class="btn btn-primary" onclick="window.print()">
-                                        <i class="ph-duotone ph-printer me-2"></i>Imprimer État
-                                    </button>
+                                <div class="col-auto text-end">
+                                    <div class="btn-group shadow-sm">
+                                        <a href="/eleves/details?id=<?= $eleve['id_eleve'] ?>" class="btn btn-outline-secondary">
+                                            <i class="ph-duotone ph-user-focus me-2"></i>Profil
+                                        </a>
+                                        <button type="button" class="btn btn-primary" onclick="window.print()">
+                                            <i class="ph-duotone ph-printer me-2"></i>Imprimer État
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Section Frais d'Inscription (Gauche) -->
-            <div class="col-lg-5 col-md-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="ph-duotone ph-file-text me-2 text-primary"></i>1. Inscription & Frais Annexes</h5>
-                        <?php if ($fraisInscription['reste'] <= 0): ?>
-                            <span class="badge bg-light-success text-success"><i class="ph-duotone ph-check-circle me-1"></i>SOLDÉ</span>
-                        <?php else: ?>
-                            <span class="badge bg-light-danger text-danger"><i class="ph-duotone ph-warning-circle me-1"></i>IMPAYÉ</span>
-                        <?php endif; ?>
-                    </div>
-                    <div class="card-body">
-                        <form id="form-inscription" action="/paiements/process-inscription/<?= $eleve['id_eleve'] ?>" method="POST">
+                <!-- Section Frais d'Inscription (Gauche) -->
+                <div class="col-lg-5 col-md-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="ph-duotone ph-file-text me-2 text-primary"></i>1. Inscription & Frais Annexes</h5>
+                            <?php if ($fraisInscription['reste'] <= 0): ?>
+                                <span class="badge bg-light-success text-success"><i class="ph-duotone ph-check-circle me-1"></i>SOLDÉ</span>
+                            <?php else: ?>
+                                <span class="badge bg-light-danger text-danger"><i class="ph-duotone ph-warning-circle me-1"></i>IMPAYÉ</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="card-body">
                             <div class="bg-light-primary p-3 rounded mb-4">
                                 <div class="d-flex justify-content-between mb-2">
                                     <span class="text-muted">Total Attendu :</span>
-                                    <span class="fw-bold text-dark"><?= number_format($fraisInscription['total'], 0, ',', ' ') ?> FCFA</span>
+                                    <span class="fw-bold text-dark" id="inscription-total-attendu" data-base="<?= (float)($frais['frais_inscription'] ?? 0) ?>"><?= number_format($fraisInscription['total'], 0, ',', ' ') ?> FCFA</span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-2 text-success">
                                     <span>Déjà Versé :</span>
@@ -90,17 +90,18 @@
                                 </div>
                                 <div class="d-flex justify-content-between border-top pt-2 mt-2 <?= $fraisInscription['reste'] > 0 ? 'text-danger' : 'text-success' ?>">
                                     <span class="fw-bold">Reste à Payer :</span>
-                                    <h5 class="mb-0 fw-bold"><?= number_format($fraisInscription['reste'], 0, ',', ' ') ?> FCFA</h5>
+                                    <h5 class="mb-0 fw-bold" id="inscription-reste-a-payer" data-verse-existant="<?= $fraisInscription['verse'] ?>"><?= number_format($fraisInscription['reste'], 0, ',', ' ') ?> FCFA</h5>
                                 </div>
                             </div>
 
                             <div class="mb-4">
-                                <label for="montant_verse_inscription" class="form-label fw-bold">Enregistrer un versement</label>
+                                <label for="montant_verse_inscription" class="form-label fw-bold">Montant à verser (Inscription)</label>
                                 <div class="input-group input-group-lg">
-                                    <input type="number" id="montant_verse_inscription" name="montant_verse" class="form-control text-primary fw-bold"
-                                           value="<?= htmlspecialchars($fraisInscription['verse']) ?>"
-                                           max="<?= $fraisInscription['total'] ?>"
-                                           <?= !$isComptable ? 'readonly' : '' ?>>
+                                    <input type="number" id="montant_verse_inscription" name="montant_inscription" class="form-control text-primary fw-bold"
+                                           value=""
+                                           placeholder="Saisir montant..."
+                                           max="<?= $fraisInscription['reste'] ?>"
+                                           <?= (!$isComptable || $fraisInscription['reste'] <= 0) ? 'readonly' : '' ?>>
                                     <span class="input-group-text bg-white">FCFA</span>
                                 </div>
                                 <div id="status-inscription" class="mt-2"></div>
@@ -111,57 +112,47 @@
                                     <h6 class="mb-3 text-muted">Options & Services Additionnels</h6>
                                     <?php if ((float)($frais['frais_logo'] ?? 0) > 0): ?>
                                     <div class="form-check form-switch mb-2">
-                                        <input class="form-check-input option-checkbox" type="checkbox" id="logo_paye" name="options[logo]" data-price="<?= (float)$frais['frais_logo'] ?>" <?= !empty($options['logo']) ? 'checked' : '' ?> <?= !$isComptable ? 'disabled' : '' ?>>
+                                        <input class="form-check-input option-checkbox" type="checkbox" id="logo_paye" name="options[logo]" data-price="<?= (float)$frais['frais_logo'] ?>" <?= !empty($options['logo']) ? 'checked disabled' : '' ?> <?= !$isComptable ? 'disabled' : '' ?>>
                                         <label class="form-check-label" for="logo_paye">Frais de Logo (Macaron) <small class="text-muted">(+<?= number_format($frais['frais_logo'], 0, ',', ' ') ?> FCFA)</small></label>
                                     </div>
                                     <?php endif; ?>
 
                                     <?php if ((float)($frais['frais_carte'] ?? 0) > 0): ?>
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input option-checkbox" type="checkbox" id="carte_scolaire_payee" name="options[carte]" data-price="<?= (float)$frais['frais_carte'] ?>" <?= !empty($options['carte']) ? 'checked' : '' ?> <?= !$isComptable ? 'disabled' : '' ?>>
+                                        <input class="form-check-input option-checkbox" type="checkbox" id="carte_scolaire_payee" name="options[carte]" data-price="<?= (float)$frais['frais_carte'] ?>" <?= !empty($options['carte']) ? 'checked disabled' : '' ?> <?= !$isComptable ? 'disabled' : '' ?>>
                                         <label class="form-check-label" for="carte_scolaire_payee">Carte scolaire informatisée <small class="text-muted">(+<?= number_format($frais['frais_carte'], 0, ',', ' ') ?> FCFA)</small></label>
                                     </div>
                                     <?php endif; ?>
                                 </div>
                             </div>
 
-                            <?php if ($isComptable): ?>
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary py-2 shadow-sm">
-                                        <i class="ph-duotone ph-floppy-disk me-2"></i>Valider Inscription & Services
-                                    </button>
-                                </div>
-                            <?php endif; ?>
-
                             <?php if ($inscription): ?>
                                 <div class="mt-3 text-center">
                                     <a href="/recu/inscription?id=<?= $eleve['id_eleve'] ?>" target="_blank" class="btn btn-link-secondary btn-sm">
-                                        <i class="ph-duotone ph-printer me-1"></i>Imprimer le reçu d'inscription
+                                        <i class="ph-duotone ph-printer me-1"></i>Imprimer le dernier reçu d'inscription
                                     </a>
                                 </div>
                             <?php endif; ?>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section Mensualités (Droite) -->
-            <div class="col-lg-7 col-md-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="ph-duotone ph-calendar-check me-2 text-success"></i>2. Gestion des Scolarités (Mensualités)</h5>
-                        <div class="dropdown">
-                            <button class="btn btn-link-secondary btn-icon btn-sm dropdown-toggle arrow-none" type="button" data-bs-toggle="dropdown">
-                                <i class="ph-duotone ph-dots-three-outline"></i>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-end">
-                                <a class="dropdown-item" href="#"><i class="ph-duotone ph-list-numbers me-2"></i>Historique complet</a>
-                                <a class="dropdown-item text-danger" href="#"><i class="ph-duotone ph-warning me-2"></i>Signaler arriéré</a>
-                            </div>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <form id="form-mensualites" action="/paiements/process-mensualites/<?= $eleve['id_eleve'] ?>" method="POST">
+                </div>
+
+                <!-- Section Mensualités (Droite) -->
+                <div class="col-lg-7 col-md-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="ph-duotone ph-calendar-check me-2 text-success"></i>2. Gestion des Scolarités (Mensualités)</h5>
+                            <div class="dropdown">
+                                <button class="btn btn-link-secondary btn-icon btn-sm dropdown-toggle arrow-none" type="button" data-bs-toggle="dropdown">
+                                    <i class="ph-duotone ph-dots-three-outline"></i>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end">
+                                    <a class="dropdown-item" href="#"><i class="ph-duotone ph-list-numbers me-2"></i>Historique complet</a>
+                                    <a class="dropdown-item text-danger" href="#"><i class="ph-duotone ph-warning me-2"></i>Signaler arriéré</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
                             <div class="accordion accordion-modern shadow-none" id="accordionMensualites">
                                 <?php foreach ($tranches as $nomTranche => $details):
                                     $trancheClean = str_replace(' ', '', $nomTranche);
@@ -170,7 +161,9 @@
                                     $nbMois = count($details['mois']);
                                     $nbPayes = 0;
                                     foreach($details['mois'] as $m) {
-                                        if (isset($details['paye'][ucfirst($m)])) $nbPayes++;
+                                        $m_cap = ucfirst($m);
+                                        $verseMois = $details['paye'][$m_cap]['verse'] ?? 0;
+                                        if ($verseMois >= $details['montant_par_mois']) $nbPayes++;
                                     }
 
                                     $trancheStatus = 'danger';
@@ -201,7 +194,7 @@
                                                 <div class="form-check form-switch mb-4 p-3 bg-white rounded shadow-sm">
                                                     <input class="form-check-input checkbox-tranche ms-1" type="checkbox" id="tranche_payee_<?= $trancheClean ?>" data-tranche-id="<?= $trancheClean ?>" data-montant-mensuel="<?= htmlspecialchars($details['montant_par_mois']) ?>" <?= (!$isComptable || $nbPayes === $nbMois) ? 'disabled' : '' ?>>
                                                     <label class="form-check-label fw-bold text-success ms-2" for="tranche_payee_<?= $trancheClean ?>">
-                                                        Payer toute la <?= htmlspecialchars($nomTranche) ?>
+                                                        Payer toute la tranche (<?= htmlspecialchars($nomTranche) ?>)
                                                     </label>
                                                 </div>
 
@@ -223,7 +216,7 @@
                                                                         <?= htmlspecialchars($mois) ?>
                                                                     </div>
                                                                     <?php if ($verse > 0): ?>
-                                                                        <div class="small text-muted">Versé: <?= number_format($verse, 0, ',', ' ') ?></div>
+                                                                        <div class="small text-muted">Déjà Versé: <?= number_format($verse, 0, ',', ' ') ?></div>
                                                                     <?php endif; ?>
                                                                 </div>
                                                                 <div class="col-md-8">
@@ -231,7 +224,8 @@
                                                                         <input type="number" name="mensualites[<?= strtolower($mois) ?>]"
                                                                                class="form-control input-mois border-<?= $moisColor ?>"
                                                                                data-tranche-id="<?= $trancheClean ?>"
-                                                                               placeholder="<?= $reste > 0 ? "Saisir montant (Reste: " . number_format($reste, 0, ',', ' ') . ")" : "Réglement complet" ?>"
+                                                                               data-reste="<?= $reste ?>"
+                                                                               placeholder="<?= $reste > 0 ? "Reste: " . number_format($reste, 0, ',', ' ') : "SOLDÉ" ?>"
                                                                                value=""
                                                                                <?= (!$isComptable || $reste <= 0) ? 'readonly' : '' ?>>
                                                                         <span class="input-group-text bg-light border-<?= $moisColor ?>">FCFA</span>
@@ -278,117 +272,138 @@
                                     </div>
                                 <?php endforeach; ?>
                             </div>
+                        </div>
+                    </div>
+                </div>
 
-                            <?php if ($isComptable): ?>
-                                <div class="bg-light-success p-4 rounded-3 border border-success border-opacity-25 mt-4">
-                                    <div id="total-scolarite-display" class="mb-3 p-2 bg-white rounded border border-success text-center d-none">
-                                        <span class="h5 mb-0 text-success">Total à payer : <strong id="total-scolarite-amount">0</strong> FCFA</span>
+                <!-- Footer de Paiement Unifié -->
+                <div class="col-12 mt-4">
+                    <div class="card border-0 shadow-lg bg-primary text-white overflow-hidden">
+                        <div class="card-body p-0">
+                            <div class="row g-0">
+                                <div class="col-lg-4 bg-dark bg-opacity-10 p-4 d-flex flex-column justify-content-center border-end border-white border-opacity-10">
+                                    <div class="text-white text-opacity-75 mb-1 text-uppercase fw-bold small">Total à encaisser</div>
+                                    <div class="d-flex align-items-baseline">
+                                        <h1 class="text-white mb-0 fw-bold" id="total-general-amount">0</h1>
+                                        <span class="ms-2 fs-4 text-white text-opacity-75">FCFA</span>
                                     </div>
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold">Mode de Règlement</label>
-                                            <select name="mode_paiement" class="form-select shadow-none">
-                                                <?php
-                                                $modes = !empty($paramGeneral['modalite_paiement'])
-                                                    ? explode(',', $paramGeneral['modalite_paiement'])
-                                                    : ['Espèces', 'Bordereau', 'Chèque', 'Mobile'];
-                                                foreach ($modes as $mode):
-                                                    $mode = trim($mode);
-                                                ?>
-                                                    <option value="<?= htmlspecialchars($mode) ?>"><?= htmlspecialchars($mode) ?></option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold">Référence / N° Bordereau</label>
-                                            <input type="text" name="reference_transaction" class="form-control shadow-none" placeholder="Auto-généré si vide" value="<?= $nextRecu ?>">
-                                        </div>
-                                    </div>
-                                    <div class="d-grid mt-4">
-                                        <button type="submit" class="btn btn-success btn-lg shadow-sm">
-                                            <i class="ph-duotone ph-check-circle me-2"></i>Confirmer l'encaissement
-                                        </button>
+                                    <div id="summary-details" class="mt-2 small text-white text-opacity-50">
+                                        Aucun montant saisi
                                     </div>
                                 </div>
-                            <?php endif; ?>
-                        </form>
+                                <div class="col-lg-8 p-4">
+                                    <?php if ($isComptable): ?>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold text-white">Mode de Règlement</label>
+                                                <select name="mode_paiement" class="form-select border-0 shadow-none">
+                                                    <?php
+                                                    $modes = !empty($paramGeneral['modalite_paiement'])
+                                                        ? explode(',', $paramGeneral['modalite_paiement'])
+                                                        : ['Espèces', 'Bordereau Bancaire', 'Chèque', 'Mobile Money'];
+                                                    foreach ($modes as $mode):
+                                                        $mode = trim($mode);
+                                                    ?>
+                                                        <option value="<?= htmlspecialchars($mode) ?>"><?= htmlspecialchars($mode) ?></option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold text-white">Référence / N° Bordereau</label>
+                                                <input type="text" name="reference_transaction" class="form-control border-0 shadow-none" placeholder="Laissé vide pour auto-génération" value="<?= $nextRecu ?>">
+                                            </div>
+                                            <div class="col-12 mt-4">
+                                                <div class="d-grid">
+                                                    <button type="submit" class="btn btn-light btn-lg text-primary fw-bold shadow-sm">
+                                                        <i class="ph-duotone ph-check-circle me-2"></i>Valider et Générer le Reçu
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="alert alert-light mb-0">
+                                            <i class="ph-duotone ph-info me-2"></i>Vous n'avez pas les droits nécessaires pour effectuer des encaissements.
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </form>
         <!-- [ Main Content ] end -->
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Gestion de la section inscription
-    let baseMontantTotal = <?= (float)($frais['frais_inscription'] ?? 0) ?>;
-    const montantVerseInput = document.getElementById('montant_verse_inscription');
-    const statusDiv = document.getElementById('status-inscription');
+    // Éléments Inscription
+    const baseInscriptionTotal = parseFloat(document.getElementById('inscription-total-attendu').dataset.base);
+    const montantInscriptionInput = document.getElementById('montant_verse_inscription');
     const optionCheckboxes = document.querySelectorAll('.option-checkbox');
+    const resteInscriptionElt = document.getElementById('inscription-reste-a-payer');
+    const verseExistant = parseFloat(resteInscriptionElt.dataset.verseExistant);
 
-    function updateInscriptionStatus() {
-        let currentTotal = baseMontantTotal;
-        optionCheckboxes.forEach(cb => {
-            if (cb.checked) currentTotal += parseFloat(cb.dataset.price);
-        });
-
-        const montantVerse = parseFloat(montantVerseInput.value) || 0;
-        const reste = currentTotal - montantVerse;
-
-        statusDiv.innerHTML = '';
-
-        if (montantVerse > montantTotal) {
-            statusDiv.innerHTML = '<div class="alert alert-danger py-2 mb-0 small"><i class="ph-duotone ph-warning-circle me-2"></i>Attention : Montant supérieur au total !</div>';
-            montantVerseInput.classList.add('is-invalid');
-        } else if (reste === 0) {
-            statusDiv.innerHTML = '<div class="alert alert-success py-2 mb-0 small"><i class="ph-duotone ph-check-circle me-2"></i>Paiement complet.</div>';
-            montantVerseInput.classList.remove('is-invalid');
-            montantVerseInput.classList.add('is-valid');
-        } else {
-            statusDiv.innerHTML = `<div class="badge bg-light-warning text-warning fs-6 w-100 p-2">Reste : <strong>${reste.toLocaleString('fr-FR')} FCFA</strong></div>`;
-            montantVerseInput.classList.remove('is-invalid');
-            montantVerseInput.classList.remove('is-valid');
-        }
-    }
-
-    if (montantVerseInput) {
-        montantVerseInput.addEventListener('input', updateInscriptionStatus);
-        optionCheckboxes.forEach(cb => cb.addEventListener('change', updateInscriptionStatus));
-        updateInscriptionStatus();
-    }
-
-    // Gestion de la section mensualités
+    // Éléments Mensualités
     const trancheCheckboxes = document.querySelectorAll('.checkbox-tranche');
     const moisInputs = document.querySelectorAll('.input-mois');
-    const totalDisplay = document.getElementById('total-scolarite-display');
-    const totalAmount = document.getElementById('total-scolarite-amount');
 
-    function updateTotalScolarite() {
-        let total = 0;
-        moisInputs.forEach(input => {
-            total += parseFloat(input.value) || 0;
+    // Éléments Total Général
+    const totalGeneralAmount = document.getElementById('total-general-amount');
+    const summaryDetails = document.getElementById('summary-details');
+
+    function updateAll() {
+        // 1. Calcul Inscription
+        let currentInscriptionTotal = baseInscriptionTotal;
+        optionCheckboxes.forEach(cb => {
+            if (cb.checked) currentInscriptionTotal += parseFloat(cb.dataset.price);
         });
 
-        if (total > 0) {
-            totalDisplay.classList.remove('d-none');
-            totalAmount.textContent = total.toLocaleString('fr-FR');
+        const nouveauResteInscription = currentInscriptionTotal - verseExistant;
+        const inscriptionAverser = parseFloat(montantInscriptionInput.value) || 0;
+
+        resteInscriptionElt.textContent = (nouveauResteInscription - inscriptionAverser).toLocaleString('fr-FR') + ' FCFA';
+        document.getElementById('inscription-total-attendu').textContent = currentInscriptionTotal.toLocaleString('fr-FR') + ' FCFA';
+
+        // 2. Calcul Mensualités
+        let totalMensualites = 0;
+        moisInputs.forEach(input => {
+            totalMensualites += parseFloat(input.value) || 0;
+        });
+
+        // 3. Total Général
+        const grandTotal = inscriptionAverser + totalMensualites;
+        totalGeneralAmount.textContent = grandTotal.toLocaleString('fr-FR');
+
+        // 4. Résumé
+        let summary = [];
+        if (inscriptionAverser > 0) summary.push(`Inscription: ${inscriptionAverser.toLocaleString('fr-FR')}`);
+        if (totalMensualites > 0) summary.push(`Mensualités: ${totalMensualites.toLocaleString('fr-FR')}`);
+
+        if (summary.length > 0) {
+            summaryDetails.textContent = summary.join(' | ');
         } else {
-            totalDisplay.classList.add('d-none');
+            summaryDetails.textContent = "Aucun montant saisi";
         }
     }
 
+    // Listeners Inscription
+    if (montantInscriptionInput) {
+        montantInscriptionInput.addEventListener('input', updateAll);
+        optionCheckboxes.forEach(cb => cb.addEventListener('change', updateAll));
+    }
+
+    // Listeners Mensualités
     trancheCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const trancheId = this.dataset.trancheId;
             const trancheMoisInputs = document.querySelectorAll(`.input-mois[data-tranche-id="${trancheId}"]`);
 
             if (this.checked) {
-                const montantParMois = parseFloat(this.dataset.montantMensuel);
                 trancheMoisInputs.forEach(input => {
                     if (!input.readOnly) {
-                        input.value = montantParMois;
+                        input.value = input.dataset.reste;
                         input.closest('.card').classList.add('bg-light-success');
                     }
                 });
@@ -400,7 +415,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
             }
-            updateTotalScolarite();
+            updateAll();
         });
     });
 
@@ -411,9 +426,12 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 input.closest('.card').classList.remove('bg-light-warning');
             }
-            updateTotalScolarite();
+            updateAll();
         });
     });
+
+    // Initialisation
+    updateAll();
 });
 </script>
 <?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>

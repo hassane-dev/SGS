@@ -178,8 +178,7 @@ $router->register('/frais/get-series', 'FraisController', 'getSeries');
 $router->register('/paiements', 'PaiementController', 'index');
 $router->register('/paiements/pending', 'PaiementController', 'listPending');
 $router->register('/paiements/show/{eleveId}', 'PaiementController', 'show');
-$router->register('/paiements/process-inscription/{eleveId}', 'PaiementController', 'processInscription');
-$router->register('/paiements/process-mensualites/{eleveId}', 'PaiementController', 'processMensualites');
+$router->register('/paiements/process-payment/{eleveId}', 'PaiementController', 'processPayment');
 
 // Recus (Receipts)
 $router->register('/recu/inscription', 'RecuController', 'showInscriptionRecu');
