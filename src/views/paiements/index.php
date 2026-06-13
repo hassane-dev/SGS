@@ -11,80 +11,41 @@
                             <h2 class="mb-0"><?= $title ?></h2>
                         </div>
                         <ul class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="/">Tableau de Bord</a></li>
-                            <li class="breadcrumb-item"><a href="/paiements">Finances</a></li>
-                            <li class="breadcrumb-item" aria-current="page"><?= $title ?></li>
+                            <li class="breadcrumb-item"><a href="/"><?= _("Tableau de Bord") ?></a></li>
+                            <li class="breadcrumb-item"><?= _("Finances") ?></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= _("Poste Comptable") ?></li>
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Statistiques Financières -->
         <div class="row">
-            <div class="col-md-6 col-xl-3">
-                <div class="card bg-grd-primary text-white">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="avtar avtar-l bg-light-primary text-primary">
-                                    <i class="ph-duotone ph-money fs-1"></i>
+            <!-- Central Search -->
+            <div class="col-md-12 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-7">
+                                <h4 class="mb-1"><?= _("Recherche de Classe") ?></h4>
+                                <p class="text-muted mb-3"><?= _("Saisissez le nom d'une classe pour accéder à son dashboard (ex: Terminale A4 1)") ?></p>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-white border-end-0"><i class="ph-duotone ph-magnifying-glass fs-4"></i></span>
+                                    <input type="text" id="classSearchInput" class="form-control border-start-0" placeholder="<?= _("Rechercher une classe...") ?>" autocomplete="off">
                                 </div>
+                                <div id="searchSuggestions" class="list-group shadow-sm mt-1 position-absolute w-100 z-3 d-none" style="max-width: 95%;"></div>
                             </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="text-white mb-1">Encaissement Total</h6>
-                                <h3 class="text-white mb-0"><?= number_format($totalGlobal, 0, ',', ' ') ?> <small>FCFA</small></h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-xl-3">
-                <div class="card bg-grd-success text-white">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="avtar avtar-l bg-light-success text-success">
-                                    <i class="ph-duotone ph-calendar-check fs-1"></i>
+                            <div class="col-md-5">
+                                <div class="row text-center mt-3 mt-md-0">
+                                    <div class="col-6">
+                                        <h6 class="text-muted mb-1"><?= _("Total Encaissé") ?></h6>
+                                        <h4 class="mb-0"><?= number_format($totalGlobal, 0, ',', ' ') ?> <small>FCFA</small></h4>
+                                    </div>
+                                    <div class="col-6">
+                                        <h6 class="text-muted mb-1"><?= _("Aujourd'hui") ?></h6>
+                                        <h4 class="text-primary mb-0"><?= number_format($totalToday, 0, ',', ' ') ?> <small>FCFA</small></h4>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="text-white mb-1">Total ce mois</h6>
-                                <h3 class="text-white mb-0"><?= number_format($totalMonth, 0, ',', ' ') ?> <small>FCFA</small></h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-xl-3">
-                <div class="card bg-grd-info text-white">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="avtar avtar-l bg-light-info text-info">
-                                    <i class="ph-duotone ph-clock fs-1"></i>
-                                </div>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="text-white mb-1">Aujourd'hui</h6>
-                                <h3 class="text-white mb-0"><?= number_format($totalToday, 0, ',', ' ') ?> <small>FCFA</small></h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-xl-3">
-                <div class="card bg-grd-danger text-white">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="avtar avtar-l bg-light-danger text-danger">
-                                    <i class="ph-duotone ph-hand-coins fs-1"></i>
-                                </div>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="text-white mb-1">Restes à percevoir</h6>
-                                <h3 class="text-white mb-0"><?= number_format($arrieresInscriptions, 0, ',', ' ') ?> <small>FCFA</small></h3>
                             </div>
                         </div>
                     </div>
@@ -92,151 +53,115 @@
             </div>
         </div>
 
-        <!-- Alertes Section -->
-        <?php if (!empty($alerts)): ?>
-            <div class="row">
-                <div class="col-12">
-                    <?php foreach ($alerts as $alert): ?>
-                        <div class="alert alert-<?= $alert['type'] ?> alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
-                            <div class="d-flex align-items-center">
-                                <i class="ph-duotone ph-warning-circle fs-2 me-3"></i>
-                                <div>
-                                    <strong>Attention !</strong> <?= htmlspecialchars($alert['message']) ?>
-                                    <?php if (!empty($alert['link'])): ?>
-                                        <a href="<?= $alert['link'] ?>" class="alert-link ms-2 text-decoration-underline">Consulter la liste</a>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        <?php endif; ?>
-
-        <!-- État des Inscriptions -->
-        <div class="row">
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h6 class="mb-1">Élèves en attente</h6>
-                                <h3 class="mb-0 text-warning"><?= $nbEnAttente ?></h3>
-                            </div>
-                            <div class="flex-shrink-0 ms-3">
-                                <div class="avtar avtar-s bg-light-warning text-warning">
-                                    <i class="ph-duotone ph-users"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <a href="/paiements/pending" class="btn btn-link-warning p-0 mt-3">Voir la file d'attente <i class="ph-duotone ph-arrow-right"></i></a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h6 class="mb-1">Paiements partiels</h6>
-                                <h3 class="mb-0 text-info"><?= $nbPartiel ?></h3>
-                            </div>
-                            <div class="flex-shrink-0 ms-3">
-                                <div class="avtar avtar-s bg-light-info text-info">
-                                    <i class="ph-duotone ph-user-circle-plus"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <p class="text-muted small mt-3 mb-0">Inscriptions non soldées</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h6 class="mb-1">Élèves activés</h6>
-                                <h3 class="mb-0 text-success"><?= $nbActif ?></h3>
-                            </div>
-                            <div class="flex-shrink-0 ms-3">
-                                <div class="avtar avtar-s bg-light-success text-success">
-                                    <i class="ph-duotone ph-check-square"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <p class="text-muted small mt-3 mb-0">Dossiers financiers à jour</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <!-- Dernières Transactions -->
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5>Dernières Opérations de Caisse</h5>
-                        <div class="card-header-right">
-                            <a href="/paiements/pending" class="btn btn-warning btn-sm">
-                                <i class="ph-duotone ph-clock-counter-clockwise me-2"></i>File d'attente
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Date & Heure</th>
-                                        <th>Élève</th>
-                                        <th>Type</th>
-                                        <th>Mode</th>
-                                        <th>Caissier</th>
-                                        <th class="text-end">Montant</th>
-                                        <th class="text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($recentTransactions as $t): ?>
-                                        <tr>
-                                            <td><?= date('d/m/Y H:i', strtotime($t['date'])) ?></td>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    <div class="flex-grow-1">
-                                                        <h6 class="mb-0"><?= htmlspecialchars($t['eleve_nom']) ?></h6>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-light-<?= $t['type'] == 'Inscription' ? 'success' : 'info' ?> text-<?= $t['type'] == 'Inscription' ? 'success' : 'info' ?>">
-                                                    <?= $t['type'] ?>
-                                                </span>
-                                            </td>
-                                            <td><?= $t['mode'] ?: 'N/A' ?></td>
-                                            <td><small class="text-muted"><?= htmlspecialchars($t['caissier']) ?></small></td>
-                                            <td class="text-end fw-bold text-dark"><?= number_format($t['montant'], 0, ',', ' ') ?> <small>FCFA</small></td>
-                                            <td class="text-center">
-                                                <a href="/paiements/show/<?= $t['eleve_id'] ?>" class="btn btn-icon btn-light-primary" title="Voir l'historique complet">
-                                                    <i class="ph-duotone ph-receipt"></i>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                    <?php if (empty($recentTransactions)): ?>
-                                        <tr>
-                                            <td colspan="7" class="text-center py-4 text-muted">Aucune transaction enregistrée pour le moment.</td>
-                                        </tr>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+        <!-- Class Dashboard Area -->
+        <div id="classDashboardContainer">
+            <div class="text-center py-5">
+                <i class="ph-duotone ph-student fs-1 text-muted opacity-50"></i>
+                <p class="text-muted mt-3"><?= _("Utilisez la recherche ci-dessus pour charger une classe et ses élèves.") ?></p>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('classSearchInput');
+    const suggestions = document.getElementById('searchSuggestions');
+    const dashboardContainer = document.getElementById('classDashboardContainer');
+
+    let debounceTimer;
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const q = this.value.trim();
+
+        if (q.length < 2) {
+            suggestions.classList.add('d-none');
+            return;
+        }
+
+        debounceTimer = setTimeout(() => {
+            fetch(`/paiements/class/search?q=${encodeURIComponent(q)}`)
+                .then(res => res.json())
+                .then(data => {
+                    suggestions.innerHTML = '';
+                    if (data.length > 0) {
+                        data.forEach(classe => {
+                            const btn = document.createElement('button');
+                            btn.className = 'list-group-item list-group-item-action border-0';
+                            const name = `${classe.niveau} ${classe.serie || ''} ${classe.numero || ''}`.trim();
+                            btn.innerHTML = `<i class="ph-duotone ph-chalkboard-teacher me-2 text-primary"></i> ${name}`;
+                            btn.onclick = () => loadClassDashboard(classe.id_classe);
+                            suggestions.appendChild(btn);
+                        });
+                        suggestions.classList.remove('d-none');
+                    } else {
+                        suggestions.classList.add('d-none');
+                    }
+                });
+        }, 300);
+    });
+
+    function loadClassDashboard(classId) {
+        suggestions.classList.add('d-none');
+        searchInput.value = '';
+
+        dashboardContainer.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2"><?= _("Chargement de la classe...") ?></p></div>';
+
+        fetch(`/paiements/class/${classId}/dashboard`)
+            .then(res => res.text())
+            .then(html => {
+                dashboardContainer.innerHTML = html;
+                initializeDashboardActions();
+            });
+    }
+
+    function initializeDashboardActions() {
+        // Quick pay buttons
+        document.querySelectorAll('.btn-quick-pay').forEach(btn => {
+            btn.onclick = function() {
+                const eleveId = this.dataset.eleveId;
+                const montant = this.dataset.montant;
+                const mois = this.dataset.mois;
+
+                if (!confirm(`Confirmer le paiement de ${montant} FCFA pour ${mois} ?`)) return;
+
+                const originalHtml = this.innerHTML;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                this.disabled = true;
+
+                const formData = new FormData();
+                formData.append('eleve_id', eleveId);
+                formData.append('montant', montant);
+                formData.append('mois', mois);
+
+                fetch('/paiements/pay', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // Re-load dashboard to refresh statuses
+                        const currentClassId = document.getElementById('currentClassId').value;
+                        loadClassDashboard(currentClassId);
+                    } else {
+                        alert(data.message);
+                        this.innerHTML = originalHtml;
+                        this.disabled = false;
+                    }
+                });
+            };
+        });
+    }
+
+    // Hide suggestions on click outside
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !suggestions.contains(e.target)) {
+            suggestions.classList.add('d-none');
+        }
+    });
+});
+</script>
 
 <?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>

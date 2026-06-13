@@ -176,6 +176,9 @@ $router->register('/frais/get-series', 'FraisController', 'getSeries');
 
 // Comptable / Paiements (Unifié)
 $router->register('/paiements', 'PaiementController', 'index');
+$router->register('/paiements/class/search', 'PaiementController', 'searchClass');
+$router->register('/paiements/class/{id}/dashboard', 'PaiementController', 'classDashboard');
+$router->register('/paiements/pay', 'PaiementController', 'quickPay');
 $router->register('/paiements/pending', 'PaiementController', 'listPending');
 $router->register('/paiements/show/{eleveId}', 'PaiementController', 'show');
 $router->register('/paiements/process-payment/{eleveId}', 'PaiementController', 'processPayment');
