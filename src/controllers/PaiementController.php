@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../models/Eleve.php';
 require_once __DIR__ . '/../models/Etude.php';
+require_once __DIR__ . '/../models/Cycle.php';
 require_once __DIR__ . '/../models/Frais.php';
 require_once __DIR__ . '/../models/Inscription.php';
 require_once __DIR__ . '/../models/Mensualite.php';
@@ -59,28 +60,57 @@ class PaiementController {
         $stmt->execute(['l_id1' => $lycee_id, 'd1' => $today, 'l_id2' => $lycee_id, 'd2' => $today]);
         $totalToday = $stmt->fetchColumn() ?: 0;
 
+        $cycles = Cycle::findByLycee($lycee_id);
+
         View::render('paiements/index', [
             'totalGlobal' => $totalGlobal,
             'totalToday' => $totalToday,
+            'cycles' => $cycles,
             'title' => 'Poste de Travail Comptable'
         ]);
     }
 
     public function searchClass() {
         $this->checkAccess('view');
-        $q = $_GET['q'] ?? '';
+        $q = trim($_GET['q'] ?? '');
         $lycee_id = Auth::getLyceeId();
 
+        if (empty($q)) {
+            header('Content-Type: application/json');
+            echo json_encode([]);
+            exit();
+        }
+
         $db = Database::getInstance();
-        // Recherche intelligente : on cherche dans niveau, serie, numero
+
+        // Normalisation de la recherche (espace au lieu de tiret, etc.)
+        $search = str_replace(['-', '_'], ' ', $q);
+        $search = preg_replace('/\s+/', ' ', $search);
+        $like = "%$search%";
+
+        // Recherche multi-critères et tolérante
         $stmt = $db->prepare("
             SELECT id_classe, niveau, serie, numero
             FROM classes
             WHERE lycee_id = :lycee_id
-            AND (niveau LIKE :q OR serie LIKE :q OR CONCAT(niveau, ' ', IFNULL(serie,''), ' ', IFNULL(numero,'')) LIKE :q)
-            LIMIT 5
+            AND (
+                niveau LIKE :q
+                OR serie LIKE :q
+                OR CONCAT(niveau, ' ', IFNULL(serie,''), ' ', IFNULL(numero,'')) LIKE :q
+                OR REPLACE(CONCAT(niveau, IFNULL(serie,''), IFNULL(numero,'')), ' ', '') LIKE :q_strip
+                OR niveau LIKE :q_start
+            )
+            ORDER BY niveau ASC, serie ASC, numero ASC
+            LIMIT 10
         ");
-        $stmt->execute(['lycee_id' => $lycee_id, 'q' => "%$q%"]);
+
+        $stmt->execute([
+            'lycee_id' => $lycee_id,
+            'q' => $like,
+            'q_strip' => '%' . str_replace(' ', '', $search) . '%',
+            'q_start' => "$search%"
+        ]);
+
         $classes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         header('Content-Type: application/json');

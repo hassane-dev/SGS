@@ -19,10 +19,10 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card bg-light-danger">
+        <div class="card bg-grd-danger text-white">
             <div class="card-body">
-                <h6 class="text-danger mb-1"><?= _("Impayés / Partiels") ?></h6>
-                <h3 class="mb-0"><?= $stats['impaye'] + $stats['partiel'] ?></h3>
+                <h6 class="text-white mb-1"><?= _("Impayés / Partiels") ?></h6>
+                <h3 class="text-white mb-0"><?= $stats['impaye'] + $stats['partiel'] ?></h3>
             </div>
         </div>
     </div>
@@ -83,13 +83,23 @@
                             </td>
                             <td class="text-center">
                                 <?php if (strpos($e['statut_finance'], '🟢') === false && $e['montant_mensuel'] > 0): ?>
-                                    <button class="btn btn-sm btn-success btn-quick-pay"
-                                            data-eleve-id="<?= $e['id_eleve'] ?>"
-                                            data-montant="<?= $e['montant_mensuel'] ?>"
-                                            data-mois="<?= $moisCourant ?>"
-                                            title="<?= _("Payer le mois en cours") ?>">
-                                        <i class="ph-duotone ph-money me-1"></i> 💰 <?= _("Payer") ?> <?= $moisCourant ?>
-                                    </button>
+                                    <?php if (strpos($e['statut_finance'], '🟡') !== false): ?>
+                                        <button class="btn btn-sm btn-warning btn-quick-pay"
+                                                data-eleve-id="<?= $e['id_eleve'] ?>"
+                                                data-montant="<?= $e['montant_mensuel'] ?>"
+                                                data-mois="<?= $moisCourant ?>"
+                                                title="<?= _("Compléter le paiement") ?>">
+                                            <i class="ph-duotone ph-lightning me-1"></i> ⚡ <?= _("Compléter") ?>
+                                        </button>
+                                    <?php else: ?>
+                                        <button class="btn btn-sm btn-success btn-quick-pay"
+                                                data-eleve-id="<?= $e['id_eleve'] ?>"
+                                                data-montant="<?= $e['montant_mensuel'] ?>"
+                                                data-mois="<?= $moisCourant ?>"
+                                                title="<?= _("Payer le mois en cours") ?>">
+                                            <i class="ph-duotone ph-money me-1"></i> 💰 <?= _("Payer") ?> <?= $moisCourant ?>
+                                        </button>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                                 <a href="/paiements/show/<?= $e['id_eleve'] ?>" class="btn btn-sm btn-light-primary ms-1" title="<?= _("Détails & Historique") ?>">
                                     <i class="ph-duotone ph-eye"></i>

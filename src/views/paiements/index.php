@@ -34,6 +34,21 @@
                                     <input type="text" id="classSearchInput" class="form-control border-start-0" placeholder="<?= _("Rechercher une classe...") ?>" autocomplete="off">
                                 </div>
                                 <div id="searchSuggestions" class="list-group shadow-sm mt-1 position-absolute w-100 z-3 d-none" style="max-width: 95%;"></div>
+
+                                <div class="mt-3 d-flex gap-2">
+                                    <select id="selectCycle" class="form-select form-select-sm">
+                                        <option value=""><?= _("Cycle") ?></option>
+                                        <?php foreach ($cycles as $c): ?>
+                                            <option value="<?= $c['id_cycle'] ?>"><?= htmlspecialchars($c['nom_cycle']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <select id="selectNiveau" class="form-select form-select-sm" disabled>
+                                        <option value=""><?= _("Niveau") ?></option>
+                                    </select>
+                                    <select id="selectClasse" class="form-select form-select-sm" disabled>
+                                        <option value=""><?= _("Classe") ?></option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="col-md-5">
                                 <div class="row text-center mt-3 mt-md-0">
@@ -69,8 +84,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const suggestions = document.getElementById('searchSuggestions');
     const dashboardContainer = document.getElementById('classDashboardContainer');
 
+    const selectCycle = document.getElementById('selectCycle');
+    const selectNiveau = document.getElementById('selectNiveau');
+    const selectClasse = document.getElementById('selectClasse');
+
     let debounceTimer;
 
+    // --- SEARCH LOGIC ---
     searchInput.addEventListener('input', function() {
         clearTimeout(debounceTimer);
         const q = this.value.trim();
@@ -82,7 +102,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         debounceTimer = setTimeout(() => {
             fetch(`/paiements/class/search?q=${encodeURIComponent(q)}`)
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error('Search failed');
+                    return res.json();
+                })
                 .then(data => {
                     suggestions.innerHTML = '';
                     if (data.length > 0) {
@@ -98,6 +121,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
                         suggestions.classList.add('d-none');
                     }
+                })
+                .catch(err => {
+                    console.error(err);
+                    suggestions.innerHTML = `<div class="list-group-item text-danger small"><i class="ph-duotone ph-warning-circle me-1"></i> Erreur lors de la recherche</div>`;
+                    suggestions.classList.remove('d-none');
                 });
         }, 300);
     });
@@ -154,6 +182,58 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         });
     }
+
+    // --- GUIDED SELECTION LOGIC ---
+    selectCycle.addEventListener('change', function() {
+        const cycleId = this.value;
+        selectNiveau.innerHTML = '<option value=""><?= _("Niveau") ?></option>';
+        selectClasse.innerHTML = '<option value=""><?= _("Classe") ?></option>';
+        selectClasse.disabled = true;
+
+        if (!cycleId) {
+            selectNiveau.disabled = true;
+            return;
+        }
+
+        fetch(`/classes/get-niveaux?cycle_id=${cycleId}`)
+            .then(res => res.json())
+            .then(data => {
+                data.forEach(n => {
+                    const opt = document.createElement('option');
+                    opt.value = n;
+                    opt.textContent = n;
+                    selectNiveau.appendChild(opt);
+                });
+                selectNiveau.disabled = false;
+            });
+    });
+
+    selectNiveau.addEventListener('change', function() {
+        const niveau = this.value;
+        const cycleId = selectCycle.value;
+        selectClasse.innerHTML = '<option value=""><?= _("Classe") ?></option>';
+
+        if (!niveau) {
+            selectClasse.disabled = true;
+            return;
+        }
+
+        fetch(`/paiements/class/search?q=${encodeURIComponent(niveau)}`)
+            .then(res => res.json())
+            .then(data => {
+                data.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id_classe;
+                    opt.textContent = `${c.niveau} ${c.serie || ''} ${c.numero || ''}`.trim();
+                    selectClasse.appendChild(opt);
+                });
+                selectClasse.disabled = false;
+            });
+    });
+
+    selectClasse.addEventListener('change', function() {
+        if (this.value) loadClassDashboard(this.value);
+    });
 
     // Hide suggestions on click outside
     document.addEventListener('click', function(e) {
