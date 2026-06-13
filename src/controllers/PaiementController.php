@@ -404,6 +404,9 @@ class PaiementController {
                 throw new Exception("Aucun montant à encaisser n'a été saisi.");
             }
 
+            // Marquer les notifications "En attente de paiement" comme traitées
+            Notification::markAsReadByLink("/paiements/show/{$eleveId}", $lyceeId);
+
             $db->commit();
             $_SESSION['success_message'] = "Opération d'encaissement réussie. Reçu N° {$reference}";
 

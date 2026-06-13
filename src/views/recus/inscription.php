@@ -62,14 +62,16 @@
             <p><?= htmlspecialchars(($lycee['quartier'] ?? '') . ' ' . ($lycee['ville'] ?? '')) ?> - BP: <?= htmlspecialchars($lycee['boite_postale'] ?? 'N/A') ?></p>
             <p>Tel: <?= htmlspecialchars($lycee['tel'] ?? '') ?> / Email: <?= htmlspecialchars($lycee['email'] ?? '') ?></p>
             </div>
-            <div style="width: 100px; text-align: right;">
+            <div style="width: 120px; text-align: right;">
                 <span class="info-label">N° Reçu</span>
-                <span class="info-value" style="font-size: 16px; color: #d9534f;">INS-<?= str_pad($inscription['id_inscription'], 5, '0', STR_PAD_LEFT) ?></span>
+                <span class="info-value" style="font-size: 16px; color: #d9534f;">
+                    <?= !empty($inscription['recu_numero']) ? htmlspecialchars($inscription['recu_numero']) : 'INS-' . str_pad($inscription['id_inscription'], 5, '0', STR_PAD_LEFT) ?>
+                </span>
             </div>
         </div>
 
         <div class="receipt-title">
-            <h2>Reçu de Frais d'Inscription</h2>
+            <h2>Reçu de Paiement</h2>
         </div>
 
         <div class="info-section">
@@ -95,33 +97,50 @@
             <thead>
                 <tr>
                     <th>Désignation des frais</th>
-                    <th style="text-align: right;">Montant Total</th>
                     <th style="text-align: right;">Montant Versé</th>
-                    <th style="text-align: right;">Reste à payer</th>
                 </tr>
             </thead>
             <tbody>
+                <?php $totalVerseOperation = (float)$inscription['montant_verse']; ?>
                 <tr>
                     <td>
-                        Frais d'inscription annuel<br>
+                        <strong>Frais d'inscription annuel</strong><br>
                         <small style="color: #666;">
-                            Options:
-                            - Logo: <?= !empty(json_decode($inscription['details_frais'], true)['logo']) ? 'OUI' : 'NON' ?>
-                            - Carte: <?= !empty(json_decode($inscription['details_frais'], true)['carte']) ? 'OUI' : 'NON' ?>
+                            Options incluses :
+                            Logo: <?= !empty(json_decode($inscription['details_frais'], true)['logo']) ? 'OUI' : 'NON' ?> |
+                            Carte: <?= !empty(json_decode($inscription['details_frais'], true)['carte']) ? 'OUI' : 'NON' ?>
                         </small>
                     </td>
-                    <td style="text-align: right;"><?= number_format($inscription['montant_total'], 0, ',', ' ') ?></td>
-                    <td style="text-align: right; font-weight: bold;"><?= number_format($inscription['montant_verse'], 0, ',', ' ') ?></td>
-                    <td style="text-align: right; color: <?= $inscription['reste_a_payer'] > 0 ? '#d9534f' : '#5cb85c' ?>; font-weight: bold;">
-                        <?= number_format($inscription['reste_a_payer'], 0, ',', ' ') ?> FCFA
-                    </td>
+                    <td style="text-align: right; font-weight: bold;"><?= number_format($inscription['montant_verse'], 0, ',', ' ') ?> FCFA</td>
                 </tr>
+
+                <?php foreach ($mensualites as $m): ?>
+                    <?php $totalVerseOperation += (float)$m['montant']; ?>
+                    <tr>
+                        <td>
+                            Scolarité - Mois de <strong><?= htmlspecialchars($m['mois_ou_sequence']) ?></strong>
+                        </td>
+                        <td style="text-align: right; font-weight: bold;"><?= number_format($m['montant'], 0, ',', ' ') ?> FCFA</td>
+                    </tr>
+                <?php endforeach; ?>
             </tbody>
+            <tfoot>
+                <tr style="background: #f0f0f0;">
+                    <td style="text-align: right; font-weight: bold; text-transform: uppercase;">Total versé lors de l'opération</td>
+                    <td style="text-align: right; font-weight: bold; font-size: 16px; border-left: 2px solid #333;"><?= number_format($totalVerseOperation, 0, ',', ' ') ?> FCFA</td>
+                </tr>
+            </tfoot>
         </table>
+
+        <?php if ($inscription['reste_a_payer'] > 0): ?>
+            <div style="margin-bottom: 20px; text-align: right; color: #d9534f; font-weight: bold;">
+                Reliquat sur inscription : <?= number_format($inscription['reste_a_payer'], 0, ',', ' ') ?> FCFA
+            </div>
+        <?php endif; ?>
 
         <div class="amount-words">
             <strong>Arrêté le présent reçu à la somme de :</strong><br>
-            <span style="text-transform: capitalize;"><?= number_format($inscription['montant_verse'], 0, ',', ' ') ?> Francs CFA</span>
+            <span style="text-transform: capitalize; font-weight: bold;"><?= number_format($totalVerseOperation, 0, ',', ' ') ?> Francs CFA</span>
         </div>
 
         <div class="footer">
