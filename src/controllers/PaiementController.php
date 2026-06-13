@@ -95,7 +95,7 @@ class PaiementController {
 
         $classe = Classe::findById($classId);
         if (!$classe || $classe['lycee_id'] != $lycee_id) {
-            echo "Classe introuvable.";
+            echo _("Classe introuvable.");
             exit();
         }
 
@@ -119,7 +119,8 @@ class PaiementController {
         $montantMensuel = (float)($frais['frais_mensuel'] ?? 0);
 
         // 3. Déterminer le mois courant
-        $fmt = new IntlDateFormatter('fr_FR', IntlDateFormatter::FULL, IntlDateFormatter::NONE, 'Africa/Porto-Novo', IntlDateFormatter::GREGORIAN, 'MMMM');
+        $locale = $_SESSION['lang'] ?? 'fr_FR';
+        $fmt = new IntlDateFormatter($locale, IntlDateFormatter::FULL, IntlDateFormatter::NONE, 'Africa/Porto-Novo', IntlDateFormatter::GREGORIAN, 'MMMM');
         $moisCourant = ucfirst($fmt->format(new DateTime()));
 
         // 4. Bulk fetch des paiements du mois courant pour toute la classe (Optimisation N+1)
@@ -152,13 +153,13 @@ class PaiementController {
             $payeMoisCourant = ($totalMoisCourant >= $montantMensuel);
 
             if ($e['reste_a_payer'] > 0) {
-                $e['statut_finance'] = '🔴 Impayé (Inscr.)';
+                $e['statut_finance'] = '🔴 ' . _("Impayé (Inscr.)");
                 $stats['impaye']++;
             } elseif (!$payeMoisCourant) {
-                $e['statut_finance'] = '🟡 Partiel';
+                $e['statut_finance'] = '🟡 ' . _("Partiel");
                 $stats['partiel']++;
             } else {
-                $e['statut_finance'] = '🟢 À jour';
+                $e['statut_finance'] = '🟢 ' . _("À jour");
                 $stats['a_jour']++;
             }
 

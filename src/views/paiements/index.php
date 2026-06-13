@@ -11,9 +11,9 @@
                             <h2 class="mb-0"><?= $title ?></h2>
                         </div>
                         <ul class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="/">Tableau de Bord</a></li>
-                            <li class="breadcrumb-item">Finances</li>
-                            <li class="breadcrumb-item" aria-current="page">Poste Comptable</li>
+                            <li class="breadcrumb-item"><a href="/"><?= _("Tableau de Bord") ?></a></li>
+                            <li class="breadcrumb-item"><?= _("Finances") ?></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= _("Poste Comptable") ?></li>
                         </ul>
                     </div>
                 </div>
@@ -27,22 +27,22 @@
                     <div class="card-body p-4">
                         <div class="row align-items-center">
                             <div class="col-md-7">
-                                <h4 class="mb-1">Recherche de Classe</h4>
-                                <p class="text-muted mb-3">Saisissez le nom d'une classe pour accéder à son dashboard (ex: Terminale A4 1)</p>
+                                <h4 class="mb-1"><?= _("Recherche de Classe") ?></h4>
+                                <p class="text-muted mb-3"><?= _("Saisissez le nom d'une classe pour accéder à son dashboard (ex: Terminale A4 1)") ?></p>
                                 <div class="input-group input-group-lg">
                                     <span class="input-group-text bg-white border-end-0"><i class="ph-duotone ph-magnifying-glass fs-4"></i></span>
-                                    <input type="text" id="classSearchInput" class="form-control border-start-0" placeholder="Rechercher une classe..." autocomplete="off">
+                                    <input type="text" id="classSearchInput" class="form-control border-start-0" placeholder="<?= _("Rechercher une classe...") ?>" autocomplete="off">
                                 </div>
                                 <div id="searchSuggestions" class="list-group shadow-sm mt-1 position-absolute w-100 z-3 d-none" style="max-width: 95%;"></div>
                             </div>
                             <div class="col-md-5">
                                 <div class="row text-center mt-3 mt-md-0">
                                     <div class="col-6">
-                                        <h6 class="text-muted mb-1">Total Encaissé</h6>
+                                        <h6 class="text-muted mb-1"><?= _("Total Encaissé") ?></h6>
                                         <h4 class="mb-0"><?= number_format($totalGlobal, 0, ',', ' ') ?> <small>FCFA</small></h4>
                                     </div>
                                     <div class="col-6">
-                                        <h6 class="text-muted mb-1">Aujourd'hui</h6>
+                                        <h6 class="text-muted mb-1"><?= _("Aujourd'hui") ?></h6>
                                         <h4 class="text-primary mb-0"><?= number_format($totalToday, 0, ',', ' ') ?> <small>FCFA</small></h4>
                                     </div>
                                 </div>
@@ -57,7 +57,7 @@
         <div id="classDashboardContainer">
             <div class="text-center py-5">
                 <i class="ph-duotone ph-student fs-1 text-muted opacity-50"></i>
-                <p class="text-muted mt-3">Utilisez la recherche ci-dessus pour charger une classe et ses élèves.</p>
+                <p class="text-muted mt-3"><?= _("Utilisez la recherche ci-dessus pour charger une classe et ses élèves.") ?></p>
             </div>
         </div>
     </div>
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
         suggestions.classList.add('d-none');
         searchInput.value = '';
 
-        dashboardContainer.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Chargement de la classe...</p></div>';
+        dashboardContainer.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2"><?= _("Chargement de la classe...") ?></p></div>';
 
         fetch(`/paiements/class/${classId}/dashboard`)
             .then(res => res.text())
