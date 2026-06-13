@@ -27,6 +27,20 @@ class RecuController {
         }
         $inscription = $inscriptions[0];
 
+        // Récupérer les mensualités liées au même reçu
+        $mensualites = [];
+        if (!empty($inscription['recu_numero'])) {
+            $db = Database::getInstance();
+            $stmt = $db->prepare("
+                SELECT md.*, m.mois_ou_sequence
+                FROM mensualite_details md
+                JOIN mensualites m ON md.mensualite_id = m.id_mensualite
+                WHERE md.recu_numero = :recu
+            ");
+            $stmt->execute(['recu' => $inscription['recu_numero']]);
+            $mensualites = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
         $lycee = ParamLycee::findByLyceeId($eleve['lycee_id']);
         $caissier = User::findById($inscription['user_id']);
 

@@ -54,6 +54,19 @@ class Notification {
     }
 
     /**
+     * Mark notifications as read for a specific link and lycee.
+     * Useful to clear "Pending" notifications once the action is performed.
+     * @param string $link
+     * @param int $lycee_id
+     * @return bool
+     */
+    public static function markAsReadByLink($link, $lycee_id) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("UPDATE notifications SET is_read = 1 WHERE link = :link AND lycee_id = :lycee_id");
+        return $stmt->execute(['link' => $link, 'lycee_id' => $lycee_id]);
+    }
+
+    /**
      * Find unread notifications for a user.
      * @param int $user_id
      * @return array
