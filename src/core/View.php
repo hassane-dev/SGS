@@ -11,4 +11,12 @@ class View {
             echo "Rendering view: {$view}";
         }
     }
+
+    public static function renderPartial($view, $data = []) {
+        extract($data);
+        $viewPath = __DIR__ . '/../views/' . $view . '.php';
+        if (file_exists($viewPath)) {
+            require $viewPath;
+        }
+    }
 }
