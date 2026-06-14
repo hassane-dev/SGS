@@ -152,8 +152,10 @@ class Mensualite {
         $db = Database::getInstance();
 
         // Chercher le dernier numéro de reçu dans mensualite_details et inscriptions pour ce lycée
+        // On utilise MAX sur la partie numérique pour plus de robustesse que le tri alphabétique
         $stmt = $db->prepare("
-            SELECT recu_numero FROM (
+            SELECT MAX(CAST(SUBSTRING(recu_numero, 5) AS UNSIGNED)) as max_num
+            FROM (
                 SELECT md.recu_numero
                 FROM mensualite_details md
                 JOIN mensualites m ON md.mensualite_id = m.id_mensualite
@@ -163,19 +165,11 @@ class Mensualite {
                 FROM inscriptions
                 WHERE lycee_id = :l2 AND recu_numero LIKE 'REC-%'
             ) as t
-            ORDER BY recu_numero DESC
-            LIMIT 1
         ");
         $stmt->execute(['l1' => $lyceeId, 'l2' => $lyceeId]);
-        $lastRecu = $stmt->fetchColumn();
+        $maxNum = $stmt->fetchColumn();
 
-        if ($lastRecu) {
-            // Extraire le numéro (ex: REC-000125 -> 125)
-            $number = (int) substr($lastRecu, 4);
-            $nextNumber = $number + 1;
-        } else {
-            $nextNumber = 1;
-        }
+        $nextNumber = ($maxNum) ? (int)$maxNum + 1 : 1;
 
         return 'REC-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
     }

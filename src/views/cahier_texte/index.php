@@ -84,7 +84,7 @@
                             <td><?= htmlspecialchars($entry['nom_matiere']) ?></td>
                             <td class="text-truncate" style="max-width: 300px;"><?= htmlspecialchars($entry['contenu_cours']) ?></td>
                             <td class="text-end">
-                                <?php if ($is_admin || Auth::get('id') == $entry['personnel_id']): ?>
+                                <?php if ($is_admin || Auth::getUserId() == $entry['personnel_id']): ?>
                                     <a href="/cahier-texte/edit?id=<?= $entry['cahier_id'] ?>" class="btn btn-sm btn-outline-primary"><?= _('Modifier') ?></a>
                                     <form action="/cahier-texte/destroy" method="POST" class="d-inline ms-2" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer cette entrée ?') ?>');">
                                         <input type="hidden" name="id" value="<?= $entry['cahier_id'] ?>">

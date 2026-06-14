@@ -40,13 +40,13 @@ class MensualiteController {
         $eleve = Eleve::findById($eleve_id);
         $activeYear = AnneeAcademique::findActive();
 
-        Mensualite::create([
+        Mensualite::save([
             'eleve_id' => $eleve_id,
             'lycee_id' => $eleve['lycee_id'],
             'annee_academique_id' => $activeYear['id'],
             'mois_ou_sequence' => $_POST['mois_ou_sequence'],
             'montant_verse' => $_POST['montant_verse'],
-            'user_id' => Auth::get('id_user')
+            'user_id' => Auth::getUserId()
         ]);
 
         header('Location: /eleves/details?id=' . $eleve_id);

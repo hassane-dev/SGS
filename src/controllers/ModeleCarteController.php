@@ -27,7 +27,7 @@ class ModeleCarteController {
         // A local admin can only edit the template for their own lycee.
         // A super admin would need a way to select which lycee to edit.
         // For simplicity, we'll focus on the local admin case.
-        $lycee_id = Auth::get('lycee_id');
+        $lycee_id = Auth::getLyceeId();
         if (!$lycee_id) {
             // Or redirect to a page where they can select a lycee to manage
             die("Super admins must select a school to manage its template.");

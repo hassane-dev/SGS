@@ -54,14 +54,14 @@ class UserController {
 
     public function index() {
         $this->checkAccess('view_all');
-        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::get('lycee_id') : null;
+        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::getLyceeId() : null;
         $users = User::findAll($lycee_id);
         require_once __DIR__ . '/../views/users/index.php';
     }
 
     public function create() {
         $this->checkAccess('create');
-        $lycee_id = Auth::get('lycee_id');
+        $lycee_id = Auth::getLyceeId();
         $lycees = (Auth::can('view_all_lycees', 'lycee')) ? Lycee::findAll() : [];
         $contrats = TypeContrat::findAll($lycee_id);
         $roles = Role::findAll($lycee_id);
@@ -79,7 +79,7 @@ class UserController {
             $data['actif'] = isset($data['actif']) ? 1 : 0;
 
             if (!Auth::can('view_all_lycees', 'lycee')) {
-                $data['lycee_id'] = Auth::get('lycee_id');
+                $data['lycee_id'] = Auth::getLyceeId();
             }
 
             if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
@@ -97,7 +97,7 @@ class UserController {
             } catch (Exception $e) {
                 error_log("User creation failed: " . $e->getMessage());
                 // Redisplay the form with an error message and pre-filled data
-                $lycee_id = Auth::get('lycee_id');
+                $lycee_id = Auth::getLyceeId();
                 $lycees = (Auth::can('view_all_lycees', 'lycee')) ? Lycee::findAll() : [];
                 $contrats = TypeContrat::findAll($lycee_id);
                 $roles = Role::findAll($lycee_id);
@@ -118,7 +118,7 @@ class UserController {
         }
 
         // A user can edit their own profile, OR an admin can edit users.
-        if ($id != Auth::get('id')) {
+        if ($id != Auth::getUserId()) {
             $this->checkAccess('edit');
         }
 
@@ -129,7 +129,7 @@ class UserController {
         }
 
         // Admin scope check: can only edit users in their school unless they are a super admin
-        if ($id != Auth::get('id') && !Auth::can('view_all_lycees', 'lycee') && $user['lycee_id'] != Auth::get('lycee_id')) {
+        if ($id != Auth::getUserId() && !Auth::can('view_all_lycees', 'lycee') && $user['lycee_id'] != Auth::getLyceeId()) {
             http_response_code(403);
             View::render('errors/403');
             exit();
@@ -156,7 +156,7 @@ class UserController {
             exit();
         }
 
-        if (!Auth::can('view_all_lycees', 'lycee') && $user['lycee_id'] != Auth::get('lycee_id')) {
+        if (!Auth::can('view_all_lycees', 'lycee') && $user['lycee_id'] != Auth::getLyceeId()) {
             http_response_code(403);
             View::render('errors/403');
             exit();
@@ -176,7 +176,7 @@ class UserController {
             $data['actif'] = isset($data['actif']) ? 1 : 0;
 
             if (!Auth::can('view_all_lycees', 'lycee')) {
-                $data['lycee_id'] = Auth::get('lycee_id');
+                $data['lycee_id'] = Auth::getLyceeId();
             }
 
             if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
@@ -204,8 +204,8 @@ class UserController {
                 $id = $data['id_user'];
                 $user = $data; // Use submitted data to refill form
                 $lycees = (Auth::can('view_all_lycees', 'lycee')) ? Lycee::findAll() : [];
-                $contrats = TypeContrat::findAll($user['lycee_id'] ?? Auth::get('lycee_id'));
-                $roles = Role::findAll($user['lycee_id'] ?? Auth::get('lycee_id'));
+                $contrats = TypeContrat::findAll($user['lycee_id'] ?? Auth::getLyceeId());
+                $roles = Role::findAll($user['lycee_id'] ?? Auth::getLyceeId());
                 $is_edit = true;
                 $error = $e->getMessage();
                 require_once __DIR__ . '/../views/users/edit.php';
@@ -218,7 +218,7 @@ class UserController {
         $this->checkAccess('delete');
         $id = $_POST['id'] ?? null;
 
-        if (!$id || $id == Auth::get('id_user')) {
+        if (!$id || $id == Auth::getUserId()) {
             // Do not allow self-deletion or invalid ID
             header('Location: /users?error=delete_failed');
             exit();
@@ -232,7 +232,7 @@ class UserController {
         }
 
         // Scope check: Super admin can delete anyone, others only within their lycee
-        if (!Auth::can('view_all_lycees', 'lycee') && $user['lycee_id'] != Auth::get('lycee_id')) {
+        if (!Auth::can('view_all_lycees', 'lycee') && $user['lycee_id'] != Auth::getLyceeId()) {
             http_response_code(403);
             View::render('errors/403');
             exit();
@@ -255,7 +255,7 @@ class UserController {
     }
 
     public function profile() {
-        $user_id = Auth::get('id_user');
+        $user_id = Auth::getUserId();
         $user = User::findById($user_id);
 
         if (!$user) {
@@ -274,7 +274,7 @@ class UserController {
 
     public function updatePassword() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $user_id = Auth::get('id_user');
+            $user_id = Auth::getUserId();
             $data = Validator::sanitize($_POST);
 
             // 1. Verify current password

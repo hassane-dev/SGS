@@ -19,7 +19,7 @@ class RoleController {
 
     public function index() {
         $this->checkAccess();
-        $user_lycee_id = Auth::get('lycee_id');
+        $user_lycee_id = Auth::getLyceeId();
         // Local admins see global roles + their own lycee's roles
         $roles = Role::findAll($user_lycee_id);
         require_once __DIR__ . '/../views/roles/index.php';

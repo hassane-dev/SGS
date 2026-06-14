@@ -61,7 +61,8 @@ class Inscription {
                     montant_verse = :montant_verse,
                     reste_a_payer = :reste_a_payer,
                     details_frais = :details_frais,
-                    user_id = :user_id
+                    user_id = :user_id,
+                    recu_numero = :recu_numero
                 WHERE id_inscription = :id_inscription"
             );
             $stmt->execute([
@@ -70,6 +71,7 @@ class Inscription {
                 'reste_a_payer' => $data['reste_a_payer'],
                 'details_frais' => $data['details_frais'],
                 'user_id' => $data['user_id'],
+                'recu_numero' => $data['recu_numero'] ?? null,
                 'id_inscription' => $data['id_inscription']
             ]);
         } else {

@@ -85,7 +85,7 @@ $direction = $supported_languages[$lang]['dir'];
                 <?php endif; ?>
                 <?php if (Auth::can('validate', 'paiement')):
                     // Fetch notifications for the accountant
-                    $unread_notifications = Notification::findUnreadByUser(Auth::get('id_user'));
+                    $unread_notifications = Notification::findUnreadByUser(Auth::getUserId());
                     $unread_count = count($unread_notifications);
                 ?>
                 <li class="nav-item">

@@ -22,7 +22,7 @@ class EmploiDuTempsController {
     public function index() {
         $this->checkAccess();
 
-        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::get('lycee_id') : null;
+        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::getLyceeId() : null;
         $classes = Classe::findAll($lycee_id);
         $active_year = AnneeAcademique::findActive();
         $annee_academique_id = $active_year ? $active_year['id'] : null;
@@ -41,7 +41,7 @@ class EmploiDuTempsController {
 
     public function create() {
         $this->checkAccess();
-        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::get('lycee_id') : null;
+        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::getLyceeId() : null;
         $active_year = AnneeAcademique::findActive();
         if (!$active_year) {
             // Or handle this with a user-friendly error message

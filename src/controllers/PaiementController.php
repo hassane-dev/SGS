@@ -315,7 +315,7 @@ class PaiementController {
             if (!$etude) throw new Exception("Dossier académique non trouvé.");
 
             $lyceeId = $eleve['lycee_id'] ?? Auth::getLyceeId();
-            $userId = Auth::user()['id'];
+            $userId = Auth::getUserId();
             $modePaiement = $_POST['mode_paiement'] ?? 'Espèces';
 
             $reference = $_POST['reference_transaction'] ?? null;
