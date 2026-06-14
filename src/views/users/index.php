@@ -83,7 +83,7 @@
                                                 </td>
                                                 <td class="text-end">
                                                     <a href="/users/view?id=<?= $user['id_user'] ?>" class="btn btn-sm btn-info"><?= _('Voir') ?></a>
-                                                    <?php if (Auth::get('id_user') != $user['id_user']): ?>
+                                                    <?php if (Auth::getUserId() != $user['id_user']): ?>
                                                         <a href="/users/edit?id=<?= $user['id_user'] ?>" class="btn btn-sm btn-primary ms-2"><?= _('Modifier') ?></a>
                                                         <form action="/users/destroy" method="POST" class="d-inline ms-2" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer ce membre ?') ?>');">
                                                             <input type="hidden" name="id" value="<?= $user['id_user'] ?>">

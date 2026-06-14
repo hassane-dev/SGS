@@ -31,7 +31,7 @@ class ReinscriptionController {
             exit();
         }
 
-        $lycee_id = Auth::get('lycee_id');
+        $lycee_id = Auth::getLyceeId();
         $eleves = Eleve::search($term, $lycee_id);
 
         require_once __DIR__ . '/../views/reinscription/results.php';
@@ -91,7 +91,7 @@ class ReinscriptionController {
 
         if ($is_active) {
             Eleve::changeStatus($eleve_id, 'actif');
-            Etude::activate($etude_id, Auth::get('id'));
+            Etude::activate($etude_id, Auth::getUserId());
         }
 
         $message = "Demande de réinscription pour " . $eleve['prenom'] . " " . $eleve['nom'] . ".";

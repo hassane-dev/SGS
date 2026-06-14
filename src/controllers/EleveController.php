@@ -20,7 +20,7 @@ class EleveController {
 
     public function index() {
         $user_role = Auth::get('role_name');
-        $user_id = Auth::get('id');
+        $user_id = Auth::getUserId();
         $current_lycee_id = Auth::getLyceeId();
 
         $filters = [
@@ -192,7 +192,7 @@ class EleveController {
             }
 
             if (empty($data['lycee_id'])) {
-                $data['lycee_id'] = $currentEleve['lycee_id'] ?? Auth::get('lycee_id');
+                $data['lycee_id'] = $currentEleve['lycee_id'] ?? Auth::getLyceeId();
             }
 
             try {

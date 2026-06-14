@@ -18,7 +18,7 @@ class FraisController {
 
     public function index() {
         $this->checkAccess();
-        $lycee_id = Auth::get('lycee_id');
+        $lycee_id = Auth::getLyceeId();
         $activeYear = AnneeAcademique::findActive();
 
         $frais = [];
@@ -35,7 +35,7 @@ class FraisController {
 
     public function create() {
         $this->checkAccess();
-        $lycee_id = Auth::get('lycee_id');
+        $lycee_id = Auth::getLyceeId();
         $activeYear = AnneeAcademique::findActive();
         $cycles = Cycle::findByLycee($lycee_id);
 
@@ -55,7 +55,7 @@ class FraisController {
         }
 
         $data = Validator::sanitize($_POST);
-        $lycee_id = Auth::get('lycee_id');
+        $lycee_id = Auth::getLyceeId();
         $activeYear = AnneeAcademique::findActive();
 
         $data['lycee_id'] = $lycee_id;
@@ -86,7 +86,7 @@ class FraisController {
             echo json_encode(['error' => 'Unauthorized']);
             exit();
         }
-        $lycee_id = Auth::get('lycee_id');
+        $lycee_id = Auth::getLyceeId();
         $niveaux = Classe::getDistinctNiveaux($lycee_id);
 
         header('Content-Type: application/json');
@@ -103,7 +103,7 @@ class FraisController {
             echo json_encode(['error' => 'Unauthorized']);
             exit();
         }
-        $lycee_id = Auth::get('lycee_id');
+        $lycee_id = Auth::getLyceeId();
         $series = Classe::getDistinctSeries($lycee_id);
 
         header('Content-Type: application/json');

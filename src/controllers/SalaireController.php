@@ -17,7 +17,7 @@ class SalaireController {
 
     public function index() {
         $this->checkAccess();
-        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::get('lycee_id') : null;
+        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::getLyceeId() : null;
         $salaires = Salaire::findAll($lycee_id);
         View::render('salaires/index', [
             'salaires' => $salaires,
@@ -27,7 +27,7 @@ class SalaireController {
 
     public function create() {
         $this->checkAccess();
-        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::get('lycee_id') : null;
+        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::getLyceeId() : null;
         $personnels = User::findAll($lycee_id); // Simplified, should filter by contract type
         View::render('salaires/create', [
             'personnels' => $personnels,
@@ -39,7 +39,7 @@ class SalaireController {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
-            $data['lycee_id'] = Auth::get('lycee_id'); // Assuming only local admins do this
+            $data['lycee_id'] = Auth::getLyceeId(); // Assuming only local admins do this
             Salaire::create($data);
         }
         header('Location: /salaires');

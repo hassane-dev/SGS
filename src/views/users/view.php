@@ -66,7 +66,7 @@
                 </div>
                 <div class="mt-3 d-flex justify-content-end">
                     <a href="/users" class="btn btn-secondary me-2"><?= _('Retour à la liste') ?></a>
-                    <?php if (Auth::get('id_user') != $user['id_user']): ?>
+                    <?php if (Auth::getUserId() != $user['id_user']): ?>
                         <a href="/users/edit?id=<?= $user['id_user'] ?>" class="btn btn-primary me-2"><?= _('Modifier') ?></a>
                         <form action="/users/destroy" method="POST" class="d-inline" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer ce membre ?') ?>');">
                             <input type="hidden" name="id" value="<?= $user['id_user'] ?>">

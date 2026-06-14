@@ -61,7 +61,7 @@ class HomeController {
 
         $teacherSubjects = [];
         if (Auth::get('role_name') === 'enseignant') {
-            $teacherSubjects = User::findSubjectsTaughtByTeacher(Auth::get('id'));
+            $teacherSubjects = User::findSubjectsTaughtByTeacher(Auth::getUserId());
         }
 
         // If the user is a comptable, we redirect them to the accounting dashboard directly

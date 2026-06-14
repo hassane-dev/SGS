@@ -16,7 +16,7 @@ class TypeContratController {
 
     public function index() {
         $this->checkAccess();
-        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::get('lycee_id') : null;
+        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::getLyceeId() : null;
         $contrats = TypeContrat::findAll($lycee_id);
         require_once __DIR__ . '/../views/type_contrat/index.php';
     }
@@ -34,7 +34,7 @@ class TypeContratController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
             if (!Auth::can('view_all_lycees', 'lycee')) {
-                $data['lycee_id'] = Auth::get('lycee_id');
+                $data['lycee_id'] = Auth::getLyceeId();
             }
             TypeContrat::save($data);
         }
@@ -60,7 +60,7 @@ class TypeContratController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
             if (!Auth::can('view_all_lycees', 'lycee')) {
-                $data['lycee_id'] = Auth::get('lycee_id');
+                $data['lycee_id'] = Auth::getLyceeId();
             }
             TypeContrat::save($data);
         }

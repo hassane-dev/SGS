@@ -17,7 +17,7 @@ class BoutiqueArticleController {
     public function index() {
         $this->checkAccess();
         $user_role = Auth::get('role_name');
-        $lycee_id = ($user_role === 'admin_local') ? Auth::get('lycee_id') : null;
+        $lycee_id = ($user_role === 'admin_local') ? Auth::getLyceeId() : null;
 
         $articles = BoutiqueArticle::findAll($lycee_id);
         require_once __DIR__ . '/../views/boutique/articles/index.php';
@@ -34,7 +34,7 @@ class BoutiqueArticleController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
             if (Auth::get('role_name') === 'admin_local') {
-                $data['lycee_id'] = Auth::get('lycee_id');
+                $data['lycee_id'] = Auth::getLyceeId();
             }
             BoutiqueArticle::save($data);
         }
@@ -59,7 +59,7 @@ class BoutiqueArticleController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
             if (Auth::get('role_name') === 'admin_local') {
-                $data['lycee_id'] = Auth::get('lycee_id');
+                $data['lycee_id'] = Auth::getLyceeId();
             }
             BoutiqueArticle::save($data);
         }

@@ -36,7 +36,7 @@ class BoutiqueAchatController {
         }
         $eleve = Eleve::findById($eleve_id);
 
-        $lycee_id = Auth::get('role_name') === 'admin_local' ? Auth::get('lycee_id') : null;
+        $lycee_id = Auth::get('role_name') === 'admin_local' ? Auth::getLyceeId() : null;
         // This is a simplification. A super admin would need to know the student's lycee
         $articles = BoutiqueArticle::findAll($lycee_id);
 

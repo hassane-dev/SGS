@@ -34,7 +34,7 @@ class TestEntreeController {
             exit();
         }
         $eleve = Eleve::findById($eleve_id);
-        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::get('lycee_id') : null;
+        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::getLyceeId() : null;
         $classes = Classe::findAll($lycee_id);
         require_once __DIR__ . '/../views/tests_entree/create.php';
     }
