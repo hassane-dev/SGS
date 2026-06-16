@@ -49,6 +49,30 @@ try {
     // Add recu_numero to inscriptions
     $db->exec("ALTER TABLE inscriptions ADD COLUMN IF NOT EXISTS recu_numero VARCHAR(50);");
 
+    // Create deblocages_notes table
+    $db->exec("CREATE TABLE IF NOT EXISTS `deblocages_notes` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `lycee_id` INT NOT NULL,
+        `annee_academique_id` INT NOT NULL,
+        `type` ENUM('global', 'classe', 'matiere', 'classe_matiere', 'enseignant') NOT NULL,
+        `classe_id` INT DEFAULT NULL,
+        `matiere_id` INT DEFAULT NULL,
+        `enseignant_id` INT DEFAULT NULL,
+        `sequence_id` INT DEFAULT NULL,
+        `date_debut` DATETIME NOT NULL,
+        `date_fin` DATETIME NOT NULL,
+        `motif` TEXT,
+        `cree_par` INT,
+        `cree_le` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
+        FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
+        FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
+        FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
+        FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
+        FOREIGN KEY (`sequence_id`) REFERENCES `sequences`(`id`) ON DELETE CASCADE,
+        FOREIGN KEY (`cree_par`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
     echo "Migration successful\n";
 } catch (Exception $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";

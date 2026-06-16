@@ -100,6 +100,13 @@ $navItems = [
         'condition' => Auth::can('view_all', 'note'),
     ],
     [
+        'url' => '/evaluations/deblocage',
+        'icon' => 'ph-duotone ph-lock-key-open',
+        'text' => _('Déblocage Notes'),
+        'title' => _('Gérer les déblocages exceptionnels pour la saisie des notes.'),
+        'condition' => Auth::can('manage_settings', 'evaluation'),
+    ],
+    [
         'url' => '/bulletins',
         'icon' => 'ph-duotone ph-file-text',
         'text' => _('Bulletins'),
