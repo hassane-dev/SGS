@@ -174,7 +174,8 @@ class PaiementController {
             }
         }
 
-        // Elèves avec paiement partiel
+        // Elèves avec paiement partiel - On ne les affiche plus ici s'ils sont déjà actifs
+        // car ils basculent dans "Gestion des restes"
         $stmt = $db->prepare("
             SELECT e.*, c.niveau as nom_classe, 'Partiel' as etat_finance, i.montant_verse as verse, i.reste_a_payer as reste
             FROM eleves e
@@ -182,6 +183,7 @@ class PaiementController {
             JOIN classes c ON et.classe_id = c.id_classe
             JOIN inscriptions i ON e.id_eleve = i.eleve_id AND i.annee_academique_id = :annee_id
             WHERE e.lycee_id = :lycee_id
+            AND e.statut = 'en_attente_paiement'
             AND i.reste_a_payer > 0
         ");
         $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
@@ -198,6 +200,30 @@ class PaiementController {
     /**
      * Affiche l'interface de paiement pour un élève donné.
      */
+    public function regulariserInscription($eleveId) {
+        $this->checkAccess('view');
+        $anneeActive = AnneeAcademique::findActive();
+        $eleve = Eleve::findById($eleveId);
+        $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id']);
+        $classe = Classe::findById($etude['classe_id']);
+        $frais = Frais::findForClasse($classe, $anneeActive['id']);
+        $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id']);
+
+        $fraisInscription = [
+            'total' => (float) ($inscription['montant_total'] ?? 0),
+            'verse' => (float) ($inscription['montant_verse'] ?? 0),
+        ];
+        $fraisInscription['reste'] = $fraisInscription['total'] - $fraisInscription['verse'];
+
+        $nextRecu = Mensualite::generateReceiptNumber($eleve['lycee_id']);
+
+        View::render('paiements/inscription_pay', [
+            'eleve' => $eleve,
+            'fraisInscription' => $fraisInscription,
+            'nextRecu' => $nextRecu
+        ]);
+    }
+
     public function show($eleveId) {
         $this->checkAccess('view');
 
@@ -288,6 +314,111 @@ class PaiementController {
             'nextRecu' => $nextRecu,
             'isComptable' => Auth::can('manage', 'paiement')
         ]);
+    }
+
+    /**
+     * Gestion des restes à payer (Inscriptions et Mensualités).
+     */
+    public function restes() {
+        $this->checkAccess('view');
+        $lycee_id = Auth::getLyceeId();
+        $activeYear = AnneeAcademique::findActive();
+
+        if (!$activeYear) {
+            $_SESSION['error_message'] = "Aucune année académique active.";
+            header('Location: /');
+            exit();
+        }
+
+        $db = Database::getInstance();
+
+        // 1. Restes d'inscription
+        $stmt = $db->prepare("
+            SELECT i.reste_a_payer as montant, i.date_inscription as date, 'Inscription' as type, e.nom, e.prenom, e.id_eleve, c.niveau, c.serie, c.numero
+            FROM inscriptions i
+            JOIN eleves e ON i.eleve_id = e.id_eleve
+            JOIN etudes et ON i.etude_id = et.id_etude
+            JOIN classes c ON et.classe_id = c.id_classe
+            WHERE i.lycee_id = :l1 AND i.annee_academique_id = :a1 AND i.reste_a_payer > 0
+        ");
+        $stmt->execute(['l1' => $lycee_id, 'a1' => $activeYear['id']]);
+        $restesInscription = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // 2. Restes de mensualités
+        // On récupère tous les élèves actifs
+        $stmt = $db->prepare("
+            SELECT e.id_eleve, e.nom, e.prenom, c.id_classe, c.niveau, c.serie, c.numero, et.id_etude
+            FROM eleves e
+            JOIN etudes et ON e.id_eleve = et.eleve_id
+            JOIN classes c ON et.classe_id = c.id_classe
+            WHERE e.lycee_id = :l AND et.annee_academique_id = :a AND e.statut = 'actif'
+        ");
+        $stmt->execute(['l' => $lycee_id, 'a' => $activeYear['id']]);
+        $elevesActifs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $sequences = Sequence::findAll();
+        $fmt = new IntlDateFormatter('fr_FR', IntlDateFormatter::FULL, IntlDateFormatter::NONE, 'Africa/Porto-Novo', IntlDateFormatter::GREGORIAN, 'MMMM');
+
+        $monthsToDate = [];
+        $today = new DateTime();
+        foreach ($sequences as $seq) {
+            $current = new DateTime($seq['date_debut']);
+            $end = new DateTime($seq['date_fin']);
+            while ($current <= $end && $current <= $today) {
+                $monthsToDate[] = ucfirst($fmt->format($current));
+                $current->modify('first day of next month');
+            }
+        }
+
+        $restesMensualites = [];
+        foreach ($elevesActifs as $eleve) {
+            $frais = Frais::findForClasse($eleve, $activeYear['id']);
+            if (!$frais) continue;
+
+            $attenduParMois = (float)($frais['frais_mensuel'] ?? 0);
+            if ($attenduParMois <= 0) continue;
+
+            $payes = Mensualite::findByEtude($eleve['id_etude']);
+
+            foreach ($monthsToDate as $month) {
+                $verse = isset($payes[$month]) ? (float)$payes[$month]['total'] : 0;
+                if ($verse < $attenduParMois) {
+                    $restesMensualites[] = [
+                        'montant' => $attenduParMois - $verse,
+                        'date' => null,
+                        'type' => 'Mensualité (' . $month . ')',
+                        'nom' => $eleve['nom'],
+                        'prenom' => $eleve['prenom'],
+                        'id_eleve' => $eleve['id_eleve'],
+                        'niveau' => $eleve['niveau'],
+                        'serie' => $eleve['serie'],
+                        'numero' => $eleve['numero']
+                    ];
+                }
+            }
+        }
+
+        $allRestes = array_merge($restesInscription, $restesMensualites);
+
+        View::render('paiements/restes', [
+            'restes' => $allRestes,
+            'title' => 'Gestion des Restes / Dettes'
+        ]);
+    }
+
+    public function historique() {
+        $this->checkAccess('view');
+        View::render('paiements/historique', ['title' => 'Historique des Paiements']);
+    }
+
+    public function recus() {
+        $this->checkAccess('view');
+        View::render('paiements/recus', ['title' => 'Gestion des Reçus']);
+    }
+
+    public function rapports() {
+        $this->checkAccess('view');
+        View::render('paiements/rapports', ['title' => 'Rapports Financiers']);
     }
 
     /**

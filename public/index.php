@@ -119,6 +119,7 @@ $router->register('/classes/updateParams', 'ClasseController', 'updateParams');
 $router->register('/classes/get-niveaux', 'ClasseController', 'getNiveauxForCycle');
 $router->register('/classes/get-series', 'ClasseController', 'getSeriesForNiveau');
 $router->register('/classes/get-numeros', 'ClasseController', 'getNumerosForClasse');
+$router->register('/classes/show', 'ClasseController', 'findClassId');
 
 // Matieres CRUD
 $router->register('/matieres', 'MatiereController', 'index');
@@ -178,7 +179,17 @@ $router->register('/frais/get-series', 'FraisController', 'getSeries');
 $router->register('/paiements', 'PaiementController', 'index');
 $router->register('/paiements/pending', 'PaiementController', 'listPending');
 $router->register('/paiements/show/{eleveId}', 'PaiementController', 'show');
+$router->register('/paiements/regulariser-inscription/{eleveId}', 'PaiementController', 'regulariserInscription');
 $router->register('/paiements/process-payment/{eleveId}', 'PaiementController', 'processPayment');
+$router->register('/paiements/restes', 'PaiementController', 'restes');
+$router->register('/paiements/historique', 'PaiementController', 'historique');
+$router->register('/paiements/recus', 'PaiementController', 'recus');
+$router->register('/paiements/rapports', 'PaiementController', 'rapports');
+
+// Mensualités
+$router->register('/mensualites', 'MensualiteController', 'index');
+$router->register('/mensualites/class/{classeId}', 'MensualiteController', 'classDashboard');
+$router->register('/mensualites/pay/{eleveId}', 'MensualiteController', 'pay');
 
 // Recus (Receipts)
 $router->register('/recu/inscription', 'RecuController', 'showInscriptionRecu');

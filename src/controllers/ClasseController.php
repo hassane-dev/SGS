@@ -309,5 +309,17 @@ class ClasseController {
         echo json_encode($numeros);
         exit();
     }
+
+    public function findClassId() {
+        header('Content-Type: application/json');
+        $lycee_id = $_GET['lycee_id'] ?? Auth::getLyceeId();
+        $niveau = $_GET['niveau'] ?? null;
+        $serie = $_GET['serie'] ?? null;
+        $numero = $_GET['numero'] ?? null;
+
+        $id = Classe::findIdByDetails($lycee_id, $niveau, $serie, $numero);
+        echo json_encode(['id_classe' => $id]);
+        exit();
+    }
 }
 ?>
