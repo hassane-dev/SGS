@@ -9,8 +9,9 @@ class Evaluation {
     /**
      * Get the currently defined evaluation settings for a given class/subject combo.
      * This tells us which sequences are available for grading.
+     * @param string $type The type of evaluation ('devoir' or 'composition')
      */
-    public static function getAvailableEvaluations($classe_id, $matiere_id) {
+    public static function getAvailableEvaluations($classe_id, $matiere_id, $type = 'devoir') {
         $active_year = AnneeAcademique::findActive();
         if (!$active_year) return [];
 
@@ -21,6 +22,7 @@ class Evaluation {
                  AND p.classe_id = :classe_id
                  AND p.matiere_id = :matiere_id
                  AND p.annee_academique_id = :annee_id
+                 AND (p.type_evaluation = :type OR p.type_evaluation = 'tous')
             WHERE 1=1
             ORDER BY s.date_debut ASC
         ";
@@ -31,7 +33,8 @@ class Evaluation {
             $stmt->execute([
                 'classe_id' => $classe_id,
                 'matiere_id' => $matiere_id,
-                'annee_id' => $active_year['id']
+                'annee_id' => $active_year['id'],
+                'type' => $type
             ]);
             $evaluations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -45,7 +48,7 @@ class Evaluation {
                 $isOpen = false;
                 if ($eval['id'] && (strtotime($eval['date_ouverture_saisie']) <= time() && strtotime($eval['date_fermeture_saisie']) >= time())) {
                     $isOpen = true;
-                } elseif (Deblocage::isUnlocked($classe_id, $matiere_id, $eval['sequence_id'], $enseignant_id)) {
+                } elseif (Deblocage::isUnlocked($classe_id, $matiere_id, $eval['sequence_id'], $enseignant_id, $type)) {
                     $isOpen = true;
                 }
 
@@ -62,10 +65,10 @@ class Evaluation {
     }
 
     /**
-     * Get existing grades for a specific evaluation (class, subject, sequence).
+     * Get existing grades for a specific evaluation (class, subject, sequence, type).
      * Returns an array keyed by eleve_id for easy lookup.
      */
-    public static function getGradesForEvaluation($classe_id, $matiere_id, $sequence_id) {
+    public static function getGradesForEvaluation($classe_id, $matiere_id, $sequence_id, $type = 'devoir') {
         $active_year = AnneeAcademique::findActive();
         if (!$active_year) return [];
 
@@ -73,7 +76,8 @@ class Evaluation {
                 WHERE classe_id = :classe_id
                   AND matiere_id = :matiere_id
                   AND sequence_id = :sequence_id
-                  AND annee_academique_id = :annee_id";
+                  AND annee_academique_id = :annee_id
+                  AND type = :type";
 
         try {
             $db = Database::getInstance();
@@ -82,7 +86,8 @@ class Evaluation {
                 'classe_id' => $classe_id,
                 'matiere_id' => $matiere_id,
                 'sequence_id' => $sequence_id,
-                'annee_id' => $active_year['id']
+                'annee_id' => $active_year['id'],
+                'type' => $type
             ]);
 
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -111,13 +116,12 @@ class Evaluation {
         }
 
         $sql = "
-            INSERT INTO evaluations (lycee_id, classe_id, matiere_id, enseignant_id, eleve_id, sequence_id, annee_academique_id, note, coefficient, appreciation, date_saisie)
-            VALUES (:lycee_id, :classe_id, :matiere_id, :enseignant_id, :eleve_id, :sequence_id, :annee_academique_id, :note, :coefficient, :appreciation, NOW())
+            INSERT INTO evaluations (lycee_id, classe_id, matiere_id, enseignant_id, eleve_id, sequence_id, annee_academique_id, type, note, coefficient, appreciation, date_saisie)
+            VALUES (:lycee_id, :classe_id, :matiere_id, :enseignant_id, :eleve_id, :sequence_id, :annee_academique_id, :type, :note, :coefficient, :appreciation, NOW())
             ON DUPLICATE KEY UPDATE note = VALUES(note), appreciation = VALUES(appreciation), date_saisie = NOW()
         ";
 
-        // We need a unique key on (eleve_id, sequence_id, matiere_id, annee_academique_id) for ON DUPLICATE KEY to work correctly.
-        // Let's assume this key exists.
+        // We need a unique key on (eleve_id, sequence_id, matiere_id, annee_academique_id, type) for ON DUPLICATE KEY to work correctly.
 
         try {
             $db = Database::getInstance();
@@ -136,6 +140,7 @@ class Evaluation {
                     'eleve_id' => $eleve_id,
                     'sequence_id' => $data['sequence_id'],
                     'annee_academique_id' => $active_year['id'],
+                    'type' => $data['type'] ?? 'devoir',
                     'note' => $grade_data['note'],
                     'coefficient' => $data['coefficient'],
                     'appreciation' => $grade_data['appreciation'] ?? null
@@ -155,7 +160,7 @@ class Evaluation {
     /**
      * Before saving grades, we must verify the grading window is open.
      */
-    public static function isGradingWindowOpen($classe_id, $matiere_id, $sequence_id) {
+    public static function isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, $type = 'devoir') {
         $active_year = AnneeAcademique::findActive();
         if (!$active_year) return false;
 
@@ -165,6 +170,7 @@ class Evaluation {
                   AND matiere_id = :matiere_id
                   AND sequence_id = :sequence_id
                   AND annee_academique_id = :annee_id
+                  AND (type_evaluation = :type OR type_evaluation = 'tous')
                   AND NOW() BETWEEN date_ouverture_saisie AND date_fermeture_saisie";
 
         $db = Database::getInstance();
@@ -173,7 +179,8 @@ class Evaluation {
             'classe_id' => $classe_id,
             'matiere_id' => $matiere_id,
             'sequence_id' => $sequence_id,
-            'annee_id' => $active_year['id']
+            'annee_id' => $active_year['id'],
+            'type' => $type
         ]);
 
         $setting = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -191,7 +198,7 @@ class Evaluation {
             $enseignant_id = $setting['enseignant_id'];
         }
 
-        return Deblocage::isUnlocked($classe_id, $matiere_id, $sequence_id, $enseignant_id);
+        return Deblocage::isUnlocked($classe_id, $matiere_id, $sequence_id, $enseignant_id, $type);
     }
 }
 ?>

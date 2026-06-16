@@ -15,6 +15,7 @@
                 <input type="hidden" name="classe_id" value="<?= $classe['id_classe'] ?>">
                 <input type="hidden" name="matiere_id" value="<?= $matiere['id_matiere'] ?>">
                 <input type="hidden" name="sequence_id" value="<?= $sequence_id ?>">
+                <input type="hidden" name="type" value="<?= $type ?>">
                 <input type="hidden" name="coefficient" value="<?= $coefficient ?>">
 
                 <div class="table-responsive">

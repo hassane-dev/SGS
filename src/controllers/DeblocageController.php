@@ -57,6 +57,7 @@ class DeblocageController {
                 'matiere_id' => !empty($_POST['matiere_id']) ? $_POST['matiere_id'] : null,
                 'enseignant_id' => !empty($_POST['enseignant_id']) ? $_POST['enseignant_id'] : null,
                 'sequence_id' => !empty($_POST['sequence_id']) ? $_POST['sequence_id'] : null,
+                'type_evaluation' => $_POST['type_evaluation'] ?? 'tous',
                 'date_debut' => $_POST['date_debut'],
                 'date_fin' => $_POST['date_fin'],
                 'motif' => $_POST['motif']

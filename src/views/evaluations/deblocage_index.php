@@ -58,6 +58,9 @@
                                     <tr>
                                         <td>
                                             <span class="badge bg-light-info text-info text-uppercase"><?= str_replace('_', ' + ', $d['type']) ?></span>
+                                            <div class="mt-1">
+                                                <span class="badge bg-light-dark text-dark"><?= ucfirst($d['type_evaluation'] == 'tous' ? 'Tous types' : $d['type_evaluation']) ?></span>
+                                            </div>
                                         </td>
                                         <td>
                                             <?php if ($d['type'] == 'global'): ?>

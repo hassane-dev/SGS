@@ -723,6 +723,7 @@ CREATE TABLE `parametres_evaluations` (
     `sequence_id` INT NOT NULL,
     `enseignant_id` INT,
     `annee_academique_id` INT NOT NULL,
+    `type_evaluation` ENUM('devoir', 'composition', 'tous') NOT NULL DEFAULT 'tous',
     `date_ouverture_saisie` DATETIME NOT NULL,
     `date_fermeture_saisie` DATETIME NOT NULL,
     `commentaire` TEXT,
@@ -732,7 +733,7 @@ CREATE TABLE `parametres_evaluations` (
     FOREIGN KEY (`sequence_id`) REFERENCES `sequences`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL,
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
-    UNIQUE KEY `unique_param_eval` (`classe_id`, `matiere_id`, `sequence_id`, `annee_academique_id`)
+    UNIQUE KEY `unique_param_eval` (`classe_id`, `matiere_id`, `sequence_id`, `annee_academique_id`, `type_evaluation`)
 );
 
 CREATE TABLE `deblocages_notes` (
@@ -744,6 +745,7 @@ CREATE TABLE `deblocages_notes` (
     `matiere_id` INT DEFAULT NULL,
     `enseignant_id` INT DEFAULT NULL,
     `sequence_id` INT DEFAULT NULL,
+    `type_evaluation` ENUM('devoir', 'composition', 'tous') NOT NULL DEFAULT 'tous',
     `date_debut` DATETIME NOT NULL,
     `date_fin` DATETIME NOT NULL,
     `motif` TEXT,
@@ -768,6 +770,7 @@ CREATE TABLE `evaluations` (
     `eleve_id` INT NOT NULL,
     `sequence_id` INT NOT NULL,
     `annee_academique_id` INT NOT NULL,
+    `type` ENUM('devoir', 'composition') NOT NULL DEFAULT 'devoir',
     `note` DECIMAL(5, 2) NOT NULL,
     `coefficient` DECIMAL(4, 2) NOT NULL,
     `appreciation` TEXT,
@@ -779,7 +782,7 @@ CREATE TABLE `evaluations` (
     FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
     FOREIGN KEY (`sequence_id`) REFERENCES `sequences`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
-    UNIQUE KEY `unique_evaluation_note` (`eleve_id`, `matiere_id`, `sequence_id`, `annee_academique_id`)
+    UNIQUE KEY `unique_evaluation_note` (`eleve_id`, `matiere_id`, `sequence_id`, `annee_academique_id`, `type`)
 );
 
 SET FOREIGN_KEY_CHECKS = 1;

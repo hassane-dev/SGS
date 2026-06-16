@@ -54,6 +54,26 @@
                                 </div>
                             </div>
 
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label class="form-label"><?= _('Nature de l\'évaluation à débloquer') ?></label>
+                                    <div class="d-flex gap-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="type_evaluation" id="eval_tous" value="tous" checked>
+                                            <label class="form-check-label" for="eval_tous">Tous (Devoirs & Compositions)</label>
+                                        </div>
+                                        <div class="form-check ms-3">
+                                            <input class="form-check-input" type="radio" name="type_evaluation" id="eval_devoir" value="devoir">
+                                            <label class="form-check-label" for="eval_devoir">Devoirs uniquement</label>
+                                        </div>
+                                        <div class="form-check ms-3">
+                                            <input class="form-check-input" type="radio" name="type_evaluation" id="eval_composition" value="composition">
+                                            <label class="form-check-label" for="eval_composition">Compositions uniquement</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="row mb-3 d-none" id="field-classe">
                                 <div class="col-12">
                                     <label class="form-label" for="classe_id"><?= _('Sélectionner la classe') ?></label>
