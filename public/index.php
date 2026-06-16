@@ -140,6 +140,10 @@ $router->register('/sequences/destroy', 'SequenceController', 'destroy');
 // Evaluation Settings
 $router->register('/evaluations/settings', 'ParametresEvaluationController', 'index');
 $router->register('/evaluations/settings/save', 'ParametresEvaluationController', 'save');
+$router->register('/evaluations/deblocage', 'DeblocageController', 'index');
+$router->register('/evaluations/deblocage/create', 'DeblocageController', 'create');
+$router->register('/evaluations/deblocage/store', 'DeblocageController', 'store');
+$router->register('/evaluations/deblocage/delete', 'DeblocageController', 'delete');
 
 // Users CRUD
 $router->register('/users', 'UserController', 'index');
