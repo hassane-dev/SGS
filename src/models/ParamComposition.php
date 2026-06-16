@@ -58,10 +58,7 @@ class ParamComposition {
 
         $sql = "UPDATE param_composition SET
                     nombre_composition_par_sequence = :nombre_composition_par_sequence,
-                    note_maximale = :note_maximale,
-                    date_debut_insertion = :date_debut_insertion,
-                    date_fin_insertion = :date_fin_insertion,
-                    deblocage_urgence = :deblocage_urgence
+                    note_maximale = :note_maximale
                 WHERE lycee_id = :lycee_id AND annee_id = :annee_id";
 
         try {
@@ -70,9 +67,6 @@ class ParamComposition {
             return $stmt->execute([
                 'nombre_composition_par_sequence' => $data['nombre_composition_par_sequence'],
                 'note_maximale' => $data['note_maximale'],
-                'date_debut_insertion' => $data['date_debut_insertion'] ?: null,
-                'date_fin_insertion' => $data['date_fin_insertion'] ?: null,
-                'deblocage_urgence' => isset($data['deblocage_urgence']) ? 1 : 0,
                 'lycee_id' => $lycee_id,
                 'annee_id' => $activeYear['id']
             ]);

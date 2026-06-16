@@ -50,21 +50,6 @@
                                     <label for="note_maximale" class="form-label">Note maximale pour un devoir</label>
                                     <input type="number" step="0.25" id="note_maximale" name="note_maximale" class="form-control" value="<?= htmlspecialchars($params['note_maximale'] ?? '') ?>">
                                 </div>
-                                <div class="col-md-6">
-                                    <label for="date_debut_insertion" class="form-label">Date d'ouverture globale de la saisie</label>
-                                    <input type="datetime-local" id="date_debut_insertion" name="date_debut_insertion" class="form-control" value="<?= !empty($params['date_debut_insertion']) ? (new DateTime($params['date_debut_insertion']))->format('Y-m-d\TH:i') : '' ?>">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="date_fin_insertion" class="form-label">Date de fermeture globale de la saisie</label>
-                                    <input type="datetime-local" id="date_fin_insertion" name="date_fin_insertion" class="form-control" value="<?= !empty($params['date_fin_insertion']) ? (new DateTime($params['date_fin_insertion']))->format('Y-m-d\TH:i') : '' ?>">
-                                </div>
-                                <div class="col-12">
-                                    <div class="form-check">
-                                        <input type="checkbox" id="deblocage_urgence" name="deblocage_urgence" class="form-check-input" value="1" <?= ($params['deblocage_urgence'] ?? 0) ? 'checked' : '' ?>>
-                                        <label for="deblocage_urgence" class="form-check-label">Débloquer la saisie en urgence</label>
-                                        <small class="form-text text-muted d-block">Cocher cette case ignore les dates de restriction pour tous.</small>
-                                    </div>
-                                </div>
                             </div>
 
                             <div class="mt-4 d-flex justify-content-end">
