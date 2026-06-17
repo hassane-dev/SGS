@@ -33,8 +33,8 @@ class DeblocageController {
     public function create() {
         $this->checkAccess();
 
-        $classes = Classe::findByLycee(Auth::getLyceeId());
-        $matieres = Matiere::findByLycee(Auth::getLyceeId());
+        $classes = Classe::findAll(Auth::getLyceeId());
+        $matieres = Matiere::findAll();
         $enseignants = User::findTeachers(Auth::getLyceeId());
         $sequences = Sequence::findAll();
 
