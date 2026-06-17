@@ -36,8 +36,9 @@ class EvaluationController {
     // Step 2: Teacher selects the specific evaluation (sequence)
     public function selectEvaluation() {
         $this->checkAccess();
-        $classe_id = $_POST['classe_id'] ?? null;
-        $matiere_id = $_POST['matiere_id'] ?? null;
+        $classe_id = $_POST['classe_id'] ?? $_GET['classe_id'] ?? null;
+        $matiere_id = $_POST['matiere_id'] ?? $_GET['matiere_id'] ?? null;
+        $type = $_POST['type'] ?? $_GET['type'] ?? 'devoir';
 
         if (!$classe_id || !$matiere_id) {
             header('Location: /evaluations/select_class');
@@ -45,7 +46,6 @@ class EvaluationController {
         }
 
         // Security check: ensure teacher is assigned to this class/subject
-        // This should be a dedicated method in a model, but for now, we'll do a basic check
         $subjects_taught = User::findSubjectsTaughtByTeacher(Auth::getUserId());
         $is_authorized = false;
         foreach($subjects_taught as $sub) {
@@ -54,19 +54,20 @@ class EvaluationController {
                 break;
             }
         }
-        if(!$is_authorized) {
+        if(!$is_authorized && !Auth::can('view_all', 'note')) {
             http_response_code(403);
             View::render('errors/403');
             exit();
         }
 
-        $available_evaluations = Evaluation::getAvailableEvaluations($classe_id, $matiere_id);
+        $available_evaluations = Evaluation::getAvailableEvaluations($classe_id, $matiere_id, $type);
 
         View::render('evaluations/select_evaluation', [
             'classe' => Classe::findById($classe_id),
             'matiere' => Matiere::findById($matiere_id),
+            'type' => $type,
             'evaluations' => $available_evaluations,
-            'title' => 'Saisie des Notes - Étape 2/2'
+            'title' => 'Saisie des Notes - ' . ucfirst($type)
         ]);
     }
 
@@ -76,6 +77,7 @@ class EvaluationController {
         $classe_id = $_GET['classe_id'] ?? null;
         $matiere_id = $_GET['matiere_id'] ?? null;
         $sequence_id = $_GET['sequence_id'] ?? null;
+        $type = $_GET['type'] ?? 'devoir';
 
         if (!$classe_id || !$matiere_id || !$sequence_id) {
             header('Location: /evaluations/select_class');
@@ -83,16 +85,16 @@ class EvaluationController {
         }
 
         // Security check: Verify the grading window is still open
-        if (!Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id)) {
+        if (!Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, $type)) {
             View::render('evaluations/error', [
-                'message' => "La période de saisie pour cette évaluation est fermée ou n'a pas encore commencé.",
+                'message' => "La période de saisie pour cette évaluation (" . $type . ") est fermée ou n'a pas encore commencé.",
                 'title' => 'Accès Refusé'
             ]);
             exit();
         }
 
         $eleves = Eleve::findByClass($classe_id);
-        $existing_grades = Evaluation::getGradesForEvaluation($classe_id, $matiere_id, $sequence_id);
+        $existing_grades = Evaluation::getGradesForEvaluation($classe_id, $matiere_id, $sequence_id, $type);
 
         // The coefficient is defined in the `classe_matieres` table
         $classe_matiere_details = Classe::findMatiereDetails($classe_id, $matiere_id);
@@ -101,10 +103,11 @@ class EvaluationController {
             'classe' => Classe::findById($classe_id),
             'matiere' => Matiere::findById($matiere_id),
             'sequence_id' => $sequence_id,
+            'type' => $type,
             'coefficient' => $classe_matiere_details['coefficient'],
             'eleves' => $eleves,
             'grades' => $existing_grades,
-            'title' => 'Saisie des Notes'
+            'title' => 'Saisie des Notes - ' . ucfirst($type)
         ]);
     }
 
@@ -115,9 +118,10 @@ class EvaluationController {
             $classe_id = $_POST['classe_id'];
             $matiere_id = $_POST['matiere_id'];
             $sequence_id = $_POST['sequence_id'];
+            $type = $_POST['type'] ?? 'devoir';
 
             // Security check before saving
-            if (!Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id)) {
+            if (!Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, $type)) {
                  View::render('evaluations/error', [
                     'message' => "La période de saisie pour cette évaluation est terminée. Les notes n'ont pas été enregistrées.",
                     'title' => 'Accès Refusé'
@@ -129,6 +133,7 @@ class EvaluationController {
                 'classe_id' => $classe_id,
                 'matiere_id' => $matiere_id,
                 'sequence_id' => $sequence_id,
+                'type' => $type,
                 'coefficient' => $_POST['coefficient'],
                 'enseignant_id' => Auth::getUserId(),
                 'grades' => $_POST['grades']

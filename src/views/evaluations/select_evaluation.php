@@ -16,7 +16,7 @@
             <?php else: ?>
                 <div class="list-group">
                     <?php foreach ($evaluations as $eval): ?>
-                        <a href="/evaluations/form?classe_id=<?= $classe['id_classe'] ?>&matiere_id=<?= $matiere['id_matiere'] ?>&sequence_id=<?= $eval['sequence_id'] ?>" class="list-group-item list-group-item-action">
+                        <a href="/evaluations/form?classe_id=<?= $classe['id_classe'] ?>&matiere_id=<?= $matiere['id_matiere'] ?>&sequence_id=<?= $eval['sequence_id'] ?>&type=<?= $type ?>" class="list-group-item list-group-item-action">
                             <div class="d-flex w-100 justify-content-between">
                                 <h5 class="mb-1"><?= htmlspecialchars($eval['sequence_nom']) ?></h5>
                                 <small>Période: <?= (new DateTime($eval['date_ouverture_saisie']))->format('d/m/Y') ?> au <?= (new DateTime($eval['date_fermeture_saisie']))->format('d/m/Y') ?></small>

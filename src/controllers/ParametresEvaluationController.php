@@ -70,21 +70,24 @@ class ParametresEvaluationController {
             $matiere_id = $_POST['matiere_id'];
             $settings = $_POST['settings'];
 
-            foreach ($settings as $sequence_id => $data) {
-                // Prepare data for saving
-                $save_data = [
-                    'classe_id' => $classe_id,
-                    'matiere_id' => $matiere_id,
-                    'sequence_id' => $sequence_id,
-                    'enseignant_id' => $_POST['enseignant_id'],
-                    'date_ouverture_saisie' => $data['date_ouverture'],
-                    'date_fermeture_saisie' => $data['date_fermeture'],
-                    'commentaire' => $data['commentaire']
-                ];
+            foreach ($settings as $sequence_id => $types_data) {
+                foreach($types_data as $type => $data) {
+                    // Prepare data for saving
+                    $save_data = [
+                        'classe_id' => $classe_id,
+                        'matiere_id' => $matiere_id,
+                        'sequence_id' => $sequence_id,
+                        'type_evaluation' => $type,
+                        'enseignant_id' => $_POST['enseignant_id'],
+                        'date_ouverture_saisie' => $data['date_ouverture'],
+                        'date_fermeture_saisie' => $data['date_fermeture'],
+                        'commentaire' => $data['commentaire']
+                    ];
 
-                // Save only if dates are provided
-                if (!empty($save_data['date_ouverture_saisie']) && !empty($save_data['date_fermeture_saisie'])) {
-                    ParametresEvaluation::save($save_data);
+                    // Save only if dates are provided
+                    if (!empty($save_data['date_ouverture_saisie']) && !empty($save_data['date_fermeture_saisie'])) {
+                        ParametresEvaluation::save($save_data);
+                    }
                 }
             }
         }

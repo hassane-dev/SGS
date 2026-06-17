@@ -20,38 +20,41 @@
                         <thead>
                             <tr>
                                 <th>Séquence</th>
-                                <th>Date d'Ouverture de la Saisie</th>
-                                <th>Date de Fermeture de la Saisie</th>
+                                <th>Type</th>
+                                <th>Date d'Ouverture</th>
+                                <th>Date de Fermeture</th>
                                 <th>Commentaire</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($sequences as $sequence):
-                                $setting = $existing_settings[$sequence['id']] ?? null;
+                                foreach(['devoir', 'composition'] as $type):
+                                    $setting = $existing_settings[$sequence['id']][$type] ?? $existing_settings[$sequence['id']]['tous'] ?? null;
                             ?>
                                 <tr>
                                     <td><?= htmlspecialchars($sequence['nom']) ?></td>
+                                    <td><?= ucfirst($type) ?></td>
                                     <td>
                                         <input type="datetime-local"
                                                class="form-control"
-                                               name="settings[<?= $sequence['id'] ?>][date_ouverture]"
+                                               name="settings[<?= $sequence['id'] ?>][<?= $type ?>][date_ouverture]"
                                                value="<?= !empty($setting['date_ouverture_saisie']) ? (new DateTime($setting['date_ouverture_saisie']))->format('Y-m-d\TH:i') : '' ?>">
                                     </td>
                                     <td>
                                         <input type="datetime-local"
                                                class="form-control"
-                                               name="settings[<?= $sequence['id'] ?>][date_fermeture]"
+                                               name="settings[<?= $sequence['id'] ?>][<?= $type ?>][date_fermeture]"
                                                value="<?= !empty($setting['date_fermeture_saisie']) ? (new DateTime($setting['date_fermeture_saisie']))->format('Y-m-d\TH:i') : '' ?>">
                                     </td>
                                     <td>
                                         <input type="text"
                                                class="form-control"
-                                               name="settings[<?= $sequence['id'] ?>][commentaire]"
+                                               name="settings[<?= $sequence['id'] ?>][<?= $type ?>][commentaire]"
                                                placeholder="Ex: Devoir 1, Composition"
                                                value="<?= htmlspecialchars($setting['commentaire'] ?? '') ?>">
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php endforeach; endforeach; ?>
                         </tbody>
                     </table>
                 </div>

@@ -36,7 +36,7 @@ class ParametresEvaluation {
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $settings = [];
             foreach ($results as $result) {
-                $settings[$result['sequence_id']] = $result;
+                $settings[$result['sequence_id']][$result['type_evaluation']] = $result;
             }
             return $settings;
         } catch (PDOException $e) {
@@ -57,14 +57,15 @@ class ParametresEvaluation {
             return false;
         }
 
-        // Check if a setting already exists for this combination
+        // Check if a setting already exists for this combination (now including type_evaluation)
         $db = Database::getInstance();
-        $stmt_check = $db->prepare("SELECT id FROM parametres_evaluations WHERE sequence_id = :sequence_id AND classe_id = :classe_id AND matiere_id = :matiere_id AND annee_academique_id = :annee_id");
+        $stmt_check = $db->prepare("SELECT id FROM parametres_evaluations WHERE sequence_id = :sequence_id AND classe_id = :classe_id AND matiere_id = :matiere_id AND annee_academique_id = :annee_id AND type_evaluation = :type_eval");
         $stmt_check->execute([
             'sequence_id' => $data['sequence_id'],
             'classe_id' => $data['classe_id'],
             'matiere_id' => $data['matiere_id'],
-            'annee_id' => $active_year['id']
+            'annee_id' => $active_year['id'],
+            'type_eval' => $data['type_evaluation'] ?? 'tous'
         ]);
         $existing_id = $stmt_check->fetchColumn();
 
@@ -72,8 +73,8 @@ class ParametresEvaluation {
 
         $sql = $isUpdate
             ? "UPDATE parametres_evaluations SET enseignant_id = :enseignant_id, date_ouverture_saisie = :date_ouverture, date_fermeture_saisie = :date_fermeture, commentaire = :commentaire WHERE id = :id"
-            : "INSERT INTO parametres_evaluations (lycee_id, classe_id, matiere_id, sequence_id, enseignant_id, annee_academique_id, date_ouverture_saisie, date_fermeture_saisie, commentaire)
-               VALUES (:lycee_id, :classe_id, :matiere_id, :sequence_id, :enseignant_id, :annee_id, :date_ouverture, :date_fermeture, :commentaire)";
+            : "INSERT INTO parametres_evaluations (lycee_id, classe_id, matiere_id, sequence_id, enseignant_id, annee_academique_id, type_evaluation, date_ouverture_saisie, date_fermeture_saisie, commentaire)
+               VALUES (:lycee_id, :classe_id, :matiere_id, :sequence_id, :enseignant_id, :annee_id, :type_eval, :date_ouverture, :date_fermeture, :commentaire)";
 
         try {
             $stmt = $db->prepare($sql);
@@ -92,6 +93,7 @@ class ParametresEvaluation {
                 $params['matiere_id'] = $data['matiere_id'];
                 $params['sequence_id'] = $data['sequence_id'];
                 $params['annee_id'] = $active_year['id'];
+                $params['type_eval'] = $data['type_evaluation'] ?? 'tous';
             }
 
             return $stmt->execute($params);

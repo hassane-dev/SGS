@@ -33,6 +33,20 @@
                     <input type="hidden" name="classe_id" id="classe_id">
                     <input type="hidden" name="matiere_id" id="matiere_id">
 
+                    <div class="form-group mt-3">
+                        <label>Nature de l'évaluation</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="type" id="type_devoir" value="devoir" checked>
+                                <label class="form-check-label" for="type_devoir">Devoir</label>
+                            </div>
+                            <div class="form-check ms-3">
+                                <input class="form-check-input" type="radio" name="type" id="type_composition" value="composition">
+                                <label class="form-check-label" for="type_composition">Composition</label>
+                            </div>
+                        </div>
+                    </div>
+
                     <button type="submit" class="btn btn-primary mt-3">Continuer</button>
                 </form>
             <?php endif; ?>

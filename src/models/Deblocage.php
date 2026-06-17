@@ -10,10 +10,10 @@ class Deblocage {
         $db = Database::getInstance();
         $sql = "INSERT INTO deblocages_notes (
                     lycee_id, annee_academique_id, type, classe_id, matiere_id,
-                    enseignant_id, sequence_id, date_debut, date_fin, motif, cree_par
+                    enseignant_id, sequence_id, type_evaluation, date_debut, date_fin, motif, cree_par
                 ) VALUES (
                     :lycee_id, :annee_id, :type, :classe_id, :matiere_id,
-                    :enseignant_id, :sequence_id, :date_debut, :date_fin, :motif, :cree_par
+                    :enseignant_id, :sequence_id, :type_evaluation, :date_debut, :date_fin, :motif, :cree_par
                 )";
 
         try {
@@ -26,6 +26,7 @@ class Deblocage {
                 'matiere_id' => $data['matiere_id'] ?? null,
                 'enseignant_id' => $data['enseignant_id'] ?? null,
                 'sequence_id' => $data['sequence_id'] ?? null,
+                'type_evaluation' => $data['type_evaluation'] ?? 'tous',
                 'date_debut' => $data['date_debut'],
                 'date_fin' => $data['date_fin'],
                 'motif' => $data['motif'] ?? null,
@@ -65,7 +66,7 @@ class Deblocage {
     /**
      * Checks if there is an active exceptional unlock for the given criteria.
      */
-    public static function isUnlocked($classe_id, $matiere_id, $sequence_id, $enseignant_id) {
+    public static function isUnlocked($classe_id, $matiere_id, $sequence_id, $enseignant_id, $type_evaluation = 'devoir') {
         $db = Database::getInstance();
         $lycee_id = Auth::getLyceeId();
         $active_year = AnneeAcademique::findActive();
@@ -75,6 +76,7 @@ class Deblocage {
         $sql = "SELECT id FROM deblocages_notes
                 WHERE lycee_id = :lycee_id
                 AND annee_academique_id = :annee_id
+                AND (type_evaluation = :type_eval OR type_evaluation = 'tous')
                 AND NOW() BETWEEN date_debut AND date_fin
                 AND (
                     type = 'global'
@@ -95,6 +97,7 @@ class Deblocage {
             $stmt->execute([
                 'lycee_id' => $lycee_id,
                 'annee_id' => $active_year['id'],
+                'type_eval' => $type_evaluation,
                 'classe_id' => $classe_id,
                 'matiere_id' => $matiere_id,
                 'enseignant_id' => $enseignant_id,
