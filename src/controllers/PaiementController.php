@@ -279,9 +279,11 @@ class PaiementController {
             $current = new DateTime($sequence['date_debut']);
             $end = new DateTime($sequence['date_fin']);
 
-            while ($current <= $end) {
+            $safety = 0;
+            while ($current <= $end && $safety < 12) {
                 $mois[] = ucfirst($fmt->format($current));
                 $current->modify('first day of next month');
+                $safety++;
             }
 
             $paye = [];
@@ -364,9 +366,11 @@ class PaiementController {
         foreach ($sequences as $seq) {
             $current = new DateTime($seq['date_debut']);
             $end = new DateTime($seq['date_fin']);
-            while ($current <= $end && $current <= $today) {
+            $safety = 0;
+            while ($current <= $end && $current <= $today && $safety < 12) {
                 $monthsToDate[] = ucfirst($fmt->format($current));
                 $current->modify('first day of next month');
+                $safety++;
             }
         }
 

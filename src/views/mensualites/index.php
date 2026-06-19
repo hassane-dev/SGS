@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Simplified: we'll call a helper to get ID or change route to use params.
             // Better: update the index.php to have a findClassId route or similar.
 
-            fetch(`/classes/show?lycee_id=${lyceeId}&niveau=${niveau}&serie=${serie}&numero=${numero}`)
+            fetch(`/classes/find-id?lycee_id=${lyceeId}&niveau=${niveau}&serie=${serie}&numero=${numero}`)
             .then(r => r.json())
             .then(classe => {
                 if(classe && classe.id_classe) {
