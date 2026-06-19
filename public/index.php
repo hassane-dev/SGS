@@ -119,7 +119,7 @@ $router->register('/classes/updateParams', 'ClasseController', 'updateParams');
 $router->register('/classes/get-niveaux', 'ClasseController', 'getNiveauxForCycle');
 $router->register('/classes/get-series', 'ClasseController', 'getSeriesForNiveau');
 $router->register('/classes/get-numeros', 'ClasseController', 'getNumerosForClasse');
-$router->register('/classes/show', 'ClasseController', 'findClassId');
+$router->register('/classes/find-id', 'ClasseController', 'findClassId');
 
 // Matieres CRUD
 $router->register('/matieres', 'MatiereController', 'index');
