@@ -423,17 +423,205 @@ class PaiementController {
 
     public function historique() {
         $this->checkAccess('view');
-        View::render('paiements/historique', ['title' => 'Historique des Paiements']);
+        $lycee_id = Auth::getLyceeId();
+        $db = Database::getInstance();
+
+        $date_debut = $_GET['date_debut'] ?? date('Y-m-01');
+        $date_fin = $_GET['date_fin'] ?? date('Y-m-d');
+        $search = $_GET['search'] ?? '';
+
+        $sql = "
+            SELECT * FROM (
+                SELECT
+                    i.date_inscription as date,
+                    e.nom, e.prenom,
+                    c.niveau, c.serie, c.numero,
+                    'Inscription' as type,
+                    i.montant_verse as montant,
+                    'Espèces' as mode,
+                    i.recu_numero,
+                    u.nom as caissier_nom, u.prenom as caissier_prenom,
+                    e.id_eleve
+                FROM inscriptions i
+                JOIN eleves e ON i.eleve_id = e.id_eleve
+                JOIN classes c ON i.classe_id = c.id_classe
+                LEFT JOIN utilisateurs u ON i.user_id = u.id_user
+                WHERE i.lycee_id = :l1
+
+                UNION ALL
+
+                SELECT
+                    md.date_paiement as date,
+                    e.nom, e.prenom,
+                    c.niveau, c.serie, c.numero,
+                    CONCAT('Mensualité (', m.mois_ou_sequence, ')') as type,
+                    md.montant,
+                    md.mode_paiement as mode,
+                    md.recu_numero,
+                    u.nom as caissier_nom, u.prenom as caissier_prenom,
+                    e.id_eleve
+                FROM mensualite_details md
+                JOIN mensualites m ON md.mensualite_id = m.id_mensualite
+                JOIN eleves e ON m.eleve_id = e.id_eleve
+                JOIN classes c ON m.classe_id = c.id_classe
+                LEFT JOIN utilisateurs u ON m.user_id = u.id_user
+                WHERE m.lycee_id = :l2
+            ) as transactions
+            WHERE DATE(date) BETWEEN :d1 AND :d2
+        ";
+
+        $params = [
+            'l1' => $lycee_id,
+            'l2' => $lycee_id,
+            'd1' => $date_debut,
+            'd2' => $date_fin
+        ];
+
+        if (!empty($search)) {
+            $sql .= " AND (nom LIKE :s1 OR prenom LIKE :s2 OR recu_numero LIKE :s3)";
+            $params['s1'] = "%$search%";
+            $params['s2'] = "%$search%";
+            $params['s3'] = "%$search%";
+        }
+
+        $sql .= " ORDER BY date DESC";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        View::render('paiements/historique', [
+            'title' => 'Historique des Paiements',
+            'transactions' => $transactions,
+            'filters' => [
+                'date_debut' => $date_debut,
+                'date_fin' => $date_fin,
+                'search' => $search
+            ]
+        ]);
     }
 
     public function recus() {
         $this->checkAccess('view');
-        View::render('paiements/recus', ['title' => 'Gestion des Reçus']);
+        $lycee_id = Auth::getLyceeId();
+        $db = Database::getInstance();
+
+        $search = $_GET['search'] ?? '';
+
+        $sql = "
+            SELECT
+                recu_numero,
+                MAX(date) as date,
+                SUM(montant) as montant_total,
+                nom, prenom, id_eleve,
+                GROUP_CONCAT(DISTINCT type SEPARATOR ', ') as types
+            FROM (
+                SELECT
+                    i.recu_numero,
+                    i.date_inscription as date,
+                    i.montant_verse as montant,
+                    e.nom, e.prenom, e.id_eleve,
+                    'Inscription' as type
+                FROM inscriptions i
+                JOIN eleves e ON i.eleve_id = e.id_eleve
+                WHERE i.lycee_id = :l1
+
+                UNION ALL
+
+                SELECT
+                    md.recu_numero,
+                    md.date_paiement as date,
+                    md.montant,
+                    e.nom, e.prenom, e.id_eleve,
+                    'Mensualité' as type
+                FROM mensualite_details md
+                JOIN mensualites m ON md.mensualite_id = m.id_mensualite
+                JOIN eleves e ON m.eleve_id = e.id_eleve
+                WHERE m.lycee_id = :l2
+            ) as t
+            WHERE recu_numero IS NOT NULL
+        ";
+
+        $params = ['l1' => $lycee_id, 'l2' => $lycee_id];
+
+        if (!empty($search)) {
+            $sql .= " AND (recu_numero LIKE :s1 OR nom LIKE :s2 OR prenom LIKE :s3)";
+            $params['s1'] = "%$search%";
+            $params['s2'] = "%$search%";
+            $params['s3'] = "%$search%";
+        }
+
+        $sql .= " GROUP BY recu_numero, id_eleve ORDER BY date DESC";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $recus = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        View::render('paiements/recus', [
+            'title' => 'Gestion des Reçus',
+            'recus' => $recus,
+            'search' => $search
+        ]);
     }
 
     public function rapports() {
         $this->checkAccess('view');
-        View::render('paiements/rapports', ['title' => 'Rapports Financiers']);
+        $lycee_id = Auth::getLyceeId();
+        $db = Database::getInstance();
+
+        $date_debut = $_GET['date_debut'] ?? date('Y-m-01');
+        $date_fin = $_GET['date_fin'] ?? date('Y-m-d');
+
+        // 1. Totaux par type
+        $stmt = $db->prepare("
+            SELECT type, SUM(montant) as total
+            FROM (
+                SELECT 'Inscription' as type, montant_verse as montant FROM inscriptions WHERE lycee_id = :l1 AND DATE(date_inscription) BETWEEN :d1 AND :d2
+                UNION ALL
+                SELECT 'Mensualité' as type, md.montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l2 AND DATE(md.date_paiement) BETWEEN :d3 AND :d4
+            ) as t
+            GROUP BY type
+        ");
+        $stmt->execute(['l1' => $lycee_id, 'd1' => $date_debut, 'd2' => $date_fin, 'l2' => $lycee_id, 'd3' => $date_debut, 'd4' => $date_fin]);
+        $statsType = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // 2. Totaux par mode de paiement
+        $stmt = $db->prepare("
+            SELECT mode, SUM(montant) as total
+            FROM (
+                SELECT 'Espèces' as mode, montant_verse as montant FROM inscriptions WHERE lycee_id = :l1 AND DATE(date_inscription) BETWEEN :d1 AND :d2
+                UNION ALL
+                SELECT mode_paiement as mode, montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l2 AND DATE(md.date_paiement) BETWEEN :d3 AND :d4
+            ) as t
+            GROUP BY mode
+        ");
+        $stmt->execute(['l1' => $lycee_id, 'd1' => $date_debut, 'd2' => $date_fin, 'l2' => $lycee_id, 'd3' => $date_debut, 'd4' => $date_fin]);
+        $statsMode = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // 3. Évolution quotidienne
+        $stmt = $db->prepare("
+            SELECT date, SUM(montant) as total
+            FROM (
+                SELECT DATE(date_inscription) as date, montant_verse as montant FROM inscriptions WHERE lycee_id = :l1 AND DATE(date_inscription) BETWEEN :d1 AND :d2
+                UNION ALL
+                SELECT DATE(md.date_paiement) as date, md.montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l2 AND DATE(md.date_paiement) BETWEEN :d3 AND :d4
+            ) as t
+            GROUP BY date
+            ORDER BY date ASC
+        ");
+        $stmt->execute(['l1' => $lycee_id, 'd1' => $date_debut, 'd2' => $date_fin, 'l2' => $lycee_id, 'd3' => $date_debut, 'd4' => $date_fin]);
+        $evolutionQuotidienne = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        View::render('paiements/rapports', [
+            'title' => 'Rapports Financiers',
+            'statsType' => $statsType,
+            'statsMode' => $statsMode,
+            'evolution' => $evolutionQuotidienne,
+            'filters' => [
+                'date_debut' => $date_debut,
+                'date_fin' => $date_fin
+            ]
+        ]);
     }
 
     /**

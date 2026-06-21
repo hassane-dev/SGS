@@ -80,4 +80,60 @@ class RecuController {
 
         require_once __DIR__ . '/../views/recus/mensualite.php';
     }
+
+    public function print() {
+        if (!Auth::check()) {
+            header('Location: /login');
+            exit();
+        }
+
+        $recu_numero = $_GET['numero'] ?? null;
+        if (!$recu_numero) {
+            die("Numéro de reçu manquant.");
+        }
+
+        $db = Database::getInstance();
+
+        // 1. Chercher si c'est une inscription
+        $stmt = $db->prepare("SELECT * FROM inscriptions WHERE recu_numero = :num");
+        $stmt->execute(['num' => $recu_numero]);
+        $inscription = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // 2. Chercher les mensualités
+        $stmt = $db->prepare("
+            SELECT md.*, m.mois_ou_sequence, m.eleve_id, m.classe_id, m.user_id, aa.libelle as annee_academique
+            FROM mensualite_details md
+            JOIN mensualites m ON md.mensualite_id = m.id_mensualite
+            JOIN annees_academiques aa ON m.annee_academique_id = aa.id
+            WHERE md.recu_numero = :num
+        ");
+        $stmt->execute(['num' => $recu_numero]);
+        $mensualites = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!$inscription && empty($mensualites)) {
+            die("Reçu introuvable.");
+        }
+
+        // Récupérer l'élève (soit via inscription, soit via la première mensualité)
+        $eleve_id = $inscription ? $inscription['eleve_id'] : $mensualites[0]['eleve_id'];
+        $eleve = Eleve::findById($eleve_id);
+
+        $user_id = $inscription ? $inscription['user_id'] : $mensualites[0]['user_id'];
+        $caissier = User::findById($user_id);
+
+        $classe_id = $inscription ? $inscription['classe_id'] : $mensualites[0]['classe_id'];
+        $classe = Classe::findById($classe_id);
+
+        $lycee = ParamLycee::findByLyceeId($eleve['lycee_id']);
+
+        // Si on a les deux, ou juste inscription, on utilise la vue inscription qui peut tout afficher
+        if ($inscription) {
+            require_once __DIR__ . '/../views/recus/inscription.php';
+        } else {
+            // Sinon on utilise la vue mensualité (on prend la première pour l'affichage principal si plusieurs)
+            $paiement = $mensualites[0];
+            // Si plusieurs mensualités sur le même reçu, on peut avoir besoin d'une vue qui boucle
+            require_once __DIR__ . '/../views/recus/mensualite.php';
+        }
+    }
 }
