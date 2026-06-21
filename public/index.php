@@ -197,6 +197,7 @@ $router->register('/mensualites/pay/{eleveId}', 'MensualiteController', 'pay');
 
 // Recus (Receipts)
 $router->register('/recu/inscription', 'RecuController', 'showInscriptionRecu');
+$router->register('/recu/print', 'RecuController', 'print');
 
 // Evaluations (Grades)
 $router->register('/evaluations/select_class', 'EvaluationController', 'selectClass');
