@@ -29,14 +29,24 @@
                             <input type="hidden" name="id_article" value="<?= htmlspecialchars($article['id_article']) ?>">
                             <input type="hidden" name="current_image" value="<?= htmlspecialchars($article['image'] ?? '') ?>">
                             <div class="row">
-                                <div class="col-md-12 mb-3">
+                                <div class="col-md-8 mb-3">
                                     <label class="form-label" for="nom_article"><?= _('Nom de l\'Article') ?></label>
                                     <input type="text" name="nom_article" id="nom_article" class="form-control" value="<?= htmlspecialchars($article['nom_article']) ?>" required>
                                 </div>
 
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label" for="prix"><?= _('Prix') ?></label>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label" for="categorie"><?= _('Catégorie') ?></label>
+                                    <input type="text" name="categorie" id="categorie" class="form-control" value="<?= htmlspecialchars($article['categorie'] ?? '') ?>" placeholder="<?= _('Ex: Papeterie') ?>">
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label" for="prix"><?= _('Prix Actuel') ?></label>
                                     <input type="number" step="0.01" name="prix" id="prix" class="form-control" value="<?= htmlspecialchars($article['prix']) ?>" required>
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label" for="ancien_prix"><?= _('Ancien Prix (Promo)') ?></label>
+                                    <input type="number" step="0.01" name="ancien_prix" id="ancien_prix" class="form-control" value="<?= htmlspecialchars($article['ancien_prix'] ?? '') ?>" placeholder="<?= _('0.00') ?>">
                                 </div>
 
                                 <div class="col-md-6 mb-3">

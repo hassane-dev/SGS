@@ -220,6 +220,7 @@ $router->register('/boutique/articles/destroy', 'BoutiqueArticleController', 'de
 $router->register('/boutique/achats', 'BoutiqueAchatController', 'index');
 $router->register('/boutique/achats/create', 'BoutiqueAchatController', 'create');
 $router->register('/boutique/achats/store', 'BoutiqueAchatController', 'store');
+$router->register('/boutique/recu', 'BoutiqueAchatController', 'recu');
 
 // Tests d'Entrée
 $router->register('/tests_entree', 'TestEntreeController', 'index');
