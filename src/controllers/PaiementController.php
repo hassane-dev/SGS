@@ -107,16 +107,27 @@ class PaiementController {
             ];
         }
 
-        // 6. Dernières transactions (plus détaillées)
+        // 6. Dernières transactions (groupées par reçu pour éviter les doublons)
         $stmt = $db->prepare("
-            (SELECT 'Inscription' as type, montant_verse as montant, date_inscription as date, eleve_id, user_id, NULL as mode
-             FROM inscriptions
-             WHERE lycee_id = :l1)
-            UNION ALL
-            (SELECT 'Mensualité' as type, md.montant, md.date_paiement as date, m.eleve_id, m.user_id, md.mode_paiement as mode
-             FROM mensualite_details md
-             JOIN mensualites m ON md.mensualite_id = m.id_mensualite
-             WHERE m.lycee_id = :l2)
+            SELECT
+                GROUP_CONCAT(DISTINCT type SEPARATOR ' + ') as type,
+                SUM(montant) as montant,
+                MAX(date) as date,
+                eleve_id,
+                user_id,
+                recu_numero,
+                MAX(mode) as mode
+            FROM (
+                (SELECT 'Inscription' as type, montant_verse as montant, date_inscription as date, eleve_id, user_id, recu_numero, 'Espèces' as mode
+                 FROM inscriptions
+                 WHERE lycee_id = :l1)
+                UNION ALL
+                (SELECT 'Mensualité' as type, md.montant, md.date_paiement as date, m.eleve_id, m.user_id, md.recu_numero, md.mode_paiement as mode
+                 FROM mensualite_details md
+                 JOIN mensualites m ON md.mensualite_id = m.id_mensualite
+                 WHERE m.lycee_id = :l2)
+            ) as t
+            GROUP BY recu_numero, eleve_id, user_id
             ORDER BY date DESC LIMIT 10
         ");
         $stmt->execute(['l1' => $lycee_id, 'l2' => $lycee_id]);
