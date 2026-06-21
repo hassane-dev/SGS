@@ -123,10 +123,17 @@ class Frais {
      * @return array|false
      */
     public static function findForClasse($classe, $annee_academique_id) {
+        if (!$classe || !isset($classe['cycle_id']) || !isset($classe['lycee_id'])) {
+            return false;
+        }
+
         $db = Database::getInstance();
 
         // La classe contient déjà lycee_id, niveau, serie. Il faut juste le nom du cycle.
         $cycle = Cycle::findById($classe['cycle_id']);
+        if (!$cycle) {
+            return false;
+        }
         $nom_cycle = $cycle['nom_cycle'];
 
         $all_frais_sql = "SELECT * FROM frais
