@@ -23,7 +23,7 @@
         <!-- [ breadcrumb ] end -->
 
         <!-- [ Main Content ] start -->
-        <form id="form-paiement-unique" action="/paiements/process-payment/<?= $eleve['id_eleve'] ?>" method="POST">
+        <form action="/paiements/process-payment/<?= $eleve['id_eleve'] ?>" method="POST">
             <div class="row">
                 <!-- Student Info Summary -->
                 <div class="col-12 mb-4">
@@ -125,6 +125,14 @@
                                     <?php endif; ?>
                                 </div>
                             </div>
+
+                            <?php if ($isComptable && $fraisInscription['reste'] > 0): ?>
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-primary btn-lg fw-bold">
+                                    <i class="ph-duotone ph-check-circle me-2"></i>Enregistrer les frais d'inscription
+                                </button>
+                            </div>
+                            <?php endif; ?>
 
                             <?php if ($inscription): ?>
                                 <div class="mt-3 text-center">
@@ -272,6 +280,14 @@
                                     </div>
                                 <?php endforeach; ?>
                             </div>
+
+                            <?php if ($isComptable): ?>
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn btn-success btn-lg fw-bold">
+                                    <i class="ph-duotone ph-check-circle me-2"></i>Enregistrer les mensualités
+                                </button>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -291,40 +307,11 @@
                                         Aucun montant saisi
                                     </div>
                                 </div>
-                                <div class="col-lg-8 p-4">
-                                    <?php if ($isComptable): ?>
-                                        <div class="row g-3">
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold text-white">Mode de Règlement</label>
-                                                <select name="mode_paiement" class="form-select border-0 shadow-none">
-                                                    <?php
-                                                    $modes = !empty($paramGeneral['modalite_paiement'])
-                                                        ? explode(',', $paramGeneral['modalite_paiement'])
-                                                        : ['Espèces', 'Bordereau Bancaire', 'Chèque', 'Mobile Money'];
-                                                    foreach ($modes as $mode):
-                                                        $mode = trim($mode);
-                                                    ?>
-                                                        <option value="<?= htmlspecialchars($mode) ?>"><?= htmlspecialchars($mode) ?></option>
-                                                    <?php endforeach; ?>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold text-white">Référence / N° Bordereau</label>
-                                                <input type="text" name="reference_transaction" class="form-control border-0 shadow-none" placeholder="Laissé vide pour auto-génération" value="<?= $nextRecu ?>">
-                                            </div>
-                                            <div class="col-12 mt-4">
-                                                <div class="d-grid">
-                                                    <button type="submit" class="btn btn-light btn-lg text-primary fw-bold shadow-sm">
-                                                        <i class="ph-duotone ph-check-circle me-2"></i>Valider et Générer le Reçu
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    <?php else: ?>
-                                        <div class="alert alert-light mb-0">
-                                            <i class="ph-duotone ph-info me-2"></i>Vous n'avez pas les droits nécessaires pour effectuer des encaissements.
-                                        </div>
-                                    <?php endif; ?>
+                                <div class="col-lg-8 p-4 d-flex align-items-center justify-content-center">
+                                    <div class="text-center">
+                                        <p class="mb-0"><i class="ph-duotone ph-info me-2"></i>Le mode de règlement et le numéro de reçu sont gérés automatiquement.</p>
+                                        <p class="small text-white text-opacity-50">Utilisez les boutons "Enregistrer" de chaque section pour valider vos opérations.</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -378,8 +365,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 4. Résumé
         let summary = [];
-        if (inscriptionAverser > 0) summary.push(`Inscription: ${inscriptionAverser.toLocaleString('fr-FR')}`);
-        if (totalMensualites > 0) summary.push(`Mensualités: ${totalMensualites.toLocaleString('fr-FR')}`);
+        if (inscriptionAverser > 0) summary.push(`Inscription: ${inscriptionAverser.toLocaleString('fr-FR')} FCFA`);
+        if (totalMensualites > 0) summary.push(`Mensualités: ${totalMensualites.toLocaleString('fr-FR')} FCFA`);
 
         if (summary.length > 0) {
             summaryDetails.textContent = summary.join(' | ');
