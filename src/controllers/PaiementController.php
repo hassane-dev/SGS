@@ -349,7 +349,7 @@ class PaiementController {
         // 2. Restes de mensualités
         // On récupère tous les élèves actifs
         $stmt = $db->prepare("
-            SELECT e.id_eleve, e.nom, e.prenom, c.id_classe, c.niveau, c.serie, c.numero, et.id_etude
+            SELECT e.id_eleve, e.nom, e.prenom, c.id_classe, c.niveau, c.serie, c.numero, c.cycle_id, c.lycee_id, et.id_etude
             FROM eleves e
             JOIN etudes et ON e.id_eleve = et.eleve_id
             JOIN classes c ON et.classe_id = c.id_classe
