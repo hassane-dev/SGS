@@ -451,13 +451,16 @@ class PaiementController {
 
             $lyceeId = $eleve['lycee_id'] ?? Auth::getLyceeId();
             $userId = Auth::user()['id'];
-            $modePaiement = $_POST['mode_paiement'] ?? 'Espèces';
 
-            $reference = $_POST['reference_transaction'] ?? null;
-            if (empty($reference)) {
-                $reference = Mensualite::generateReceiptNumber($lyceeId);
-            }
+            // Récupérer le mode de paiement par défaut depuis les paramètres
+            $paramGeneral = ParamGeneral::findByLyceeId($lyceeId);
+            $modes = !empty($paramGeneral['modalite_paiement'])
+                ? explode(',', $paramGeneral['modalite_paiement'])
+                : ['Espèces'];
+            $modePaiement = trim($modes[0]);
 
+            // Génération automatique et obligatoire du numéro de reçu
+            $reference = Mensualite::generateReceiptNumber($lyceeId);
             $paiementEffectue = false;
 
             // 1. Traitement Inscription
