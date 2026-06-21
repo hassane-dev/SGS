@@ -210,9 +210,15 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <span class="badge bg-light-<?= $t['type'] == 'Inscription' ? 'success' : 'info' ?> text-<?= $t['type'] == 'Inscription' ? 'success' : 'info' ?>">
-                                                    <?= $t['type'] ?>
+                                                <?php
+                                                $types = explode(' + ', $t['type']);
+                                                foreach($types as $type):
+                                                    $color = ($type == 'Inscription') ? 'success' : 'info';
+                                                ?>
+                                                <span class="badge bg-light-<?= $color ?> text-<?= $color ?>">
+                                                    <?= $type ?>
                                                 </span>
+                                                <?php endforeach; ?>
                                             </td>
                                             <td><?= $t['mode'] ?: 'N/A' ?></td>
                                             <td><small class="text-muted"><?= htmlspecialchars($t['caissier']) ?></small></td>
