@@ -418,20 +418,39 @@ CREATE TABLE `frais` (
 CREATE TABLE `boutique_articles` (
     `id_article` INT AUTO_INCREMENT PRIMARY KEY,
     `nom_article` VARCHAR(255) NOT NULL,
+    `categorie` VARCHAR(255) DEFAULT NULL,
     `prix` DECIMAL(10, 2) NOT NULL,
+    `ancien_prix` DECIMAL(10, 2) DEFAULT NULL,
     `stock` INT,
     `image` TEXT,
     `lycee_id` INT NOT NULL,
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 
+-- Table for shop sales (to group items in one receipt)
+CREATE TABLE `boutique_ventes` (
+    `id_vente` INT AUTO_INCREMENT PRIMARY KEY,
+    `eleve_id` INT NOT NULL,
+    `lycee_id` INT NOT NULL,
+    `user_id` INT NOT NULL,
+    `montant_total` DECIMAL(10, 2) NOT NULL,
+    `recu_numero` VARCHAR(50),
+    `date_vente` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
+    FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`user_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Table for shop purchases
 CREATE TABLE `boutique_achats` (
     `id_achat` INT AUTO_INCREMENT PRIMARY KEY,
+    `vente_id` INT,
     `eleve_id` INT NOT NULL,
     `article_id` INT NOT NULL,
     `quantite` INT NOT NULL,
+    `prix_unitaire` DECIMAL(10, 2),
     `date_achat` DATETIME NOT NULL,
+    FOREIGN KEY (`vente_id`) REFERENCES `boutique_ventes`(`id_vente`) ON DELETE CASCADE,
     FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
     FOREIGN KEY (`article_id`) REFERENCES `boutique_articles`(`id_article`) ON DELETE CASCADE
 );

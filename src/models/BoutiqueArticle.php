@@ -56,15 +56,17 @@ class BoutiqueArticle {
         }
 
         $sql = $isUpdate
-            ? "UPDATE boutique_articles SET nom_article = :nom_article, prix = :prix, stock = :stock, image = :image, lycee_id = :lycee_id WHERE id_article = :id_article"
-            : "INSERT INTO boutique_articles (nom_article, prix, stock, image, lycee_id) VALUES (:nom_article, :prix, :stock, :image, :lycee_id)";
+            ? "UPDATE boutique_articles SET nom_article = :nom_article, categorie = :categorie, prix = :prix, ancien_prix = :ancien_prix, stock = :stock, image = :image, lycee_id = :lycee_id WHERE id_article = :id_article"
+            : "INSERT INTO boutique_articles (nom_article, categorie, prix, ancien_prix, stock, image, lycee_id) VALUES (:nom_article, :categorie, :prix, :ancien_prix, :stock, :image, :lycee_id)";
 
         $db = Database::getInstance();
         $stmt = $db->prepare($sql);
 
         $params = [
             'nom_article' => $data['nom_article'],
+            'categorie' => $data['categorie'] ?? null,
             'prix' => $data['prix'],
+            'ancien_prix' => !empty($data['ancien_prix']) ? $data['ancien_prix'] : null,
             'stock' => $data['stock'] ?: 0,
             'image' => $data['image'],
             'lycee_id' => $data['lycee_id'],

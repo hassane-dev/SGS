@@ -22,6 +22,47 @@
         </div>
         <!-- [ breadcrumb ] end -->
 
+        <!-- [ Dashboard Stats ] start -->
+        <div class="row">
+            <div class="col-md-6 col-xl-3">
+                <div class="card bg-blue-500 text-white widget-visitor-card">
+                    <div class="card-body text-center">
+                        <h2 class="text-white"><?= $stats['total_articles'] ?></h2>
+                        <h6 class="text-white"><?= _('Produits en stock') ?></h6>
+                        <i class="ph-duotone ph-package"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="card bg-red-500 text-white widget-visitor-card">
+                    <div class="card-body text-center">
+                        <h2 class="text-white"><?= $stats['out_of_stock'] ?></h2>
+                        <h6 class="text-white"><?= _('Produits en rupture') ?></h6>
+                        <i class="ph-duotone ph-warning-circle"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="card bg-green-500 text-white widget-visitor-card">
+                    <div class="card-body text-center">
+                        <h2 class="text-white"><?= number_format($stats['revenue_today'], 0, ',', ' ') ?></h2>
+                        <h6 class="text-white"><?= _('CA du Jour (FCFA)') ?></h6>
+                        <i class="ph-duotone ph-currency-circle-dollar"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="card bg-purple-500 text-white widget-visitor-card">
+                    <div class="card-body text-center">
+                        <h2 class="text-white"><?= number_format($stats['revenue_month'], 0, ',', ' ') ?></h2>
+                        <h6 class="text-white"><?= _('CA du Mois (FCFA)') ?></h6>
+                        <i class="ph-duotone ph-chart-line-up"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- [ Dashboard Stats ] end -->
+
         <div class="row">
             <div class="col-sm-12">
                 <div class="card">
@@ -39,6 +80,7 @@
                                     <tr>
                                         <th><?= _('Image') ?></th>
                                         <th><?= _('Article') ?></th>
+                                        <th><?= _('Catégorie') ?></th>
                                         <th><?= _('Prix') ?></th>
                                         <th><?= _('Stock') ?></th>
                                         <th class="text-end"><?= _('Actions') ?></th>
@@ -57,8 +99,22 @@
                                                 <?php endif; ?>
                                             </td>
                                             <td><?= htmlspecialchars($article['nom_article']) ?></td>
-                                            <td><?= htmlspecialchars($article['prix']) ?></td>
-                                            <td><?= htmlspecialchars($article['stock']) ?></td>
+                                            <td><span class="badge bg-light-secondary text-muted"><?= htmlspecialchars($article['categorie'] ?? _('Divers')) ?></span></td>
+                                            <td>
+                                                <?= number_format($article['prix'], 0, ',', ' ') ?> FCFA
+                                                <?php if (!empty($article['ancien_prix'])): ?>
+                                                    <br><small class="text-muted text-decoration-line-through"><?= number_format($article['ancien_prix'], 0, ',', ' ') ?> FCFA</small>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <?php if ($article['stock'] <= 0): ?>
+                                                    <span class="badge bg-light-danger text-danger"><?= _('Rupture') ?></span>
+                                                <?php elseif ($article['stock'] <= 5): ?>
+                                                    <span class="badge bg-light-warning text-warning"><?= $article['stock'] ?> (<?= _('Faible') ?>)</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-light-success text-success"><?= $article['stock'] ?></span>
+                                                <?php endif; ?>
+                                            </td>
                                             <td class="text-end">
                                                 <a href="/boutique/articles/edit?id=<?= $article['id_article'] ?>" class="btn btn-sm btn-light-primary me-1">
                                                     <i class="ph-duotone ph-pencil-simple"></i>
