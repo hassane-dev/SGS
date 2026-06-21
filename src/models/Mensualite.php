@@ -133,15 +133,16 @@ class Mensualite {
     public static function addDetail($data) {
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            INSERT INTO mensualite_details (mensualite_id, montant, mode_paiement, reference_transaction, recu_numero)
-            VALUES (:mensualite_id, :montant, :mode_paiement, :reference_transaction, :recu_numero)
+            INSERT INTO mensualite_details (mensualite_id, montant, mode_paiement, reference_transaction, recu_numero, user_id)
+            VALUES (:mensualite_id, :montant, :mode_paiement, :reference_transaction, :recu_numero, :user_id)
         ");
         return $stmt->execute([
             'mensualite_id' => $data['mensualite_id'],
             'montant' => $data['montant'],
             'mode_paiement' => $data['mode_paiement'] ?? null,
             'reference_transaction' => $data['reference_transaction'] ?? null,
-            'recu_numero' => $data['recu_numero'] ?? null
+            'recu_numero' => $data['recu_numero'] ?? null,
+            'user_id' => $data['user_id'] ?? null
         ]);
     }
 

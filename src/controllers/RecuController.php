@@ -21,11 +21,21 @@ class RecuController {
         }
 
         $eleve = Eleve::findById($eleve_id);
-        $inscriptions = Inscription::findByEleveId($eleve_id);
-        if (empty($inscriptions)) {
+        $recu_numero = $_GET['recu'] ?? null;
+
+        if ($recu_numero) {
+             $db = Database::getInstance();
+             $stmt = $db->prepare("SELECT * FROM inscriptions WHERE eleve_id = :e AND recu_numero = :r");
+             $stmt->execute(['e' => $eleve_id, 'r' => $recu_numero]);
+             $inscription = $stmt->fetch();
+        } else {
+            $inscriptions = Inscription::findByEleveId($eleve_id);
+            $inscription = $inscriptions[0] ?? null;
+        }
+
+        if (!$inscription) {
             die("Aucune inscription trouvée pour cet élève.");
         }
-        $inscription = $inscriptions[0];
 
         // Récupérer les mensualités liées au même reçu
         $mensualites = [];
@@ -54,20 +64,36 @@ class RecuController {
         }
 
         $detail_id = $_GET['id'] ?? null;
-        if (!$detail_id) {
-            die("ID du paiement manquant.");
-        }
+        $recu_numero = $_GET['recu'] ?? null;
 
         $db = Database::getInstance();
-        $stmt = $db->prepare("
-            SELECT md.*, m.mois_ou_sequence, m.eleve_id, m.classe_id, m.user_id, aa.libelle as annee_academique
-            FROM mensualite_details md
-            JOIN mensualites m ON md.mensualite_id = m.id_mensualite
-            JOIN annees_academiques aa ON m.annee_academique_id = aa.id
-            WHERE md.id = :id
-        ");
-        $stmt->execute(['id' => $detail_id]);
-        $paiement = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($recu_numero) {
+             $stmt = $db->prepare("
+                SELECT md.*, m.mois_ou_sequence, m.eleve_id, m.classe_id, m.user_id, aa.libelle as annee_academique
+                FROM mensualite_details md
+                JOIN mensualites m ON md.mensualite_id = m.id_mensualite
+                JOIN annees_academiques aa ON m.annee_academique_id = aa.id
+                WHERE md.recu_numero = :r AND m.eleve_id = :e
+                LIMIT 1
+            ");
+            $stmt->execute(['r' => $recu_numero, 'e' => $_GET['id']]);
+            $paiement = $stmt->fetch(PDO::FETCH_ASSOC);
+        } else {
+            if (!$detail_id) {
+                die("ID du paiement manquant.");
+            }
+
+            $stmt = $db->prepare("
+                SELECT md.*, m.mois_ou_sequence, m.eleve_id, m.classe_id, m.user_id, aa.libelle as annee_academique
+                FROM mensualite_details md
+                JOIN mensualites m ON md.mensualite_id = m.id_mensualite
+                JOIN annees_academiques aa ON m.annee_academique_id = aa.id
+                WHERE md.id = :id
+            ");
+            $stmt->execute(['id' => $detail_id]);
+            $paiement = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
 
         if (!$paiement) {
             die("Paiement introuvable.");

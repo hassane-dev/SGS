@@ -107,16 +107,19 @@ class PaiementController {
             ];
         }
 
-        // 6. Dernières transactions (plus détaillées)
+        // 6. Dernières transactions (Groupées par reçu pour éviter la redondance)
         $stmt = $db->prepare("
-            (SELECT 'Inscription' as type, montant_verse as montant, date_inscription as date, eleve_id, user_id, NULL as mode
-             FROM inscriptions
-             WHERE lycee_id = :l1)
-            UNION ALL
-            (SELECT 'Mensualité' as type, md.montant, md.date_paiement as date, m.eleve_id, m.user_id, md.mode_paiement as mode
-             FROM mensualite_details md
-             JOIN mensualites m ON md.mensualite_id = m.id_mensualite
-             WHERE m.lycee_id = :l2)
+            SELECT type, SUM(montant) as montant, date, eleve_id, user_id, mode, recu_numero FROM (
+                SELECT 'Inscription' as type, montant_verse as montant, date_inscription as date, eleve_id, user_id, 'Espèces' as mode, recu_numero
+                FROM inscriptions
+                WHERE lycee_id = :l1
+                UNION ALL
+                SELECT 'Mensualité' as type, md.montant, md.date_paiement as date, m.eleve_id, md.user_id, md.mode_paiement as mode, md.recu_numero
+                FROM mensualite_details md
+                JOIN mensualites m ON md.mensualite_id = m.id_mensualite
+                WHERE m.lycee_id = :l2
+            ) as transactions
+            GROUP BY recu_numero, eleve_id
             ORDER BY date DESC LIMIT 10
         ");
         $stmt->execute(['l1' => $lycee_id, 'l2' => $lycee_id]);
@@ -174,7 +177,8 @@ class PaiementController {
             }
         }
 
-        // Elèves avec paiement partiel
+        // Elèves avec paiement partiel - On ne les affiche plus ici s'ils sont déjà actifs
+        // car ils basculent dans "Gestion des restes"
         $stmt = $db->prepare("
             SELECT e.*, c.niveau as nom_classe, 'Partiel' as etat_finance, i.montant_verse as verse, i.reste_a_payer as reste
             FROM eleves e
@@ -182,6 +186,7 @@ class PaiementController {
             JOIN classes c ON et.classe_id = c.id_classe
             JOIN inscriptions i ON e.id_eleve = i.eleve_id AND i.annee_academique_id = :annee_id
             WHERE e.lycee_id = :lycee_id
+            AND e.statut = 'en_attente_paiement'
             AND i.reste_a_payer > 0
         ");
         $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
@@ -198,6 +203,30 @@ class PaiementController {
     /**
      * Affiche l'interface de paiement pour un élève donné.
      */
+    public function regulariserInscription($eleveId) {
+        $this->checkAccess('view');
+        $anneeActive = AnneeAcademique::findActive();
+        $eleve = Eleve::findById($eleveId);
+        $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id']);
+        $classe = Classe::findById($etude['classe_id']);
+        $frais = Frais::findForClasse($classe, $anneeActive['id']);
+        $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id']);
+
+        $fraisInscription = [
+            'total' => (float) ($inscription['montant_total'] ?? 0),
+            'verse' => (float) ($inscription['montant_verse'] ?? 0),
+        ];
+        $fraisInscription['reste'] = $fraisInscription['total'] - $fraisInscription['verse'];
+
+        $nextRecu = Mensualite::generateReceiptNumber($eleve['lycee_id']);
+
+        View::render('paiements/inscription_pay', [
+            'eleve' => $eleve,
+            'fraisInscription' => $fraisInscription,
+            'nextRecu' => $nextRecu
+        ]);
+    }
+
     public function show($eleveId) {
         $this->checkAccess('view');
 
@@ -291,6 +320,236 @@ class PaiementController {
     }
 
     /**
+     * Gestion des restes à payer (Inscriptions et Mensualités).
+     */
+    public function restes() {
+        $this->checkAccess('view');
+        $lycee_id = Auth::getLyceeId();
+        $activeYear = AnneeAcademique::findActive();
+
+        if (!$activeYear) {
+            $_SESSION['error_message'] = "Aucune année académique active.";
+            header('Location: /');
+            exit();
+        }
+
+        $db = Database::getInstance();
+
+        // 1. Restes d'inscription
+        $stmt = $db->prepare("
+            SELECT i.reste_a_payer as montant, i.date_inscription as date, 'Inscription' as type, e.nom, e.prenom, e.id_eleve, c.niveau, c.serie, c.numero
+            FROM inscriptions i
+            JOIN eleves e ON i.eleve_id = e.id_eleve
+            JOIN etudes et ON i.etude_id = et.id_etude
+            JOIN classes c ON et.classe_id = c.id_classe
+            WHERE i.lycee_id = :l1 AND i.annee_academique_id = :a1 AND i.reste_a_payer > 0
+        ");
+        $stmt->execute(['l1' => $lycee_id, 'a1' => $activeYear['id']]);
+        $restesInscription = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // 2. Restes de mensualités
+        // On récupère tous les élèves actifs
+        $stmt = $db->prepare("
+            SELECT e.id_eleve, e.nom, e.prenom, c.id_classe, c.niveau, c.serie, c.numero, et.id_etude
+            FROM eleves e
+            JOIN etudes et ON e.id_eleve = et.eleve_id
+            JOIN classes c ON et.classe_id = c.id_classe
+            WHERE e.lycee_id = :l AND et.annee_academique_id = :a AND e.statut = 'actif'
+        ");
+        $stmt->execute(['l' => $lycee_id, 'a' => $activeYear['id']]);
+        $elevesActifs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $sequences = Sequence::findAll();
+        $fmt = new IntlDateFormatter('fr_FR', IntlDateFormatter::FULL, IntlDateFormatter::NONE, 'Africa/Porto-Novo', IntlDateFormatter::GREGORIAN, 'MMMM');
+
+        $monthsToDate = [];
+        $today = new DateTime();
+        foreach ($sequences as $seq) {
+            $current = new DateTime($seq['date_debut']);
+            $end = new DateTime($seq['date_fin']);
+            while ($current <= $end && $current <= $today) {
+                $monthsToDate[] = ucfirst($fmt->format($current));
+                $current->modify('first day of next month');
+            }
+        }
+
+        // Batch fetch payments and fee structures
+        $allMensualites = $db->prepare("
+            SELECT etude_id, mois_ou_sequence, SUM(montant_verse) as total
+            FROM mensualites
+            WHERE lycee_id = :l AND annee_academique_id = :a
+            GROUP BY etude_id, mois_ou_sequence
+        ");
+        $allMensualites->execute(['l' => $lycee_id, 'a' => $activeYear['id']]);
+        $paymentsByEtude = $allMensualites->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_ASSOC);
+
+        $fraisList = Frais::findByLyceeAndYear($lycee_id, $activeYear['id']);
+
+        $restesMensualites = [];
+        foreach ($elevesActifs as $eleve) {
+            // Re-use logic from Frais::findForClasse but without repeated DB queries
+            $f = null;
+            $class_level_order = Classe::getLevelOrderMap()[$eleve['niveau']] ?? 99;
+            foreach ($fraisList as $fr) {
+                if (!empty($fr['niveau_debut'])) {
+                    $start = Classe::getLevelOrderMap()[$fr['niveau_debut']] ?? 0;
+                    $end = Classe::getLevelOrderMap()[$fr['niveau_fin']] ?? 100;
+                    if ($class_level_order >= $start && $class_level_order <= $end && ($fr['serie'] == $eleve['serie'] || empty($fr['serie']))) {
+                        $f = $fr; break;
+                    }
+                }
+            }
+            if (!$f) continue;
+
+            $attenduParMois = (float)($f['frais_mensuel'] ?? 0);
+            if ($attenduParMois <= 0) continue;
+
+            $etudeId = $eleve['id_etude'];
+            $payes = [];
+            if (isset($paymentsByEtude[$etudeId])) {
+                foreach($paymentsByEtude[$etudeId] as $p) $payes[$p['mois_ou_sequence']] = $p['total'];
+            }
+
+            foreach ($monthsToDate as $month) {
+                $verse = (float)($payes[$month] ?? 0);
+                if ($verse < $attenduParMois) {
+                    $restesMensualites[] = [
+                        'montant' => $attenduParMois - $verse,
+                        'date' => null,
+                        'type' => 'Mensualité (' . $month . ')',
+                        'nom' => $eleve['nom'],
+                        'prenom' => $eleve['prenom'],
+                        'id_eleve' => $eleve['id_eleve'],
+                        'niveau' => $eleve['niveau'],
+                        'serie' => $eleve['serie'],
+                        'numero' => $eleve['numero']
+                    ];
+                }
+            }
+        }
+
+        $allRestes = array_merge($restesInscription, $restesMensualites);
+
+        View::render('paiements/restes', [
+            'restes' => $allRestes,
+            'title' => 'Gestion des Restes / Dettes'
+        ]);
+    }
+
+    public function historique() {
+        $this->checkAccess('view');
+        $lycee_id = Auth::getLyceeId();
+
+        $db = Database::getInstance();
+
+        // Fetch all transactions (Inscriptions + Mensualités)
+        $stmt = $db->prepare("
+            (SELECT 'Inscription' as type, i.montant_verse as montant, i.date_inscription as date, e.nom, e.prenom, i.recu_numero, 'Espèces' as mode, u.nom as user_nom, u.prenom as user_prenom
+             FROM inscriptions i
+             JOIN eleves e ON i.eleve_id = e.id_eleve
+             LEFT JOIN utilisateurs u ON i.user_id = u.id_user
+             WHERE i.lycee_id = :l1)
+            UNION ALL
+            (SELECT 'Mensualité' as type, md.montant, md.date_paiement as date, e.nom, e.prenom, md.recu_numero, md.mode_paiement as mode, u.nom as user_nom, u.prenom as user_prenom
+             FROM mensualite_details md
+             JOIN mensualites m ON md.mensualite_id = m.id_mensualite
+             JOIN eleves e ON m.eleve_id = e.id_eleve
+             LEFT JOIN utilisateurs u ON md.user_id = u.id_user
+             WHERE m.lycee_id = :l2)
+            ORDER BY date DESC
+        ");
+        $stmt->execute(['l1' => $lycee_id, 'l2' => $lycee_id]);
+        $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        View::render('paiements/historique', [
+            'transactions' => $transactions,
+            'title' => 'Historique des Paiements'
+        ]);
+    }
+
+    public function recus() {
+        $this->checkAccess('view');
+        $lycee_id = Auth::getLyceeId();
+
+        $db = Database::getInstance();
+
+        // Fetch all distinct receipts
+        $stmt = $db->prepare("
+            SELECT recu_numero, date, type, nom, prenom, SUM(montant) as total_montant, eleve_id FROM (
+                SELECT i.recu_numero, i.date_inscription as date, 'Inscription' as type, e.nom, e.prenom, i.montant_verse as montant, i.eleve_id
+                FROM inscriptions i
+                JOIN eleves e ON i.eleve_id = e.id_eleve
+                WHERE i.lycee_id = :l1 AND i.recu_numero IS NOT NULL
+                UNION ALL
+                SELECT md.recu_numero, md.date_paiement as date, 'Mensualité' as type, e.nom, e.prenom, md.montant, m.eleve_id
+                FROM mensualite_details md
+                JOIN mensualites m ON md.mensualite_id = m.id_mensualite
+                JOIN eleves e ON m.eleve_id = e.id_eleve
+                WHERE m.lycee_id = :l2 AND md.recu_numero IS NOT NULL
+            ) as t
+            GROUP BY recu_numero
+            ORDER BY date DESC
+        ");
+        $stmt->execute(['l1' => $lycee_id, 'l2' => $lycee_id]);
+        $recus = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        View::render('paiements/recus', [
+            'recus' => $recus,
+            'title' => 'Gestion des Reçus'
+        ]);
+    }
+
+    public function rapports() {
+        $this->checkAccess('view');
+        $lycee_id = Auth::getLyceeId();
+        $activeYear = AnneeAcademique::findActive();
+
+        $db = Database::getInstance();
+
+        // 1. Revenue by Category
+        $stmt = $db->prepare("SELECT SUM(montant_verse) FROM inscriptions WHERE lycee_id = :l AND annee_academique_id = :a");
+        $stmt->execute(['l' => $lycee_id, 'a' => $activeYear['id']]);
+        $totalInscriptions = $stmt->fetchColumn() ?: 0;
+
+        $stmt = $db->prepare("SELECT SUM(montant) FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l AND m.annee_academique_id = :a");
+        $stmt->execute(['l' => $lycee_id, 'a' => $activeYear['id']]);
+        $totalMensualites = $stmt->fetchColumn() ?: 0;
+
+        // 2. Revenue by Payment Mode (Mensualités)
+        $stmt = $db->prepare("
+            SELECT mode_paiement, SUM(montant) as total
+            FROM mensualite_details md
+            JOIN mensualites m ON md.mensualite_id = m.id_mensualite
+            WHERE m.lycee_id = :l AND m.annee_academique_id = :a
+            GROUP BY mode_paiement
+        ");
+        $stmt->execute(['l' => $lycee_id, 'a' => $activeYear['id']]);
+        $byMode = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // 3. Daily trend (Last 30 days)
+        $stmt = $db->prepare("
+            SELECT date, SUM(montant) as total FROM (
+                SELECT DATE(date_inscription) as date, montant_verse as montant FROM inscriptions WHERE lycee_id = :l1 AND annee_academique_id = :a1
+                UNION ALL
+                SELECT DATE(md.date_paiement) as date, md.montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l2 AND m.annee_academique_id = :a2
+            ) as t
+            WHERE date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+            GROUP BY date
+            ORDER BY date ASC
+        ");
+        $stmt->execute(['l1' => $lycee_id, 'a1' => $activeYear['id'], 'l2' => $lycee_id, 'a2' => $activeYear['id']]);
+        $dailyTrend = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        View::render('paiements/rapports', [
+            'totalInscriptions' => $totalInscriptions,
+            'totalMensualites' => $totalMensualites,
+            'byMode' => $byMode,
+            'dailyTrend' => $dailyTrend,
+            'title' => 'Rapports Financiers'
+        ]);
+    }
+
+    /**
      * Traite le paiement unifié (Inscription + Mensualités).
      */
     public function processPayment($eleveId) {
@@ -317,6 +576,10 @@ class PaiementController {
             $lyceeId = $eleve['lycee_id'] ?? Auth::getLyceeId();
             $userId = Auth::user()['id'];
             $modePaiement = $_POST['mode_paiement'] ?? 'Espèces';
+
+            $redirectUrl = '/paiements/show/' . $eleveId;
+            if (isset($_POST['mensualites'])) $redirectUrl = '/mensualites/pay/' . $eleveId;
+            if (isset($_POST['montant_inscription']) && !isset($_POST['options'])) $redirectUrl = '/paiements/regulariser-inscription/' . $eleveId;
 
             $reference = $_POST['reference_transaction'] ?? null;
             if (empty($reference)) {
@@ -393,7 +656,8 @@ class PaiementController {
                             'montant' => $montant,
                             'mode_paiement' => $modePaiement,
                             'reference_transaction' => $reference,
-                            'recu_numero' => $reference
+                            'recu_numero' => $reference,
+                            'user_id' => $userId
                         ]);
                         $paiementEffectue = true;
                     }
@@ -415,7 +679,7 @@ class PaiementController {
             $_SESSION['error_message'] = "Erreur lors de l'encaissement : " . $e->getMessage();
         }
 
-        header('Location: /paiements/show/' . $eleveId);
+        header('Location: ' . $redirectUrl);
         exit();
     }
 }

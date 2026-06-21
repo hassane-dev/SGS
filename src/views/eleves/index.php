@@ -135,7 +135,11 @@
                                                         </a>
                                                     <?php endif; ?>
                                                     <?php if (Auth::can('view', 'paiement')): ?>
-                                                        <a href="/paiements/show/<?= $eleve['id_eleve'] ?>" class="btn btn-success btn-sm" title="<?= _('Gérer les paiements') ?>"><?= _('Payer') ?></a>
+                                                        <?php if ($eleve['statut'] === 'en_attente_paiement'): ?>
+                                                            <a href="/paiements/show/<?= $eleve['id_eleve'] ?>" class="btn btn-success btn-sm" title="<?= _('Valider l\'inscription') ?>"><?= _('💰 Inscrire') ?></a>
+                                                        <?php else: ?>
+                                                            <a href="/mensualites/pay/<?= $eleve['id_eleve'] ?>" class="btn btn-info btn-sm text-white" title="<?= _('Encaisser mensualité') ?>"><?= _('📅 Mensualité') ?></a>
+                                                        <?php endif; ?>
                                                     <?php endif; ?>
                                                     <a href="/eleves/details?id=<?= $eleve['id_eleve'] ?>" class="btn btn-info btn-sm ms-2" title="<?= _('Dossier complet') ?>"><?= _('Détails') ?></a>
                                                     <a href="/eleves/edit?id=<?= $eleve['id_eleve'] ?>" class="btn btn-primary btn-sm ms-2" title="<?= _('Modifier') ?>"><?= _('Modifier') ?></a>

@@ -393,7 +393,9 @@ CREATE TABLE `mensualite_details` (
     `reference_transaction` VARCHAR(100),
     `date_paiement` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `recu_numero` VARCHAR(50),
-    FOREIGN KEY (`mensualite_id`) REFERENCES `mensualites`(`id_mensualite`) ON DELETE CASCADE
+    `user_id` INT,
+    FOREIGN KEY (`mensualite_id`) REFERENCES `mensualites`(`id_mensualite`) ON DELETE CASCADE,
+    FOREIGN KEY (`user_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL
 );
 
 -- Table for defining school fees (tuition, etc.)
