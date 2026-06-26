@@ -18,7 +18,7 @@ class UserController {
 
     private function handlePhotoUpload($file) {
         if (isset($file) && $file['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = __DIR__ . '/../../public/uploads/photos/';
+            $uploadDir = UPLOAD_BASE_DIR . '/photos/';
             if (!is_dir($uploadDir)) {
                 if (!mkdir($uploadDir, 0777, true)) {
                     error_log("Failed to create upload directory: " . $uploadDir);
@@ -42,7 +42,7 @@ class UserController {
             $targetFilePath = $uploadDir . $fileName;
 
             if (move_uploaded_file($file['tmp_name'], $targetFilePath)) {
-                return '/uploads/photos/' . $fileName; // Return path relative to public dir
+                return UPLOAD_PUBLIC_PATH . '/photos/' . $fileName; // Return path relative to public dir
             } else {
                 error_log("Failed to move uploaded file to: " . $targetFilePath);
             }

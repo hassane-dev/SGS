@@ -1,0 +1,15 @@
+[Thu Jun 25 23:49:31 2026] PHP 8.3.6 Development Server (http://localhost:8080) started
+[Thu Jun 25 23:49:33 2026] [::1]:56256 Accepted
+[Thu Jun 25 23:49:33 2026] Error in Lycee::findAll: SQLSTATE[HY000] [2002] Connection refused
+[Thu Jun 25 23:49:33 2026] [::1]:56256 [302]: HEAD /login
+[Thu Jun 25 23:49:33 2026] [::1]:56256 Closing
+[Thu Jun 25 23:50:12 2026] [::1]:41642 Accepted
+[Thu Jun 25 23:50:12 2026] Error in Lycee::findAll: SQLSTATE[HY000] [2002] Connection refused
+[Thu Jun 25 23:50:12 2026] [::1]:41642 [200]: GET /setup
+[Thu Jun 25 23:50:12 2026] [::1]:41642 Closing
+[Thu Jun 25 23:50:13 2026] [::1]:41650 Accepted
+[Thu Jun 25 23:50:13 2026] [::1]:41654 Accepted
+[Thu Jun 25 23:50:13 2026] [::1]:41650 [200]: GET /assets/css/bootstrap.min.css
+[Thu Jun 25 23:50:13 2026] [::1]:41654 [200]: GET /assets/js/bootstrap.bundle.min.js
+[Thu Jun 25 23:50:13 2026] [::1]:41650 Closing
+[Thu Jun 25 23:50:13 2026] [::1]:41654 Closing

@@ -39,7 +39,7 @@ class ModeleCarteController {
 
             // Handle background image upload
             if (isset($_FILES['background_image']) && $_FILES['background_image']['error'] === UPLOAD_ERR_OK) {
-                $uploadDir = __DIR__ . '/../../public/uploads/card_backgrounds/';
+                $uploadDir = UPLOAD_BASE_DIR . '/card_backgrounds/';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0777, true);
                 }
@@ -50,7 +50,7 @@ class ModeleCarteController {
                     if ($background_path && file_exists(__DIR__ . '/../../public' . $background_path)) {
                         unlink(__DIR__ . '/../../public' . $background_path);
                     }
-                    $background_path = '/uploads/card_backgrounds/' . $fileName;
+                    $background_path = UPLOAD_PUBLIC_PATH . '/card_backgrounds/' . $fileName;
                 }
             }
 

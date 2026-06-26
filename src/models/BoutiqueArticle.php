@@ -33,9 +33,11 @@ class BoutiqueArticle {
 
         // Handle image upload if provided
         if (isset($_FILES['image']) && $_FILES['image']['error'] == UPLOAD_ERR_OK) {
-            $uploadDir = __DIR__ . '/../../public/uploads/boutique/';
+            $uploadDir = UPLOAD_BASE_DIR . '/boutique/';
             if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
+                if (!mkdir($uploadDir, 0777, true)) {
+                    error_log("Failed to create boutique upload directory: " . $uploadDir);
+                }
             }
             $fileName = uniqid() . '-' . basename($_FILES['image']['name']);
             $targetFilePath = $uploadDir . $fileName;
@@ -47,11 +49,15 @@ class BoutiqueArticle {
                         unlink($oldImagePath);
                     }
                 }
-                $data['image'] = '/uploads/boutique/' . $fileName;
+                $data['image'] = UPLOAD_PUBLIC_PATH . '/boutique/' . $fileName;
             } else {
+                error_log("Failed to move boutique uploaded file to: " . $targetFilePath);
                 $data['image'] = $data['current_image'] ?? null;
             }
         } else {
+            if (isset($_FILES['image']) && $_FILES['image']['error'] != UPLOAD_ERR_NO_FILE) {
+                error_log("Boutique image upload error: " . $_FILES['image']['error']);
+            }
             $data['image'] = $data['current_image'] ?? null;
         }
 

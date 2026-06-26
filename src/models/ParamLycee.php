@@ -48,9 +48,11 @@ class ParamLycee {
 
         // Handle logo upload
         if (isset($_FILES['logo']) && $_FILES['logo']['error'] == UPLOAD_ERR_OK) {
-            $uploadDir = __DIR__ . '/../../public/uploads/logos/';
+            $uploadDir = UPLOAD_BASE_DIR . '/logos/';
             if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
+                if (!mkdir($uploadDir, 0777, true)) {
+                    error_log("Failed to create logos upload directory: " . $uploadDir);
+                }
             }
             $fileName = uniqid() . '-' . basename($_FILES['logo']['name']);
             $targetFilePath = $uploadDir . $fileName;
@@ -62,12 +64,74 @@ class ParamLycee {
                         unlink($oldLogoPath);
                     }
                 }
-                $data['logo'] = '/uploads/logos/' . $fileName;
+                $data['logo'] = UPLOAD_PUBLIC_PATH . '/logos/' . $fileName;
             } else {
+                error_log("Failed to move uploaded logo to: " . $targetFilePath);
                 $data['logo'] = $data['current_logo'] ?? null;
             }
         } else {
+            if (isset($_FILES['logo']) && $_FILES['logo']['error'] != UPLOAD_ERR_NO_FILE) {
+                error_log("Logo upload error: " . $_FILES['logo']['error']);
+            }
             $data['logo'] = $data['current_logo'] ?? null;
+        }
+
+        // Handle Signature upload
+        if (isset($_FILES['signature_directeur']) && $_FILES['signature_directeur']['error'] == UPLOAD_ERR_OK) {
+            $uploadDir = UPLOAD_BASE_DIR . '/signatures/';
+            if (!is_dir($uploadDir)) {
+                if (!mkdir($uploadDir, 0777, true)) {
+                    error_log("Failed to create signatures upload directory: " . $uploadDir);
+                }
+            }
+            $fileName = uniqid() . '-' . basename($_FILES['signature_directeur']['name']);
+            $targetFilePath = $uploadDir . $fileName;
+            if (move_uploaded_file($_FILES['signature_directeur']['tmp_name'], $targetFilePath)) {
+                if (!empty($data['current_signature_directeur'])) {
+                    $oldPath = __DIR__ . '/../../public' . $data['current_signature_directeur'];
+                    if (file_exists($oldPath)) {
+                        unlink($oldPath);
+                    }
+                }
+                $data['signature_directeur'] = UPLOAD_PUBLIC_PATH . '/signatures/' . $fileName;
+            } else {
+                error_log("Failed to move uploaded signature to: " . $targetFilePath);
+                $data['signature_directeur'] = $data['current_signature_directeur'] ?? null;
+            }
+        } else {
+            if (isset($_FILES['signature_directeur']) && $_FILES['signature_directeur']['error'] != UPLOAD_ERR_NO_FILE) {
+                error_log("Signature upload error: " . $_FILES['signature_directeur']['error']);
+            }
+            $data['signature_directeur'] = $data['current_signature_directeur'] ?? null;
+        }
+
+        // Handle Tampon upload
+        if (isset($_FILES['tampon_ecole']) && $_FILES['tampon_ecole']['error'] == UPLOAD_ERR_OK) {
+            $uploadDir = UPLOAD_BASE_DIR . '/tampons/';
+            if (!is_dir($uploadDir)) {
+                if (!mkdir($uploadDir, 0777, true)) {
+                    error_log("Failed to create tampons upload directory: " . $uploadDir);
+                }
+            }
+            $fileName = uniqid() . '-' . basename($_FILES['tampon_ecole']['name']);
+            $targetFilePath = $uploadDir . $fileName;
+            if (move_uploaded_file($_FILES['tampon_ecole']['tmp_name'], $targetFilePath)) {
+                if (!empty($data['current_tampon_ecole'])) {
+                    $oldPath = __DIR__ . '/../../public' . $data['current_tampon_ecole'];
+                    if (file_exists($oldPath)) {
+                        unlink($oldPath);
+                    }
+                }
+                $data['tampon_ecole'] = UPLOAD_PUBLIC_PATH . '/tampons/' . $fileName;
+            } else {
+                error_log("Failed to move uploaded tampon to: " . $targetFilePath);
+                $data['tampon_ecole'] = $data['current_tampon_ecole'] ?? null;
+            }
+        } else {
+            if (isset($_FILES['tampon_ecole']) && $_FILES['tampon_ecole']['error'] != UPLOAD_ERR_NO_FILE) {
+                error_log("Tampon upload error: " . $_FILES['tampon_ecole']['error']);
+            }
+            $data['tampon_ecole'] = $data['current_tampon_ecole'] ?? null;
         }
 
 

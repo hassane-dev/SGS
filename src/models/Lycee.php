@@ -36,14 +36,14 @@ class Lycee {
 
         // Handle logo upload logic can be shared
         if (isset($_FILES['logo']) && $_FILES['logo']['error'] == UPLOAD_ERR_OK) {
-            $uploadDir = __DIR__ . '/../../public/uploads/logos/';
+            $uploadDir = UPLOAD_BASE_DIR . '/logos/';
             if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
+                mkdir($uploadDir, 0777, true);
             }
             $fileName = uniqid() . '-' . basename($_FILES['logo']['name']);
             $targetFilePath = $uploadDir . $fileName;
             if (move_uploaded_file($_FILES['logo']['tmp_name'], $targetFilePath)) {
-                $data['logo'] = '/uploads/logos/' . $fileName;
+                $data['logo'] = UPLOAD_PUBLIC_PATH . '/logos/' . $fileName;
             } else {
                 $data['logo'] = $data['current_logo'] ?? null;
             }

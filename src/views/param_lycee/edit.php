@@ -104,6 +104,23 @@
                                     </select>
                                 </div>
 
+                                <div class="col-md-6">
+                                    <label for="signature_directeur" class="form-label">Signature du Directeur</label>
+                                    <input type="file" id="signature_directeur" name="signature_directeur" class="form-control">
+                                    <input type="hidden" name="current_signature_directeur" value="<?= htmlspecialchars($params['signature_directeur'] ?? '') ?>">
+                                    <?php if (!empty($params['signature_directeur'])): ?>
+                                        <img src="<?= htmlspecialchars($params['signature_directeur']) ?>" alt="Signature actuelle" class="img-thumbnail mt-2" style="max-height: 100px;">
+                                    <?php endif; ?>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="tampon_ecole" class="form-label">Tampon de l'école</label>
+                                    <input type="file" id="tampon_ecole" name="tampon_ecole" class="form-control">
+                                    <input type="hidden" name="current_tampon_ecole" value="<?= htmlspecialchars($params['tampon_ecole'] ?? '') ?>">
+                                    <?php if (!empty($params['tampon_ecole'])): ?>
+                                        <img src="<?= htmlspecialchars($params['tampon_ecole']) ?>" alt="Tampon actuel" class="img-thumbnail mt-2" style="max-height: 100px;">
+                                    <?php endif; ?>
+                                </div>
+
                                 <div class="col-12">
                                     <div class="form-check">
                                         <input type="checkbox" id="boutique" name="boutique" class="form-check-input" value="1" <?= !empty($params['boutique']) ? 'checked' : '' ?>>
