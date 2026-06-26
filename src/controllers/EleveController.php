@@ -16,7 +16,7 @@ require_once __DIR__ . '/../core/Validator.php';
 
 class EleveController {
 
-    const UPLOAD_DIR = '/uploads/photos/';
+    const UPLOAD_DIR = '/photos/';
 
     public function index() {
         $user_role = Auth::get('role_name');
@@ -239,7 +239,7 @@ class EleveController {
     }
 
     private function handleCroppedPhoto($base64_string) {
-        $upload_path = __DIR__ . '/../../public' . self::UPLOAD_DIR;
+        $upload_path = UPLOAD_BASE_DIR . self::UPLOAD_DIR;
         if (!is_dir($upload_path)) {
             if (!mkdir($upload_path, 0777, true)) {
                 error_log("Failed to create student upload directory: " . $upload_path);
@@ -258,7 +258,7 @@ class EleveController {
             $target_path = $upload_path . $filename;
 
             if (file_put_contents($target_path, $data)) {
-                return self::UPLOAD_DIR . $filename;
+                return UPLOAD_PUBLIC_PATH . self::UPLOAD_DIR . $filename;
             } else {
                 error_log("Failed to save cropped student photo to: " . $target_path);
             }
@@ -277,7 +277,7 @@ class EleveController {
             return null;
         }
 
-        $upload_path = __DIR__ . '/../../public' . self::UPLOAD_DIR;
+        $upload_path = UPLOAD_BASE_DIR . self::UPLOAD_DIR;
         if (!is_dir($upload_path)) {
             if (!mkdir($upload_path, 0777, true)) {
                 error_log("Failed to create student upload directory: " . $upload_path);
@@ -301,7 +301,7 @@ class EleveController {
         $target_path = $upload_path . $filename;
 
         if (move_uploaded_file($file['tmp_name'], $target_path)) {
-            return self::UPLOAD_DIR . $filename;
+            return UPLOAD_PUBLIC_PATH . self::UPLOAD_DIR . $filename;
         } else {
             error_log("Failed to move student uploaded file to: " . $target_path);
         }
