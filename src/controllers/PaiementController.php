@@ -364,7 +364,7 @@ class PaiementController {
             FROM eleves e
             JOIN etudes et ON e.id_eleve = et.eleve_id
             JOIN classes c ON et.classe_id = c.id_classe
-            WHERE e.lycee_id = :l AND et.annee_academique_id = :a AND e.statut = 'actif'
+            WHERE e.lycee_id = :l AND et.annee_academique_id = :a AND (e.statut = 'actif' OR e.statut = 'en_attente_paiement')
         ");
         $stmt->execute(['l' => $lycee_id, 'a' => $activeYear['id']]);
         $elevesActifs = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -700,10 +700,15 @@ class PaiementController {
                 Inscription::save($dataInscription);
                 $paiementEffectue = true;
 
-                // Activation si soldé
-                if ($dataInscription['reste_a_payer'] <= 0) {
+                // Activation si le versement dépasse la moitié des frais d'inscription de base ou si soldé
+                $seuilActivation = (float)($frais['frais_inscription'] / 2);
+                if ($nouveauVerse > $seuilActivation || $dataInscription['reste_a_payer'] <= 0) {
                     Eleve::updateStatus($eleveId, 'actif');
                     Etude::activate($etude['id_etude'], $userId);
+                }
+
+                // Notification si soldé
+                if ($dataInscription['reste_a_payer'] <= 0) {
                     Notification::notifyRole('admin_local', $lyceeId, "Inscription soldée pour {$eleve['prenom']} {$eleve['nom']}.", "/eleves/details?id={$eleveId}");
                 }
             }

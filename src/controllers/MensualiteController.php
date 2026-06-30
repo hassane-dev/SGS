@@ -66,7 +66,7 @@ class MensualiteController {
             JOIN etudes et ON e.id_eleve = et.eleve_id
             WHERE et.classe_id = :classe_id
             AND et.annee_academique_id = :annee_id
-            AND e.statut = 'actif'
+            AND (e.statut = 'actif' OR e.statut = 'en_attente_paiement')
             ORDER BY e.nom, e.prenom
         ");
         $stmt->execute(['classe_id' => $classeId, 'annee_id' => $activeYear['id']]);
