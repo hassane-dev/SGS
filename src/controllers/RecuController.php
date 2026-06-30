@@ -5,6 +5,8 @@ require_once __DIR__ . '/../models/Inscription.php';
 require_once __DIR__ . '/../models/Mensualite.php';
 require_once __DIR__ . '/../models/Lycee.php';
 require_once __DIR__ . '/../models/ParamLycee.php';
+require_once __DIR__ . '/../models/Classe.php';
+require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../core/Auth.php';
 
 class RecuController {
