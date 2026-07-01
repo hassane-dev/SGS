@@ -5,6 +5,8 @@ require_once __DIR__ . '/../models/Eleve.php';
 require_once __DIR__ . '/../models/ModeleCarte.php';
 require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Etude.php';
+require_once __DIR__ . '/../models/ParamLycee.php';
+require_once __DIR__ . '/../models/AnneeAcademique.php';
 
 class CarteController {
 
