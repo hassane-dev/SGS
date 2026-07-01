@@ -19,6 +19,7 @@ define('APP_ENV', 'development'); // Environment: 'development' or 'production'
 // --- Security ---
 // It's highly recommended to use a long, random string for session security
 define('SESSION_SECRET', 'a_very_secret_and_long_key_for_sessions');
+define('CARD_SIGNATURE_SECRET', 'SECURE_SCHOOL_APP_2024');
 
 // --- Upload Settings ---
 define('UPLOAD_BASE_DIR', __DIR__ . '/../../public/uploads');

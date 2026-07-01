@@ -129,6 +129,9 @@
                                                     <?php endif; ?>
                                                 </td>
                                                 <td class="text-end">
+                                                        <a href="/carte/generer?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-sm btn-light-primary me-2" title="<?= _('Imprimer la carte') ?>" target="_blank">
+                                                            <i class="ph-duotone ph-cardholder"></i>
+                                                        </a>
                                                     <?php if (Auth::can('manage', 'boutique')): ?>
                                                         <a href="/boutique/achats?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-sm btn-light-info me-2" title="<?= _('Boutique') ?>">
                                                             <i class="ph-duotone ph-shopping-cart"></i>

@@ -9,6 +9,12 @@
                         </h5>
                     </div>
                     <div class="col-auto">
+                        <a href="/carte/generer?classe_id=<?= $classe['id_classe'] ?>" class="btn btn-sm btn-outline-primary" target="_blank">
+                            <i class="ph-duotone ph-cardholder me-1"></i>
+                            <?= _('Imprimer les cartes de la classe') ?>
+                        </a>
+                    </div>
+                    <div class="col-auto">
                         <span class="badge bg-light-primary text-primary"><?= count($eleves) ?> <?= _('élèves actifs') ?></span>
                     </div>
                 </div>
