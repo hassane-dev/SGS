@@ -47,19 +47,19 @@
 
         <div class="header">
             <?php if (!empty($lycee['logo'])): ?>
-                <img src="<?= htmlspecialchars($lycee['logo']) ?>" alt="Logo">
+                <img src="<?= htmlspecialchars($lycee['logo'] ?? '') ?>" alt="Logo">
             <?php else: ?>
                 <div style="width: 100px;"></div>
             <?php endif; ?>
             <div class="header-text">
-                <h1><?= htmlspecialchars($lycee['nom_lycee']) ?></h1>
+                <h1><?= htmlspecialchars($lycee['nom_lycee'] ?? '') ?></h1>
                 <p><?= htmlspecialchars($lycee['devise'] ?? '') ?></p>
-                <p><?= htmlspecialchars($lycee['quartier'] . ' ' . $lycee['ville']) ?> - BP: <?= htmlspecialchars($lycee['boite_postale'] ?? 'N/A') ?></p>
-                <p>Tel: <?= htmlspecialchars($lycee['tel']) ?> / Email: <?= htmlspecialchars($lycee['email']) ?></p>
+                <p><?= htmlspecialchars(($lycee['quartier'] ?? '') . ' ' . ($lycee['ville'] ?? '')) ?> - BP: <?= htmlspecialchars($lycee['boite_postale'] ?? 'N/A') ?></p>
+                <p>Tel: <?= htmlspecialchars($lycee['tel'] ?? '') ?> / Email: <?= htmlspecialchars($lycee['email'] ?? '') ?></p>
             </div>
             <div style="width: 100px; text-align: right;">
                 <span class="info-label">N° Reçu</span>
-                <span class="info-value" style="font-size: 16px; color: #28a745;"><?= htmlspecialchars($paiement['recu_numero']) ?></span>
+                <span class="info-value" style="font-size: 16px; color: #28a745;"><?= htmlspecialchars($paiement['recu_numero'] ?? '') ?></span>
             </div>
         </div>
 
@@ -74,11 +74,11 @@
             </div>
             <div class="info-box">
                 <span class="info-label">Année Académique</span>
-                <span class="info-value"><?= htmlspecialchars($paiement['annee_academique']) ?></span>
+                <span class="info-value"><?= htmlspecialchars($paiement['annee_academique'] ?? '') ?></span>
             </div>
             <div class="info-box">
                 <span class="info-label">Classe</span>
-                <span class="info-value"><?= htmlspecialchars(Classe::getFormattedName($classe)) ?></span>
+                <span class="info-value"><?= htmlspecialchars($classe ? Classe::getFormattedName($classe) : '') ?></span>
             </div>
             <div class="info-box">
                 <span class="info-label">Date du versement</span>
@@ -98,10 +98,10 @@
             <tbody>
                 <tr>
                     <td>
-                        Paiement scolarité - Mois de <strong><?= htmlspecialchars($paiement['mois_ou_sequence']) ?></strong>
+                        Paiement scolarité - Mois de <strong><?= htmlspecialchars($paiement['mois_ou_sequence'] ?? '') ?></strong>
                     </td>
-                    <td><?= htmlspecialchars($paiement['mode_paiement']) ?></td>
-                    <td><?= htmlspecialchars($paiement['reference_transaction'] ?: 'Espèces') ?></td>
+                    <td><?= htmlspecialchars($paiement['mode_paiement'] ?? '') ?></td>
+                    <td><?= htmlspecialchars($paiement['reference_transaction'] ?? 'Espèces') ?></td>
                     <td style="text-align: right; font-weight: bold; font-size: 16px;">
                         <?= number_format($paiement['montant'], 0, ',', ' ') ?> FCFA
                     </td>

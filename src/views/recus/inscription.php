@@ -47,7 +47,7 @@
 
         <div class="header">
             <?php if (!empty($lycee['logo'])): ?>
-                <img src="<?= htmlspecialchars($lycee['logo']) ?>" alt="Logo">
+                <img src="<?= htmlspecialchars($lycee['logo'] ?? '') ?>" alt="Logo">
             <?php else: ?>
                 <div style="width: 100px;"></div>
             <?php endif; ?>
@@ -56,7 +56,7 @@
                 <div style="font-weight: bold; font-size: 16px;"><?= $lycee['header_primary'] ?></div>
                 <div style="font-size: 14px;"><?= $lycee['header_secondary'] ?></div>
             <?php else: ?>
-                <h1><?= htmlspecialchars($lycee['nom_lycee']) ?></h1>
+                <h1><?= htmlspecialchars($lycee['nom_lycee'] ?? '') ?></h1>
                 <p><?= htmlspecialchars($lycee['devise'] ?? '') ?></p>
             <?php endif; ?>
             <p><?= htmlspecialchars(($lycee['quartier'] ?? '') . ' ' . ($lycee['ville'] ?? '')) ?> - BP: <?= htmlspecialchars($lycee['boite_postale'] ?? 'N/A') ?></p>
@@ -65,7 +65,7 @@
             <div style="width: 120px; text-align: right;">
                 <span class="info-label">N° Reçu</span>
                 <span class="info-value" style="font-size: 16px; color: #d9534f;">
-                    <?= !empty($inscription['recu_numero']) ? htmlspecialchars($inscription['recu_numero']) : 'INS-' . str_pad($inscription['id_inscription'], 5, '0', STR_PAD_LEFT) ?>
+                    <?= !empty($inscription['recu_numero']) ? htmlspecialchars($inscription['recu_numero'] ?? '') : 'INS-' . str_pad($inscription['id_inscription'] ?? 0, 5, '0', STR_PAD_LEFT) ?>
                 </span>
             </div>
         </div>
@@ -81,11 +81,11 @@
             </div>
             <div class="info-box">
                 <span class="info-label">Année Académique</span>
-                <span class="info-value"><?= htmlspecialchars($inscription['annee_academique']) ?></span>
+                <span class="info-value"><?= htmlspecialchars($inscription['annee_academique'] ?? '') ?></span>
             </div>
             <div class="info-box">
                 <span class="info-label">Classe</span>
-                <span class="info-value"><?= htmlspecialchars($inscription['nom_classe']) ?></span>
+                <span class="info-value"><?= htmlspecialchars($inscription['nom_classe'] ?? '') ?></span>
             </div>
             <div class="info-box">
                 <span class="info-label">Date de Paiement</span>
