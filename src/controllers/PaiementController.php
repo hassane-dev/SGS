@@ -379,15 +379,24 @@ class PaiementController {
             $end = new DateTime($seq['date_fin']);
             $safety = 0;
             while ($current <= $end && $current <= $today && $safety < 12) {
-                $monthsToDate[] = ucfirst($fmt->format($current));
+                $monthName = ucfirst($fmt->format($current));
+                if (!in_array($monthName, $monthsToDate)) {
+                    $monthsToDate[] = $monthName;
+                }
                 $current->modify('first day of next month');
                 $safety++;
             }
         }
 
         $restesMensualites = [];
+        $fraisCache = [];
         foreach ($elevesActifs as $eleve) {
-            $frais = Frais::findForClasse($eleve, $activeYear['id']);
+            $classeKey = $eleve['id_classe'];
+            if (!isset($fraisCache[$classeKey])) {
+                $fraisCache[$classeKey] = Frais::findForClasse($eleve, $activeYear['id']);
+            }
+            $frais = $fraisCache[$classeKey];
+
             if (!$frais) continue;
 
             $attenduParMois = (float)($frais['frais_mensuel'] ?? 0);
@@ -397,7 +406,7 @@ class PaiementController {
 
             foreach ($monthsToDate as $month) {
                 $verse = isset($payes[$month]) ? (float)$payes[$month]['total'] : 0;
-                if ($verse < $attenduParMois) {
+                if ($verse < $attenduParMois - 0.01) { // Utilisation d'une petite marge pour les calculs float
                     $restesMensualites[] = [
                         'montant' => $attenduParMois - $verse,
                         'date' => null,
