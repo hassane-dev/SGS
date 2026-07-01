@@ -19,23 +19,41 @@ class CarteController {
     public function generer() {
         $this->checkAccess();
         $eleve_id = $_GET['eleve_id'] ?? null;
-        if (!$eleve_id) {
-            die("ID de l'élève manquant.");
+        $classe_id = $_GET['classe_id'] ?? null;
+
+        if (!$eleve_id && !$classe_id) {
+            die("ID de l'élève ou de la classe manquant.");
         }
 
-        $eleve = Eleve::findById($eleve_id);
-        if (!$eleve) {
-            die("Élève non trouvé.");
-        }
+        $eleves = [];
+        $classe = null;
+        $lycee_id = null;
 
-        // Find the student's current lycee to get the correct card template
-        $etudes = Etude::findByEleveId($eleve_id);
-        if (empty($etudes)) {
-            die("L'élève n'a aucune inscription active.");
+        if ($eleve_id) {
+            $eleve = Eleve::findById($eleve_id);
+            if (!$eleve) {
+                die("Élève non trouvé.");
+            }
+            $eleves[] = $eleve;
+
+            $etudes = Etude::findByEleveId($eleve_id);
+            if (empty($etudes)) {
+                die("L'élève n'a aucune inscription active.");
+            }
+            $current_etude = $etudes[0];
+            $classe = Classe::findById($current_etude['classe_id']);
+            $lycee_id = $classe['lycee_id'];
+        } elseif ($classe_id) {
+            $classe = Classe::findById($classe_id);
+            if (!$classe) {
+                die("Classe non trouvée.");
+            }
+            $lycee_id = $classe['lycee_id'];
+            $eleves = Eleve::findByClass($classe_id);
+            if (empty($eleves)) {
+                die("Aucun élève trouvé dans cette classe.");
+            }
         }
-        $current_etude = $etudes[0]; // Assume the first one is the most recent
-        $classe = Classe::findById($current_etude['classe_id']);
-        $lycee_id = $classe['lycee_id'];
 
         $modele = ModeleCarte::findByLyceeId($lycee_id);
         if (!$modele) {
@@ -43,21 +61,26 @@ class CarteController {
         }
 
         $params_lycee = ParamLycee::findByLyceeId($lycee_id);
-
-        // Get active academic year
         $annee = AnneeAcademique::findActive();
 
-        // Secure QR Data: unique ID with signature
-        $data_to_sign = $eleve['id_eleve'] . '-' . $lycee_id . '-' . date('Y');
-        $signature = hash_hmac('sha256', $data_to_sign, 'SECURE_SCHOOL_APP_2024');
-        $secure_token = $data_to_sign . '|' . $signature;
+        $students_data = [];
+        foreach ($eleves as $eleve) {
+            // Secure QR Data: unique ID with signature
+            $data_to_sign = $eleve['id_eleve'] . '-' . $lycee_id . '-' . ($annee['id'] ?? date('Y'));
+            $signature = hash_hmac('sha256', $data_to_sign, CARD_SIGNATURE_SECRET);
+            $secure_token = $data_to_sign . '|' . $signature;
+
+            $students_data[] = [
+                'eleve' => $eleve,
+                'secure_token' => "https://" . ($_SERVER['HTTP_HOST'] ?? 'localhost') . "/verify-student?data=" . urlencode($secure_token)
+            ];
+        }
 
         $data = [
-            'eleve' => $eleve,
+            'students' => $students_data,
             'classe' => $classe,
             'lycee' => $params_lycee,
             'annee' => $annee,
-            'secure_token' => "https://" . ($_SERVER['HTTP_HOST'] ?? 'localhost') . "/verify-student?data=" . urlencode($secure_token),
             'modele' => array_merge($modele, [
                 'logo_lycee' => $params_lycee['logo'] ?? null
             ])

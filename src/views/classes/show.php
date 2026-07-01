@@ -8,10 +8,17 @@
         <div class="page-header">
             <div class="page-block">
                 <div class="row align-items-center">
-                    <div class="col-md-12">
+                    <div class="col-md-8">
                         <div class="page-header-title">
                             <h2 class="mb-0"><?= _('Détails de la Classe') ?>: <?= htmlspecialchars($classe['nom_complet']) ?></h2>
                         </div>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <a href="/carte/generer?classe_id=<?= $classe['id_classe'] ?>" class="btn btn-primary" target="_blank">
+                            <i class="ph-duotone ph-cardholder me-1"></i>
+                            <?= _('Imprimer les cartes de la classe') ?>
+                        </a>
+                    </div>
                         <p class="mb-0">
                             <?= _('Niveau') ?>: <?= htmlspecialchars($classe['niveau']) ?> | <?= _('Série') ?>: <?= htmlspecialchars($classe['serie'] ?? 'N/A') ?> | <?= _('Catégorie') ?>: <?= htmlspecialchars($classe['categorie'] ?? 'N/A') ?>
                         </p>

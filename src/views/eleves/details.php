@@ -14,6 +14,10 @@
                         </div>
                     </div>
                     <div class="col-md-4 text-md-end">
+                        <a href="/carte/generer?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-outline-primary" target="_blank">
+                            <i class="ph-duotone ph-cardholder me-1"></i>
+                            <?= _('Imprimer la carte') ?>
+                        </a>
                         <a href="/mensualites/show-form?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-success">
                             <?= _('Payer Mensualité') ?>
                         </a>
