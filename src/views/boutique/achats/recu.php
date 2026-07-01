@@ -38,13 +38,13 @@
 <div class="receipt-container">
     <div class="header">
         <div class="school-info">
-            <h2><?= htmlspecialchars($lycee['nom_lycee']) ?></h2>
-            <p><?= htmlspecialchars($lycee['ville']) ?>, <?= htmlspecialchars($lycee['quartier']) ?></p>
-            <p><?= _('Tél') ?>: <?= htmlspecialchars($lycee['tel']) ?></p>
+            <h2><?= htmlspecialchars($lycee['nom_lycee'] ?? '') ?></h2>
+            <p><?= htmlspecialchars($lycee['ville'] ?? '') ?>, <?= htmlspecialchars($lycee['quartier'] ?? '') ?></p>
+            <p><?= _('Tél') ?>: <?= htmlspecialchars($lycee['tel'] ?? '') ?></p>
         </div>
         <div class="receipt-no">
-            <h3 style="margin: 0;"><?= _('REÇU') ?> #<?= $vente['recu_numero'] ?></h3>
-            <p><?= _('Date') ?>: <?= date('d/m/Y H:i', strtotime($vente['date_vente'])) ?></p>
+            <h3 style="margin: 0;"><?= _('REÇU') ?> #<?= $vente['recu_numero'] ?? '' ?></h3>
+            <p><?= _('Date') ?>: <?= date('d/m/Y H:i', strtotime($vente['date_vente'] ?? 'now')) ?></p>
         </div>
     </div>
 
@@ -55,12 +55,12 @@
     <div class="info-grid">
         <div class="info-box">
             <h4><?= _('Élève') ?></h4>
-            <p><strong><?= htmlspecialchars($vente['eleve_nom'] . ' ' . $vente['eleve_prenom']) ?></strong></p>
-            <p><?= _('ID') ?>: <?= $vente['eleve_id'] ?></p>
+            <p><strong><?= htmlspecialchars(($vente['eleve_nom'] ?? '') . ' ' . ($vente['eleve_prenom'] ?? '')) ?></strong></p>
+            <p><?= _('ID') ?>: <?= $vente['eleve_id'] ?? '' ?></p>
         </div>
         <div class="info-box">
             <h4><?= _('Vendu par') ?></h4>
-            <p><?= htmlspecialchars($vente['user_nom'] . ' ' . $vente['user_prenom']) ?></p>
+            <p><?= htmlspecialchars(($vente['user_nom'] ?? '') . ' ' . ($vente['user_prenom'] ?? '')) ?></p>
         </div>
     </div>
 
@@ -76,7 +76,7 @@
         <tbody>
             <?php foreach ($items as $item): ?>
                 <tr>
-                    <td><?= htmlspecialchars($item['nom_article']) ?></td>
+                    <td><?= htmlspecialchars($item['nom_article'] ?? '') ?></td>
                     <td><?= number_format($item['prix_unitaire'], 0, ',', ' ') ?> FCFA</td>
                     <td><?= $item['quantite'] ?></td>
                     <td style="text-align: right;"><?= number_format($item['prix_unitaire'] * $item['quantite'], 0, ',', ' ') ?> FCFA</td>
@@ -100,13 +100,13 @@
         <div style="text-align: center;">
             <p><?= _('Le Caissier') ?></p>
             <div style="height: 80px;"></div>
-            <p><strong><?= htmlspecialchars($vente['user_nom']) ?></strong></p>
+            <p><strong><?= htmlspecialchars($vente['user_nom'] ?? '') ?></strong></p>
         </div>
     </div>
 
     <div class="footer">
         <p><?= _('Merci pour votre achat !') ?></p>
-        <p><small><?= htmlspecialchars($lycee['nom_lycee']) ?> - <?= date('Y') ?></small></p>
+        <p><small><?= htmlspecialchars($lycee['nom_lycee'] ?? '') ?> - <?= date('Y') ?></small></p>
     </div>
 </div>
 
