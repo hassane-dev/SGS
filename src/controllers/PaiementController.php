@@ -352,19 +352,19 @@ class PaiementController {
             JOIN eleves e ON i.eleve_id = e.id_eleve
             JOIN etudes et ON i.etude_id = et.id_etude
             JOIN classes c ON et.classe_id = c.id_classe
-            WHERE i.lycee_id = :l1 AND i.annee_academique_id = :a1 AND i.reste_a_payer > 0
+            WHERE i.lycee_id = :l1 AND i.annee_academique_id = :a1 AND i.reste_a_payer > 0 AND et.is_active = 1
         ");
         $stmt->execute(['l1' => $lycee_id, 'a1' => $activeYear['id']]);
         $restesInscription = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // 2. Restes de mensualités
-        // On récupère tous les élèves actifs
+        // On récupère tous les élèves actifs (uniquement via leur inscription active)
         $stmt = $db->prepare("
             SELECT e.id_eleve, e.nom, e.prenom, c.id_classe, c.niveau, c.serie, c.numero, c.cycle_id, c.lycee_id, et.id_etude
             FROM eleves e
             JOIN etudes et ON e.id_eleve = et.eleve_id
             JOIN classes c ON et.classe_id = c.id_classe
-            WHERE e.lycee_id = :l AND et.annee_academique_id = :a AND (e.statut = 'actif' OR e.statut = 'en_attente_paiement')
+            WHERE e.lycee_id = :l AND et.annee_academique_id = :a AND et.is_active = 1 AND (e.statut = 'actif' OR e.statut = 'en_attente_paiement')
         ");
         $stmt->execute(['l' => $lycee_id, 'a' => $activeYear['id']]);
         $elevesActifs = $stmt->fetchAll(PDO::FETCH_ASSOC);
