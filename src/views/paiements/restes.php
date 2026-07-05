@@ -122,15 +122,9 @@
                                                     <span class="badge bg-light-warning text-warning"><?= _('En attente') ?></span>
                                                 </td>
                                                 <td class="text-end pe-4">
-                                                    <?php if (strpos($reste['type'], 'Inscription') !== false): ?>
-                                                        <a href="/paiements/regulariser-inscription/<?= $reste['id_eleve'] ?>" class="btn btn-sm btn-primary">
-                                                            <i class="ph-duotone ph-hand-coins me-1"></i><?= _('Régulariser') ?>
-                                                        </a>
-                                                    <?php else: ?>
-                                                        <a href="/mensualites/pay/<?= $reste['id_eleve'] ?>" class="btn btn-sm btn-info text-white">
-                                                            <i class="ph-duotone ph-calendar me-1"></i><?= _('Régulariser') ?>
-                                                        </a>
-                                                    <?php endif; ?>
+                                                    <a href="/paiements/show/<?= $reste['id_eleve'] ?>" class="btn btn-sm btn-primary">
+                                                        <i class="ph-duotone ph-hand-coins me-1"></i><?= _('Régulariser') ?>
+                                                    </a>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>

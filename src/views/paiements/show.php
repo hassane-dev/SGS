@@ -66,9 +66,10 @@
                     </div>
                 </div>
 
+                <!-- Section Paiement Unifié -->
+                <form action="/paiements/process-payment/<?= $eleve['id_eleve'] ?>" method="POST" class="row">
                 <!-- Section Frais d'Inscription (Gauche) -->
                 <div class="col-lg-5 col-md-12">
-                    <form action="/paiements/process-payment/<?= $eleve['id_eleve'] ?>" method="POST">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="ph-duotone ph-file-text me-2 text-primary"></i>1. Inscription & Frais Annexes</h5>
@@ -126,14 +127,6 @@
                                     </div>
                                 </div>
 
-                                <?php if ($isComptable && $fraisInscription['reste'] > 0): ?>
-                                <div class="d-grid mb-3">
-                                    <button type="submit" class="btn btn-primary btn-lg fw-bold">
-                                        <i class="ph-duotone ph-check-circle me-2"></i>Enregistrer les frais d'inscription
-                                    </button>
-                                </div>
-                                <?php endif; ?>
-
                                 <?php if ($inscription): ?>
                                     <div class="mt-3 text-center">
                                         <a href="/recu/inscription?id=<?= $eleve['id_eleve'] ?>" target="_blank" class="btn btn-link-secondary btn-sm">
@@ -143,12 +136,10 @@
                                 <?php endif; ?>
                             </div>
                         </div>
-                    </form>
                 </div>
 
                 <!-- Section Mensualités (Droite) -->
                 <div class="col-lg-7 col-md-12">
-                    <form action="/paiements/process-payment/<?= $eleve['id_eleve'] ?>" method="POST">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="ph-duotone ph-calendar-check me-2 text-success"></i>2. Gestion des Scolarités (Mensualités)</h5>
@@ -283,16 +274,8 @@
                                     <?php endforeach; ?>
                                 </div>
 
-                                <?php if ($isComptable): ?>
-                                <div class="d-grid mt-4">
-                                    <button type="submit" class="btn btn-success btn-lg fw-bold">
-                                        <i class="ph-duotone ph-check-circle me-2"></i>Enregistrer les mensualités
-                                    </button>
-                                </div>
-                                <?php endif; ?>
                             </div>
                         </div>
-                    </form>
                 </div>
 
                 <!-- Footer de Paiement Unifié -->
@@ -310,16 +293,25 @@
                                         Aucun montant saisi
                                     </div>
                                 </div>
-                                <div class="col-lg-8 p-4 d-flex align-items-center justify-content-center">
+                                <div class="col-lg-4 p-4 d-flex align-items-center justify-content-center border-end border-white border-opacity-10">
                                     <div class="text-center">
                                         <p class="mb-0"><i class="ph-duotone ph-info me-2"></i>Le mode de règlement et le numéro de reçu sont gérés automatiquement.</p>
-                                        <p class="small text-white text-opacity-50">Utilisez les boutons "Enregistrer" de chaque section pour valider vos opérations.</p>
                                     </div>
+                                </div>
+                                <div class="col-lg-4 p-4 d-flex align-items-center justify-content-center">
+                                    <?php if ($isComptable): ?>
+                                    <div class="d-grid w-100">
+                                        <button type="submit" class="btn btn-light btn-lg fw-bold text-primary">
+                                            <i class="ph-duotone ph-check-circle me-2"></i>Valider l'encaissement global
+                                        </button>
+                                    </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                </form>
             </div>
         <!-- [ Main Content ] end -->
     </div>

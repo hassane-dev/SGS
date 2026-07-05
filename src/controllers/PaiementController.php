@@ -374,9 +374,13 @@ class PaiementController {
 
         $monthsToDate = [];
         $today = new DateTime();
+        $today->modify('first day of this month'); // Only consider months that have started
         foreach ($sequences as $seq) {
             $current = new DateTime($seq['date_debut']);
+            $current->modify('first day of this month');
             $end = new DateTime($seq['date_fin']);
+            $end->modify('first day of this month');
+
             $safety = 0;
             while ($current <= $end && $current <= $today && $safety < 12) {
                 $monthName = ucfirst($fmt->format($current));
@@ -673,21 +677,25 @@ class PaiementController {
 
             // 1. Traitement Inscription
             $montantInscription = (float) ($_POST['montant_inscription'] ?? 0);
-            if ($montantInscription > 0 || isset($_POST['options'])) {
-                $classe = Classe::findById($etude['classe_id']);
-                $frais = Frais::findForClasse($classe, $anneeActive['id']);
-                $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id'], $lyceeId);
+            $options_posted = $_POST['options'] ?? [];
 
-                $hasLogo = isset($_POST['options']['logo']) || (!empty($inscription) && json_decode($inscription['details_frais'] ?? '[]', true)['logo']);
-                $hasCarte = isset($_POST['options']['carte']) || (!empty($inscription) && json_decode($inscription['details_frais'] ?? '[]', true)['carte']);
+            $classe = Classe::findById($etude['classe_id']);
+            $frais = Frais::findForClasse($classe, $anneeActive['id']);
+            $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id'], $lyceeId);
 
-                $montantTotalInscription = (float) $frais['frais_inscription'];
-                if ($hasLogo) $montantTotalInscription += (float)($frais['frais_logo'] ?? 0);
-                if ($hasCarte) $montantTotalInscription += (float)($frais['frais_carte'] ?? 0);
+            $old_options = $inscription ? json_decode($inscription['details_frais'] ?? '[]', true) : [];
+            $hasLogo = !empty($old_options['logo']) || isset($options_posted['logo']);
+            $hasCarte = !empty($old_options['carte']) || isset($options_posted['carte']);
+
+            $montantTotalInscription = (float) $frais['frais_inscription'];
+            if ($hasLogo) $montantTotalInscription += (float)($frais['frais_logo'] ?? 0);
+            if ($hasCarte) $montantTotalInscription += (float)($frais['frais_carte'] ?? 0);
+
+            if ($montantInscription > 0 || (isset($options_posted['logo']) && empty($old_options['logo'])) || (isset($options_posted['carte']) && empty($old_options['carte']))) {
 
                 $nouveauVerse = (float)($inscription['montant_verse'] ?? 0) + $montantInscription;
 
-                if ($nouveauVerse > $montantTotalInscription + 0.01) { // Tolérance float
+                if ($nouveauVerse > $montantTotalInscription + 0.01) {
                     throw new Exception("Le versement inscription dépasse le total attendu.");
                 }
 
@@ -709,9 +717,9 @@ class PaiementController {
                 Inscription::save($dataInscription);
                 $paiementEffectue = true;
 
-                // Activation si le versement dépasse la moitié des frais d'inscription de base ou si soldé
-                $seuilActivation = (float)($frais['frais_inscription'] / 2);
-                if ($nouveauVerse > $seuilActivation || $dataInscription['reste_a_payer'] <= 0) {
+                // Activation automatique pour les lycées publics ou si inscription soldée
+                $typeLycee = ParamLycee::findByLyceeId($lyceeId)['type_lycee'] ?? 'prive';
+                if ($typeLycee === 'public' || $dataInscription['reste_a_payer'] <= 0) {
                     Eleve::updateStatus($eleveId, 'actif');
                     Etude::activate($etude['id_etude'], $userId);
                 }
