@@ -222,7 +222,7 @@
                                                                     </div>
                                                                     <div class="col-md-8">
                                                                         <div class="input-group input-group-sm">
-                                                                            <input type="number" name="mensualites[<?= strtolower($mois) ?>]"
+                                                                            <input type="number" name="mensualites[<?= $m_cap ?>]"
                                                                                    class="form-control input-mois border-<?= $moisColor ?>"
                                                                                    data-tranche-id="<?= $trancheClean ?>"
                                                                                    data-reste="<?= $reste ?>"

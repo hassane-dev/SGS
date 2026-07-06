@@ -120,21 +120,25 @@ class MensualiteController {
         $mensualitesPayees = Mensualite::findByEtude($etude['id_etude']);
         $tranches = [];
         $fmt = new IntlDateFormatter('fr_FR', IntlDateFormatter::FULL, IntlDateFormatter::NONE, 'Africa/Porto-Novo', IntlDateFormatter::GREGORIAN, 'MMMM');
+        $seenMonths = [];
 
         foreach ($sequences as $i => $sequence) {
             $mois = [];
             $current = new DateTime($sequence['date_debut']);
             $end = new DateTime($sequence['date_fin']);
             while ($current <= $end) {
-                $mois[] = ucfirst($fmt->format($current));
+                $monthName = ucfirst($fmt->format($current));
+                if (!in_array($monthName, $seenMonths)) {
+                    $mois[] = $monthName;
+                    $seenMonths[] = $monthName;
+                }
                 $current->modify('first day of next month');
             }
 
             $paye = [];
             foreach($mois as $m) {
-                $m_cap = ucfirst($m);
-                if (isset($mensualitesPayees[$m_cap])) {
-                    $paye[$m_cap] = ['verse' => $mensualitesPayees[$m_cap]['total']];
+                if (isset($mensualitesPayees[$m])) {
+                    $paye[$m] = ['verse' => $mensualitesPayees[$m]['total']];
                 }
             }
 
