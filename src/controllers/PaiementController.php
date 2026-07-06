@@ -736,16 +736,25 @@ class PaiementController {
 
             // 2. Traitement Mensualités
             if (!empty($_POST['mensualites'])) {
+                $mensualitesPayees = Mensualite::findByEtude($etude['id_etude']);
+                $montantMensuelAttendu = (float)($frais['frais_mensuel'] ?? 0);
+
                 foreach ($_POST['mensualites'] as $mois => $montant) {
                     $montant = (float) $montant;
                     if ($montant > 0) {
+                        // Validation : Ne pas dépasser le montant mensuel attendu
+                        $dejaVerse = isset($mensualitesPayees[$mois]) ? (float)$mensualitesPayees[$mois]['total'] : 0;
+                        if ($dejaVerse + $montant > $montantMensuelAttendu + 0.01) {
+                            throw new Exception("Le versement pour le mois de $mois dépasse le montant attendu.");
+                        }
+
                         $dataMensualite = [
                             'etude_id' => $etude['id_etude'],
                             'eleve_id' => $eleveId,
                             'classe_id' => $etude['classe_id'],
                             'lycee_id' => $lyceeId,
                             'annee_academique_id' => $anneeActive['id'],
-                            'mois_ou_sequence' => $mois, // Use exact key from POST
+                            'mois_ou_sequence' => $mois,
                             'montant_verse' => $montant,
                             'user_id' => $userId
                         ];

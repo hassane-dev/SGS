@@ -385,31 +385,91 @@ document.addEventListener('DOMContentLoaded', function() {
                 trancheMoisInputs.forEach(input => {
                     if (!input.readOnly) {
                         input.value = input.dataset.reste;
-                        input.closest('.card').classList.add('bg-light-success');
+                        input.closest('.card').classList.add('bg-light-warning');
+                        input.closest('.card').classList.replace('border-danger', 'border-success');
+                        input.closest('.card').classList.replace('border-warning', 'border-success');
                     }
                 });
             } else {
                  trancheMoisInputs.forEach(input => {
                     if (!input.readOnly) {
                         input.value = '';
-                        input.closest('.card').classList.remove('bg-light-success');
+                        input.closest('.card').classList.remove('bg-light-warning');
+                        input.closest('.card').classList.replace('border-success', 'border-danger');
+                        input.closest('.card').classList.replace('border-warning', 'border-danger');
                     }
                 });
             }
             updateAll();
+            updateTrancheStatus(trancheId);
         });
     });
 
     moisInputs.forEach(input => {
         input.addEventListener('input', () => {
-            if (input.value !== '') {
-                input.closest('.card').classList.add('bg-light-warning');
+            const card = input.closest('.card');
+            const reste = parseFloat(input.dataset.reste) || 0;
+            const verse = parseFloat(input.value) || 0;
+
+            if (verse > 0) {
+                card.classList.add('bg-light-warning');
+                if (verse >= reste) {
+                    card.classList.replace('border-danger', 'border-success');
+                    card.classList.replace('border-warning', 'border-success');
+                } else {
+                    card.classList.replace('border-danger', 'border-warning');
+                    card.classList.replace('border-success', 'border-warning');
+                }
             } else {
-                input.closest('.card').classList.remove('bg-light-warning');
+                card.classList.remove('bg-light-warning');
+                // Restore original state based on reste
+                if (reste > 0) {
+                    card.classList.add('border-danger');
+                    card.classList.remove('border-warning', 'border-success');
+                } else {
+                    card.classList.add('border-success');
+                    card.classList.remove('border-danger', 'border-warning');
+                }
             }
             updateAll();
+            updateTrancheStatus(input.dataset.trancheId);
         });
     });
+
+    function updateTrancheStatus(trancheId) {
+        const trancheInputs = document.querySelectorAll(`.input-mois[data-tranche-id="${trancheId}"]`);
+        const header = document.querySelector(`#heading-${trancheId} .avtar`);
+        const badge = document.querySelector(`#heading-${trancheId} .badge`);
+
+        let totalMois = trancheInputs.length;
+        let payes = 0;
+        let partiels = 0;
+
+        trancheInputs.forEach(input => {
+            const reste = parseFloat(input.dataset.reste) || 0;
+            const verse = parseFloat(input.value) || 0;
+            if (reste <= 0 || verse >= reste) {
+                payes++;
+            } else if (verse > 0) {
+                partiels++;
+            }
+        });
+
+        header.classList.remove('bg-light-danger', 'bg-light-warning', 'bg-light-success', 'text-danger', 'text-warning', 'text-success');
+        badge.classList.remove('bg-light-danger', 'bg-light-warning', 'bg-light-success', 'text-danger', 'text-warning', 'text-success');
+
+        if (payes === totalMois) {
+            header.classList.add('bg-light-success', 'text-success');
+            badge.classList.add('bg-light-success', 'text-success');
+        } else if (payes > 0 || partiels > 0) {
+            header.classList.add('bg-light-warning', 'text-warning');
+            badge.classList.add('bg-light-warning', 'text-warning');
+        } else {
+            header.classList.add('bg-light-danger', 'text-danger');
+            badge.classList.add('bg-light-danger', 'text-danger');
+        }
+        badge.textContent = `${payes}/${totalMois} mois`;
+    }
 
     // Initialisation
     updateAll();
