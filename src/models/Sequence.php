@@ -49,6 +49,34 @@ class Sequence {
         }
     }
 
+    public static function findActive() {
+        try {
+            $db = Database::getInstance();
+            $lycee_id = Auth::getLyceeId();
+            $active_year = AnneeAcademique::findActive();
+
+            if (!$lycee_id || !$active_year) {
+                return false;
+            }
+
+            $stmt = $db->prepare("
+                SELECT * FROM sequences
+                WHERE lycee_id = :lycee_id
+                AND annee_academique_id = :annee_academique_id
+                AND statut = 'ouverte'
+                LIMIT 1
+            ");
+            $stmt->execute([
+                'lycee_id' => $lycee_id,
+                'annee_academique_id' => $active_year['id']
+            ]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error in Sequence::findActive: " . $e->getMessage());
+            return false;
+        }
+    }
+
     public static function save($data) {
         // --- Server-side validation ---
         if (empty($data['type'])) {

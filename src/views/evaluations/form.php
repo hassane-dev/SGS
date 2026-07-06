@@ -1,8 +1,9 @@
 <div class="container-fluid">
-    <h1 class="h3 mb-2 text-gray-800">Saisie des Notes</h1>
+    <h1 class="h3 mb-2 text-gray-800">Saisie des Notes - <?= ucfirst($type) ?></h1>
     <p class="mb-4">
         Classe: <strong><?= htmlspecialchars($classe['nom_classe']) ?></strong> |
         Matière: <strong><?= htmlspecialchars($matiere['nom_matiere']) ?></strong> |
+        Période: <strong><?= htmlspecialchars($active_sequence['nom'] ?? '') ?></strong> |
         Coefficient: <strong><?= htmlspecialchars($coefficient) ?></strong>
     </p>
 

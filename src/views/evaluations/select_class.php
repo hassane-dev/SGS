@@ -1,5 +1,5 @@
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Saisie des Notes (Étape 1/2)</h1>
+    <h1 class="h3 mb-4 text-gray-800">Saisie des Notes</h1>
 
     <?php if (isset($_GET['success']) && $_GET['success'] === 'grades_saved'): ?>
         <div class="alert alert-success">
@@ -17,38 +17,30 @@
                     Aucune matière ne vous est actuellement assignée. Veuillez contacter l'administration.
                 </div>
             <?php else: ?>
-                <form action="/evaluations/select_evaluation" method="POST">
-                    <div class="form-group">
-                        <label for="class_subject">Classe et Matière</label>
-                        <select id="class_subject" class="form-control" required onchange="updateSelection(this)">
-                            <option value="">-- Sélectionner --</option>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Classe</th>
+                                <th>Matière</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             <?php foreach ($subjects_taught as $subject): ?>
-                                <option value="<?= $subject['classe_id'] ?>|<?= $subject['matiere_id'] ?>">
-                                    <?= htmlspecialchars($subject['nom_classe']) ?> - <?= htmlspecialchars($subject['nom_matiere']) ?>
-                                </option>
+                                <tr>
+                                    <td><?= htmlspecialchars($subject['nom_classe']) ?></td>
+                                    <td><?= htmlspecialchars($subject['nom_matiere']) ?></td>
+                                    <td>
+                                        <a href="/notes/saisir/<?= $subject['classe_id'] ?>/<?= $subject['matiere_id'] ?>" class="btn btn-primary btn-sm">
+                                            Saisir les notes
+                                        </a>
+                                    </td>
+                                </tr>
                             <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <input type="hidden" name="classe_id" id="classe_id">
-                    <input type="hidden" name="matiere_id" id="matiere_id">
-
-                    <div class="form-group mt-3">
-                        <label>Nature de l'évaluation</label>
-                        <div class="d-flex gap-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="type" id="type_devoir" value="devoir" checked>
-                                <label class="form-check-label" for="type_devoir">Devoir</label>
-                            </div>
-                            <div class="form-check ms-3">
-                                <input class="form-check-input" type="radio" name="type" id="type_composition" value="composition">
-                                <label class="form-check-label" for="type_composition">Composition</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary mt-3">Continuer</button>
-                </form>
+                        </tbody>
+                    </table>
+                </div>
             <?php endif; ?>
         </div>
     </div>
