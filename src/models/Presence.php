@@ -31,7 +31,7 @@ class Presence {
     /**
      * Récupère les présences d'une classe pour une date donnée.
      */
-    public static function findByClasseAndDate($classeId, $date, $matiereId = null) {
+    public static function findByClassAndDate($classeId, $date, $matiereId = null) {
         $db = Database::getInstance();
         $sql = "SELECT p.*, e.nom, e.prenom
                 FROM presences p
@@ -65,5 +65,35 @@ class Presence {
         ");
         $stmt->execute(['eleve_id' => $eleveId, 'annee_id' => $anneeId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Enregistre plusieurs présences en une seule fois.
+     */
+    public static function saveAll($data) {
+        $db = Database::getInstance();
+        $db->beginTransaction();
+
+        try {
+            foreach ($data['presences'] as $eleve_id => $presence_data) {
+                self::save([
+                    'eleve_id' => $eleve_id,
+                    'classe_id' => $data['classe_id'],
+                    'matiere_id' => $data['matiere_id'] ?? null,
+                    'enseignant_id' => $data['enseignant_id'],
+                    'annee_academique_id' => $data['annee_academique_id'],
+                    'lycee_id' => $data['lycee_id'],
+                    'date_presence' => $data['date_presence'],
+                    'statut' => $presence_data['statut'],
+                    'commentaire' => $presence_data['commentaire'] ?? null
+                ]);
+            }
+            $db->commit();
+            return true;
+        } catch (Exception $e) {
+            $db->rollBack();
+            error_log("Error in Presence::saveAll: " . $e->getMessage());
+            return false;
+        }
     }
 }
