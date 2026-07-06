@@ -5,6 +5,8 @@ require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Matiere.php';
 require_once __DIR__ . '/../models/Eleve.php';
 require_once __DIR__ . '/../models/EnseignantMatiere.php';
+require_once __DIR__ . '/../models/Sequence.php';
+require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
 
@@ -103,6 +105,7 @@ class EvaluationController {
             'classe' => Classe::findById($classe_id),
             'matiere' => Matiere::findById($matiere_id),
             'sequence_id' => $sequence_id,
+            'active_sequence' => Sequence::findById($sequence_id),
             'type' => $type,
             'coefficient' => $classe_matiere_details['coefficient'],
             'eleves' => $eleves,
@@ -166,14 +169,52 @@ class EvaluationController {
             exit();
         }
 
-        $available_evaluations = Evaluation::getAvailableEvaluations($classe_id, $matiere_id);
+        // Automatic discovery of active context
+        $active_year = AnneeAcademique::findActive();
+        if (!$active_year) {
+            View::render('evaluations/error', [
+                'message' => "Aucune année académique n'est actuellement active. Veuillez contacter l'administration.",
+                'title' => 'Erreur de Configuration'
+            ]);
+            exit();
+        }
 
-        View::render('evaluations/select_evaluation', [
-            'classe' => Classe::findById($classe_id),
-            'matiere' => Matiere::findById($matiere_id),
-            'evaluations' => $available_evaluations,
-            'title' => 'Saisie des Notes - Étape 2/2'
-        ]);
+        $active_sequence = Sequence::findActive();
+        if (!$active_sequence) {
+            View::render('evaluations/error', [
+                'message' => "Aucune séquence active n'est actuellement ouverte pour la saisie des notes. Veuillez contacter l'administration.",
+                'title' => 'Saisie Fermée'
+            ]);
+            exit();
+        }
+
+        $sequence_id = $active_sequence['id'];
+
+        // Check which evaluation types are open (devoir and/or composition)
+        $is_devoir_open = Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, 'devoir');
+        $is_composition_open = Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, 'composition');
+
+        if (!$is_devoir_open && !$is_composition_open) {
+            View::render('evaluations/error', [
+                'message' => "La période de saisie pour la séquence actuelle (" . htmlspecialchars($active_sequence['nom']) . ") est fermée ou n'a pas encore commencé.",
+                'title' => 'Saisie Fermée'
+            ]);
+            exit();
+        }
+
+        // Determine type and redirect/show form
+        $type = 'devoir'; // Default
+        if ($is_composition_open && !$is_devoir_open) {
+            $type = 'composition';
+        }
+
+        // If both are open, we might need a choice, but the prompt says "direct opening"
+        // Most common logic is 'devoir' first or both are available.
+        // If we want to strictly avoid select_evaluation, we can force a redirect or check if a specific one was requested.
+        // For now, let's redirect to showForm with the determined type.
+
+        header("Location: /evaluations/form?classe_id=$classe_id&matiere_id=$matiere_id&sequence_id=$sequence_id&type=$type");
+        exit();
     }
 }
 ?>
