@@ -55,7 +55,7 @@
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <div class="input-group">
-                                                                    <input type="number" name="mensualites[<?= strtolower($mois) ?>]" class="form-control" placeholder="Montant..." max="<?= $reste ?>">
+                                                                    <input type="number" name="mensualites[<?= $m_cap ?>]" class="form-control" placeholder="Montant..." max="<?= $reste ?>">
                                                                     <span class="input-group-text">FCFA</span>
                                                                 </div>
                                                             </div>

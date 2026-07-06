@@ -284,6 +284,7 @@ class PaiementController {
         $fmt = new IntlDateFormatter('fr_FR', IntlDateFormatter::FULL, IntlDateFormatter::NONE, 'Africa/Porto-Novo', IntlDateFormatter::GREGORIAN, 'MMMM');
 
         $nextRecu = Mensualite::generateReceiptNumber($eleve['lycee_id'] ?? Auth::getLyceeId());
+        $seenMonths = [];
 
         foreach ($sequences as $i => $sequence) {
             $mois = [];
@@ -292,18 +293,21 @@ class PaiementController {
 
             $safety = 0;
             while ($current <= $end && $safety < 12) {
-                $mois[] = ucfirst($fmt->format($current));
+                $monthName = ucfirst($fmt->format($current));
+                if (!in_array($monthName, $seenMonths)) {
+                    $mois[] = $monthName;
+                    $seenMonths[] = $monthName;
+                }
                 $current->modify('first day of next month');
                 $safety++;
             }
 
             $paye = [];
             foreach($mois as $m) {
-                $m_cap = ucfirst($m);
-                if (isset($mensualitesPayees[$m_cap])) {
-                    $paye[$m_cap] = [
-                        'verse' => $mensualitesPayees[$m_cap]['total'],
-                        'details' => Mensualite::getDetails($mensualitesPayees[$m_cap]['id'])
+                if (isset($mensualitesPayees[$m])) {
+                    $paye[$m] = [
+                        'verse' => $mensualitesPayees[$m]['total'],
+                        'details' => Mensualite::getDetails($mensualitesPayees[$m]['id'])
                     ];
                 }
             }
@@ -741,7 +745,7 @@ class PaiementController {
                             'classe_id' => $etude['classe_id'],
                             'lycee_id' => $lyceeId,
                             'annee_academique_id' => $anneeActive['id'],
-                            'mois_ou_sequence' => ucfirst($mois),
+                            'mois_ou_sequence' => $mois, // Use exact key from POST
                             'montant_verse' => $montant,
                             'user_id' => $userId
                         ];
