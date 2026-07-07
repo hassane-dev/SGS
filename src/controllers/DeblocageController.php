@@ -51,8 +51,24 @@ class DeblocageController {
         $this->checkAccess();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $type = $_POST['type'];
+
+            // Basic validation based on type
+            if ($type === 'classe' && empty($_POST['classe_id'])) {
+                header('Location: /evaluations/deblocage/create?error=missing_classe');
+                exit();
+            }
+            if ($type === 'matiere' && empty($_POST['matiere_id'])) {
+                header('Location: /evaluations/deblocage/create?error=missing_matiere');
+                exit();
+            }
+            if (($type === 'classe_matiere' || $type === 'enseignant') && (empty($_POST['classe_id']) || empty($_POST['matiere_id']))) {
+                header('Location: /evaluations/deblocage/create?error=missing_classe_or_matiere');
+                exit();
+            }
+
             $data = [
-                'type' => $_POST['type'],
+                'type' => $type,
                 'classe_id' => !empty($_POST['classe_id']) ? $_POST['classe_id'] : null,
                 'matiere_id' => !empty($_POST['matiere_id']) ? $_POST['matiere_id'] : null,
                 'enseignant_id' => !empty($_POST['enseignant_id']) ? $_POST['enseignant_id'] : null,

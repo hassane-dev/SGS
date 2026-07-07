@@ -15,53 +15,18 @@ class Evaluation {
         $active_year = AnneeAcademique::findActive();
         if (!$active_year) return [];
 
-        $sql = "
-            SELECT p.*, s.nom as sequence_nom
-            FROM sequences s
-            LEFT JOIN parametres_evaluations p ON p.sequence_id = s.id
-                 AND p.classe_id = :classe_id
-                 AND p.matiere_id = :matiere_id
-                 AND p.annee_academique_id = :annee_id
-                 AND (p.type_evaluation = :type OR p.type_evaluation = 'tous')
-            WHERE 1=1
-            ORDER BY s.date_debut ASC
-        ";
+        $sequences = Sequence::findAll();
+        $filtered = [];
 
-        try {
-            $db = Database::getInstance();
-            $stmt = $db->prepare($sql);
-            $stmt->execute([
-                'classe_id' => $classe_id,
-                'matiere_id' => $matiere_id,
-                'annee_id' => $active_year['id'],
-                'type' => $type
-            ]);
-            $evaluations = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            // Filter evaluations: either window is open or exceptional unlock is active
-            $filtered = [];
-            require_once __DIR__ . '/../models/EnseignantMatiere.php';
-            $assignments = EnseignantMatiere::findAssignmentsForClass($classe_id);
-            $enseignant_id = $assignments[$matiere_id]['enseignant_id'] ?? null;
-
-            foreach ($evaluations as $eval) {
-                $isOpen = false;
-                if ($eval['id'] && (strtotime($eval['date_ouverture_saisie']) <= time() && strtotime($eval['date_fermeture_saisie']) >= time())) {
-                    $isOpen = true;
-                } elseif (Deblocage::isUnlocked($classe_id, $matiere_id, $eval['sequence_id'], $enseignant_id, $type)) {
-                    $isOpen = true;
-                }
-
-                if ($isOpen) {
-                    $filtered[] = $eval;
-                }
+        foreach ($sequences as $seq) {
+            if (self::isGradingWindowOpen($classe_id, $matiere_id, $seq['id'], $type)) {
+                $seq['sequence_nom'] = $seq['nom'];
+                $seq['sequence_id'] = $seq['id'];
+                $filtered[] = $seq;
             }
-
-            return $filtered;
-        } catch (PDOException $e) {
-            error_log("Error in Evaluation::getAvailableEvaluations: " . $e->getMessage());
-            return [];
         }
+
+        return $filtered;
     }
 
     /**
@@ -164,40 +129,48 @@ class Evaluation {
         $active_year = AnneeAcademique::findActive();
         if (!$active_year) return false;
 
-        // 1. Check standard evaluation settings
-        $sql = "SELECT id, enseignant_id FROM parametres_evaluations
-                WHERE classe_id = :classe_id
-                  AND matiere_id = :matiere_id
-                  AND sequence_id = :sequence_id
-                  AND annee_academique_id = :annee_id
-                  AND (type_evaluation = :type OR type_evaluation = 'tous')
-                  AND NOW() BETWEEN date_ouverture_saisie AND date_fermeture_saisie";
-
+        $lycee_id = Auth::getLyceeId();
         $db = Database::getInstance();
-        $stmt = $db->prepare($sql);
-        $stmt->execute([
-            'classe_id' => $classe_id,
-            'matiere_id' => $matiere_id,
-            'sequence_id' => $sequence_id,
-            'annee_id' => $active_year['id'],
-            'type' => $type
-        ]);
 
-        $setting = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($setting !== false) {
-            return true;
+        // Find teacher for this class/subject
+        require_once __DIR__ . '/../models/EnseignantMatiere.php';
+        $assignments = EnseignantMatiere::findAssignmentsForClass($classe_id);
+        $enseignant_id = $assignments[$matiere_id]['enseignant_id'] ?? null;
+
+        // 1. Check standard evaluation settings (harmonized logic)
+        $sql = "SELECT id FROM parametres_evaluations
+                WHERE lycee_id = :lycee_id
+                AND annee_academique_id = :annee_id
+                AND (type_evaluation = :type_eval OR type_evaluation = 'tous')
+                AND NOW() BETWEEN date_ouverture_saisie AND date_fermeture_saisie
+                AND (sequence_id IS NULL OR sequence_id = :sequence_id)
+                AND (
+                    type = 'global'
+                    OR (type = 'classe' AND classe_id = :classe_id)
+                    OR (type = 'matiere' AND matiere_id = :matiere_id)
+                    OR (type = 'classe_matiere' AND classe_id = :classe_id AND matiere_id = :matiere_id)
+                    OR (type = 'enseignant' AND classe_id = :classe_id AND matiere_id = :matiere_id AND enseignant_id = :enseignant_id)
+                )";
+
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->execute([
+                'lycee_id' => $lycee_id,
+                'annee_id' => $active_year['id'],
+                'type_eval' => $type,
+                'classe_id' => $classe_id,
+                'matiere_id' => $matiere_id,
+                'enseignant_id' => $enseignant_id,
+                'sequence_id' => $sequence_id
+            ]);
+            if ($stmt->fetchColumn() !== false) {
+                return true;
+            }
+        } catch (PDOException $e) {
+            error_log("Error in Evaluation::isGradingWindowOpen: " . $e->getMessage());
         }
 
         // 2. Check exceptional unlocks (Deblocage)
-        // We need the teacher assigned to this subject/class if not in settings
-        if (!isset($setting['enseignant_id'])) {
-            require_once __DIR__ . '/../models/EnseignantMatiere.php';
-            $assignments = EnseignantMatiere::findAssignmentsForClass($classe_id);
-            $enseignant_id = $assignments[$matiere_id]['enseignant_id'] ?? null;
-        } else {
-            $enseignant_id = $setting['enseignant_id'];
-        }
-
         return Deblocage::isUnlocked($classe_id, $matiere_id, $sequence_id, $enseignant_id, $type);
     }
 }
