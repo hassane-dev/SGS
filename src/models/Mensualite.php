@@ -55,10 +55,9 @@ class Mensualite {
     public static function findByEtude($etudeId) {
         $db = Database::getInstance();
         $stmt = $db->prepare(
-            "SELECT mois_ou_sequence, SUM(montant_verse) as total_verse, id_mensualite
+            "SELECT mois_ou_sequence, montant_verse, reste_a_payer, id_mensualite
              FROM mensualites
-             WHERE etude_id = :etude_id
-             GROUP BY mois_ou_sequence"
+             WHERE etude_id = :etude_id"
         );
         $stmt->execute(['etude_id' => $etudeId]);
 
@@ -66,7 +65,8 @@ class Mensualite {
         $payments = [];
         foreach ($result as $row) {
             $payments[$row['mois_ou_sequence']] = [
-                'total' => $row['total_verse'],
+                'total' => $row['montant_verse'],
+                'reste' => $row['reste_a_payer'],
                 'id' => $row['id_mensualite']
             ];
         }
@@ -85,19 +85,35 @@ class Mensualite {
 
     /**
      * Trouve ou crée une ligne de mensualité pour un mois donné.
+     * Calcule automatiquement le reste à payer si montant_attendu est fourni.
      */
     public static function findOrCreate($data) {
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT id_mensualite FROM mensualites WHERE etude_id = :etude_id AND mois_ou_sequence = :mois");
+        $stmt = $db->prepare("SELECT id_mensualite, montant_verse FROM mensualites WHERE etude_id = :etude_id AND mois_ou_sequence = :mois");
         $stmt->execute(['etude_id' => $data['etude_id'], 'mois' => $data['mois_ou_sequence']]);
-        $id = $stmt->fetchColumn();
+        $existing = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($id) {
-            // Mettre à jour le montant total versé
-            $stmt = $db->prepare("UPDATE mensualites SET montant_verse = montant_verse + :montant WHERE id_mensualite = :id");
-            $stmt->execute(['montant' => $data['montant_verse'], 'id' => $id]);
+        if ($existing) {
+            $id = $existing['id_mensualite'];
+            $nouveauTotal = (float)$existing['montant_verse'] + (float)$data['montant_verse'];
+            $reste = 0;
+            if (isset($data['montant_attendu'])) {
+                $reste = max(0, (float)$data['montant_attendu'] - $nouveauTotal);
+            } else {
+                $reste = $data['reste_a_payer'] ?? 0;
+            }
+
+            $stmt = $db->prepare("UPDATE mensualites SET montant_verse = :total, reste_a_payer = :reste WHERE id_mensualite = :id");
+            $stmt->execute([
+                'total' => $nouveauTotal,
+                'reste' => $reste,
+                'id' => $id
+            ]);
             return $id;
         } else {
+            if (isset($data['montant_attendu'])) {
+                $data['reste_a_payer'] = max(0, (float)$data['montant_attendu'] - (float)$data['montant_verse']);
+            }
             return self::save($data);
         }
     }
@@ -109,8 +125,8 @@ class Mensualite {
         $db = Database::getInstance();
 
         $stmt = $db->prepare(
-            "INSERT INTO mensualites (etude_id, eleve_id, classe_id, lycee_id, annee_academique_id, mois_ou_sequence, montant_verse, user_id)
-             VALUES (:etude_id, :eleve_id, :classe_id, :lycee_id, :annee_academique_id, :mois_ou_sequence, :montant_verse, :user_id)"
+            "INSERT INTO mensualites (etude_id, eleve_id, classe_id, lycee_id, annee_academique_id, mois_ou_sequence, montant_verse, reste_a_payer, user_id)
+             VALUES (:etude_id, :eleve_id, :classe_id, :lycee_id, :annee_academique_id, :mois_ou_sequence, :montant_verse, :reste_a_payer, :user_id)"
         );
 
         $stmt->execute([
@@ -121,6 +137,7 @@ class Mensualite {
             'annee_academique_id' => $data['annee_academique_id'],
             'mois_ou_sequence' => $data['mois_ou_sequence'],
             'montant_verse' => $data['montant_verse'],
+            'reste_a_payer' => $data['reste_a_payer'] ?? 0,
             'user_id' => $data['user_id']
         ]);
 

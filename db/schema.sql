@@ -374,6 +374,7 @@ CREATE TABLE `mensualites` (
     `annee_academique_id` INT,
     `mois_ou_sequence` VARCHAR(50) NOT NULL,
     `montant_verse` DECIMAL(10, 2) NOT NULL,
+    `reste_a_payer` DECIMAL(10, 2) DEFAULT 0.00,
     `date_paiement` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `user_id` INT,
     FOREIGN KEY (`etude_id`) REFERENCES `etudes`(`id_etude`) ON DELETE CASCADE,

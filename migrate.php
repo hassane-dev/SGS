@@ -49,6 +49,9 @@ try {
     // Add recu_numero to inscriptions
     $db->exec("ALTER TABLE inscriptions ADD COLUMN IF NOT EXISTS recu_numero VARCHAR(50);");
 
+    // Add reste_a_payer to mensualites
+    $db->exec("ALTER TABLE mensualites ADD COLUMN IF NOT EXISTS reste_a_payer DECIMAL(10, 2) DEFAULT 0.00;");
+
     // Create deblocages_notes table
     $db->exec("CREATE TABLE IF NOT EXISTS `deblocages_notes` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,

@@ -397,6 +397,34 @@ class PaiementController {
         }
 
         $restesMensualites = [];
+
+        // Nouvelle approche : On utilise directement le champ reste_a_payer de la table mensualites
+        $stmt = $db->prepare("
+            SELECT m.reste_a_payer as montant, m.mois_ou_sequence, e.nom, e.prenom, e.id_eleve, c.niveau, c.serie, c.numero
+            FROM mensualites m
+            JOIN eleves e ON m.eleve_id = e.id_eleve
+            JOIN etudes et ON m.etude_id = et.id_etude
+            JOIN classes c ON et.classe_id = c.id_classe
+            WHERE m.lycee_id = :l AND m.annee_academique_id = :a AND m.reste_a_payer > 0 AND et.is_active = 1
+        ");
+        $stmt->execute(['l' => $lycee_id, 'a' => $activeYear['id']]);
+        $restesMensualitesEnregistres = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($restesMensualitesEnregistres as $r) {
+            $restesMensualites[] = [
+                'montant' => $r['montant'],
+                'date' => null,
+                'type' => 'Mensualité (' . $r['mois_ou_sequence'] . ')',
+                'nom' => $r['nom'],
+                'prenom' => $r['prenom'],
+                'id_eleve' => $r['id_eleve'],
+                'niveau' => $r['niveau'],
+                'serie' => $r['serie'],
+                'numero' => $r['numero']
+            ];
+        }
+
+        // On doit aussi identifier les mois non encore payés du tout (qui n'ont pas de ligne dans mensualites)
         $fraisCache = [];
         foreach ($elevesActifs as $eleve) {
             $classeKey = $eleve['id_classe'];
@@ -413,10 +441,9 @@ class PaiementController {
             $payes = Mensualite::findByEtude($eleve['id_etude']);
 
             foreach ($monthsToDate as $month) {
-                $verse = isset($payes[$month]) ? (float)$payes[$month]['total'] : 0;
-                if ($verse < $attenduParMois - 0.01) { // Utilisation d'une petite marge pour les calculs float
+                if (!isset($payes[$month])) {
                     $restesMensualites[] = [
-                        'montant' => $attenduParMois - $verse,
+                        'montant' => $attenduParMois,
                         'date' => null,
                         'type' => 'Mensualité (' . $month . ')',
                         'nom' => $eleve['nom'],
@@ -673,10 +700,10 @@ class PaiementController {
             $modes = !empty($paramGeneral['modalite_paiement'])
                 ? explode(',', $paramGeneral['modalite_paiement'])
                 : ['Espèces'];
-            $modePaiement = trim($modes[0]);
 
-            // Génération automatique et obligatoire du numéro de reçu
-            $reference = Mensualite::generateReceiptNumber($lyceeId);
+            // On récupère le mode et la référence si fournis (depuis mensualites/pay), sinon auto
+            $modePaiement = $_POST['mode_paiement'] ?? trim($modes[0]);
+            $reference = $_POST['reference_transaction'] ?? Mensualite::generateReceiptNumber($lyceeId);
             $paiementEffectue = false;
 
             // 1. Traitement Inscription
@@ -698,6 +725,9 @@ class PaiementController {
             if ($montantInscription > 0 || (isset($options_posted['logo']) && empty($old_options['logo'])) || (isset($options_posted['carte']) && empty($old_options['carte']))) {
 
                 $nouveauVerse = (float)($inscription['montant_verse'] ?? 0) + $montantInscription;
+
+                // Si on ajoute des options mais pas de montant, le montant total change mais le montant versé reste le même.
+                // Le calcul de $nouveauVerse est correct.
 
                 if ($nouveauVerse > $montantTotalInscription + 0.01) {
                     throw new Exception("Le versement inscription dépasse le total attendu.");
@@ -726,6 +756,10 @@ class PaiementController {
                 if ($typeLycee === 'public' || $dataInscription['reste_a_payer'] <= 0) {
                     Eleve::updateStatus($eleveId, 'actif');
                     Etude::activate($etude['id_etude'], $userId);
+                    // Marquer les notifications liées à l'inscription comme traitées une fois activé
+                    Notification::markAsReadByLink("/paiements/show/{$eleveId}", $lyceeId);
+                    Notification::markAsReadByLink("/paiements/pending", $lyceeId);
+                    Notification::markAsReadByLink("/eleves/details?id={$eleveId}", $lyceeId);
                 }
 
                 // Notification si soldé
@@ -757,6 +791,7 @@ class PaiementController {
                             'annee_academique_id' => $anneeActive['id'],
                             'mois_ou_sequence' => $mois,
                             'montant_verse' => $montant,
+                            'montant_attendu' => $montantMensuelAttendu,
                             'user_id' => $userId
                         ];
 
@@ -776,9 +811,6 @@ class PaiementController {
             if (!$paiementEffectue) {
                 throw new Exception("Aucun montant à encaisser n'a été saisi.");
             }
-
-            // Marquer les notifications "En attente de paiement" comme traitées
-            Notification::markAsReadByLink("/paiements/show/{$eleveId}", $lyceeId);
 
             $db->commit();
             $_SESSION['success_message'] = "Opération d'encaissement réussie. Reçu N° {$reference}";
