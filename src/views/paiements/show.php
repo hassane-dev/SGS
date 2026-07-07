@@ -385,6 +385,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 trancheMoisInputs.forEach(input => {
                     if (!input.readOnly) {
                         input.value = input.dataset.reste;
+                        input.classList.add('bg-light-warning');
+                        input.classList.replace('border-danger', 'border-success');
+                        input.classList.replace('border-warning', 'border-success');
                         input.closest('.card').classList.add('bg-light-warning');
                         input.closest('.card').classList.replace('border-danger', 'border-success');
                         input.closest('.card').classList.replace('border-warning', 'border-success');
@@ -394,6 +397,9 @@ document.addEventListener('DOMContentLoaded', function() {
                  trancheMoisInputs.forEach(input => {
                     if (!input.readOnly) {
                         input.value = '';
+                        input.classList.remove('bg-light-warning');
+                        input.classList.replace('border-success', 'border-danger');
+                        input.classList.replace('border-warning', 'border-danger');
                         input.closest('.card').classList.remove('bg-light-warning');
                         input.closest('.card').classList.replace('border-success', 'border-danger');
                         input.closest('.card').classList.replace('border-warning', 'border-danger');
@@ -413,22 +419,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (verse > 0) {
                 card.classList.add('bg-light-warning');
+                input.classList.add('bg-light-warning');
                 if (verse >= reste) {
                     card.classList.replace('border-danger', 'border-success');
                     card.classList.replace('border-warning', 'border-success');
+                    input.classList.replace('border-danger', 'border-success');
+                    input.classList.replace('border-warning', 'border-success');
                 } else {
                     card.classList.replace('border-danger', 'border-warning');
                     card.classList.replace('border-success', 'border-warning');
+                    input.classList.replace('border-danger', 'border-warning');
+                    input.classList.replace('border-success', 'border-warning');
                 }
             } else {
                 card.classList.remove('bg-light-warning');
+                input.classList.remove('bg-light-warning');
                 // Restore original state based on reste
                 if (reste > 0) {
                     card.classList.add('border-danger');
                     card.classList.remove('border-warning', 'border-success');
+                    input.classList.add('border-danger');
+                    input.classList.remove('border-warning', 'border-success');
                 } else {
                     card.classList.add('border-success');
                     card.classList.remove('border-danger', 'border-warning');
+                    input.classList.add('border-success');
+                    input.classList.remove('border-danger', 'border-warning');
                 }
             }
             updateAll();

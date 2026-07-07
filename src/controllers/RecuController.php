@@ -128,14 +128,28 @@ class RecuController {
 
         $lycee = ParamLycee::findByLyceeId($eleve['lycee_id']);
 
-        // Si on a les deux, ou juste inscription, on utilise la vue inscription qui peut tout afficher
+        // Pour garantir un "reçu unique" de type inscription même si seule la scolarité est payée
+        // On préfère la vue inscription.php qui est plus complète
+        if (!$inscription && !empty($mensualites)) {
+            // On récupère une inscription existante de l'élève pour peupler les infos (classe, année)
+            $existingInscriptions = Inscription::findByEleveId($eleve_id);
+            if (!empty($existingInscriptions)) {
+                $inscription = $existingInscriptions[0];
+                // On met à zéro les montants d'inscription pour ce reçu spécifique
+                $inscription['montant_verse'] = 0;
+                $inscription['reste_a_payer'] = $inscription['montant_total'] - $inscription['montant_verse']; // Approximatif mais suffisant
+                $inscription['date_inscription'] = $mensualites[0]['date_paiement'];
+                $inscription['recu_numero'] = $recu_numero;
+            }
+        }
+
         if ($inscription) {
             require_once __DIR__ . '/../views/recus/inscription.php';
-        } else {
-            // Sinon on utilise la vue mensualité (on prend la première pour l'affichage principal si plusieurs)
+        } else if (!empty($mensualites)) {
             $paiement = $mensualites[0];
-            // Si plusieurs mensualités sur le même reçu, on peut avoir besoin d'une vue qui boucle
             require_once __DIR__ . '/../views/recus/mensualite.php';
+        } else {
+            die("Reçu introuvable.");
         }
     }
 }

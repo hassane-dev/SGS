@@ -96,22 +96,46 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>
-                        Paiement scolarité - Mois de <strong><?= htmlspecialchars($paiement['mois_ou_sequence'] ?? '') ?></strong>
-                    </td>
-                    <td><?= htmlspecialchars($paiement['mode_paiement'] ?? '') ?></td>
-                    <td><?= htmlspecialchars($paiement['reference_transaction'] ?? 'Espèces') ?></td>
-                    <td style="text-align: right; font-weight: bold; font-size: 16px;">
-                        <?= number_format($paiement['montant'], 0, ',', ' ') ?> FCFA
-                    </td>
-                </tr>
+                <?php $totalMens = 0; ?>
+                <?php if (isset($mensualites) && is_array($mensualites)): ?>
+                    <?php foreach ($mensualites as $m): ?>
+                        <?php $totalMens += (float)$m['montant']; ?>
+                        <tr>
+                            <td>
+                                Paiement scolarité - Mois de <strong><?= htmlspecialchars($m['mois_ou_sequence'] ?? '') ?></strong>
+                            </td>
+                            <td><?= htmlspecialchars($m['mode_paiement'] ?? '') ?></td>
+                            <td><?= htmlspecialchars($m['reference_transaction'] ?? 'Espèces') ?></td>
+                            <td style="text-align: right; font-weight: bold;">
+                                <?= number_format($m['montant'], 0, ',', ' ') ?> FCFA
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <?php $totalMens = (float)$paiement['montant']; ?>
+                    <tr>
+                        <td>
+                            Paiement scolarité - Mois de <strong><?= htmlspecialchars($paiement['mois_ou_sequence'] ?? '') ?></strong>
+                        </td>
+                        <td><?= htmlspecialchars($paiement['mode_paiement'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($paiement['reference_transaction'] ?? 'Espèces') ?></td>
+                        <td style="text-align: right; font-weight: bold;">
+                            <?= number_format($paiement['montant'], 0, ',', ' ') ?> FCFA
+                        </td>
+                    </tr>
+                <?php endif; ?>
             </tbody>
+            <tfoot>
+                <tr style="background: #f0f0f0;">
+                    <td colspan="3" style="text-align: right; font-weight: bold; text-transform: uppercase;">Total versé</td>
+                    <td style="text-align: right; font-weight: bold; font-size: 16px;"><?= number_format($totalMens, 0, ',', ' ') ?> FCFA</td>
+                </tr>
+            </tfoot>
         </table>
 
         <div class="amount-words">
             <strong>Arrêté le présent reçu à la somme de :</strong><br>
-            <span style="text-transform: capitalize; font-weight: bold;"><?= number_format($paiement['montant'], 0, ',', ' ') ?> Francs CFA</span>
+            <span style="text-transform: capitalize; font-weight: bold;"><?= number_format($totalMens, 0, ',', ' ') ?> Francs CFA</span>
         </div>
 
         <div class="footer">

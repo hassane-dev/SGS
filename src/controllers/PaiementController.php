@@ -742,10 +742,11 @@ class PaiementController {
                 foreach ($_POST['mensualites'] as $mois => $montant) {
                     $montant = (float) $montant;
                     if ($montant > 0) {
+                        $mois = trim($mois);
                         // Validation : Ne pas dépasser le montant mensuel attendu
                         $dejaVerse = isset($mensualitesPayees[$mois]) ? (float)$mensualitesPayees[$mois]['total'] : 0;
                         if ($dejaVerse + $montant > $montantMensuelAttendu + 0.01) {
-                            throw new Exception("Le versement pour le mois de $mois dépasse le montant attendu.");
+                            throw new Exception("Le versement pour le mois de $mois dépasse le montant attendu. (Attendu: $montantMensuelAttendu, Déjà versé: $dejaVerse)");
                         }
 
                         $dataMensualite = [
