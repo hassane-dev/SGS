@@ -10,7 +10,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Définir les périodes de saisie des notes</h6>
         </div>
         <div class="card-body">
-            <form action="/evaluations/settings/save" method="POST">
+            <form action="/evaluations/settings/save-legacy" method="POST">
                 <input type="hidden" name="classe_id" value="<?= $classe['id_classe'] ?>">
                 <input type="hidden" name="matiere_id" value="<?= $matiere['id_matiere'] ?>">
                 <input type="hidden" name="enseignant_id" value="<?= $enseignant_id ?>">

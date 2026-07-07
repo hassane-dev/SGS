@@ -147,7 +147,7 @@
 
                                                     <div class="d-inline-flex">
                                                         <?php if (Auth::can('manage_settings', 'evaluation')): ?>
-                                                        <a href="/evaluations/settings?classe_id=<?= $classe['id_classe'] ?>&matiere_id=<?= $matiere['id_matiere'] ?>" class="btn btn-sm btn-outline-secondary ms-2" title="<?= _('Paramètres des évaluations') ?>">
+                                                        <a href="/evaluations/settings/legacy?classe_id=<?= $classe['id_classe'] ?>&matiere_id=<?= $matiere['id_matiere'] ?>" class="btn btn-sm btn-outline-secondary ms-2" title="<?= _('Paramètres des évaluations') ?>">
                                                             <?= _('Params Éval.') ?>
                                                         </a>
                                                         <?php endif; ?>

@@ -8,19 +8,58 @@ class Deblocage {
 
     public static function save($data) {
         $db = Database::getInstance();
-        $sql = "INSERT INTO deblocages_notes (
-                    lycee_id, annee_academique_id, type, classe_id, matiere_id,
-                    enseignant_id, sequence_id, type_evaluation, date_debut, date_fin, motif, cree_par
-                ) VALUES (
-                    :lycee_id, :annee_id, :type, :classe_id, :matiere_id,
-                    :enseignant_id, :sequence_id, :type_evaluation, :date_debut, :date_fin, :motif, :cree_par
-                )";
+        $lycee_id = Auth::getLyceeId();
+        $active_year = AnneeAcademique::findActive();
 
-        try {
-            $stmt = $db->prepare($sql);
-            return $stmt->execute([
-                'lycee_id' => Auth::getLyceeId(),
-                'annee_id' => AnneeAcademique::findActive()['id'],
+        // Check for existing record to avoid duplicates manually since NULLs in unique keys are tricky
+        $sql_check = "SELECT id FROM deblocages_notes
+                      WHERE lycee_id = :lycee_id
+                      AND annee_academique_id = :annee_id
+                      AND type = :type
+                      AND (classe_id = :classe_id OR (classe_id IS NULL AND :classe_id IS NULL))
+                      AND (matiere_id = :matiere_id OR (matiere_id IS NULL AND :matiere_id IS NULL))
+                      AND (enseignant_id = :enseignant_id OR (enseignant_id IS NULL AND :enseignant_id IS NULL))
+                      AND (sequence_id = :sequence_id OR (sequence_id IS NULL AND :sequence_id IS NULL))
+                      AND type_evaluation = :type_eval";
+
+        $stmt_check = $db->prepare($sql_check);
+        $stmt_check->execute([
+            'lycee_id' => $lycee_id,
+            'annee_id' => $active_year['id'],
+            'type' => $data['type'],
+            'classe_id' => $data['classe_id'] ?? null,
+            'matiere_id' => $data['matiere_id'] ?? null,
+            'enseignant_id' => $data['enseignant_id'] ?? null,
+            'sequence_id' => $data['sequence_id'] ?? null,
+            'type_eval' => $data['type_evaluation'] ?? 'tous'
+        ]);
+        $existing_id = $stmt_check->fetchColumn();
+
+        if ($existing_id) {
+            $sql = "UPDATE deblocages_notes SET
+                        date_debut = :date_debut,
+                        date_fin = :date_fin,
+                        motif = :motif,
+                        cree_par = :cree_par
+                    WHERE id = :id";
+            $params = [
+                'date_debut' => $data['date_debut'],
+                'date_fin' => $data['date_fin'],
+                'motif' => $data['motif'] ?? null,
+                'cree_par' => Auth::getUserId(),
+                'id' => $existing_id
+            ];
+        } else {
+            $sql = "INSERT INTO deblocages_notes (
+                        lycee_id, annee_academique_id, type, classe_id, matiere_id,
+                        enseignant_id, sequence_id, type_evaluation, date_debut, date_fin, motif, cree_par
+                    ) VALUES (
+                        :lycee_id, :annee_id, :type, :classe_id, :matiere_id,
+                        :enseignant_id, :sequence_id, :type_evaluation, :date_debut, :date_fin, :motif, :cree_par
+                    )";
+            $params = [
+                'lycee_id' => $lycee_id,
+                'annee_id' => $active_year['id'],
                 'type' => $data['type'],
                 'classe_id' => $data['classe_id'] ?? null,
                 'matiere_id' => $data['matiere_id'] ?? null,
@@ -31,7 +70,12 @@ class Deblocage {
                 'date_fin' => $data['date_fin'],
                 'motif' => $data['motif'] ?? null,
                 'cree_par' => Auth::getUserId()
-            ]);
+            ];
+        }
+
+        try {
+            $stmt = $db->prepare($sql);
+            return $stmt->execute($params);
         } catch (PDOException $e) {
             error_log("Error in Deblocage::save: " . $e->getMessage());
             return false;

@@ -139,7 +139,11 @@ $router->register('/sequences/destroy', 'SequenceController', 'destroy');
 
 // Evaluation Settings
 $router->register('/evaluations/settings', 'ParametresEvaluationController', 'index');
-$router->register('/evaluations/settings/save', 'ParametresEvaluationController', 'save');
+$router->register('/evaluations/settings/create', 'ParametresEvaluationController', 'create');
+$router->register('/evaluations/settings/store', 'ParametresEvaluationController', 'store');
+$router->register('/evaluations/settings/delete', 'ParametresEvaluationController', 'delete');
+$router->register('/evaluations/settings/legacy', 'ParametresEvaluationController', 'legacySettings');
+$router->register('/evaluations/settings/save-legacy', 'ParametresEvaluationController', 'saveLegacy');
 $router->register('/evaluations/deblocage', 'DeblocageController', 'index');
 $router->register('/evaluations/deblocage/create', 'DeblocageController', 'create');
 $router->register('/evaluations/deblocage/store', 'DeblocageController', 'store');

@@ -9,13 +9,13 @@
                     <div class="col-md-12">
                         <ul class="breadcrumb">
                             <li class="breadcrumb-item"><a href="/"><?= _('Tableau de bord') ?></a></li>
-                            <li class="breadcrumb-item"><a href="/evaluations/deblocage"><?= _('Déblocages') ?></a></li>
-                            <li class="breadcrumb-item" aria-current="page"><?= _('Nouveau Déblocage') ?></li>
+                            <li class="breadcrumb-item"><a href="/evaluations/settings"><?= _('Paramètres de Saisie') ?></a></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= _('Nouveaux Paramètres') ?></li>
                         </ul>
                     </div>
                     <div class="col-md-12">
                         <div class="page-header-title">
-                            <h2 class="mb-0"><?= _('Accorder un Déblocage Exceptionnel') ?></h2>
+                            <h2 class="mb-0"><?= _('Définir une Période de Saisie') ?></h2>
                         </div>
                     </div>
                 </div>
@@ -28,10 +28,10 @@
             <div class="col-md-8 offset-md-2">
                 <div class="card">
                     <div class="card-header">
-                        <h5><?= _('Paramètres du déblocage') ?></h5>
+                        <h5><?= _('Configuration de la période') ?></h5>
                     </div>
                     <div class="card-body">
-                        <form action="/evaluations/deblocage/store" method="POST">
+                        <form action="/evaluations/settings/store" method="POST">
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label" for="type"><?= _('Niveau de ciblage') ?></label>
@@ -56,7 +56,7 @@
 
                             <div class="row mb-3">
                                 <div class="col-12">
-                                    <label class="form-label"><?= _('Nature de l\'évaluation à débloquer') ?></label>
+                                    <label class="form-label"><?= _('Nature de l\'évaluation') ?></label>
                                     <div class="d-flex gap-3">
                                         <div class="form-check">
                                             <input class="form-check-input" type="radio" name="type_evaluation" id="eval_tous" value="tous" checked>
@@ -112,23 +112,23 @@
 
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <label class="form-label" for="date_debut"><?= _('Date de début') ?></label>
-                                    <input type="datetime-local" class="form-control" id="date_debut" name="date_debut" required value="<?= date('Y-m-d\TH:i') ?>">
+                                    <label class="form-label" for="date_ouverture"><?= _('Date d\'ouverture') ?></label>
+                                    <input type="datetime-local" class="form-control" id="date_ouverture" name="date_ouverture" required value="<?= date('Y-m-d\TH:i') ?>">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label" for="date_fin"><?= _('Date d\'expiration') ?></label>
-                                    <input type="datetime-local" class="form-control" id="date_fin" name="date_fin" required value="<?= date('Y-m-d\TH:i', strtotime('+2 days')) ?>">
+                                    <label class="form-label" for="date_fermeture"><?= _('Date de fermeture') ?></label>
+                                    <input type="datetime-local" class="form-control" id="date_fermeture" name="date_fermeture" required value="<?= date('Y-m-d\TH:i', strtotime('+7 days')) ?>">
                                 </div>
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label" for="motif"><?= _('Motif du déblocage') ?></label>
-                                <textarea class="form-control" id="motif" name="motif" rows="3" placeholder="<?= _('Ex: Correction d\'erreur de saisie demandée par le proviseur') ?>"></textarea>
+                                <label class="form-label" for="commentaire"><?= _('Commentaire / Instruction') ?></label>
+                                <textarea class="form-control" id="commentaire" name="commentaire" rows="3" placeholder="<?= _('Ex: Période de saisie normale pour le premier semestre') ?>"></textarea>
                             </div>
 
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                <a href="/evaluations/deblocage" class="btn btn-link text-muted"><?= _('Annuler') ?></a>
-                                <button type="submit" class="btn btn-primary"><?= _('Accorder le déblocage') ?></button>
+                                <a href="/evaluations/settings" class="btn btn-link text-muted"><?= _('Annuler') ?></a>
+                                <button type="submit" class="btn btn-primary"><?= _('Enregistrer les paramètres') ?></button>
                             </div>
                         </form>
                     </div>
