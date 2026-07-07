@@ -129,7 +129,7 @@
 
                                 <?php if ($inscription): ?>
                                     <div class="mt-3 text-center">
-                                        <a href="/recu/inscription?id=<?= $eleve['id_eleve'] ?>" target="_blank" class="btn btn-link-secondary btn-sm">
+                                        <a href="/recu/print?numero=<?= $inscription['recu_numero'] ?>" target="_blank" class="btn btn-link-secondary btn-sm">
                                             <i class="ph-duotone ph-printer me-1"></i>Imprimer le dernier reçu d'inscription
                                         </a>
                                     </div>
