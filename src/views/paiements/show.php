@@ -344,8 +344,34 @@ document.addEventListener('DOMContentLoaded', function() {
         const nouveauResteInscription = currentInscriptionTotal - verseExistant;
         const inscriptionAverser = parseFloat(montantInscriptionInput.value) || 0;
 
+        // Mise à jour de la validation max
+        if (montantInscriptionInput) {
+            montantInscriptionInput.max = nouveauResteInscription;
+            // Si c'est un comptable, on déverrouille l'input si un reste apparaît via les options
+            <?php if ($isComptable): ?>
+                if (nouveauResteInscription > 0) {
+                    montantInscriptionInput.readOnly = false;
+                } else if (nouveauResteInscription <= 0) {
+                    montantInscriptionInput.readOnly = true;
+                    montantInscriptionInput.value = '';
+                }
+            <?php endif; ?>
+        }
+
         resteInscriptionElt.textContent = (nouveauResteInscription - inscriptionAverser).toLocaleString('fr-FR') + ' FCFA';
         document.getElementById('inscription-total-attendu').textContent = currentInscriptionTotal.toLocaleString('fr-FR') + ' FCFA';
+
+        // Mise à jour du badge de statut d'inscription
+        const statusBadge = document.querySelector('.card-header .badge');
+        if (statusBadge) {
+            if (nouveauResteInscription <= 0) {
+                statusBadge.className = 'badge bg-light-success text-success';
+                statusBadge.innerHTML = '<i class="ph-duotone ph-check-circle me-1"></i>SOLDÉ';
+            } else {
+                statusBadge.className = 'badge bg-light-danger text-danger';
+                statusBadge.innerHTML = '<i class="ph-duotone ph-warning-circle me-1"></i>IMPAYÉ';
+            }
+        }
 
         // 2. Calcul Mensualités
         let totalMensualites = 0;
@@ -372,7 +398,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Listeners Inscription
     if (montantInscriptionInput) {
         montantInscriptionInput.addEventListener('input', updateAll);
-        optionCheckboxes.forEach(cb => cb.addEventListener('change', updateAll));
+        optionCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                // UX Improvement: If we check an option, automatically increase the amount to pay
+                // only if it was previously empty or matches the old remainder
+                const price = parseFloat(this.dataset.price);
+                const currentVal = parseFloat(montantInscriptionInput.value) || 0;
+
+                if (this.checked) {
+                    montantInscriptionInput.value = currentVal + price;
+                } else {
+                    montantInscriptionInput.value = Math.max(0, currentVal - price);
+                }
+
+                updateAll();
+            });
+        });
     }
 
     // Listeners Mensualités
