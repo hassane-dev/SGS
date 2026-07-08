@@ -58,6 +58,7 @@ class Inscription {
             $stmt = $db->prepare(
                 "UPDATE inscriptions SET
                     etude_id = :etude_id,
+                    montant_total = :montant_total,
                     montant_verse = :montant_verse,
                     reste_a_payer = :reste_a_payer,
                     details_frais = :details_frais,
@@ -67,6 +68,7 @@ class Inscription {
             );
             $stmt->execute([
                 'etude_id' => $data['etude_id'] ?? null,
+                'montant_total' => $data['montant_total'],
                 'montant_verse' => $data['montant_verse'],
                 'reste_a_payer' => $data['reste_a_payer'],
                 'details_frais' => $data['details_frais'],

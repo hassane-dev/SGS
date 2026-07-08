@@ -9,6 +9,8 @@ require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../models/Sequence.php';
 require_once __DIR__ . '/../models/Notification.php';
 require_once __DIR__ . '/../models/Classe.php';
+require_once __DIR__ . '/../models/ParamLycee.php';
+require_once __DIR__ . '/../models/ParamGeneral.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
@@ -750,22 +752,6 @@ class PaiementController {
 
                 Inscription::save($dataInscription);
                 $paiementEffectue = true;
-
-                // Activation automatique pour les lycées publics ou si inscription soldée
-                $typeLycee = ParamLycee::findByLyceeId($lyceeId)['type_lycee'] ?? 'prive';
-                if ($typeLycee === 'public' || $dataInscription['reste_a_payer'] <= 0) {
-                    Eleve::updateStatus($eleveId, 'actif');
-                    Etude::activate($etude['id_etude'], $userId);
-                    // Marquer les notifications liées à l'inscription comme traitées une fois activé
-                    Notification::markAsReadByLink("/paiements/show/{$eleveId}", $lyceeId);
-                    Notification::markAsReadByLink("/paiements/pending", $lyceeId);
-                    Notification::markAsReadByLink("/eleves/details?id={$eleveId}", $lyceeId);
-                }
-
-                // Notification si soldé
-                if ($dataInscription['reste_a_payer'] <= 0) {
-                    Notification::notifyRole('admin_local', $lyceeId, "Inscription soldée pour {$eleve['prenom']} {$eleve['nom']}.", "/eleves/details?id={$eleveId}");
-                }
             }
 
             // 2. Traitement Mensualités
@@ -775,8 +761,8 @@ class PaiementController {
 
                 foreach ($_POST['mensualites'] as $mois => $montant) {
                     $montant = (float) $montant;
+                    $mois = trim($mois);
                     if ($montant > 0) {
-                        $mois = trim($mois);
                         // Validation : Ne pas dépasser le montant mensuel attendu
                         $dejaVerse = isset($mensualitesPayees[$mois]) ? (float)$mensualitesPayees[$mois]['total'] : 0;
                         if ($dejaVerse + $montant > $montantMensuelAttendu + 0.01) {
@@ -810,6 +796,33 @@ class PaiementController {
 
             if (!$paiementEffectue) {
                 throw new Exception("Aucun montant à encaisser n'a été saisi.");
+            }
+
+            // 3. Logique d'activation (Évaluée à chaque paiement réussi)
+            // L'élève est activé si :
+            // - C'est un lycée public (activation automatique au premier contact comptable)
+            // - OU Si l'inscription est totalement payée (reste_a_payer <= 0)
+
+            // Re-vérifier l'état de l'inscription après traitement
+            $currentInscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id'], $lyceeId);
+            $resteInscription = $currentInscription ? (float)$currentInscription['reste_a_payer'] : (float)$frais['frais_inscription'];
+
+            $typeLycee = ParamLycee::findByLyceeId($lyceeId)['type_lycee'] ?? 'prive';
+
+            if ($typeLycee === 'public' || $resteInscription <= 0.01) {
+                // Mise à jour du statut global
+                Eleve::updateStatus($eleveId, 'actif');
+                Etude::activate($etude['id_etude'], $userId);
+
+                // Nettoyage des notifications d'inscription
+                Notification::markAsReadByLink("/paiements/show/{$eleveId}", $lyceeId);
+                Notification::markAsReadByLink("/paiements/pending", $lyceeId);
+                Notification::markAsReadByLink("/eleves/details?id={$eleveId}", $lyceeId);
+
+                // Notification de succès pour l'administration
+                if ($resteInscription <= 0.01) {
+                    Notification::notifyRole('admin_local', $lyceeId, "Inscription soldée et élève activé : {$eleve['prenom']} {$eleve['nom']}.", "/eleves/details?id={$eleveId}");
+                }
             }
 
             $db->commit();
