@@ -382,7 +382,7 @@ class EleveController {
                 $type_lycee = ($lycee && isset($lycee['type_lycee'])) ? $lycee['type_lycee'] : 'prive';
 
                 $is_active = 0;
-                $status = 'pending_payment';
+                $status = 'en_attente_paiement';
 
                 if ($type_lycee === 'public') {
                     $is_active = 1;
