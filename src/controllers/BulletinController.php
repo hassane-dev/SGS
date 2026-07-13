@@ -4,6 +4,7 @@ require_once __DIR__ . '/../models/Bulletin.php';
 require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Sequence.php';
 require_once __DIR__ . '/../models/ModeleBulletin.php';
+require_once __DIR__ . '/../models/FinanceService.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
 require_once __DIR__ . '/../core/Validator.php';
@@ -65,6 +66,12 @@ class BulletinController {
         $sequence_id = $_GET['sequence_id'] ?? null;
 
         if (!$eleve_id || !$sequence_id) {
+            header('Location: /bulletins');
+            exit();
+        }
+
+        if (!FinanceService::canAccessBulletin($eleve_id)) {
+            $_SESSION['error_message'] = "L'accès au bulletin de cet élève est bloqué en raison de sa situation financière. Veuillez régulariser ses mensualités.";
             header('Location: /bulletins');
             exit();
         }

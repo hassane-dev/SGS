@@ -193,6 +193,7 @@ $router->register('/paiements/restes', 'PaiementController', 'restes');
 $router->register('/paiements/historique', 'PaiementController', 'historique');
 $router->register('/paiements/recus', 'PaiementController', 'recus');
 $router->register('/paiements/rapports', 'PaiementController', 'rapports');
+$router->register('/paiements/controle', 'PaiementController', 'controle');
 
 // Mensualités
 $router->register('/mensualites', 'MensualiteController', 'index');

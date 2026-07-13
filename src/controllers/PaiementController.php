@@ -10,6 +10,10 @@ require_once __DIR__ . '/../models/Sequence.php';
 require_once __DIR__ . '/../models/Notification.php';
 require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/ParamLycee.php';
+require_once __DIR__ . '/../models/PolitiqueFinanciere.php';
+require_once __DIR__ . '/../models/ParametreFinancierEleve.php';
+require_once __DIR__ . '/../models/EtatFinancierEleve.php';
+require_once __DIR__ . '/../models/FinanceService.php';
 require_once __DIR__ . '/../models/ParamGeneral.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../core/Auth.php';
@@ -670,6 +674,74 @@ class PaiementController {
         ]);
     }
 
+    public function controle() {
+        $this->checkAccess('view');
+        $lycee_id = Auth::getLyceeId();
+        $activeYear = AnneeAcademique::findActive();
+
+        if (!$activeYear) {
+            $_SESSION['error_message'] = "Aucune année académique active.";
+            header('Location: /');
+            exit();
+        }
+
+        $db = Database::getInstance();
+
+        // 1. Fetch all students enrolled in the active year
+        $stmt = $db->prepare("
+            SELECT e.id_eleve, e.nom, e.prenom, c.niveau, c.serie, c.numero,
+                   efe.inscription_statut, efe.mensualite_statut, efe.notes_consultation, efe.bulletin_impression,
+                   pfe.type_avantage, pfe.valeur_type, pfe.valeur
+            FROM eleves e
+            JOIN etudes et ON e.id_eleve = et.eleve_id
+            JOIN classes c ON et.classe_id = c.id_classe
+            LEFT JOIN etats_financiers_eleves efe ON e.id_eleve = efe.eleve_id
+            LEFT JOIN parametres_financiers_eleves pfe ON e.id_eleve = pfe.eleve_id
+            WHERE e.lycee_id = :lycee_id AND et.annee_academique_id = :annee_id
+            ORDER BY e.nom, e.prenom
+        ");
+        $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
+        $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Recalculate if any student has no cached state
+        foreach ($students as &$s) {
+            if (empty($s['inscription_statut'])) {
+                $state = EtatFinancierEleve::recalculateState($s['id_eleve']);
+                $s['inscription_statut'] = $state['inscription_statut'];
+                $s['mensualite_statut'] = $state['mensualite_statut'];
+                $s['notes_consultation'] = $state['notes_consultation'];
+                $s['bulletin_impression'] = $state['bulletin_impression'];
+            }
+        }
+
+        // 2. Compute Dashboard statistics
+        $stats = [
+            'total_students' => count($students),
+            'advantages_count' => 0,
+            'blocked_notes_count' => 0,
+            'blocked_bulletins_count' => 0
+        ];
+
+        foreach ($students as $s) {
+            if (!empty($s['type_avantage']) && $s['type_avantage'] !== 'Aucun') {
+                $stats['advantages_count']++;
+            }
+            if (($s['notes_consultation'] ?? '') === 'Interdite') {
+                $stats['blocked_notes_count']++;
+            }
+            if (($s['bulletin_impression'] ?? '') === 'Interdite') {
+                $stats['blocked_bulletins_count']++;
+            }
+        }
+
+        View::render('paiements/controle', [
+            'title' => 'Contrôle & États Financiers des Élèves',
+            'students' => $students,
+            'stats' => $stats,
+            'activeYear' => $activeYear
+        ]);
+    }
+
     /**
      * Traite le paiement unifié (Inscription + Mensualités).
      */
@@ -720,16 +792,18 @@ class PaiementController {
             $hasLogo = !empty($old_options['logo']) || isset($options_posted['logo']);
             $hasCarte = !empty($old_options['carte']) || isset($options_posted['carte']);
 
-            $montantTotalInscription = (float) $frais['frais_inscription'];
-            if ($hasLogo) $montantTotalInscription += (float)($frais['frais_logo'] ?? 0);
-            if ($hasCarte) $montantTotalInscription += (float)($frais['frais_carte'] ?? 0);
+            // Calculate adjusted base registration fees for the student
+            $baseInscription = FinanceService::applyFinancialAdvantages($eleveId, 'frais_inscription', (float)$frais['frais_inscription']);
+            $baseLogo = FinanceService::applyFinancialAdvantages($eleveId, 'frais_logo', (float)($frais['frais_logo'] ?? 0));
+            $baseCarte = FinanceService::applyFinancialAdvantages($eleveId, 'frais_carte', (float)($frais['frais_carte'] ?? 0));
+
+            $montantTotalInscription = $baseInscription;
+            if ($hasLogo) $montantTotalInscription += $baseLogo;
+            if ($hasCarte) $montantTotalInscription += $baseCarte;
 
             if ($montantInscription > 0 || (isset($options_posted['logo']) && empty($old_options['logo'])) || (isset($options_posted['carte']) && empty($old_options['carte']))) {
 
                 $nouveauVerse = (float)($inscription['montant_verse'] ?? 0) + $montantInscription;
-
-                // Si on ajoute des options mais pas de montant, le montant total change mais le montant versé reste le même.
-                // Le calcul de $nouveauVerse est correct.
 
                 if ($nouveauVerse > $montantTotalInscription + 0.01) {
                     throw new Exception("Le versement inscription dépasse le total attendu.");
@@ -757,7 +831,9 @@ class PaiementController {
             // 2. Traitement Mensualités
             if (!empty($_POST['mensualites'])) {
                 $mensualitesPayees = Mensualite::findByEtude($etude['id_etude']);
-                $montantMensuelAttendu = (float)($frais['frais_mensuel'] ?? 0);
+
+                // Calculate adjusted monthly fees for the student
+                $montantMensuelAttendu = FinanceService::applyFinancialAdvantages($eleveId, 'frais_mensuel', (float)($frais['frais_mensuel'] ?? 0));
 
                 foreach ($_POST['mensualites'] as $mois => $montant) {
                     $montant = (float) $montant;
@@ -799,17 +875,27 @@ class PaiementController {
             }
 
             // 3. Logique d'activation (Évaluée à chaque paiement réussi)
-            // L'élève est activé si :
-            // - C'est un lycée public (activation automatique au premier contact comptable)
-            // - OU Si l'inscription est totalement payée (reste_a_payer <= 0)
-
-            // Re-vérifier l'état de l'inscription après traitement
             $currentInscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id'], $lyceeId);
-            $resteInscription = $currentInscription ? (float)$currentInscription['reste_a_payer'] : (float)$frais['frais_inscription'];
+            $nouveauVerse = $currentInscription ? (float)$currentInscription['montant_verse'] : 0.00;
+
+            $policy = PolitiqueFinanciere::findOrCreate($lyceeId);
+            $seuil_type = $policy['activation_seuil_type'] ?? '100';
+            $seuil_valeur = (float)($policy['activation_seuil_valeur'] ?? 0);
+
+            $threshold_met = false;
+            if ($seuil_type === '100') {
+                $threshold_met = ($nouveauVerse >= $montantTotalInscription - 0.01);
+            } elseif ($seuil_type === '75') {
+                $threshold_met = ($nouveauVerse >= ($montantTotalInscription * 0.75) - 0.01);
+            } elseif ($seuil_type === '50') {
+                $threshold_met = ($nouveauVerse >= ($montantTotalInscription * 0.5) - 0.01);
+            } elseif ($seuil_type === 'montant_minimum') {
+                $threshold_met = ($nouveauVerse >= $seuil_valeur - 0.01);
+            }
 
             $typeLycee = ParamLycee::findByLyceeId($lyceeId)['type_lycee'] ?? 'prive';
 
-            if ($typeLycee === 'public' || $resteInscription <= 0.01) {
+            if ($typeLycee === 'public' || $threshold_met) {
                 // Mise à jour du statut global
                 Eleve::updateStatus($eleveId, 'actif');
                 Etude::activate($etude['id_etude'], $userId);
@@ -820,10 +906,13 @@ class PaiementController {
                 Notification::markAsReadByLink("/eleves/details?id={$eleveId}", $lyceeId);
 
                 // Notification de succès pour l'administration
-                if ($resteInscription <= 0.01) {
+                if ($nouveauVerse >= $montantTotalInscription - 0.01) {
                     Notification::notifyRole('admin_local', $lyceeId, "Inscription soldée et élève activé : {$eleve['prenom']} {$eleve['nom']}.", "/eleves/details?id={$eleveId}");
                 }
             }
+
+            // Recalculate consolidated financial state of the student
+            FinanceService::updateFinancialState($eleveId);
 
             $db->commit();
             $_SESSION['success_message'] = "Opération d'encaissement réussie. Reçu N° {$reference}";

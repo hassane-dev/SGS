@@ -45,14 +45,29 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                                             <td colspan="3" class="text-center"><?= _('No results found for this selection. Please ensure grades have been entered.') ?></td>
                                         </tr>
                                     <?php else: ?>
-                                        <?php foreach ($results as $result): ?>
+                                        <?php
+                                        require_once __DIR__ . '/../../models/FinanceService.php';
+                                        foreach ($results as $result):
+                                            $canAccess = FinanceService::canAccessBulletin($result['id_eleve']);
+                                        ?>
                                             <tr>
-                                                <td><?= htmlspecialchars($result['prenom'] . ' ' . $result['nom']) ?></td>
+                                                <td>
+                                                    <?= htmlspecialchars($result['prenom'] . ' ' . $result['nom']) ?>
+                                                    <?php if (!$canAccess): ?>
+                                                        <span class="badge bg-light-danger text-danger ms-2"><i class="ph-duotone ph-warning-circle me-1"></i>Bloqué (Finances)</span>
+                                                    <?php endif; ?>
+                                                </td>
                                                 <td><strong><?= number_format($result['moyenne_generale'], 2) ?> / 20</strong></td>
                                                 <td>
-                                                    <a href="/bulletins/student?eleve_id=<?= $result['id_eleve'] ?>&sequence_id=<?= $sequence['id'] ?>" class="btn btn-sm btn-info">
-                                                        <i class="fas fa-eye"></i> <?= _('View Report Card') ?>
-                                                    </a>
+                                                    <?php if ($canAccess): ?>
+                                                        <a href="/bulletins/student?eleve_id=<?= $result['id_eleve'] ?>&sequence_id=<?= $sequence['id'] ?>" class="btn btn-sm btn-info">
+                                                            <i class="fas fa-eye"></i> <?= _('View Report Card') ?>
+                                                        </a>
+                                                    <?php else: ?>
+                                                        <button class="btn btn-sm btn-secondary" disabled title="Bloqué en raison de l'état financier">
+                                                            <i class="fas fa-lock"></i> <?= _('Bloqué') ?>
+                                                        </button>
+                                                    <?php endif; ?>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>

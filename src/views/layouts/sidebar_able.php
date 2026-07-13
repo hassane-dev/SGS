@@ -173,6 +173,20 @@ $navItems = [
         'condition' => Auth::can('view', 'paiement'),
     ],
     [
+        'url' => '/settings/politique-financiere',
+        'icon' => 'ph-duotone ph-shield-check',
+        'text' => _('Politique financière'),
+        'title' => _('Gérer la politique financière globale.'),
+        'condition' => Auth::can('edit', 'param_lycee'),
+    ],
+    [
+        'url' => '/paiements/controle',
+        'icon' => 'ph-duotone ph-info',
+        'text' => _('Contrôle financier'),
+        'title' => _('Vérifier et contrôler la situation financière des élèves.'),
+        'condition' => Auth::can('view', 'paiement'),
+    ],
+    [
         'url' => '/paiements/pending',
         'icon' => 'ph-duotone ph-user-plus',
         'text' => _('Paiement inscription'),
