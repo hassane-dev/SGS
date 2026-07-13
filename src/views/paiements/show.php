@@ -83,7 +83,7 @@
                                 <div class="bg-light-primary p-3 rounded mb-4">
                                     <div class="d-flex justify-content-between mb-2">
                                         <span class="text-muted">Total Attendu :</span>
-                                        <span class="fw-bold text-dark" id="inscription-total-attendu" data-base="<?= (float)($frais['frais_inscription'] ?? 0) ?>"><?= number_format($fraisInscription['total'], 0, ',', ' ') ?> FCFA</span>
+                                        <span class="fw-bold text-dark" id="inscription-total-attendu" data-base="<?= $baseInscription ?>"><?= number_format($fraisInscription['total'], 0, ',', ' ') ?> FCFA</span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-2 text-success">
                                         <span>Déjà Versé :</span>
@@ -113,15 +113,15 @@
                                         <h6 class="mb-3 text-muted">Options & Services Additionnels</h6>
                                         <?php if ((float)($frais['frais_logo'] ?? 0) > 0): ?>
                                         <div class="form-check form-switch mb-2">
-                                            <input class="form-check-input option-checkbox" type="checkbox" id="logo_paye" name="options[logo]" data-price="<?= (float)$frais['frais_logo'] ?>" <?= !empty($options['logo']) ? 'checked disabled' : '' ?> <?= !$isComptable ? 'disabled' : '' ?>>
-                                            <label class="form-check-label" for="logo_paye">Frais de Logo (Macaron) <small class="text-muted">(+<?= number_format($frais['frais_logo'], 0, ',', ' ') ?> FCFA)</small></label>
+                                            <input class="form-check-input option-checkbox" type="checkbox" id="logo_paye" name="options[logo]" data-price="<?= $baseLogo ?>" <?= !empty($options['logo']) ? 'checked disabled' : '' ?> <?= !$isComptable ? 'disabled' : '' ?>>
+                                            <label class="form-check-label" for="logo_paye">Frais de Logo (Macaron) <small class="text-muted">(+<?= number_format($baseLogo, 0, ',', ' ') ?> FCFA)</small></label>
                                         </div>
                                         <?php endif; ?>
 
                                         <?php if ((float)($frais['frais_carte'] ?? 0) > 0): ?>
                                         <div class="form-check form-switch">
-                                            <input class="form-check-input option-checkbox" type="checkbox" id="carte_scolaire_payee" name="options[carte]" data-price="<?= (float)$frais['frais_carte'] ?>" <?= !empty($options['carte']) ? 'checked disabled' : '' ?> <?= !$isComptable ? 'disabled' : '' ?>>
-                                            <label class="form-check-label" for="carte_scolaire_payee">Carte scolaire informatisée <small class="text-muted">(+<?= number_format($frais['frais_carte'], 0, ',', ' ') ?> FCFA)</small></label>
+                                            <input class="form-check-input option-checkbox" type="checkbox" id="carte_scolaire_payee" name="options[carte]" data-price="<?= $baseCarte ?>" <?= !empty($options['carte']) ? 'checked disabled' : '' ?> <?= !$isComptable ? 'disabled' : '' ?>>
+                                            <label class="form-check-label" for="carte_scolaire_payee">Carte scolaire informatisée <small class="text-muted">(+<?= number_format($baseCarte, 0, ',', ' ') ?> FCFA)</small></label>
                                         </div>
                                         <?php endif; ?>
                                     </div>

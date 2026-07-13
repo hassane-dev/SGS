@@ -416,7 +416,10 @@ class EleveController {
 
                 $db->commit();
 
-                $_SESSION['success_message'] = "L'élève a été assigné à la classe avec succès.";
+                $_SESSION['success_message'] = "L'élève a été inscrit et assigné à la classe avec succès. Vous pouvez maintenant configurer immédiatement ses avantages, réductions ou bourses ci-dessous.";
+
+                header('Location: /eleves/parametres-financiers?id=' . $eleve_id);
+                exit();
             } catch (Throwable $e) {
                 if ($db->inTransaction()) {
                     $db->rollBack();
@@ -431,8 +434,68 @@ class EleveController {
             header('Location: /eleves/assign-class?eleve_id=' . $eleve_id);
             exit();
         }
+    }
 
-        header('Location: /eleves');
+    public function parametresFinanciers() {
+        if (!Auth::can('edit', 'eleve')) { $this->forbidden(); }
+        $eleve_id = $_GET['id'] ?? null;
+        if (!$eleve_id) {
+            header('Location: /eleves');
+            exit();
+        }
+
+        require_once __DIR__ . '/../models/ParametreFinancierEleve.php';
+        $eleve = Eleve::findById($eleve_id);
+        if (!$eleve) {
+            header('Location: /eleves');
+            exit();
+        }
+
+        $activeYear = AnneeAcademique::findActive();
+        $lycee_id = $eleve['lycee_id'];
+
+        $params = ParametreFinancierEleve::findByEleveId($eleve_id);
+        $availableFees = ParametreFinancierEleve::getAvailableFeesList($lycee_id, $activeYear['id'] ?? null);
+        $history = ParametreFinancierEleve::getHistoryByEleveId($eleve_id);
+
+        View::render('eleves/parametres_financiers', [
+            'eleve' => $eleve,
+            'params' => $params,
+            'availableFees' => $availableFees,
+            'history' => $history,
+            'title' => 'Paramètres Financiers - ' . htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom'])
+        ]);
+    }
+
+    public function updateParametresFinanciers() {
+        if (!Auth::can('edit', 'eleve')) { $this->forbidden(); }
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /eleves');
+            exit();
+        }
+
+        require_once __DIR__ . '/../models/ParametreFinancierEleve.php';
+        require_once __DIR__ . '/../models/FinanceService.php';
+
+        $data = Validator::sanitize($_POST);
+        $eleve_id = $data['eleve_id'];
+        $motif_modification = $data['motif_modification'] ?? '';
+
+        try {
+            ParametreFinancierEleve::save($data, Auth::getUserId(), $motif_modification);
+
+            // Recalculate financial state!
+            if (class_exists('FinanceService')) {
+                FinanceService::updateFinancialState($eleve_id);
+            }
+
+            $_SESSION['success_message'] = "Les paramètres financiers de l'élève ont été mis à jour.";
+        } catch (Exception $e) {
+            error_log("Failed to save financial parameters: " . $e->getMessage());
+            $_SESSION['error_message'] = "Erreur lors de la mise à jour : " . $e->getMessage();
+        }
+
+        header('Location: /eleves/parametres-financiers?id=' . $eleve_id);
         exit();
     }
 }

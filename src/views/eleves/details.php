@@ -34,6 +34,23 @@
         <!-- [ breadcrumb ] end -->
 
         <!-- [ Main Content ] start -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card mb-0">
+                    <div class="card-body p-2">
+                        <ul class="nav nav-pills" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="/eleves/details?id=<?= $eleve['id_eleve'] ?>"><i class="ph-duotone ph-user me-2"></i>Dossier & Informations</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/eleves/parametres-financiers?id=<?= $eleve['id_eleve'] ?>"><i class="ph-duotone ph-currency-dollar me-2"></i>Paramètres Financiers</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row">
             <!-- Informations Personnelles -->
             <div class="col-12">

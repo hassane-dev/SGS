@@ -170,6 +170,8 @@ $router->register('/eleves/update', 'EleveController', 'update');
 $router->register('/eleves/destroy', 'EleveController', 'destroy');
 $router->register('/eleves/assign-class', 'EleveController', 'assignClass');
 $router->register('/eleves/process-assignment', 'EleveController', 'processAssignment');
+$router->register('/eleves/parametres-financiers', 'EleveController', 'parametresFinanciers');
+$router->register('/eleves/parametres-financiers/update', 'EleveController', 'updateParametresFinanciers');
 
 // Inscriptions / Reinscriptions redirects to student creation flow
 $router->register('/inscriptions', 'EleveController', 'create');
@@ -297,6 +299,8 @@ $router->register('/modele-bulletin/save', 'ModeleBulletinController', 'save');
 // School Parameters
 $router->register('/param-lycee/edit', 'ParamLyceeController', 'edit');
 $router->register('/param-lycee/update', 'ParamLyceeController', 'update');
+$router->register('/settings/politique-financiere', 'PolitiqueFinanciereController', 'edit');
+$router->register('/settings/politique-financiere/update', 'PolitiqueFinanciereController', 'update');
 $router->register('/param-general/edit', 'ParamGeneralController', 'edit');
 $router->register('/param-general/update', 'ParamGeneralController', 'update');
 $router->register('/param-devoir', 'ParamDevoirController', 'edit');

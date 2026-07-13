@@ -141,6 +141,7 @@
                                                         <a href="/paiements/show/<?= $eleve['id_eleve'] ?>" class="btn btn-success btn-sm" title="<?= _('Gérer les paiements') ?>"><?= _('Payer') ?></a>
                                                     <?php endif; ?>
                                                     <a href="/eleves/details?id=<?= $eleve['id_eleve'] ?>" class="btn btn-info btn-sm ms-2" title="<?= _('Dossier complet') ?>"><?= _('Détails') ?></a>
+                                                    <a href="/eleves/parametres-financiers?id=<?= $eleve['id_eleve'] ?>" class="btn btn-warning btn-sm ms-2" title="<?= _('Paramètres financiers') ?>"><i class="ph-duotone ph-currency-dollar"></i></a>
                                                     <a href="/eleves/edit?id=<?= $eleve['id_eleve'] ?>" class="btn btn-primary btn-sm ms-2" title="<?= _('Modifier') ?>"><?= _('Modifier') ?></a>
                                                     <form action="/eleves/destroy" method="POST" class="d-inline ms-2" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir radier cet élève ? Cette action est réversible.') ?>');">
                                                         <input type="hidden" name="id" value="<?= $eleve['id_eleve'] ?>">
