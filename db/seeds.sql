@@ -116,7 +116,15 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (95, 'boutique', 'manage', 'Gérer la boutique (articles et achats)'),
 
 -- Test Entree
-(96, 'tests_entree', 'manage', 'Gérer les tests d\'entrée');
+(96, 'tests_entree', 'manage', 'Gérer les tests d\'entrée'),
+
+-- Finance Permissions
+(110, 'finance', 'view_policy', 'Consulter la politique financière du lycée'),
+(111, 'finance', 'edit_policy', 'Modifier la politique financière du lycée'),
+(112, 'finance', 'view_advantages', 'Consulter les avantages financiers des élèves'),
+(113, 'finance', 'edit_advantages', 'Modifier les avantages financiers des élèves'),
+(114, 'finance', 'view_history', 'Consulter l\'historique des modifications de l\'élève'),
+(115, 'finance', 'view_control', 'Consulter le panneau de contrôle financier');
 
 -- --------------------------------------------------------
 -- Role-Permission Assignments
@@ -166,7 +174,7 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 
 -- Comptable (Accountant)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(7, 1), (7, 70), (7, 71), (7, 73);
+(7, 1), (7, 70), (7, 71), (7, 73), (7, 110), (7, 111), (7, 112), (7, 113), (7, 114), (7, 115);
 
 -- Eleve (Student)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
