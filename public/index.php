@@ -332,6 +332,9 @@ $uri = str_replace($base_path, '', $uri);
 if ($uri === '') {
     $uri = '/';
 }
+if ($uri !== '/' && substr($uri, -1) === '/') {
+    $uri = rtrim($uri, '/');
+}
 
 
 // Dispatch the router

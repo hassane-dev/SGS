@@ -5,7 +5,7 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- Drop tables if they exist to ensure a clean slate on execution
-DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `parametres_generaux`, `annees_academiques`, `personnel_assignments`, `param_lycee`, `param_general`, `param_devoir`, `param_composition`, `bulletins`, `parametres_evaluations`, `deblocages_notes`, `classe_parametres`, `inscriptions`, `mensualites`, `mensualite_details`, `frais`, `modele_carte`, `modele_bulletin`, `notifications`, `evaluations`, `presences`, `horaire_enseignant`, `sequences`, `surveillant_classes`, `surveillant_niveaux`, `surveillant_general`, `series`;
+DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_ventes`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `parametres_generaux`, `annees_academiques`, `personnel_assignments`, `param_lycee`, `param_general`, `param_devoir`, `param_composition`, `bulletins`, `parametres_evaluations`, `deblocages_notes`, `classe_parametres`, `inscriptions`, `mensualites`, `mensualite_details`, `frais`, `modele_carte`, `modele_bulletin`, `notifications`, `evaluations`, `presences`, `horaire_enseignant`, `sequences`, `surveillant_classes`, `surveillant_niveaux`, `surveillant_general`, `series`, `carte_templates`, `carte_objects`, `politiques_financieres`, `parametres_financiers_eleves`, `parametres_financiers_historique`, `etats_financiers_eleves`;
 
 -- =================================================================
 -- General and Core Tables
@@ -804,5 +804,58 @@ CREATE TABLE `evaluations` (
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
     UNIQUE KEY `unique_evaluation_note` (`eleve_id`, `matiere_id`, `sequence_id`, `annee_academique_id`, `type`)
 );
+
+CREATE TABLE `politiques_financieres` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `lycee_id` INT NOT NULL UNIQUE,
+    `activation_seuil_type` ENUM('100', '75', '50', 'montant_minimum') NOT NULL DEFAULT '100',
+    `activation_seuil_valeur` DECIMAL(10,2) NULL,
+    `notes_seuil_mensualites` INT NOT NULL DEFAULT 0,
+    `bulletin_seuil_complet` TINYINT(1) NOT NULL DEFAULT 1,
+    `active` TINYINT(1) NOT NULL DEFAULT 1,
+    `cree_le` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `parametres_financiers_eleves` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `eleve_id` INT NOT NULL UNIQUE,
+    `type_avantage` ENUM('Aucun', 'Réduction', 'Exonération', 'Bourse', 'Prise en charge', 'Autre') NOT NULL DEFAULT 'Aucun',
+    `valeur_type` ENUM('Pourcentage', 'Montant fixe') NOT NULL DEFAULT 'Pourcentage',
+    `valeur` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    `date_debut` DATE NULL,
+    `date_fin` DATE NULL,
+    `motif` TEXT NULL,
+    `organisme_financeur` VARCHAR(255) NULL,
+    `frais_concernes` JSON NULL,
+    `tous_frais` TINYINT(1) NOT NULL DEFAULT 0,
+    `cree_le` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `parametres_financiers_historique` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `eleve_id` INT NOT NULL,
+    `user_id` INT NOT NULL,
+    `ancienne_valeur` JSON NULL,
+    `nouvelle_valeur` JSON NULL,
+    `date_modification` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `motif` TEXT NULL,
+    `ip_modification` VARCHAR(45) NULL,
+    `role_utilisateur` VARCHAR(100) NULL,
+    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
+    FOREIGN KEY (`user_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `etats_financiers_eleves` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `eleve_id` INT NOT NULL UNIQUE,
+    `inscription_statut` ENUM('Non payée', 'Partiellement payée', 'Payée') NOT NULL DEFAULT 'Non payée',
+    `mensualite_statut` ENUM('À jour', 'Partiellement payée', 'En retard') NOT NULL DEFAULT 'À jour',
+    `notes_consultation` ENUM('Autorisée', 'Interdite') NOT NULL DEFAULT 'Interdite',
+    `bulletin_impression` ENUM('Autorisée', 'Interdite') NOT NULL DEFAULT 'Interdite',
+    `mis_a_jour_le` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 SET FOREIGN_KEY_CHECKS = 1;
