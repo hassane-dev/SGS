@@ -8,6 +8,7 @@ require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Etude.php';
 require_once __DIR__ . '/../models/Frais.php';
 require_once __DIR__ . '/../models/Sequence.php';
+require_once __DIR__ . '/../models/FinanceService.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
 
@@ -144,7 +145,7 @@ class MensualiteController {
 
             $tranches["Tranche " . ($i + 1)] = [
                 'mois' => $mois,
-                'montant_par_mois' => $frais['frais_mensuel'] ?? 0,
+                'montant_par_mois' => FinanceService::applyFinancialAdvantages($eleveId, 'frais_mensuel', (float)($frais['frais_mensuel'] ?? 0)),
                 'paye' => $paye
             ];
         }

@@ -270,16 +270,20 @@ class PaiementController {
         $frais = Frais::findForClasse($classe, $anneeActive['id']);
         $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id'], $eleve['lycee_id'] ?? null);
 
+        $baseInscription = FinanceService::applyFinancialAdvantages($eleveId, 'frais_inscription', (float)($frais['frais_inscription'] ?? 0));
+        $baseLogo = FinanceService::applyFinancialAdvantages($eleveId, 'frais_logo', (float)($frais['frais_logo'] ?? 0));
+        $baseCarte = FinanceService::applyFinancialAdvantages($eleveId, 'frais_carte', (float)($frais['frais_carte'] ?? 0));
+
         $fraisInscription = [
-            'total' => (float) ($frais['frais_inscription'] ?? 0),
+            'total' => $baseInscription,
             'verse' => (float) ($inscription['montant_verse'] ?? 0),
         ];
 
-        $options = $inscription ? json_decode($inscription['details_frais'], true) : ['logo' => false, 'carte' => false];
+        $options = $inscription ? json_decode($inscription['details_frais'] ?? '[]', true) : ['logo' => false, 'carte' => false];
 
         // Ajouter les frais d'options au total si cochés, en utilisant les frais configurés
-        if (!empty($options['logo'])) $fraisInscription['total'] += (float)($frais['frais_logo'] ?? 0);
-        if (!empty($options['carte'])) $fraisInscription['total'] += (float)($frais['frais_carte'] ?? 0);
+        if (!empty($options['logo'])) $fraisInscription['total'] += $baseLogo;
+        if (!empty($options['carte'])) $fraisInscription['total'] += $baseCarte;
 
         $fraisInscription['reste'] = $fraisInscription['total'] - $fraisInscription['verse'];
 
@@ -320,7 +324,7 @@ class PaiementController {
 
             $tranches["Tranche " . ($i + 1)] = [
                 'mois' => $mois,
-                'montant_par_mois' => $frais['frais_mensuel'] ?? 0,
+                'montant_par_mois' => FinanceService::applyFinancialAdvantages($eleveId, 'frais_mensuel', (float)($frais['frais_mensuel'] ?? 0)),
                 'paye' => $paye
             ];
         }
@@ -329,6 +333,9 @@ class PaiementController {
             'eleve' => $eleve,
             'frais' => $frais,
             'fraisInscription' => $fraisInscription,
+            'baseInscription' => $baseInscription,
+            'baseLogo' => $baseLogo,
+            'baseCarte' => $baseCarte,
             'inscription' => $inscription,
             'options' => $options,
             'tranches' => $tranches,
@@ -441,7 +448,7 @@ class PaiementController {
 
             if (!$frais) continue;
 
-            $attenduParMois = (float)($frais['frais_mensuel'] ?? 0);
+            $attenduParMois = FinanceService::applyFinancialAdvantages($eleve['id_eleve'], 'frais_mensuel', (float)($frais['frais_mensuel'] ?? 0));
             if ($attenduParMois <= 0) continue;
 
             $payes = Mensualite::findByEtude($eleve['id_etude']);
