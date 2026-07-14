@@ -53,6 +53,9 @@
 
                         <h5 class="border-bottom pb-2 mt-4 mb-3"><?= _('Informations Professionnelles') ?></h5>
                         <div class="row">
+                            <?php if (!empty($user['identifiant_public'])): ?>
+                                <div class="col-sm-6 mb-2"><strong><?= _('Identifiant Public') ?>:</strong> <span class="badge bg-light-primary text-primary"><?= htmlspecialchars($user['identifiant_public'] ?? '') ?></span></div>
+                            <?php endif; ?>
                             <div class="col-sm-6 mb-2"><strong><?= _('Rôle') ?>:</strong> <?= htmlspecialchars($role['nom_role'] ?? 'N/A') ?></div>
                             <div class="col-sm-6 mb-2"><strong><?= _('Type de Contrat') ?>:</strong> <?= htmlspecialchars($contrat['libelle'] ?? 'N/A') ?></div>
                             <div class="col-sm-6 mb-2"><strong><?= _('Date d\'embauche') ?>:</strong> <?= htmlspecialchars($user['date_embauche'] ?? 'N/A') ?></div>

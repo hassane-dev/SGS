@@ -21,6 +21,7 @@ class User {
     public $date_embauche;
     public $actif;
     public $photo;
+    public $identifiant_public;
 
     public function __construct($data = []) {
         if (!empty($data)) {
@@ -41,6 +42,7 @@ class User {
             $this->date_embauche = $data['date_embauche'] ?? null;
             $this->actif = $data['actif'] ?? true;
             $this->photo = $data['photo'] ?? null;
+            $this->identifiant_public = $data['identifiant_public'] ?? null;
         }
     }
 
@@ -91,9 +93,64 @@ class User {
 
     // --- Full CRUD Methods ---
 
+    /**
+     * Génère un identifiant public unique pour le personnel.
+     * Format : [counter][SUFFIX]
+     */
+    public static function generatePublicId($role_id) {
+        $db = Database::getInstance();
+
+        // Find the suffix based on role
+        $suffix = self::getSuffixForRole($role_id);
+
+        // Find the last personnel's public ID to determine the next counter
+        $stmt = $db->query("SELECT identifiant_public FROM utilisateurs WHERE identifiant_public IS NOT NULL ORDER BY id_user DESC LIMIT 1");
+        $lastId = $stmt->fetchColumn();
+
+        $counter = 1;
+        if ($lastId && preg_match('/^(\d+)/', $lastId, $matches)) {
+            $counter = (int)$matches[1] + 1;
+        }
+
+        $paddedCounter = str_pad($counter, 4, '0', STR_PAD_LEFT);
+
+        return $paddedCounter . $suffix;
+    }
+
+    /**
+     * Détermine le suffixe de l'identifiant public en fonction du rôle.
+     */
+    public static function getSuffixForRole($role_id_or_name) {
+        $role_name = '';
+        if (is_numeric($role_id_or_name)) {
+            $db = Database::getInstance();
+            $stmt = $db->prepare("SELECT nom_role FROM roles WHERE id_role = :id");
+            $stmt->execute(['id' => $role_id_or_name]);
+            $role_name = $stmt->fetchColumn() ?: '';
+        } else {
+            $role_name = (string)$role_id_or_name;
+        }
+
+        $role_name = strtolower($role_name);
+
+        if (strpos($role_name, 'enseignant') !== false) {
+            return 'ENS';
+        } elseif (strpos($role_name, 'comptable') !== false) {
+            return 'COM';
+        } elseif (strpos($role_name, 'surveillant') !== false) {
+            return 'SUR';
+        } elseif (strpos($role_name, 'proviseur') !== false || strpos($role_name, 'censeur') !== false || strpos($role_name, 'directeur') !== false) {
+            return 'DIR';
+        } elseif (strpos($role_name, 'admin') !== false) {
+            return 'ADM';
+        } else {
+            return 'ADM'; // Default fallback
+        }
+    }
+
     public static function findAll($lycee_id = null) {
         $db = Database::getInstance();
-        $sql = "SELECT u.id_user, u.nom, u.prenom, u.actif, u.photo, r.nom_role
+        $sql = "SELECT u.id_user, u.nom, u.prenom, u.actif, u.photo, u.identifiant_public, r.nom_role
                 FROM utilisateurs u
                 LEFT JOIN roles r ON u.role_id = r.id_role";
         if ($lycee_id !== null) {
@@ -164,10 +221,10 @@ class User {
         } else {
             $sql = "INSERT INTO utilisateurs (
                         nom, prenom, sexe, date_naissance, lieu_naissance, adresse, telephone, email,
-                        mot_de_passe, fonction, role_id, lycee_id, contrat_id, date_embauche, actif, photo
+                        mot_de_passe, fonction, role_id, lycee_id, contrat_id, date_embauche, actif, photo, identifiant_public
                     ) VALUES (
                         :nom, :prenom, :sexe, :date_naissance, :lieu_naissance, :adresse, :telephone, :email,
-                        :mot_de_passe, :fonction, :role_id, :lycee_id, :contrat_id, :date_embauche, :actif, :photo
+                        :mot_de_passe, :fonction, :role_id, :lycee_id, :contrat_id, :date_embauche, :actif, :photo, :identifiant_public
                     )";
         }
 
@@ -209,6 +266,7 @@ class User {
                 'date_embauche' => empty($data['date_embauche']) ? null : $data['date_embauche'],
                 'actif' => $data['actif'] ?? 1,
                 'photo' => $data['photo'] ?? null,
+                'identifiant_public' => self::generatePublicId($data['role_id'])
             ];
         }
 
@@ -240,7 +298,7 @@ class User {
     public static function findAllByRoleName($role_name, $lycee_id) {
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            SELECT u.id_user, u.nom, u.prenom FROM utilisateurs u
+            SELECT u.id_user, u.nom, u.prenom, u.identifiant_public FROM utilisateurs u
             JOIN roles r ON u.role_id = r.id_role
             WHERE r.nom_role = :role_name AND u.lycee_id = :lycee_id
             ORDER BY u.nom, u.prenom
@@ -280,7 +338,7 @@ class User {
 
         $db = Database::getInstance();
         $sql = "
-            SELECT u.id_user, CONCAT(u.prenom, ' ', u.nom) as full_name
+            SELECT u.id_user, u.identifiant_public, CONCAT(u.prenom, ' ', u.nom) as full_name
             FROM utilisateurs u
             JOIN roles r ON u.role_id = r.id_role
             WHERE u.lycee_id = :lycee_id

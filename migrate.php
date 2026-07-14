@@ -76,6 +76,94 @@ try {
         FOREIGN KEY (`cree_par`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
+    // Add identifiant_public to eleves table
+    $db->exec("ALTER TABLE eleves ADD COLUMN IF NOT EXISTS identifiant_public VARCHAR(50) DEFAULT NULL;");
+    try {
+        $db->exec("ALTER TABLE eleves ADD UNIQUE (identifiant_public);");
+    } catch (Exception $e) {
+        // Safe if unique key already exists
+    }
+
+    // Add identifiant_public to utilisateurs table
+    $db->exec("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS identifiant_public VARCHAR(50) DEFAULT NULL;");
+    try {
+        $db->exec("ALTER TABLE utilisateurs ADD UNIQUE (identifiant_public);");
+    } catch (Exception $e) {
+        // Safe if unique key already exists
+    }
+
+    // Retroactive generation for existing students (eleves)
+    $stmt = $db->query("SELECT id_eleve, (SELECT date_activation FROM etudes WHERE eleve_id = id_eleve LIMIT 1) as date_activation FROM eleves WHERE identifiant_public IS NULL ORDER BY id_eleve ASC");
+    $eleves_without_id = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (!empty($eleves_without_id)) {
+        $stmt_counter = $db->query("SELECT identifiant_public FROM eleves WHERE identifiant_public LIKE '%E' ORDER BY id_eleve DESC LIMIT 1");
+        $last_student_public_id = $stmt_counter->fetchColumn();
+        $student_counter = 1;
+        if ($last_student_public_id && preg_match('/-(\d+)E$/', $last_student_public_id, $matches)) {
+            $student_counter = (int)$matches[1] + 1;
+        }
+
+        $update_student_stmt = $db->prepare("UPDATE eleves SET identifiant_public = :identifiant_public WHERE id_eleve = :id_eleve");
+        foreach ($eleves_without_id as $e) {
+            $enrollDate = !empty($e['date_activation']) ? $e['date_activation'] : date('Y-m-d');
+            $dateStr = date('dmY', strtotime($enrollDate));
+            $paddedCounter = str_pad($student_counter, 4, '0', STR_PAD_LEFT);
+            $identifiant = $dateStr . '-' . $paddedCounter . 'E';
+
+            $update_student_stmt->execute([
+                'identifiant_public' => $identifiant,
+                'id_eleve' => $e['id_eleve']
+            ]);
+            $student_counter++;
+        }
+    }
+
+    // Retroactive generation for existing staff (utilisateurs)
+    $stmt = $db->query("SELECT id_user, role_id FROM utilisateurs WHERE identifiant_public IS NULL ORDER BY id_user ASC");
+    $users_without_id = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (!empty($users_without_id)) {
+        $stmt_counter = $db->query("SELECT identifiant_public FROM utilisateurs WHERE identifiant_public IS NOT NULL ORDER BY id_user DESC LIMIT 1");
+        $last_user_public_id = $stmt_counter->fetchColumn();
+        $user_counter = 1;
+        if ($last_user_public_id && preg_match('/^(\d+)/', $last_user_public_id, $matches)) {
+            $user_counter = (int)$matches[1] + 1;
+        }
+
+        $update_user_stmt = $db->prepare("UPDATE utilisateurs SET identifiant_public = :identifiant_public WHERE id_user = :id_user");
+        foreach ($users_without_id as $u) {
+            $role_name = '';
+            if (!empty($u['role_id'])) {
+                $stmt_role = $db->prepare("SELECT nom_role FROM roles WHERE id_role = :id");
+                $stmt_role->execute(['id' => $u['role_id']]);
+                $role_name = $stmt_role->fetchColumn() ?: '';
+            }
+            $role_name = strtolower($role_name);
+
+            if (strpos($role_name, 'enseignant') !== false) {
+                $suffix = 'ENS';
+            } elseif (strpos($role_name, 'comptable') !== false) {
+                $suffix = 'COM';
+            } elseif (strpos($role_name, 'surveillant') !== false) {
+                $suffix = 'SUR';
+            } elseif (strpos($role_name, 'proviseur') !== false || strpos($role_name, 'censeur') !== false || strpos($role_name, 'directeur') !== false) {
+                $suffix = 'DIR';
+            } else {
+                $suffix = 'ADM';
+            }
+
+            $paddedCounter = str_pad($user_counter, 4, '0', STR_PAD_LEFT);
+            $identifiant = $paddedCounter . $suffix;
+
+            $update_user_stmt->execute([
+                'identifiant_public' => $identifiant,
+                'id_user' => $u['id_user']
+            ]);
+            $user_counter++;
+        }
+    }
+
     echo "Migration successful\n";
 } catch (Exception $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";

@@ -109,6 +109,7 @@ CREATE TABLE `utilisateurs` (
     `date_embauche` DATE,
     `actif` BOOLEAN DEFAULT TRUE,
     `photo` TEXT,
+    `identifiant_public` VARCHAR(50) UNIQUE DEFAULT NULL,
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE SET NULL,
     FOREIGN KEY (`role_id`) REFERENCES `roles`(`id_role`) ON DELETE SET NULL
 );
@@ -303,6 +304,7 @@ CREATE TABLE `eleves` (
     `email` VARCHAR(255) UNIQUE,
     `telephone` VARCHAR(50),
     `statut` ENUM('en_attente', 'en_attente_paiement', 'actif', 'transféré', 'radié', 'diplômé', 'abandonné') NOT NULL DEFAULT 'en_attente',
+    `identifiant_public` VARCHAR(50) UNIQUE DEFAULT NULL,
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 
