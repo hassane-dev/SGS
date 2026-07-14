@@ -192,6 +192,8 @@ $router->register('/paiements/show/{eleveId}', 'PaiementController', 'show');
 $router->register('/paiements/regulariser-inscription/{eleveId}', 'PaiementController', 'regulariserInscription');
 $router->register('/paiements/process-payment/{eleveId}', 'PaiementController', 'processPayment');
 $router->register('/paiements/restes', 'PaiementController', 'restes');
+$router->register('/paiements/restes/class/{classeId}', 'PaiementController', 'classRestes');
+$router->register('/paiements/regler/{eleveId}', 'PaiementController', 'regler');
 $router->register('/paiements/historique', 'PaiementController', 'historique');
 $router->register('/paiements/recus', 'PaiementController', 'recus');
 $router->register('/paiements/rapports', 'PaiementController', 'rapports');

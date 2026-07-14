@@ -11,6 +11,7 @@ require_once __DIR__ . '/Sequence.php';
 require_once __DIR__ . '/Classe.php';
 require_once __DIR__ . '/Eleve.php';
 require_once __DIR__ . '/Etude.php';
+require_once __DIR__ . '/FinancialStatusService.php';
 require_once __DIR__ . '/../core/Auth.php';
 
 class FinanceService {
@@ -126,89 +127,44 @@ class FinanceService {
             return $data;
         }
 
-        $classe = Classe::findById($etude['classe_id']);
-        $frais = Frais::findForClasse($classe, $anneeActive['id']);
-        if (!$frais) {
-            $data = [
-                'eleve_id' => $eleveId,
-                'inscription_statut' => 'Payée',
-                'mensualite_statut' => 'À jour',
-                'notes_consultation' => 'Autorisée',
-                'bulletin_impression' => 'Autorisée'
-            ];
-            EtatFinancierEleve::save($data);
-            return $data;
+        // Get status using the unified service (Point 1 & 4)
+        $status = FinancialStatusService::getStudentFinancialStatus($eleveId, $anneeActive['id']);
+        if (!$status) {
+            return null;
         }
 
         // 1. Calculate Inscription status
-        $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id'], $lyceeId);
-        $expectedInscription = self::applyFinancialAdvantages($eleveId, 'frais_inscription', (float)$frais['frais_inscription']);
-
-        $options = $inscription ? json_decode($inscription['details_frais'] ?? '[]', true) : [];
-        if (!empty($options['logo'])) {
-            $expectedInscription += self::applyFinancialAdvantages($eleveId, 'frais_logo', (float)($frais['frais_logo'] ?? 0));
-        }
-        if (!empty($options['carte'])) {
-            $expectedInscription += self::applyFinancialAdvantages($eleveId, 'frais_carte', (float)($frais['frais_carte'] ?? 0));
-        }
-
-        $verseInscription = $inscription ? (float)$inscription['montant_verse'] : 0.00;
-
-        if ($expectedInscription <= 0.01) {
+        $inscription_statut = 'Non payée';
+        if ($status['reste_inscription'] <= 0.01) {
             $inscription_statut = 'Payée';
-        } elseif ($verseInscription >= $expectedInscription - 0.01) {
-            $inscription_statut = 'Payée';
-        } elseif ($verseInscription > 0) {
-            $inscription_statut = 'Partiellement payée';
         } else {
-            $inscription_statut = 'Non payée';
+            // Find expected total and verse to see if it's partially paid
+            $classe = Classe::findById($etude['classe_id']);
+            $frais = Frais::findForClasse($classe, $anneeActive['id']);
+            $expectedInscription = self::applyFinancialAdvantages($eleveId, 'frais_inscription', (float)($frais['frais_inscription'] ?? 0));
+            $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id'], $lyceeId);
+            $options = $inscription ? json_decode($inscription['details_frais'] ?? '[]', true) : [];
+            if (!empty($options['logo'])) {
+                $expectedInscription += self::applyFinancialAdvantages($eleveId, 'frais_logo', (float)($frais['frais_logo'] ?? 0));
+            }
+            if (!empty($options['carte'])) {
+                $expectedInscription += self::applyFinancialAdvantages($eleveId, 'frais_carte', (float)($frais['frais_carte'] ?? 0));
+            }
+            $verseInscription = $inscription ? (float)$inscription['montant_verse'] : 0.00;
+            if ($verseInscription > 0.01) {
+                $inscription_statut = 'Partiellement payée';
+            }
         }
 
         // 2. Calculate Monthly Payments status
-        $sequences = Sequence::findAll();
-        $fmt = new IntlDateFormatter('fr_FR', IntlDateFormatter::FULL, IntlDateFormatter::NONE, 'Africa/Porto-Novo', IntlDateFormatter::GREGORIAN, 'MMMM');
-
-        $monthsToDate = [];
-        $today = new DateTime();
-        $today->modify('first day of this month');
-
-        foreach ($sequences as $seq) {
-            if ($seq['annee_academique_id'] != $anneeActive['id']) {
-                continue;
-            }
-            $current = new DateTime($seq['date_debut']);
-            $current->modify('first day of this month');
-            $end = new DateTime($seq['date_fin']);
-            $end->modify('first day of this month');
-
-            $safety = 0;
-            while ($current <= $end && $current <= $today && $safety < 12) {
-                $monthName = ucfirst($fmt->format($current));
-                if (!in_array($monthName, $monthsToDate)) {
-                    $monthsToDate[] = $monthName;
-                }
-                $current->modify('first day of next month');
-                $safety++;
-            }
-        }
-
-        $expectedMonthly = self::applyFinancialAdvantages($eleveId, 'frais_mensuel', (float)$frais['frais_mensuel']);
-        $mensualitesPayees = Mensualite::findByEtude($etude['id_etude']);
-
-        $totalElapsed = count($monthsToDate);
+        $totalElapsed = count($status['details_mensualites']);
         $fullyPaidCount = 0;
-        $partiallyPaidCount = 0;
         $unpaidCount = 0;
 
-        foreach ($monthsToDate as $month) {
-            $verse = isset($mensualitesPayees[$month]) ? (float)$mensualitesPayees[$month]['total'] : 0.00;
-            if ($expectedMonthly <= 0.01) {
+        foreach ($status['details_mensualites'] as $dm) {
+            if ($dm['reste'] <= 0.01) {
                 $fullyPaidCount++;
-            } elseif ($verse >= $expectedMonthly - 0.01) {
-                $fullyPaidCount++;
-            } elseif ($verse > 0) {
-                $partiallyPaidCount++;
-            } else {
+            } elseif ($dm['verse'] <= 0.01) {
                 $unpaidCount++;
             }
         }
@@ -241,9 +197,11 @@ class FinanceService {
         if (!$isPolicyActive || empty($policy['bulletin_seuil_complet'])) {
             $bulletin_impression = 'Autorisée';
         } else {
+            $sequences = Sequence::findAll();
             $activeSeq = Sequence::findActive() ?? (!empty($sequences) ? $sequences[0] : null);
             if ($activeSeq) {
                 $seqMonths = [];
+                $fmt = new IntlDateFormatter('fr_FR', IntlDateFormatter::FULL, IntlDateFormatter::NONE, 'Africa/Porto-Novo', IntlDateFormatter::GREGORIAN, 'MMMM');
                 $current = new DateTime($activeSeq['date_debut']);
                 $current->modify('first day of this month');
                 $end = new DateTime($activeSeq['date_fin']);
@@ -260,6 +218,11 @@ class FinanceService {
                 }
 
                 $allSeqPaid = true;
+                $classe = Classe::findById($etude['classe_id']);
+                $frais = Frais::findForClasse($classe, $anneeActive['id']);
+                $expectedMonthly = self::applyFinancialAdvantages($eleveId, 'frais_mensuel', (float)$frais['frais_mensuel']);
+                $mensualitesPayees = Mensualite::findByEtude($etude['id_etude']);
+
                 foreach ($seqMonths as $m) {
                     $verse = isset($mensualitesPayees[$m]) ? (float)$mensualitesPayees[$m]['total'] : 0.00;
                     if ($expectedMonthly > 0.01 && $verse < $expectedMonthly - 0.01) {

@@ -14,6 +14,7 @@ require_once __DIR__ . '/../models/PolitiqueFinanciere.php';
 require_once __DIR__ . '/../models/ParametreFinancierEleve.php';
 require_once __DIR__ . '/../models/EtatFinancierEleve.php';
 require_once __DIR__ . '/../models/FinanceService.php';
+require_once __DIR__ . '/../models/FinancialStatusService.php';
 require_once __DIR__ . '/../models/ParamGeneral.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../core/Auth.php';
@@ -351,7 +352,6 @@ class PaiementController {
      */
     public function restes() {
         $this->checkAccess('view');
-        $lycee_id = Auth::getLyceeId();
         $activeYear = AnneeAcademique::findActive();
 
         if (!$activeYear) {
@@ -360,120 +360,7 @@ class PaiementController {
             exit();
         }
 
-        $db = Database::getInstance();
-
-        // 1. Restes d'inscription
-        $stmt = $db->prepare("
-            SELECT i.reste_a_payer as montant, i.date_inscription as date, 'Inscription' as type, e.nom, e.prenom, e.id_eleve, c.niveau, c.serie, c.numero
-            FROM inscriptions i
-            JOIN eleves e ON i.eleve_id = e.id_eleve
-            JOIN etudes et ON i.etude_id = et.id_etude
-            JOIN classes c ON et.classe_id = c.id_classe
-            WHERE i.lycee_id = :l1 AND i.annee_academique_id = :a1 AND i.reste_a_payer > 0 AND et.is_active = 1
-        ");
-        $stmt->execute(['l1' => $lycee_id, 'a1' => $activeYear['id']]);
-        $restesInscription = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // 2. Restes de mensualités
-        // On récupère tous les élèves actifs (uniquement via leur inscription active)
-        $stmt = $db->prepare("
-            SELECT e.id_eleve, e.nom, e.prenom, c.id_classe, c.niveau, c.serie, c.numero, c.cycle_id, c.lycee_id, et.id_etude
-            FROM eleves e
-            JOIN etudes et ON e.id_eleve = et.eleve_id
-            JOIN classes c ON et.classe_id = c.id_classe
-            WHERE e.lycee_id = :l AND et.annee_academique_id = :a AND et.is_active = 1 AND (e.statut = 'actif' OR e.statut = 'en_attente_paiement')
-        ");
-        $stmt->execute(['l' => $lycee_id, 'a' => $activeYear['id']]);
-        $elevesActifs = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $sequences = Sequence::findAll();
-        $fmt = new IntlDateFormatter('fr_FR', IntlDateFormatter::FULL, IntlDateFormatter::NONE, 'Africa/Porto-Novo', IntlDateFormatter::GREGORIAN, 'MMMM');
-
-        $monthsToDate = [];
-        $today = new DateTime();
-        $today->modify('first day of this month'); // Only consider months that have started
-        foreach ($sequences as $seq) {
-            $current = new DateTime($seq['date_debut']);
-            $current->modify('first day of this month');
-            $end = new DateTime($seq['date_fin']);
-            $end->modify('first day of this month');
-
-            $safety = 0;
-            while ($current <= $end && $current <= $today && $safety < 12) {
-                $monthName = ucfirst($fmt->format($current));
-                if (!in_array($monthName, $monthsToDate)) {
-                    $monthsToDate[] = $monthName;
-                }
-                $current->modify('first day of next month');
-                $safety++;
-            }
-        }
-
-        $restesMensualites = [];
-
-        // Nouvelle approche : On utilise directement le champ reste_a_payer de la table mensualites
-        $stmt = $db->prepare("
-            SELECT m.reste_a_payer as montant, m.mois_ou_sequence, e.nom, e.prenom, e.id_eleve, c.niveau, c.serie, c.numero
-            FROM mensualites m
-            JOIN eleves e ON m.eleve_id = e.id_eleve
-            JOIN etudes et ON m.etude_id = et.id_etude
-            JOIN classes c ON et.classe_id = c.id_classe
-            WHERE m.lycee_id = :l AND m.annee_academique_id = :a AND m.reste_a_payer > 0 AND et.is_active = 1
-        ");
-        $stmt->execute(['l' => $lycee_id, 'a' => $activeYear['id']]);
-        $restesMensualitesEnregistres = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        foreach ($restesMensualitesEnregistres as $r) {
-            $restesMensualites[] = [
-                'montant' => $r['montant'],
-                'date' => null,
-                'type' => 'Mensualité (' . $r['mois_ou_sequence'] . ')',
-                'nom' => $r['nom'],
-                'prenom' => $r['prenom'],
-                'id_eleve' => $r['id_eleve'],
-                'niveau' => $r['niveau'],
-                'serie' => $r['serie'],
-                'numero' => $r['numero']
-            ];
-        }
-
-        // On doit aussi identifier les mois non encore payés du tout (qui n'ont pas de ligne dans mensualites)
-        $fraisCache = [];
-        foreach ($elevesActifs as $eleve) {
-            $classeKey = $eleve['id_classe'];
-            if (!isset($fraisCache[$classeKey])) {
-                $fraisCache[$classeKey] = Frais::findForClasse($eleve, $activeYear['id']);
-            }
-            $frais = $fraisCache[$classeKey];
-
-            if (!$frais) continue;
-
-            $attenduParMois = FinanceService::applyFinancialAdvantages($eleve['id_eleve'], 'frais_mensuel', (float)($frais['frais_mensuel'] ?? 0));
-            if ($attenduParMois <= 0) continue;
-
-            $payes = Mensualite::findByEtude($eleve['id_etude']);
-
-            foreach ($monthsToDate as $month) {
-                if (!isset($payes[$month])) {
-                    $restesMensualites[] = [
-                        'montant' => $attenduParMois,
-                        'date' => null,
-                        'type' => 'Mensualité (' . $month . ')',
-                        'nom' => $eleve['nom'],
-                        'prenom' => $eleve['prenom'],
-                        'id_eleve' => $eleve['id_eleve'],
-                        'niveau' => $eleve['niveau'],
-                        'serie' => $eleve['serie'],
-                        'numero' => $eleve['numero']
-                    ];
-                }
-            }
-        }
-
-        $allRestes = array_merge($restesInscription, $restesMensualites);
-
         View::render('paiements/restes', [
-            'restes' => $allRestes,
             'title' => 'Gestion des Restes / Dettes'
         ]);
     }
@@ -750,6 +637,96 @@ class PaiementController {
     }
 
     /**
+     * Interface de règlement d'un élève débiteur (Point 6).
+     */
+    public function regler($eleveId) {
+        $this->checkAccess('view');
+
+        $anneeActive = AnneeAcademique::findActive();
+        if (!$anneeActive) {
+            $_SESSION['error_message'] = "Aucune année académique active n'est définie.";
+            header('Location: /paiements/restes');
+            exit();
+        }
+
+        $eleve = Eleve::findById($eleveId);
+        $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id'], $eleve['lycee_id'] ?? null);
+        $classe = $etude ? Classe::findById($etude['classe_id']) : null;
+
+        if (!$eleve || !$classe) {
+            $_SESSION['error_message'] = "L'élève ou sa classe sont introuvables pour l'année en cours.";
+            header('Location: /paiements/restes');
+            exit();
+        }
+
+        $eleve['nom_classe'] = $classe ? Classe::getFormattedName($classe) : 'Non assignée';
+
+        // Récupérer la situation financière via le service centralisé (Point 4 & 6)
+        $financialStatus = FinancialStatusService::getStudentFinancialStatus($eleveId, $anneeActive['id']);
+
+        // Récupérer les paramètres généraux (pour les modes de paiement)
+        $paramGeneral = ParamGeneral::findByLyceeId($eleve['lycee_id'] ?? Auth::getLyceeId());
+        $nextRecu = Mensualite::generateReceiptNumber($eleve['lycee_id'] ?? Auth::getLyceeId());
+
+        View::render('paiements/regler', [
+            'eleve' => $eleve,
+            'financialStatus' => $financialStatus,
+            'paramGeneral' => $paramGeneral,
+            'nextRecu' => $nextRecu,
+            'isComptable' => Auth::can('manage', 'paiement')
+        ]);
+    }
+
+    /**
+     * Charge et retourne la liste filtrée des restes par classe (Point 1, 2, 8).
+     */
+    public function classRestes($classeId) {
+        $this->checkAccess('view');
+        $lyceeId = Auth::getLyceeId();
+        $activeYear = AnneeAcademique::findActive();
+
+        if (!$activeYear) {
+            echo '<div class="alert alert-danger">Aucune année académique active.</div>';
+            exit();
+        }
+
+        $classe = Classe::findById($classeId);
+        if (!$classe || $classe['lycee_id'] != $lyceeId) {
+            echo '<div class="alert alert-danger">Classe introuvable.</div>';
+            exit();
+        }
+
+        $db = Database::getInstance();
+        $stmt = $db->prepare("
+            SELECT e.*, et.id_etude
+            FROM eleves e
+            JOIN etudes et ON e.id_eleve = et.eleve_id
+            WHERE et.classe_id = :classe_id
+            AND et.annee_academique_id = :annee_id
+            AND (e.statut = 'actif' OR e.statut = 'en_attente_paiement')
+            ORDER BY e.nom, e.prenom
+        ");
+        $stmt->execute(['classe_id' => $classeId, 'annee_id' => $activeYear['id']]);
+        $eleves = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $debtors = [];
+        foreach ($eleves as $eleve) {
+            $status = FinancialStatusService::getStudentFinancialStatus($eleve['id_eleve'], $activeYear['id']);
+            if ($status && $status['total_reste'] > 0.01) {
+                $eleve['nom_classe'] = Classe::getFormattedName($classe);
+                $eleve['reste_inscription'] = $status['reste_inscription'];
+                $eleve['reste_mensualite'] = $status['reste_mensualite'];
+                $eleve['total_reste'] = $status['total_reste'];
+                $debtors[] = $eleve;
+            }
+        }
+
+        View::render('paiements/restes_table', [
+            'restes' => $debtors
+        ]);
+    }
+
+    /**
      * Traite le paiement unifié (Inscription + Mensualités).
      */
     public function processPayment($eleveId) {
@@ -836,7 +813,55 @@ class PaiementController {
             }
 
             // 2. Traitement Mensualités
-            if (!empty($_POST['mensualites'])) {
+            $montantMensualitesPool = (float) ($_POST['montant_mensualites'] ?? 0);
+            if ($montantMensualitesPool > 0) {
+                // Get financial status which has details_mensualites in chronological order
+                $status = FinancialStatusService::getStudentFinancialStatus($eleveId, $anneeActive['id']);
+
+                foreach ($status['details_mensualites'] as $dm) {
+                    if ($montantMensualitesPool <= 0) {
+                        break;
+                    }
+
+                    $resteMonth = (float)$dm['reste'];
+                    if ($resteMonth <= 0) {
+                        continue;
+                    }
+
+                    // Amount to allocate to this month
+                    $allocated = min($montantMensualitesPool, $resteMonth);
+                    $montantMensualitesPool -= $allocated;
+
+                    $m_cap = ucfirst($dm['mois']);
+
+                    $dataMensualite = [
+                        'etude_id' => $etude['id_etude'],
+                        'eleve_id' => $eleveId,
+                        'classe_id' => $etude['classe_id'],
+                        'lycee_id' => $lyceeId,
+                        'annee_academique_id' => $anneeActive['id'],
+                        'mois_ou_sequence' => $m_cap,
+                        'montant_verse' => $allocated,
+                        'montant_attendu' => (float)$dm['attendu'],
+                        'user_id' => $userId
+                    ];
+
+                    $mensualiteId = Mensualite::findOrCreate($dataMensualite);
+                    Mensualite::addDetail([
+                        'mensualite_id' => $mensualiteId,
+                        'montant' => $allocated,
+                        'mode_paiement' => $modePaiement,
+                        'reference_transaction' => $reference,
+                        'recu_numero' => $reference
+                    ]);
+                    $paiementEffectue = true;
+                }
+
+                if ($montantMensualitesPool > 0.01) {
+                    throw new Exception("Le versement de mensualités dépasse le total des dettes exigibles.");
+                }
+            } elseif (!empty($_POST['mensualites'])) {
+                // Fallback to manual selection for backward compatibility
                 $mensualitesPayees = Mensualite::findByEtude($etude['id_etude']);
 
                 // Calculate adjusted monthly fees for the student
