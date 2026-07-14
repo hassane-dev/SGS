@@ -72,7 +72,12 @@
                                                         <img src="/assets/img/placeholder-photo.png" alt="Avatar par défaut" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
                                                     <?php endif; ?>
                                                 </td>
-                                                <td><?= htmlspecialchars($user['prenom'] . ' ' . $user['nom']) ?></td>
+                                                <td>
+                                                    <?= htmlspecialchars($user['prenom'] . ' ' . $user['nom']) ?>
+                                                    <?php if (!empty($user['identifiant_public'])): ?>
+                                                        <br><small class="text-muted"><?= htmlspecialchars($user['identifiant_public'] ?? '') ?></small>
+                                                    <?php endif; ?>
+                                                </td>
                                                 <td><?= htmlspecialchars($user['nom_role'] ?? 'N/A') ?></td>
                                                 <td>
                                                     <?php if ($user['actif']): ?>

@@ -116,7 +116,12 @@
                                                         <img src="/assets/img/placeholder-photo.png" alt="Avatar par défaut" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
                                                     <?php endif; ?>
                                                 </td>
-                                                <td><?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?></td>
+                                                <td>
+                                                    <?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?>
+                                                    <?php if (!empty($eleve['identifiant_public'])): ?>
+                                                        <br><small class="text-muted"><?= htmlspecialchars($eleve['identifiant_public'] ?? '') ?></small>
+                                                    <?php endif; ?>
+                                                </td>
                                                 <td><?= htmlspecialchars($eleve['nom_lycee']) ?></td>
                                                 <td>
                                                     <?php if (!empty($eleve['niveau'])): ?>

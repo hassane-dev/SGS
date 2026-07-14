@@ -11,7 +11,7 @@ class Eleve {
      */
     public static function findAll($filters = []) {
         $db = Database::getInstance();
-        $sql = "SELECT e.*, c.niveau, c.serie, c.numero, cy.nom_cycle, l.nom_lycee
+        $sql = "SELECT e.*, e.identifiant_public AS matricule, c.niveau, c.serie, c.numero, cy.nom_cycle, l.nom_lycee
                 FROM eleves e
                 LEFT JOIN etudes et ON e.id_eleve = et.eleve_id
                     AND et.annee_academique_id = (SELECT id FROM annees_academiques WHERE est_active = 1 LIMIT 1)
@@ -56,7 +56,7 @@ class Eleve {
 
     public static function findById($id) {
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT * FROM eleves WHERE id_eleve = :id");
+        $stmt = $db->prepare("SELECT *, identifiant_public AS matricule FROM eleves WHERE id_eleve = :id");
         $stmt->execute(['id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -66,6 +66,28 @@ class Eleve {
      * @param array $data
      * @return bool
      */
+    /**
+     * Génère un identifiant public unique pour l'élève.
+     * Format : DDMMYYYY-0001E
+     */
+    public static function generatePublicId() {
+        $db = Database::getInstance();
+
+        // Get the absolute last generated public ID ending in 'E' to compute the next counter
+        $stmt = $db->query("SELECT identifiant_public FROM eleves WHERE identifiant_public LIKE '%E' ORDER BY id_eleve DESC LIMIT 1");
+        $lastId = $stmt->fetchColumn();
+
+        $counter = 1;
+        if ($lastId && preg_match('/-(\d+)E$/', $lastId, $matches)) {
+            $counter = (int)$matches[1] + 1;
+        }
+
+        $dateStr = date('dmY');
+        $paddedCounter = str_pad($counter, 4, '0', STR_PAD_LEFT);
+
+        return $dateStr . '-' . $paddedCounter . 'E';
+    }
+
     public static function save($data) {
         if (empty($data['nom']) || empty($data['prenom']) || empty($data['lycee_id'])) {
             throw new InvalidArgumentException("Les informations de base (nom, prénom, lycée) sont obligatoires.");
@@ -74,7 +96,7 @@ class Eleve {
         $db = Database::getInstance();
         $isUpdate = !empty($data['id_eleve']);
 
-        $fields = ['lycee_id', 'nom', 'prenom', 'date_naissance', 'lieu_naissance', 'nationalite', 'sexe', 'quartier', 'tel_parent', 'nom_pere', 'nom_mere', 'profession_pere', 'profession_mere', 'email', 'telephone', 'statut'];
+        $fields = ['lycee_id', 'nom', 'prenom', 'date_naissance', 'lieu_naissance', 'nationalite', 'sexe', 'quartier', 'tel_parent', 'nom_pere', 'nom_mere', 'profession_pere', 'profession_mere', 'email', 'telephone', 'statut', 'identifiant_public'];
 
         if ($isUpdate) {
             $currentData = self::findById($data['id_eleve']);
@@ -93,6 +115,18 @@ class Eleve {
                 $params[$field] = $currentData[$field];
             } else {
                 $params[$field] = null;
+            }
+        }
+
+        if ($isUpdate) {
+            $params['identifiant_public'] = $currentData['identifiant_public'] ?? null;
+        } else {
+            if (empty($params['identifiant_public'])) {
+                if (!empty($data['matricule'])) {
+                    $params['identifiant_public'] = $data['matricule'];
+                } else {
+                    $params['identifiant_public'] = self::generatePublicId();
+                }
             }
         }
 
@@ -143,7 +177,7 @@ class Eleve {
      */
     public static function findAllArchived($lycee_id = null) {
         $db = Database::getInstance();
-        $sql = "SELECT * FROM eleves WHERE statut NOT IN ('actif', 'en_attente', 'en_attente_paiement')";
+        $sql = "SELECT *, identifiant_public AS matricule FROM eleves WHERE statut NOT IN ('actif', 'en_attente', 'en_attente_paiement')";
 
         $params = [];
         if ($lycee_id !== null) {
@@ -171,7 +205,7 @@ class Eleve {
         $db = Database::getInstance();
         $placeholders = implode(',', array_fill(0, count($class_ids), '?'));
 
-        $sql = "SELECT e.*, c.niveau
+        $sql = "SELECT e.*, e.identifiant_public AS matricule, c.niveau
                 FROM eleves e
                 JOIN etudes et ON e.id_eleve = et.eleve_id
                 JOIN classes c ON et.classe_id = c.id_classe
@@ -197,7 +231,7 @@ class Eleve {
 
     public static function findByClass($classe_id) {
         $db = Database::getInstance();
-        $sql = "SELECT e.*
+        $sql = "SELECT e.*, e.identifiant_public AS matricule
                 FROM eleves e
                 JOIN etudes et ON e.id_eleve = et.eleve_id
                 WHERE et.classe_id = :classe_id AND et.is_active = 1";
@@ -208,7 +242,7 @@ class Eleve {
 
     public static function findByStatus($status, $lycee_id = null) {
         $db = Database::getInstance();
-        $sql = "SELECT * FROM eleves WHERE statut = :statut";
+        $sql = "SELECT *, identifiant_public AS matricule FROM eleves WHERE statut = :statut";
         $params = ['statut' => $status];
         if ($lycee_id) {
             $sql .= " AND lycee_id = :lycee_id";
@@ -227,7 +261,7 @@ class Eleve {
      */
     public static function search($term, $lycee_id = null) {
         $db = Database::getInstance();
-        $sql = "SELECT * FROM eleves WHERE (nom LIKE :term OR prenom LIKE :term OR CAST(id_eleve AS CHAR) LIKE :term)";
+        $sql = "SELECT *, identifiant_public AS matricule FROM eleves WHERE (nom LIKE :term OR prenom LIKE :term OR CAST(id_eleve AS CHAR) LIKE :term OR identifiant_public LIKE :term)";
         $params = ['term' => '%' . $term . '%'];
 
         if ($lycee_id) {

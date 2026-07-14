@@ -59,6 +59,9 @@
                         <h5><?= _('Informations Personnelles') ?></h5>
                     </div>
                     <div class="card-body">
+                        <?php if (!empty($eleve['identifiant_public'])): ?>
+                            <p><strong><?= _('Identifiant Public / Matricule') ?>:</strong> <span class="badge bg-light-primary text-primary"><?= htmlspecialchars($eleve['identifiant_public'] ?? '') ?></span></p>
+                        <?php endif; ?>
                         <p><strong><?= _('Nom & Prénom') ?>:</strong> <?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?></p>
                         <p><strong><?= _('Date de Naissance') ?>:</strong> <?= htmlspecialchars($eleve['date_naissance']) ?></p>
                         <p><strong><?= _('Lieu de Naissance') ?>:</strong> <?= htmlspecialchars($eleve['lieu_naissance']) ?></p>

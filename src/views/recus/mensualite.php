@@ -71,6 +71,9 @@
             <div class="info-box">
                 <span class="info-label">Élève</span>
                 <span class="info-value"><?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?></span>
+                <?php if (!empty($eleve['identifiant_public'])): ?>
+                    <br><span class="info-label" style="margin-top: 5px;">Matricule: <?= htmlspecialchars($eleve['identifiant_public'] ?? '') ?></span>
+                <?php endif; ?>
             </div>
             <div class="info-box">
                 <span class="info-label">Année Académique</span>

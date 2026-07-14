@@ -385,7 +385,8 @@ class PaiementController {
                     'Espèces' as mode,
                     i.recu_numero,
                     u.nom as caissier_nom, u.prenom as caissier_prenom,
-                    e.id_eleve
+                    e.id_eleve,
+                    e.identifiant_public
                 FROM inscriptions i
                 JOIN eleves e ON i.eleve_id = e.id_eleve
                 JOIN classes c ON i.classe_id = c.id_classe
@@ -403,7 +404,8 @@ class PaiementController {
                     md.mode_paiement as mode,
                     md.recu_numero,
                     u.nom as caissier_nom, u.prenom as caissier_prenom,
-                    e.id_eleve
+                    e.id_eleve,
+                    e.identifiant_public
                 FROM mensualite_details md
                 JOIN mensualites m ON md.mensualite_id = m.id_mensualite
                 JOIN eleves e ON m.eleve_id = e.id_eleve
@@ -422,10 +424,11 @@ class PaiementController {
         ];
 
         if (!empty($search)) {
-            $sql .= " AND (nom LIKE :s1 OR prenom LIKE :s2 OR recu_numero LIKE :s3)";
+            $sql .= " AND (nom LIKE :s1 OR prenom LIKE :s2 OR recu_numero LIKE :s3 OR identifiant_public LIKE :s4)";
             $params['s1'] = "%$search%";
             $params['s2'] = "%$search%";
             $params['s3'] = "%$search%";
+            $params['s4'] = "%$search%";
         }
 
         $sql .= " ORDER BY date DESC";
@@ -457,7 +460,7 @@ class PaiementController {
                 recu_numero,
                 MAX(date) as date,
                 SUM(montant) as montant_total,
-                nom, prenom, id_eleve,
+                nom, prenom, id_eleve, identifiant_public,
                 GROUP_CONCAT(DISTINCT type SEPARATOR ', ') as types
             FROM (
                 SELECT
@@ -465,7 +468,8 @@ class PaiementController {
                     i.date_inscription as date,
                     i.montant_verse as montant,
                     e.nom, e.prenom, e.id_eleve,
-                    'Inscription' as type
+                    'Inscription' as type,
+                    e.identifiant_public
                 FROM inscriptions i
                 JOIN eleves e ON i.eleve_id = e.id_eleve
                 WHERE i.lycee_id = :l1
@@ -477,7 +481,8 @@ class PaiementController {
                     md.date_paiement as date,
                     md.montant,
                     e.nom, e.prenom, e.id_eleve,
-                    'Mensualité' as type
+                    'Mensualité' as type,
+                    e.identifiant_public
                 FROM mensualite_details md
                 JOIN mensualites m ON md.mensualite_id = m.id_mensualite
                 JOIN eleves e ON m.eleve_id = e.id_eleve
@@ -489,13 +494,14 @@ class PaiementController {
         $params = ['l1' => $lycee_id, 'l2' => $lycee_id];
 
         if (!empty($search)) {
-            $sql .= " AND (recu_numero LIKE :s1 OR nom LIKE :s2 OR prenom LIKE :s3)";
+            $sql .= " AND (recu_numero LIKE :s1 OR nom LIKE :s2 OR prenom LIKE :s3 OR identifiant_public LIKE :s4)";
             $params['s1'] = "%$search%";
             $params['s2'] = "%$search%";
             $params['s3'] = "%$search%";
+            $params['s4'] = "%$search%";
         }
 
-        $sql .= " GROUP BY recu_numero, id_eleve ORDER BY date DESC";
+        $sql .= " GROUP BY recu_numero, id_eleve, identifiant_public ORDER BY date DESC";
 
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
@@ -698,7 +704,7 @@ class PaiementController {
 
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            SELECT e.*, et.id_etude
+            SELECT e.*, e.identifiant_public AS matricule, et.id_etude
             FROM eleves e
             JOIN etudes et ON e.id_eleve = et.eleve_id
             WHERE et.classe_id = :classe_id

@@ -62,7 +62,7 @@ class MensualiteController {
 
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            SELECT e.*, et.id_etude, et.status as etude_status
+            SELECT e.*, e.identifiant_public AS matricule, et.id_etude, et.status as etude_status
             FROM eleves e
             JOIN etudes et ON e.id_eleve = et.eleve_id
             WHERE et.classe_id = :classe_id

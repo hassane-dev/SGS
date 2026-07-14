@@ -140,7 +140,7 @@
                         content = (elData.text || '{nom_complet}').replace('{nom_complet}', `${eleve.prenom} ${eleve.nom}`.toUpperCase());
                         break;
                     case 'matricule':
-                        content = (elData.text || '{matricule}').replace('{matricule}', `${eleve.id_eleve}`);
+                        content = (elData.text || '{matricule}').replace('{matricule}', `${eleve.identifiant_public || eleve.id_eleve}`);
                         break;
                     case 'classe':
                         const className = `${classe.niveau} ${classe.serie ? ' / ' + classe.serie : ''} ${classe.numero || ''}`.trim();
