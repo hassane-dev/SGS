@@ -5,23 +5,20 @@
 <div class="row">
     <div class="col-md-6">
         <div class="form-group">
-            <label for="type" class="form-label">Type de séquence <span class="text-danger">*</span></label>
-            <select class="form-select" id="type" name="type" required>
-                <option value="" selected disabled>-- Choisir un type --</option>
-                <option value="semestrielle" <?= (isset($sequence['type']) && $sequence['type'] === 'semestrielle') ? 'selected' : '' ?>>
-                    Semestre
-                </option>
-                <option value="trimestrielle" <?= (isset($sequence['type']) && $sequence['type'] === 'trimestrielle') ? 'selected' : '' ?>>
-                    Trimestre
-                </option>
-            </select>
+            <label class="form-label">Type de séquence <span class="text-danger">*</span></label>
+            <?php
+                $selected_type = isset($sequence['type']) ? $sequence['type'] : ($sequence_type ?? 'trimestrielle');
+                $display_type = ($selected_type === 'semestrielle') ? 'Semestre' : 'Trimestre';
+            ?>
+            <input type="text" class="form-control" value="<?= htmlspecialchars($display_type) ?>" readonly disabled>
+            <input type="hidden" id="type" name="type" value="<?= htmlspecialchars($selected_type) ?>">
         </div>
     </div>
     <div class="col-md-6">
         <div class="form-group">
             <label for="nom" class="form-label">Nom de la séquence <span class="text-danger">*</span></label>
             <select class="form-select" id="nom" name="nom" required data-selected-nom="<?= htmlspecialchars($sequence['nom'] ?? '') ?>">
-                <option value="" selected disabled>-- Veuillez d'abord choisir un type --</option>
+                <option value="" selected disabled>-- Choisir une séquence --</option>
                 <!-- Options populated by JavaScript -->
             </select>
         </div>
