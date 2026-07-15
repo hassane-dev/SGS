@@ -8,7 +8,10 @@
                             <i class="ph-duotone ph-warning-circle me-2"></i><?= _('Élèves endettés de la classe') ?>
                         </h5>
                     </div>
-                    <div class="col-auto">
+                    <div class="col-auto d-print-none">
+                        <button type="button" onclick="window.print()" class="btn btn-sm btn-outline-secondary me-2">
+                            <i class="ph-duotone ph-printer me-1"></i><?= _('Imprimer la liste') ?>
+                        </button>
                         <span class="badge bg-light-danger text-danger"><?= count($restes) ?> <?= _('élèves débiteurs') ?></span>
                     </div>
                 </div>

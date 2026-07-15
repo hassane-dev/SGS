@@ -85,7 +85,7 @@ class FinancialStatusService {
             $expectedInscription += FinanceService::applyFinancialAdvantages($eleveId, 'frais_carte', (float)($frais['frais_carte'] ?? 0));
         }
 
-        $verseInscription = $inscription ? (float)$inscription['montant_verse'] : 0.00;
+        $verseInscription = ($inscription && ($inscription['statut'] ?? 'valide') === 'valide') ? (float)$inscription['montant_verse'] : 0.00;
         $resteInscription = max(0.0, $expectedInscription - $verseInscription);
 
         // Avoid floating point tiny residues

@@ -150,7 +150,7 @@ class FinanceService {
             if (!empty($options['carte'])) {
                 $expectedInscription += self::applyFinancialAdvantages($eleveId, 'frais_carte', (float)($frais['frais_carte'] ?? 0));
             }
-            $verseInscription = $inscription ? (float)$inscription['montant_verse'] : 0.00;
+            $verseInscription = ($inscription && ($inscription['statut'] ?? 'valide') === 'valide') ? (float)$inscription['montant_verse'] : 0.00;
             if ($verseInscription > 0.01) {
                 $inscription_statut = 'Partiellement payée';
             }

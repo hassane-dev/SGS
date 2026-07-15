@@ -52,6 +52,32 @@ try {
     // Add reste_a_payer to mensualites
     $db->exec("ALTER TABLE mensualites ADD COLUMN IF NOT EXISTS reste_a_payer DECIMAL(10, 2) DEFAULT 0.00;");
 
+    // Add statut to inscriptions & mensualite_details
+    $db->exec("ALTER TABLE inscriptions ADD COLUMN IF NOT EXISTS statut ENUM('en_attente', 'valide', 'annule', 'rembourse') NOT NULL DEFAULT 'valide';");
+    $db->exec("ALTER TABLE mensualite_details ADD COLUMN IF NOT EXISTS statut ENUM('en_attente', 'valide', 'annule', 'rembourse') NOT NULL DEFAULT 'valide';");
+
+    // Add cloturee to annees_academiques
+    $db->exec("ALTER TABLE annees_academiques ADD COLUMN IF NOT EXISTS cloturee TINYINT(1) NOT NULL DEFAULT 0;");
+
+    // Create journal_comptable table
+    $db->exec("CREATE TABLE IF NOT EXISTS journal_comptable (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        lycee_id INT NOT NULL,
+        eleve_id INT DEFAULT NULL,
+        user_id INT NOT NULL,
+        annee_academique_id INT NOT NULL,
+        operation VARCHAR(100) NOT NULL,
+        montant DECIMAL(10, 2) NOT NULL,
+        mode_paiement VARCHAR(50) DEFAULT NULL,
+        recu_numero VARCHAR(50) DEFAULT NULL,
+        reference_origine VARCHAR(100) DEFAULT NULL,
+        date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (eleve_id) REFERENCES eleves(id_eleve) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE CASCADE,
+        FOREIGN KEY (annee_academique_id) REFERENCES annees_academiques(id) ON DELETE CASCADE,
+        FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
     // Create deblocages_notes table
     $db->exec("CREATE TABLE IF NOT EXISTS `deblocages_notes` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,

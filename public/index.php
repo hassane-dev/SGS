@@ -198,6 +198,10 @@ $router->register('/paiements/historique', 'PaiementController', 'historique');
 $router->register('/paiements/recus', 'PaiementController', 'recus');
 $router->register('/paiements/rapports', 'PaiementController', 'rapports');
 $router->register('/paiements/controle', 'PaiementController', 'controle');
+$router->register('/paiements/journal', 'PaiementController', 'journal');
+$router->register('/paiements/annuler-recu', 'PaiementController', 'annulerRecu');
+$router->register('/paiements/rembourser', 'PaiementController', 'rembourser');
+$router->register('/annees-academiques/toggle-cloture', 'AnneeAcademiqueController', 'toggleCloture');
 
 // Mensualités
 $router->register('/mensualites', 'MensualiteController', 'index');

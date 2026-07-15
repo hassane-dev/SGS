@@ -222,6 +222,13 @@ $navItems = [
         'condition' => Auth::can('view', 'paiement'),
     ],
     [
+        'url' => '/paiements/journal',
+        'icon' => 'ph-duotone ph-book-open',
+        'text' => _('Journal Comptable'),
+        'title' => _('Consulter le journal comptable unique.'),
+        'condition' => Auth::can('view', 'paiement'),
+    ],
+    [
         'url' => '/paiements/rapports',
         'icon' => 'ph-duotone ph-file-text',
         'text' => _('Rapports financiers'),

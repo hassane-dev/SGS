@@ -196,4 +196,46 @@ class Mensualite {
 
         return 'REC-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
     }
+
+    /**
+     * Updates a payment detail status and recalculates the parent mensualite.
+     */
+    public static function updateStatusAndRecalculate($detailId, $newStatus) {
+        $db = Database::getInstance();
+
+        // 1. Get the detail info
+        $stmt = $db->prepare("SELECT * FROM mensualite_details WHERE id = :id");
+        $stmt->execute(['id' => $detailId]);
+        $detail = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$detail) return false;
+
+        // 2. Set new status on the detail
+        $stmt = $db->prepare("UPDATE mensualite_details SET statut = :status WHERE id = :id");
+        $stmt->execute(['status' => $newStatus, 'id' => $detailId]);
+
+        // 3. Recalculate parent mensualite
+        $mensualiteId = $detail['mensualite_id'];
+
+        // Sum of all 'valide' details for this mensualite
+        $stmt = $db->prepare("SELECT SUM(montant) FROM mensualite_details WHERE mensualite_id = :m_id AND statut = 'valide'");
+        $stmt->execute(['m_id' => $mensualiteId]);
+        $totalValide = (float)$stmt->fetchColumn() ?: 0.00;
+
+        // Get the expected amount of the mensualite
+        $stmt = $db->prepare("SELECT * FROM mensualites WHERE id_mensualite = :m_id");
+        $stmt->execute(['m_id' => $mensualiteId]);
+        $mensualite = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$mensualite) return false;
+
+        $expected = (float)$mensualite['montant_verse'] + (float)$mensualite['reste_a_payer'];
+        $newReste = max(0.00, $expected - $totalValide);
+
+        // Update parent mensualite
+        $stmt = $db->prepare("UPDATE mensualites SET montant_verse = :total, reste_a_payer = :reste WHERE id_mensualite = :m_id");
+        return $stmt->execute([
+            'total' => $totalValide,
+            'reste' => $newReste,
+            'm_id' => $mensualiteId
+        ]);
+    }
 }
