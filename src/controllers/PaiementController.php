@@ -223,13 +223,27 @@ class PaiementController {
         $anneeActive = AnneeAcademique::findActive();
         $eleve = Eleve::findById($eleveId);
         $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id']);
+
+        if (!$etude) {
+            $_SESSION['error_message'] = "Dossier académique introuvable pour l'année en cours.";
+            header('Location: /paiements/pending');
+            exit();
+        }
+
         $classe = Classe::findById($etude['classe_id']);
         $frais = Frais::findForClasse($classe, $anneeActive['id']);
+        if (!$frais) {
+            $_SESSION['error_message'] = "Aucune grille tarifaire n'est configurée pour cette classe et cette année académique. Veuillez contacter l'administration.";
+            header('Location: /paiements/pending');
+            exit();
+        }
+
         $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id']);
 
+        $baseInscription = FinanceService::applyFinancialAdvantages($eleveId, 'frais_inscription', (float)($frais['frais_inscription'] ?? 0));
         $fraisInscription = [
-            'total' => (float) ($inscription['montant_total'] ?? 0),
-            'verse' => (float) ($inscription['montant_verse'] ?? 0),
+            'total' => (float) ($inscription ? ($inscription['montant_total'] ?? 0) : $baseInscription),
+            'verse' => (float) ($inscription ? ($inscription['montant_verse'] ?? 0) : 0),
         ];
         $fraisInscription['reste'] = $fraisInscription['total'] - $fraisInscription['verse'];
 
@@ -269,6 +283,12 @@ class PaiementController {
 
         // Récupérer les frais et l'inscription
         $frais = Frais::findForClasse($classe, $anneeActive['id']);
+        if (!$frais) {
+            $_SESSION['error_message'] = "Aucune grille tarifaire n'est configurée pour cette classe et cette année académique. Veuillez contacter l'administration.";
+            header('Location: /eleves');
+            exit();
+        }
+
         $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id'], $eleve['lycee_id'] ?? null);
 
         $baseInscription = FinanceService::applyFinancialAdvantages($eleveId, 'frais_inscription', (float)($frais['frais_inscription'] ?? 0));
@@ -277,7 +297,7 @@ class PaiementController {
 
         $fraisInscription = [
             'total' => $baseInscription,
-            'verse' => (float) ($inscription['montant_verse'] ?? 0),
+            'verse' => (float) ($inscription ? ($inscription['montant_verse'] ?? 0) : 0),
         ];
 
         $options = $inscription ? json_decode($inscription['details_frais'] ?? '[]', true) : ['logo' => false, 'carte' => false];
@@ -926,6 +946,9 @@ class PaiementController {
 
             $classe = Classe::findById($etude['classe_id']);
             $frais = Frais::findForClasse($classe, $anneeActive['id']);
+            if (!$frais) {
+                throw new Exception("Aucune grille tarifaire n'est configurée pour cette classe et cette année académique. Veuillez contacter l'administration.");
+            }
             $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id'], $lyceeId);
 
             $old_options = $inscription ? json_decode($inscription['details_frais'] ?? '[]', true) : [];
@@ -943,14 +966,14 @@ class PaiementController {
 
             if ($montantInscription > 0 || (isset($options_posted['logo']) && empty($old_options['logo'])) || (isset($options_posted['carte']) && empty($old_options['carte']))) {
 
-                $nouveauVerse = (float)($inscription['montant_verse'] ?? 0) + $montantInscription;
+                $nouveauVerse = (float)($inscription ? ($inscription['montant_verse'] ?? 0) : 0) + $montantInscription;
 
                 if ($nouveauVerse > $montantTotalInscription + 0.01) {
                     throw new Exception("Le versement inscription dépasse le total attendu.");
                 }
 
                 $dataInscription = [
-                    'id_inscription' => $inscription['id_inscription'] ?? null,
+                    'id_inscription' => $inscription ? ($inscription['id_inscription'] ?? null) : null,
                     'etude_id' => $etude['id_etude'],
                     'eleve_id' => $eleveId,
                     'classe_id' => $etude['classe_id'],
@@ -977,7 +1000,7 @@ class PaiementController {
                     'montant' => $montantInscription,
                     'mode_paiement' => $modePaiement,
                     'recu_numero' => $reference,
-                    'reference_origine' => 'inscriptions:' . ($inscription['id_inscription'] ?? $insId)
+                    'reference_origine' => 'inscriptions:' . (($inscription && !empty($inscription['id_inscription'])) ? $inscription['id_inscription'] : $insId)
                 ]);
 
                 $paiementEffectue = true;
