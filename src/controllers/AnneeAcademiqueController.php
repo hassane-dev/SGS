@@ -46,6 +46,46 @@ class AnneeAcademiqueController {
         exit();
     }
 
+    /**
+     * Clôture ou réouvre une année académique (Point 2)
+     */
+    public function toggleCloture() {
+        if (!Auth::check()) {
+            header('Location: /login');
+            exit();
+        }
+
+        $roleName = strtolower(Auth::get('role_name') ?? '');
+        $isAuthorized = (strpos($roleName, 'admin') !== false || strpos($roleName, 'super_admin') !== false || (strpos($roleName, 'chef') !== false && strpos($roleName, 'compt') !== false));
+
+        if (!$isAuthorized) {
+            http_response_code(403);
+            View::render('errors/403');
+            exit();
+        }
+
+        $id = $_POST['id'] ?? null;
+        if ($id) {
+            $db = Database::getInstance();
+            // Get current state
+            $stmt = $db->prepare("SELECT cloturee FROM annees_academiques WHERE id = :id");
+            $stmt->execute(['id' => $id]);
+            $current = $stmt->fetchColumn();
+
+            // Toggle state
+            $newState = $current ? 0 : 1;
+            $stmt = $db->prepare("UPDATE annees_academiques SET cloturee = :state WHERE id = :id");
+            $stmt->execute(['state' => $newState, 'id' => $id]);
+
+            $_SESSION['success_message'] = $newState
+                ? _("L'année académique a été clôturée avec succès. Les opérations comptables sont désormais verrouillées.")
+                : _("L'année académique a été réouverte. Les opérations comptables sont à nouveau autorisées.");
+        }
+
+        header('Location: /annees-academiques');
+        exit();
+    }
+
     public function edit() {
         if (!Auth::can('manage', 'annee_academique') && !Auth::can('view_all_lycees', 'lycee')) {
             View::render('errors/403');

@@ -71,6 +71,15 @@
                                                     <a href="/paiements/show/<?= $r['id_eleve'] ?>" class="btn btn-icon btn-light-secondary" title="Historique élève">
                                                         <i class="ph-duotone ph-clock-counter-clockwise"></i>
                                                     </a>
+                                                    <?php
+                                                    $roleName = strtolower(Auth::get('role_name') ?? '');
+                                                    $canCancel = (strpos($roleName, 'admin') !== false || strpos($roleName, 'super_admin') !== false || (strpos($roleName, 'chef') !== false && strpos($roleName, 'compt') !== false));
+                                                    if ($canCancel):
+                                                    ?>
+                                                        <button type="button" class="btn btn-icon btn-danger btn-cancel-recu" data-recu="<?= $r['recu_numero'] ?>" title="Annuler le reçu">
+                                                            <i class="ph-duotone ph-x-circle"></i>
+                                                        </button>
+                                                    <?php endif; ?>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -84,5 +93,50 @@
         </div>
     </div>
 </div>
+
+<!-- Modal d'Annulation -->
+<div class="modal fade" id="cancelRecuModal" tabindex="-1" aria-labelledby="cancelRecuModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger" id="cancelRecuModalLabel"><i class="ph-duotone ph-warning me-2"></i>Annulation de Reçu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="cancelRecuForm" method="POST" action="/paiements/annuler-recu">
+                <div class="modal-body">
+                    <div class="alert alert-warning border-0 small">
+                        <i class="ph-duotone ph-info me-1"></i>L'annulation est définitive. Elle recréera automatiquement les dettes (inscription ou mensualités) associées à ce reçu dans la fiche de l'élève.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Numéro de reçu</label>
+                        <input type="text" name="recu_numero" id="modal_recu_numero" class="form-control" readonly required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Motif de l'annulation</label>
+                        <textarea name="motif" class="form-control" rows="3" placeholder="Saisir la raison de l'annulation..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <button type="submit" class="btn btn-danger"><i class="ph-duotone ph-x-circle me-1"></i>Confirmer l'annulation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cancelModal = new bootstrap.Modal(document.getElementById('cancelRecuModal'));
+    const modalRecuInput = document.getElementById('modal_recu_numero');
+
+    document.querySelectorAll('.btn-cancel-recu').forEach(btn => {
+        btn.addEventListener('click', function() {
+            modalRecuInput.value = this.getAttribute('data-recu');
+            cancelModal.show();
+        });
+    });
+});
+</script>
 
 <?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>

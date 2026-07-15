@@ -5,7 +5,7 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- Drop tables if they exist to ensure a clean slate on execution
-DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_ventes`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `parametres_generaux`, `annees_academiques`, `personnel_assignments`, `param_lycee`, `param_general`, `param_devoir`, `param_composition`, `bulletins`, `parametres_evaluations`, `deblocages_notes`, `classe_parametres`, `inscriptions`, `mensualites`, `mensualite_details`, `frais`, `modele_carte`, `modele_bulletin`, `notifications`, `evaluations`, `presences`, `horaire_enseignant`, `sequences`, `surveillant_classes`, `surveillant_niveaux`, `surveillant_general`, `series`, `carte_templates`, `carte_objects`, `politiques_financieres`, `parametres_financiers_eleves`, `parametres_financiers_historique`, `etats_financiers_eleves`;
+DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_ventes`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `parametres_generaux`, `annees_academiques`, `personnel_assignments`, `param_lycee`, `param_general`, `param_devoir`, `param_composition`, `bulletins`, `parametres_evaluations`, `deblocages_notes`, `classe_parametres`, `inscriptions`, `mensualites`, `mensualite_details`, `frais`, `modele_carte`, `modele_bulletin`, `notifications`, `evaluations`, `presences`, `horaire_enseignant`, `sequences`, `surveillant_classes`, `surveillant_niveaux`, `surveillant_general`, `series`, `carte_templates`, `carte_objects`, `politiques_financieres`, `parametres_financiers_eleves`, `parametres_financiers_historique`, `etats_financiers_eleves`, `journal_comptable`;
 
 -- =================================================================
 -- General and Core Tables
@@ -17,7 +17,8 @@ CREATE TABLE `annees_academiques` (
     `libelle` VARCHAR(100) NOT NULL UNIQUE, -- e.g., "2024-2025"
     `date_debut` DATE NOT NULL,
     `date_fin` DATE NOT NULL,
-    `est_active` BOOLEAN NOT NULL DEFAULT FALSE
+    `est_active` BOOLEAN NOT NULL DEFAULT FALSE,
+    `cloturee` BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- Table for high schools (Lycees)
@@ -357,6 +358,7 @@ CREATE TABLE `inscriptions` (
     `details_frais` JSON,
     `user_id` INT,
     `recu_numero` VARCHAR(50),
+    `statut` ENUM('en_attente', 'valide', 'annule', 'rembourse') NOT NULL DEFAULT 'valide',
     `date_inscription` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`etude_id`) REFERENCES `etudes`(`id_etude`) ON DELETE CASCADE,
     FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
@@ -396,8 +398,28 @@ CREATE TABLE `mensualite_details` (
     `reference_transaction` VARCHAR(100),
     `date_paiement` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `recu_numero` VARCHAR(50),
+    `statut` ENUM('en_attente', 'valide', 'annule', 'rembourse') NOT NULL DEFAULT 'valide',
     FOREIGN KEY (`mensualite_id`) REFERENCES `mensualites`(`id_mensualite`) ON DELETE CASCADE
 );
+
+-- Table for Journal Comptable (Unified Financial Operations Journal)
+CREATE TABLE `journal_comptable` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `lycee_id` INT NOT NULL,
+    `eleve_id` INT DEFAULT NULL,
+    `user_id` INT NOT NULL,
+    `annee_academique_id` INT NOT NULL,
+    `operation` VARCHAR(100) NOT NULL, -- 'inscription', 'mensualite', 'annulation', 'remboursement'
+    `montant` DECIMAL(10, 2) NOT NULL,
+    `mode_paiement` VARCHAR(50) DEFAULT NULL,
+    `recu_numero` VARCHAR(50) DEFAULT NULL,
+    `reference_origine` VARCHAR(100) DEFAULT NULL, -- references to other entities or tables
+    `date_creation` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
+    FOREIGN KEY (`user_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table for defining school fees (tuition, etc.)
 CREATE TABLE `frais` (

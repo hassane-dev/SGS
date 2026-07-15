@@ -56,6 +56,15 @@
                                         <a href="/eleves/details?id=<?= $eleve['id_eleve'] ?>" class="btn btn-outline-secondary">
                                             <i class="ph-duotone ph-user-focus me-2"></i>Profil
                                         </a>
+                                        <?php
+                                        $roleName = strtolower(Auth::get('role_name') ?? '');
+                                        $canRefund = (strpos($roleName, 'admin') !== false || strpos($roleName, 'super_admin') !== false || (strpos($roleName, 'chef') !== false && strpos($roleName, 'compt') !== false));
+                                        if ($canRefund):
+                                        ?>
+                                            <button type="button" class="btn btn-outline-warning" id="btn-trigger-rembourser">
+                                                <i class="ph-duotone ph-hand-coins me-1"></i>Rembourser
+                                            </button>
+                                        <?php endif; ?>
                                         <button type="button" class="btn btn-primary" onclick="window.print()">
                                             <i class="ph-duotone ph-printer me-2"></i>Imprimer État
                                         </button>
@@ -530,6 +539,86 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialisation
     updateAll();
+
+    // Trigger Remboursement Modal
+    const btnRefund = document.getElementById('btn-trigger-rembourser');
+    if (btnRefund) {
+        const refundModal = new bootstrap.Modal(document.getElementById('refundModal'));
+        btnRefund.addEventListener('click', function() {
+            refundModal.show();
+        });
+
+        // Toggle month select based on category
+        const typeFraisSelect = document.getElementById('refund_type_frais');
+        const monthGroup = document.getElementById('refund_month_group');
+        typeFraisSelect.addEventListener('change', function() {
+            if (this.value === 'mensualite') {
+                monthGroup.style.display = 'block';
+                document.getElementById('refund_mois_ou_sequence').required = true;
+            } else {
+                monthGroup.style.display = 'none';
+                document.getElementById('refund_mois_ou_sequence').required = false;
+            }
+        });
+    }
 });
 </script>
+
+<!-- Modal de Remboursement -->
+<div class="modal fade" id="refundModal" tabindex="-1" aria-labelledby="refundModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-warning" id="refundModalLabel"><i class="ph-duotone ph-hand-coins me-2"></i>Remboursement d'Élève</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="refundForm" method="POST" action="/paiements/rembourser">
+                <input type="hidden" name="eleve_id" value="<?= $eleve['id_eleve'] ?>">
+                <div class="modal-body">
+                    <div class="alert alert-warning border-0 small mb-3">
+                        <i class="ph-duotone ph-info me-1"></i>Le remboursement restitue une somme déjà encaissée. Cela augmentera automatiquement les dettes de l'élève pour le frais concerné.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nature des frais</label>
+                        <select name="type_frais" id="refund_type_frais" class="form-select" required>
+                            <option value="inscription">Frais d'inscription / annexes</option>
+                            <option value="mensualite">Frais de scolarité mensuelle</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="refund_month_group" style="display: none;">
+                        <label class="form-label fw-bold">Mois de scolarité</label>
+                        <select name="mois_ou_sequence" id="refund_mois_ou_sequence" class="form-select">
+                            <option value="">-- Choisir le mois --</option>
+                            <?php
+                            $allMonths = [];
+                            foreach ($tranches as $trName => $tData) {
+                                foreach ($tData['mois'] as $m) {
+                                    $allMonths[] = $m;
+                                }
+                            }
+                            $allMonths = array_unique($allMonths);
+                            foreach ($allMonths as $m):
+                            ?>
+                                <option value="<?= htmlspecialchars($m) ?>"><?= htmlspecialchars($m) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Montant du remboursement (FCFA)</label>
+                        <input type="number" name="montant" class="form-control form-control-lg" placeholder="Saisir montant..." min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Justificatif / Motif</label>
+                        <textarea name="motif" class="form-control" rows="3" placeholder="Saisir le motif du remboursement..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold"><i class="ph-duotone ph-hand-coins me-1"></i>Valider le remboursement</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>

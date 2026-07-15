@@ -369,6 +369,7 @@ class PaiementController {
         $this->checkAccess('view');
         $lycee_id = Auth::getLyceeId();
         $db = Database::getInstance();
+        $activeYear = AnneeAcademique::findActive();
 
         $date_debut = $_GET['date_debut'] ?? date('Y-m-01');
         $date_fin = $_GET['date_fin'] ?? date('Y-m-d');
@@ -526,9 +527,9 @@ class PaiementController {
         $stmt = $db->prepare("
             SELECT type, SUM(montant) as total
             FROM (
-                SELECT 'Inscription' as type, montant_verse as montant FROM inscriptions WHERE lycee_id = :l1 AND DATE(date_inscription) BETWEEN :d1 AND :d2
+                SELECT 'Inscription' as type, montant_verse as montant FROM inscriptions WHERE lycee_id = :l1 AND DATE(date_inscription) BETWEEN :d1 AND :d2 AND statut = 'valide'
                 UNION ALL
-                SELECT 'Mensualité' as type, md.montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l2 AND DATE(md.date_paiement) BETWEEN :d3 AND :d4
+                SELECT 'Mensualité' as type, md.montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l2 AND DATE(md.date_paiement) BETWEEN :d3 AND :d4 AND md.statut = 'valide'
             ) as t
             GROUP BY type
         ");
@@ -539,9 +540,9 @@ class PaiementController {
         $stmt = $db->prepare("
             SELECT mode, SUM(montant) as total
             FROM (
-                SELECT 'Espèces' as mode, montant_verse as montant FROM inscriptions WHERE lycee_id = :l1 AND DATE(date_inscription) BETWEEN :d1 AND :d2
+                SELECT 'Espèces' as mode, montant_verse as montant FROM inscriptions WHERE lycee_id = :l1 AND DATE(date_inscription) BETWEEN :d1 AND :d2 AND statut = 'valide'
                 UNION ALL
-                SELECT mode_paiement as mode, montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l2 AND DATE(md.date_paiement) BETWEEN :d3 AND :d4
+                SELECT mode_paiement as mode, montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l2 AND DATE(md.date_paiement) BETWEEN :d3 AND :d4 AND md.statut = 'valide'
             ) as t
             GROUP BY mode
         ");
@@ -552,9 +553,9 @@ class PaiementController {
         $stmt = $db->prepare("
             SELECT date, SUM(montant) as total
             FROM (
-                SELECT DATE(date_inscription) as date, montant_verse as montant FROM inscriptions WHERE lycee_id = :l1 AND DATE(date_inscription) BETWEEN :d1 AND :d2
+                SELECT DATE(date_inscription) as date, montant_verse as montant FROM inscriptions WHERE lycee_id = :l1 AND DATE(date_inscription) BETWEEN :d1 AND :d2 AND statut = 'valide'
                 UNION ALL
-                SELECT DATE(md.date_paiement) as date, md.montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l2 AND DATE(md.date_paiement) BETWEEN :d3 AND :d4
+                SELECT DATE(md.date_paiement) as date, md.montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l2 AND DATE(md.date_paiement) BETWEEN :d3 AND :d4 AND md.statut = 'valide'
             ) as t
             GROUP BY date
             ORDER BY date ASC
@@ -562,11 +563,91 @@ class PaiementController {
         $stmt->execute(['l1' => $lycee_id, 'd1' => $date_debut, 'd2' => $date_fin, 'l2' => $lycee_id, 'd3' => $date_debut, 'd4' => $date_fin]);
         $evolutionQuotidienne = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // 4. Financial Situation per Class and Annual Situation (Point 8)
+        $classesFinances = [];
+        $grandExpected = 0.00;
+        $grandPaid = 0.00;
+        $grandRemaining = 0.00;
+
+        if ($activeYear) {
+            require_once __DIR__ . '/../models/Classe.php';
+            $classes = Classe::findAll($lycee_id);
+
+            foreach ($classes as $c) {
+                $classeId = $c['id_classe'];
+
+                // Get students in this class for the active year
+                $stmt = $db->prepare("
+                    SELECT e.id_eleve
+                    FROM eleves e
+                    JOIN etudes et ON e.id_eleve = et.eleve_id
+                    WHERE et.classe_id = :classe_id
+                    AND et.annee_academique_id = :annee_id
+                    AND (et.status = 'active' OR et.status = 'en_attente_paiement')
+                ");
+                $stmt->execute(['classe_id' => $classeId, 'annee_id' => $activeYear['id']]);
+                $studentsInClass = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+                $expectedClass = 0.00;
+                $remainingClass = 0.00;
+                $paidClass = 0.00;
+
+                foreach ($studentsInClass as $sId) {
+                    $status = FinancialStatusService::getStudentFinancialStatus($sId, $activeYear['id']);
+                    if ($status) {
+                        $fees = FinanceService::calculateStudentFees($sId);
+                        if ($fees) {
+                            $monthlyPaid = 0.00;
+                            foreach ($status['details_mensualites'] as $dm) {
+                                $monthlyPaid += (float)$dm['verse'];
+                            }
+
+                            $inscriptionExpected = $fees['inscription_ajustee'];
+                            $inscription = Inscription::findByEleveAndAnnee($sId, $activeYear['id'], $lycee_id);
+                            $options = $inscription ? json_decode($inscription['details_frais'] ?? '[]', true) : [];
+                            if (!empty($options['logo'])) $inscriptionExpected += $fees['logo_ajustee'];
+                            if (!empty($options['carte'])) $inscriptionExpected += $fees['carte_ajustee'];
+
+                            $inscriptionPaid = ($inscription && ($inscription['statut'] ?? 'valide') === 'valide') ? (float)$inscription['montant_verse'] : 0.00;
+
+                            $studentPaid = $inscriptionPaid + $monthlyPaid;
+                            $studentReste = (float)$status['total_reste'];
+                            $studentExpected = $studentPaid + $studentReste;
+
+                            $expectedClass += $studentExpected;
+                            $paidClass += $studentPaid;
+                            $remainingClass += $studentReste;
+                        }
+                    }
+                }
+
+                if ($expectedClass > 0 || $paidClass > 0 || $remainingClass > 0) {
+                    $classesFinances[] = [
+                        'classe_id' => $classeId,
+                        'nom_classe' => Classe::getFormattedName($c),
+                        'expected' => $expectedClass,
+                        'paid' => $paidClass,
+                        'remaining' => $remainingClass,
+                        'rate' => $expectedClass > 0 ? ($paidClass / $expectedClass) * 100 : 100
+                    ];
+
+                    $grandExpected += $expectedClass;
+                    $grandPaid += $paidClass;
+                    $grandRemaining += $remainingClass;
+                }
+            }
+        }
+
         View::render('paiements/rapports', [
-            'title' => 'Rapports Financiers',
+            'title' => 'Rapports Financiers & États Comptables',
             'statsType' => $statsType,
             'statsMode' => $statsMode,
             'evolution' => $evolutionQuotidienne,
+            'classesFinances' => $classesFinances,
+            'grandExpected' => $grandExpected,
+            'grandPaid' => $grandPaid,
+            'grandRemaining' => $grandRemaining,
+            'activeYear' => $activeYear,
             'filters' => [
                 'date_debut' => $date_debut,
                 'date_fin' => $date_fin
@@ -750,11 +831,19 @@ class PaiementController {
             $anneeActive = AnneeAcademique::findActive();
             if (!$anneeActive) throw new Exception("Aucune année académique active.");
 
+            // [Clôture Comptable Check] Prevent modifications on closed academic years
+            if (!empty($anneeActive['cloturee'])) {
+                if (!Auth::can('cloturer', 'annee_academique')) {
+                    throw new Exception("L'année académique active est clôturée. Seuls les utilisateurs disposant de la permission de clôture peuvent enregistrer des opérations.");
+                }
+            }
+
             $eleve = Eleve::findById($eleveId);
             if (!$eleve) throw new Exception("Élève non trouvé.");
 
+            // [Validation: Year Membership]
             $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id'], $eleve['lycee_id'] ?? null);
-            if (!$etude) throw new Exception("Dossier académique non trouvé.");
+            if (!$etude) throw new Exception("L'élève n'appartient pas à l'année académique active.");
 
             $lyceeId = $eleve['lycee_id'] ?? Auth::getLyceeId();
             $userId = Auth::user()['id'];
@@ -772,7 +861,67 @@ class PaiementController {
 
             // 1. Traitement Inscription
             $montantInscription = (float) ($_POST['montant_inscription'] ?? 0);
+            $montantMensualitesPool = (float) ($_POST['montant_mensualites'] ?? 0);
             $options_posted = $_POST['options'] ?? [];
+
+            // [Validation: Non-negative payment]
+            if ($montantInscription < 0 || $montantMensualitesPool < 0) {
+                throw new Exception("Le montant du paiement ne peut pas être négatif.");
+            }
+
+            // [Validation: Student Already Fully Up To Date]
+            $status = FinancialStatusService::getStudentFinancialStatus($eleveId, $anneeActive['id']);
+            if ($status['total_reste'] <= 0.01 && ($montantInscription > 0 || $montantMensualitesPool > 0)) {
+                throw new Exception("L'élève est déjà totalement à jour de ses paiements.");
+            }
+
+            // [Validation: Receipt Unique]
+            $stmt = $db->prepare("
+                SELECT COUNT(*) FROM (
+                    SELECT recu_numero FROM inscriptions WHERE recu_numero = :ref AND statut = 'valide'
+                    UNION ALL
+                    SELECT recu_numero FROM mensualite_details WHERE recu_numero = :ref AND statut = 'valide'
+                ) as t
+            ");
+            $stmt->execute(['ref' => $reference]);
+            if ($stmt->fetchColumn() > 0) {
+                throw new Exception("Le numéro de reçu '{$reference}' a déjà été utilisé pour un autre paiement validé.");
+            }
+
+            // [Validation: Double Payment Alert]
+            $fiveMinutesAgo = date('Y-m-d H:i:s', time() - 300);
+            $stmt = $db->prepare("
+                SELECT COUNT(*) FROM inscriptions
+                WHERE eleve_id = :eleve_id
+                AND montant_verse = :montant
+                AND date_inscription >= :time_ago
+                AND statut = 'valide'
+            ");
+            $stmt->execute([
+                'eleve_id' => $eleveId,
+                'montant' => $montantInscription,
+                'time_ago' => $fiveMinutesAgo
+            ]);
+            $doubleInscription = $montantInscription > 0 && ($stmt->fetchColumn() > 0);
+
+            $stmt = $db->prepare("
+                SELECT COUNT(*) FROM mensualite_details md
+                JOIN mensualites m ON md.mensualite_id = m.id_mensualite
+                WHERE m.eleve_id = :eleve_id
+                AND md.montant = :montant
+                AND md.date_paiement >= :time_ago
+                AND md.statut = 'valide'
+            ");
+            $stmt->execute([
+                'eleve_id' => $eleveId,
+                'montant' => $montantMensualitesPool,
+                'time_ago' => $fiveMinutesAgo
+            ]);
+            $doubleMensualite = $montantMensualitesPool > 0 && ($stmt->fetchColumn() > 0);
+
+            if ($doubleInscription || $doubleMensualite) {
+                throw new Exception("Un paiement identique a été enregistré pour cet élève il y a moins de 5 minutes. Veuillez patienter pour éviter un doublon.");
+            }
 
             $classe = Classe::findById($etude['classe_id']);
             $frais = Frais::findForClasse($classe, $anneeActive['id']);
@@ -814,7 +963,22 @@ class PaiementController {
                     'recu_numero' => $reference
                 ];
 
-                Inscription::save($dataInscription);
+                $insId = Inscription::save($dataInscription);
+
+                // Add to Journal Comptable
+                require_once __DIR__ . '/../models/JournalComptable.php';
+                JournalComptable::log([
+                    'lycee_id' => $lyceeId,
+                    'eleve_id' => $eleveId,
+                    'user_id' => $userId,
+                    'annee_academique_id' => $anneeActive['id'],
+                    'operation' => 'inscription',
+                    'montant' => $montantInscription,
+                    'mode_paiement' => $modePaiement,
+                    'recu_numero' => $reference,
+                    'reference_origine' => 'inscriptions:' . ($inscription['id_inscription'] ?? $insId)
+                ]);
+
                 $paiementEffectue = true;
             }
 
@@ -860,6 +1024,21 @@ class PaiementController {
                         'reference_transaction' => $reference,
                         'recu_numero' => $reference
                     ]);
+
+                    // Add to Journal Comptable
+                    require_once __DIR__ . '/../models/JournalComptable.php';
+                    JournalComptable::log([
+                        'lycee_id' => $lyceeId,
+                        'eleve_id' => $eleveId,
+                        'user_id' => $userId,
+                        'annee_academique_id' => $anneeActive['id'],
+                        'operation' => 'mensualite',
+                        'montant' => $allocated,
+                        'mode_paiement' => $modePaiement,
+                        'recu_numero' => $reference,
+                        'reference_origine' => 'mensualites:' . $mensualiteId . ':' . $m_cap
+                    ]);
+
                     $paiementEffectue = true;
                 }
 
@@ -903,6 +1082,21 @@ class PaiementController {
                             'reference_transaction' => $reference,
                             'recu_numero' => $reference
                         ]);
+
+                        // Add to Journal Comptable
+                        require_once __DIR__ . '/../models/JournalComptable.php';
+                        JournalComptable::log([
+                            'lycee_id' => $lyceeId,
+                            'eleve_id' => $eleveId,
+                            'user_id' => $userId,
+                            'annee_academique_id' => $anneeActive['id'],
+                            'operation' => 'mensualite',
+                            'montant' => $montant,
+                            'mode_paiement' => $modePaiement,
+                            'recu_numero' => $reference,
+                            'reference_origine' => 'mensualites:' . $mensualiteId . ':' . $mois
+                        ]);
+
                         $paiementEffectue = true;
                     }
                 }
@@ -958,6 +1152,337 @@ class PaiementController {
         } catch (Throwable $e) {
             if (isset($db) && $db->inTransaction()) $db->rollBack();
             $_SESSION['error_message'] = "Erreur lors de l'encaissement : " . $e->getMessage();
+        }
+
+        header('Location: /paiements/show/' . $eleveId);
+        exit();
+    }
+
+    /**
+     * Affiche le Journal Comptable avec filtrage et options d'impression.
+     */
+    public function journal() {
+        $this->checkAccess('view');
+        $lycee_id = Auth::getLyceeId();
+
+        $filters = [
+            'date_debut' => $_GET['date_debut'] ?? date('Y-m-01'),
+            'date_fin' => $_GET['date_fin'] ?? date('Y-m-d'),
+            'operation' => $_GET['operation'] ?? '',
+            'search' => $_GET['search'] ?? ''
+        ];
+
+        require_once __DIR__ . '/../models/JournalComptable.php';
+        $entries = JournalComptable::findAll($lycee_id, $filters);
+
+        View::render('paiements/journal', [
+            'title' => 'Journal Comptable Unique',
+            'entries' => $entries,
+            'filters' => $filters
+        ]);
+    }
+
+    /**
+     * Annule un reçu de paiement (Inscription ou Mensualités).
+     */
+    public function annulerRecu() {
+        // Only users with cancel permission can cancel receipts (RBAC Dynamic Check)
+        if (!Auth::can('cancel', 'paiement')) {
+            http_response_code(403);
+            View::render('errors/403');
+            exit();
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /paiements/recus');
+            exit();
+        }
+
+        $recu_numero = $_POST['recu_numero'] ?? '';
+        $motif = trim($_POST['motif'] ?? '');
+
+        if (empty($recu_numero) || empty($motif)) {
+            $_SESSION['error_message'] = "Le numéro de reçu et le motif d'annulation sont obligatoires.";
+            header('Location: /paiements/recus');
+            exit();
+        }
+
+        $db = Database::getInstance();
+        $db->beginTransaction();
+
+        try {
+            $anneeActive = AnneeAcademique::findActive();
+            if (!$anneeActive) throw new Exception("Aucune année académique active.");
+
+            // Prevent modifications on closed academic years (Point 2)
+            if (!empty($anneeActive['cloturee'])) {
+                if (!Auth::can('cloturer', 'annee_academique')) {
+                    throw new Exception("L'année académique active est clôturée. Aucune modification comptable n'est autorisée.");
+                }
+            }
+
+            $userId = Auth::getUserId();
+            $cancelledAny = false;
+            $eleveId = null;
+
+            // 1. Process Inscription Cancellation
+            $stmt = $db->prepare("SELECT * FROM inscriptions WHERE recu_numero = :recu AND statut = 'valide'");
+            $stmt->execute(['recu' => $recu_numero]);
+            $inscription = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($inscription) {
+                $eleveId = $inscription['eleve_id'];
+
+                // Set statut to 'annule' and reverse financial remains
+                $stmt_up = $db->prepare("
+                    UPDATE inscriptions
+                    SET statut = 'annule', montant_verse = 0.00, reste_a_payer = montant_total
+                    WHERE id_inscription = :id
+                ");
+                $stmt_up->execute(['id' => $inscription['id_inscription']]);
+
+                // Log in Journal Comptable (negative amount)
+                require_once __DIR__ . '/../models/JournalComptable.php';
+                JournalComptable::log([
+                    'lycee_id' => $inscription['lycee_id'],
+                    'eleve_id' => $inscription['eleve_id'],
+                    'user_id' => $userId,
+                    'annee_academique_id' => $anneeActive['id'],
+                    'operation' => 'annulation',
+                    'montant' => -((float)$inscription['montant_verse']),
+                    'mode_paiement' => 'Espèces',
+                    'recu_numero' => $recu_numero,
+                    'reference_origine' => 'inscriptions:' . $inscription['id_inscription'] . ':annule'
+                ]);
+
+                $cancelledAny = true;
+            }
+
+            // 2. Process Mensualités Cancellation
+            $stmt = $db->prepare("
+                SELECT md.*, m.eleve_id, m.lycee_id
+                FROM mensualite_details md
+                JOIN mensualites m ON md.mensualite_id = m.id_mensualite
+                WHERE md.recu_numero = :recu AND md.statut = 'valide'
+            ");
+            $stmt->execute(['recu' => $recu_numero]);
+            $details = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (!empty($details)) {
+                require_once __DIR__ . '/../models/JournalComptable.php';
+                foreach ($details as $d) {
+                    $eleveId = $d['eleve_id'];
+
+                    // Cancel detail and recalculate parent monthly record
+                    Mensualite::updateStatusAndRecalculate($d['id'], 'annule');
+
+                    // Log in Journal Comptable
+                    JournalComptable::log([
+                        'lycee_id' => $d['lycee_id'],
+                        'eleve_id' => $d['eleve_id'],
+                        'user_id' => $userId,
+                        'annee_academique_id' => $anneeActive['id'],
+                        'operation' => 'annulation',
+                        'montant' => -((float)$d['montant']),
+                        'mode_paiement' => $d['mode_paiement'],
+                        'recu_numero' => $recu_numero,
+                        'reference_origine' => 'mensualite_details:' . $d['id'] . ':annule'
+                    ]);
+
+                    $cancelledAny = true;
+                }
+            }
+
+            if (!$cancelledAny) {
+                throw new Exception("Aucune transaction validée trouvée pour le reçu '{$recu_numero}'.");
+            }
+
+            // Recalculate financial state of the student
+            if ($eleveId) {
+                FinanceService::updateFinancialState($eleveId);
+            }
+
+            $db->commit();
+            $_SESSION['success_message'] = "Le reçu N° {$recu_numero} a été annulé avec succès. Les dettes de l'élève ont été mises à jour.";
+
+        } catch (Throwable $e) {
+            if (isset($db) && $db->inTransaction()) $db->rollBack();
+            $_SESSION['error_message'] = "Erreur lors de l'annulation : " . $e->getMessage();
+        }
+
+        header('Location: /paiements/recus');
+        exit();
+    }
+
+    /**
+     * Effectue le remboursement d'un élève.
+     */
+    public function rembourser() {
+        // Only users with refund permission can perform refunds (RBAC Dynamic Check)
+        if (!Auth::can('refund', 'paiement')) {
+            http_response_code(403);
+            View::render('errors/403');
+            exit();
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /paiements/controle');
+            exit();
+        }
+
+        $eleveId = $_POST['eleve_id'] ?? '';
+        $type_frais = $_POST['type_frais'] ?? ''; // 'inscription' or 'mensualite'
+        $mois_ou_sequence = $_POST['mois_ou_sequence'] ?? '';
+        $montant = (float)($_POST['montant'] ?? 0);
+        $motif = trim($_POST['motif'] ?? '');
+
+        if (empty($eleveId) || empty($type_frais) || $montant <= 0 || empty($motif)) {
+            $_SESSION['error_message'] = "Tous les champs de remboursement sont obligatoires et le montant doit être positif.";
+            header('Location: /paiements/show/' . $eleveId);
+            exit();
+        }
+
+        $db = Database::getInstance();
+        $db->beginTransaction();
+
+        try {
+            $anneeActive = AnneeAcademique::findActive();
+            if (!$anneeActive) throw new Exception("Aucune année académique active.");
+
+            // Prevent modifications on closed academic years (Point 2)
+            if (!empty($anneeActive['cloturee'])) {
+                if (!Auth::can('cloturer', 'annee_academique')) {
+                    throw new Exception("L'année académique active est clôturée. Aucun remboursement n'est autorisé.");
+                }
+            }
+
+            $eleve = Eleve::findById($eleveId);
+            if (!$eleve) throw new Exception("Élève introuvable.");
+
+            $userId = Auth::getUserId();
+            $lyceeId = $eleve['lycee_id'] ?? Auth::getLyceeId();
+
+            if ($type_frais === 'inscription') {
+                $inscription = Inscription::findByEleveAndAnnee($eleveId, $anneeActive['id'], $lyceeId);
+                if (!$inscription || ($inscription['statut'] ?? 'valide') !== 'valide') {
+                    throw new Exception("Aucune inscription valide trouvée pour cet élève.");
+                }
+
+                $maxRefund = (float)$inscription['montant_verse'];
+                if ($montant > $maxRefund) {
+                    throw new Exception("Le montant à rembourser ({$montant} FCFA) dépasse le montant versé ({$maxRefund} FCFA).");
+                }
+
+                $nouveauVerse = $maxRefund - $montant;
+                $nouveauReste = (float)$inscription['montant_total'] - $nouveauVerse;
+
+                // Update inscription table
+                $stmt = $db->prepare("
+                    UPDATE inscriptions
+                    SET montant_verse = :verse, reste_a_payer = :reste
+                    WHERE id_inscription = :id
+                ");
+                $stmt->execute([
+                    'verse' => $nouveauVerse,
+                    'reste' => $nouveauReste,
+                    'id' => $inscription['id_inscription']
+                ]);
+
+                // Log in Journal Comptable
+                require_once __DIR__ . '/../models/JournalComptable.php';
+                JournalComptable::log([
+                    'lycee_id' => $lyceeId,
+                    'eleve_id' => $eleveId,
+                    'user_id' => $userId,
+                    'annee_academique_id' => $anneeActive['id'],
+                    'operation' => 'remboursement',
+                    'montant' => -$montant,
+                    'mode_paiement' => 'Espèces',
+                    'recu_numero' => null,
+                    'reference_origine' => 'inscriptions:' . $inscription['id_inscription'] . ':rembourse'
+                ]);
+
+            } elseif ($type_frais === 'mensualite') {
+                if (empty($mois_ou_sequence)) {
+                    throw new Exception("Veuillez sélectionner le mois concerné par le remboursement.");
+                }
+
+                $etude = Etude::findByEleveAndAnnee($eleveId, $anneeActive['id'], $lyceeId);
+                if (!$etude) throw new Exception("Dossier académique de l'élève introuvable.");
+
+                $stmt = $db->prepare("
+                    SELECT * FROM mensualites
+                    WHERE etude_id = :etude_id AND mois_ou_sequence = :mois
+                ");
+                $stmt->execute([
+                    'etude_id' => $etude['id_etude'],
+                    'mois' => $mois_ou_sequence
+                ]);
+                $mensualite = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if (!$mensualite) {
+                    throw new Exception("Aucune mensualité enregistrée pour le mois de {$mois_ou_sequence}.");
+                }
+
+                $maxRefund = (float)$mensualite['montant_verse'];
+                if ($montant > $maxRefund) {
+                    throw new Exception("Le montant à rembourser ({$montant} FCFA) dépasse le montant versé ({$maxRefund} FCFA).");
+                }
+
+                $nouveauVerse = $maxRefund - $montant;
+                // expected is verse + reste
+                $expected = $maxRefund + (float)$mensualite['reste_a_payer'];
+                $nouveauReste = max(0.00, $expected - $nouveauVerse);
+
+                // Update mensualites table
+                $stmt = $db->prepare("
+                    UPDATE mensualites
+                    SET montant_verse = :verse, reste_a_payer = :reste
+                    WHERE id_mensualite = :id
+                ");
+                $stmt->execute([
+                    'verse' => $nouveauVerse,
+                    'reste' => $nouveauReste,
+                    'id' => $mensualite['id_mensualite']
+                ]);
+
+                // Record detail as 'rembourse' with positive or negative? Negative is standard in ledger
+                $stmt = $db->prepare("
+                    INSERT INTO mensualite_details (mensualite_id, montant, mode_paiement, reference_transaction, statut)
+                    VALUES (:m_id, :montant, 'Espèces', :motif, 'rembourse')
+                ");
+                $stmt->execute([
+                    'm_id' => $mensualite['id_mensualite'],
+                    'montant' => -$montant,
+                    'motif' => 'Remboursement: ' . $motif
+                ]);
+
+                // Log in Journal Comptable
+                require_once __DIR__ . '/../models/JournalComptable.php';
+                JournalComptable::log([
+                    'lycee_id' => $lyceeId,
+                    'eleve_id' => $eleveId,
+                    'user_id' => $userId,
+                    'annee_academique_id' => $anneeActive['id'],
+                    'operation' => 'remboursement',
+                    'montant' => -$montant,
+                    'mode_paiement' => 'Espèces',
+                    'recu_numero' => null,
+                    'reference_origine' => 'mensualites:' . $mensualite['id_mensualite'] . ':rembourse'
+                ]);
+            } else {
+                throw new Exception("Type de frais invalide.");
+            }
+
+            // Recalculate financial state of the student
+            FinanceService::updateFinancialState($eleveId);
+
+            $db->commit();
+            $_SESSION['success_message'] = "Le remboursement de {$montant} FCFA pour {$type_frais} a été traité avec succès.";
+
+        } catch (Throwable $e) {
+            if (isset($db) && $db->inTransaction()) $db->rollBack();
+            $_SESSION['error_message'] = "Erreur lors du remboursement : " . $e->getMessage();
         }
 
         header('Location: /paiements/show/' . $eleveId);

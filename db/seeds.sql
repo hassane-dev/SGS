@@ -16,7 +16,9 @@ INSERT INTO `roles` (`id_role`, `nom_role`, `lycee_id`) VALUES
 (5, 'surveillant', NULL),
 (6, 'enseignant', NULL),
 (7, 'comptable', NULL),
-(8, 'eleve', NULL)
+(8, 'eleve', NULL),
+(9, 'chef_comptable', NULL),
+(10, 'caissier', NULL)
 ON DUPLICATE KEY UPDATE nom_role=VALUES(nom_role);
 
 -- --------------------------------------------------------
@@ -124,7 +126,10 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (112, 'finance', 'view_advantages', 'Consulter les avantages financiers des élèves'),
 (113, 'finance', 'edit_advantages', 'Modifier les avantages financiers des élèves'),
 (114, 'finance', 'view_history', 'Consulter l\'historique des modifications de l\'élève'),
-(115, 'finance', 'view_control', 'Consulter le panneau de contrôle financier');
+(115, 'finance', 'view_control', 'Consulter le panneau de contrôle financier'),
+(120, 'paiement', 'cancel', 'Annuler un reçu de paiement'),
+(121, 'paiement', 'refund', 'Effectuer un remboursement élève'),
+(122, 'annee_academique', 'cloturer', 'Clôturer ou réouvrir une année académique');
 
 -- --------------------------------------------------------
 -- Role-Permission Assignments
@@ -174,7 +179,15 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 
 -- Comptable (Accountant)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(7, 1), (7, 70), (7, 71), (7, 73), (7, 110), (7, 111), (7, 112), (7, 113), (7, 114), (7, 115);
+(7, 1), (7, 70), (7, 71), (7, 73), (7, 110), (7, 112), (7, 114), (7, 115);
+
+-- Chef comptable (Chief Accountant)
+INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
+(9, 1), (9, 70), (9, 71), (9, 73), (9, 110), (9, 111), (9, 112), (9, 113), (9, 114), (9, 115), (9, 120), (9, 121), (9, 122);
+
+-- Caissier (Cashier)
+INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
+(10, 1), (10, 70), (10, 73);
 
 -- Eleve (Student)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES

@@ -67,8 +67,23 @@
                                                     <?php else: ?>
                                                         <span class="badge bg-light-secondary"><?= _('Inactive') ?></span>
                                                     <?php endif; ?>
+                                                    <?php if (!empty($annee['cloturee'])): ?>
+                                                        <span class="badge bg-light-danger"><i class="ti ti-lock"></i> <?= _('Clôturée') ?></span>
+                                                    <?php endif; ?>
                                                 </td>
                                                 <td class="text-end">
+                                                    <?php
+                                                    $roleName = strtolower(Auth::get('role_name') ?? '');
+                                                    $isAuthorized = (strpos($roleName, 'admin') !== false || strpos($roleName, 'super_admin') !== false || (strpos($roleName, 'chef') !== false && strpos($roleName, 'compt') !== false));
+                                                    if ($isAuthorized):
+                                                    ?>
+                                                        <form action="/annees-academiques/toggle-cloture" method="POST" class="d-inline" onsubmit="return confirm('<?= $annee['cloturee'] ? _('Êtes-vous sûr de vouloir réouvrir cette année ?') : _('Êtes-vous sûr de vouloir clôturer cette année ?') ?>');">
+                                                            <input type="hidden" name="id" value="<?= $annee['id'] ?>">
+                                                            <button type="submit" class="btn btn-sm btn-<?= $annee['cloturee'] ? 'warning' : 'danger' ?>" title="<?= $annee['cloturee'] ? _('Réouvrir') : _('Clôturer') ?>">
+                                                                <i class="ti ti-<?= $annee['cloturee'] ? 'lock-open' : 'lock' ?>"></i>
+                                                            </button>
+                                                        </form>
+                                                    <?php endif; ?>
                                                     <?php if (!$annee['est_active']): ?>
                                                         <form action="/annees-academiques/activate" method="POST" class="d-inline">
                                                             <input type="hidden" name="id" value="<?= $annee['id'] ?>">
