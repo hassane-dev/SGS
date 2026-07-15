@@ -27,7 +27,8 @@ class Inscription {
         }
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: null;
     }
 
     /**

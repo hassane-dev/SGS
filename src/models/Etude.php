@@ -85,10 +85,14 @@ class Etude {
         $db = Database::getInstance();
         $stmt = $db->prepare("
             UPDATE etudes
-            SET is_active = 1, status = 'active', date_activation = NOW(), active_par = :user_id
+            SET is_active = 1, status = 'active', date_activation = :date_act, active_par = :user_id
             WHERE id_etude = :id_etude
         ");
-        return $stmt->execute(['id_etude' => $id_etude, 'user_id' => $user_id]);
+        return $stmt->execute([
+            'id_etude' => $id_etude,
+            'user_id' => $user_id,
+            'date_act' => date('Y-m-d H:i:s')
+        ]);
     }
 
     /**
