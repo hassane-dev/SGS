@@ -613,6 +613,7 @@ class PaiementController {
                 $s['bulletin_impression'] = $state['bulletin_impression'];
             }
         }
+        unset($s);
 
         // 2. Compute Dashboard statistics
         $stats = [

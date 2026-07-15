@@ -142,7 +142,7 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                                                     <span class="d-block text-muted small">ID: #<?= $s['id_eleve'] ?></span>
                                                 </td>
                                                 <td>
-                                                    <span class="badge bg-light-secondary"><?= htmlspecialchars(Classe::getFormattedName($s['niveau'], $s['serie'], $s['numero'])) ?></span>
+                                                    <span class="badge bg-light-secondary"><?= htmlspecialchars(Classe::getFormattedName($s)) ?></span>
                                                 </td>
                                                 <td>
                                                     <?php if (!empty($s['type_avantage']) && $s['type_avantage'] !== 'Aucun'): ?>

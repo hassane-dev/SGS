@@ -35,7 +35,7 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                                         <select name="classe_id" id="classe_id" class="form-select" required>
                                             <option value=""><?= _('-- Select a class --') ?></option>
                                             <?php foreach ($classes as $classe): ?>
-                                                <option value="<?= $classe['id_classe'] ?>"><?= htmlspecialchars(Classe::getFormattedName($classe['niveau'], $classe['serie'], $classe['numero'])) ?></option>
+                                                <option value="<?= $classe['id_classe'] ?>"><?= htmlspecialchars(Classe::getFormattedName($classe)) ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>

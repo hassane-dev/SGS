@@ -11,7 +11,7 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                 <div class="row align-items-center">
                     <div class="col-md-12">
                         <div class="page-header-title">
-                            <h2 class="mb-0"><?= _('Class Results for:') ?> <?= htmlspecialchars(Classe::getFormattedName($classe['niveau'], $classe['serie'], $classe['numero'])) ?></h2>
+                            <h2 class="mb-0"><?= _('Class Results for:') ?> <?= htmlspecialchars(Classe::getFormattedName($classe)) ?></h2>
                         </div>
                     </div>
                 </div>
