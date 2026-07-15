@@ -28,9 +28,14 @@ class SequenceController {
         $error = $_SESSION['error_message'] ?? null;
         unset($_SESSION['form_data'], $_SESSION['error_message']);
 
+        require_once __DIR__ . '/../models/ParamGeneral.php';
+        $params = ParamGeneral::findByAuthenticatedUser();
+        $sequence_type = ($params && isset($params['sequence_annuelle'])) ? strtolower($params['sequence_annuelle']) : 'trimestrielle';
+
         View::render('sequences/create', [
             'title' => 'Nouvelle Séquence',
             'sequence' => $data,
+            'sequence_type' => $sequence_type,
             'error' => $error
         ]);
     }
@@ -77,8 +82,14 @@ class SequenceController {
             View::render('errors/404');
             exit();
         }
+
+        require_once __DIR__ . '/../models/ParamGeneral.php';
+        $params = ParamGeneral::findByAuthenticatedUser();
+        $sequence_type = ($params && isset($params['sequence_annuelle'])) ? strtolower($params['sequence_annuelle']) : 'trimestrielle';
+
         View::render('sequences/edit', [
             'sequence' => $sequence,
+            'sequence_type' => $sequence_type,
             'title' => 'Modifier la Séquence',
             'error' => $error
         ]);

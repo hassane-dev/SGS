@@ -78,6 +78,13 @@ class Sequence {
     }
 
     public static function save($data) {
+        require_once __DIR__ . '/../models/ParamGeneral.php';
+        $params = ParamGeneral::findByAuthenticatedUser();
+        $sequence_type = ($params && isset($params['sequence_annuelle'])) ? strtolower($params['sequence_annuelle']) : null;
+        if ($sequence_type !== null) {
+            $data['type'] = $sequence_type;
+        }
+
         // --- Server-side validation ---
         if (empty($data['type'])) {
             throw new InvalidArgumentException('Le type de séquence est obligatoire.');
