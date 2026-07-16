@@ -1175,7 +1175,9 @@ class PaiementController {
 
         } catch (Throwable $e) {
             if (isset($db) && $db->inTransaction()) $db->rollBack();
-            $_SESSION['error_message'] = "Erreur lors de l'encaissement : " . $e->getMessage();
+            $_SESSION['error_message'] = "Erreur lors de l'encaissement : " . $e->getMessage() .
+                                         " | Fichier: " . $e->getFile() . " (Ligne " . $e->getLine() . ")" .
+                                         " | Trace: " . substr($e->getTraceAsString(), 0, 500) . "...";
         }
 
         header('Location: /paiements/show/' . $eleveId);
@@ -1331,7 +1333,9 @@ class PaiementController {
 
         } catch (Throwable $e) {
             if (isset($db) && $db->inTransaction()) $db->rollBack();
-            $_SESSION['error_message'] = "Erreur lors de l'annulation : " . $e->getMessage();
+            $_SESSION['error_message'] = "Erreur lors de l'annulation : " . $e->getMessage() .
+                                         " | Fichier: " . $e->getFile() . " (Ligne " . $e->getLine() . ")" .
+                                         " | Trace: " . substr($e->getTraceAsString(), 0, 500) . "...";
         }
 
         header('Location: /paiements/recus');
@@ -1506,7 +1510,9 @@ class PaiementController {
 
         } catch (Throwable $e) {
             if (isset($db) && $db->inTransaction()) $db->rollBack();
-            $_SESSION['error_message'] = "Erreur lors du remboursement : " . $e->getMessage();
+            $_SESSION['error_message'] = "Erreur lors du remboursement : " . $e->getMessage() .
+                                         " | Fichier: " . $e->getFile() . " (Ligne " . $e->getLine() . ")" .
+                                         " | Trace: " . substr($e->getTraceAsString(), 0, 500) . "...";
         }
 
         header('Location: /paiements/show/' . $eleveId);
