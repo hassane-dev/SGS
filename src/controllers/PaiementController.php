@@ -899,12 +899,12 @@ class PaiementController {
             // [Validation: Receipt Unique]
             $stmt = $db->prepare("
                 SELECT COUNT(*) FROM (
-                    SELECT recu_numero FROM inscriptions WHERE recu_numero = :ref AND statut = 'valide'
+                    SELECT recu_numero FROM inscriptions WHERE recu_numero = :ref1 AND statut = 'valide'
                     UNION ALL
-                    SELECT recu_numero FROM mensualite_details WHERE recu_numero = :ref AND statut = 'valide'
+                    SELECT recu_numero FROM mensualite_details WHERE recu_numero = :ref2 AND statut = 'valide'
                 ) as t
             ");
-            $stmt->execute(['ref' => $reference]);
+            $stmt->execute(['ref1' => $reference, 'ref2' => $reference]);
             if ($stmt->fetchColumn() > 0) {
                 throw new Exception("Le numéro de reçu '{$reference}' a déjà été utilisé pour un autre paiement validé.");
             }
