@@ -23,6 +23,29 @@
         </div>
         <!-- [ breadcrumb ] end -->
 
+        <!-- Alerts Display -->
+        <?php if (isset($_SESSION['success_message'])): ?>
+            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="ph-duotone ph-check-circle me-2 fs-4"></i>
+                    <div><?= htmlspecialchars($_SESSION['success_message'] ?? '') ?></div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <?php unset($_SESSION['success_message']); ?>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['error_message'])): ?>
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="ph-duotone ph-warning-circle me-2 fs-4"></i>
+                    <div><?= htmlspecialchars($_SESSION['error_message'] ?? '') ?></div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <?php unset($_SESSION['error_message']); ?>
+        <?php endif; ?>
+
         <!-- [ Main Content ] start -->
         <div class="row">
             <!-- Student Header -->
