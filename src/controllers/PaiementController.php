@@ -897,48 +897,48 @@ class PaiementController {
             }
 
             // [Validation: Receipt Unique]
-            $stmt = $db->prepare("
-                SELECT COUNT(*) FROM (
-                    SELECT recu_numero FROM inscriptions WHERE recu_numero = :ref1 AND statut = 'valide'
-                    UNION ALL
-                    SELECT recu_numero FROM mensualite_details WHERE recu_numero = :ref2 AND statut = 'valide'
-                ) as t
-            ");
-            $stmt->execute(['ref1' => $reference, 'ref2' => $reference]);
-            if ($stmt->fetchColumn() > 0) {
+            $stmtUniqueIns = $db->prepare("SELECT COUNT(*) FROM inscriptions WHERE recu_numero = :ref AND statut = 'valide'");
+            $stmtUniqueIns->execute(['ref' => $reference]);
+            $countUniqueIns = (int)$stmtUniqueIns->fetchColumn();
+
+            $stmtUniqueMens = $db->prepare("SELECT COUNT(*) FROM mensualite_details WHERE recu_numero = :ref AND statut = 'valide'");
+            $stmtUniqueMens->execute(['ref' => $reference]);
+            $countUniqueMens = (int)$stmtUniqueMens->fetchColumn();
+
+            if ($countUniqueIns > 0 || $countUniqueMens > 0) {
                 throw new Exception("Le numéro de reçu '{$reference}' a déjà été utilisé pour un autre paiement validé.");
             }
 
             // [Validation: Double Payment Alert]
             $fiveMinutesAgo = date('Y-m-d H:i:s', time() - 300);
-            $stmt = $db->prepare("
+            $stmtInsDouble = $db->prepare("
                 SELECT COUNT(*) FROM inscriptions
-                WHERE eleve_id = :eleve_id
-                AND montant_verse = :montant
-                AND date_inscription >= :time_ago
+                WHERE eleve_id = :eleve_id_i
+                AND montant_verse = :montant_i
+                AND date_inscription >= :time_ago_i
                 AND statut = 'valide'
             ");
-            $stmt->execute([
-                'eleve_id' => $eleveId,
-                'montant' => $montantInscription,
-                'time_ago' => $fiveMinutesAgo
+            $stmtInsDouble->execute([
+                'eleve_id_i' => $eleveId,
+                'montant_i' => $montantInscription,
+                'time_ago_i' => $fiveMinutesAgo
             ]);
-            $doubleInscription = $montantInscription > 0 && ($stmt->fetchColumn() > 0);
+            $doubleInscription = $montantInscription > 0 && ($stmtInsDouble->fetchColumn() > 0);
 
-            $stmt = $db->prepare("
+            $stmtMensDouble = $db->prepare("
                 SELECT COUNT(*) FROM mensualite_details md
                 JOIN mensualites m ON md.mensualite_id = m.id_mensualite
-                WHERE m.eleve_id = :eleve_id
-                AND md.montant = :montant
-                AND md.date_paiement >= :time_ago
+                WHERE m.eleve_id = :eleve_id_m
+                AND md.montant = :montant_m
+                AND md.date_paiement >= :time_ago_m
                 AND md.statut = 'valide'
             ");
-            $stmt->execute([
-                'eleve_id' => $eleveId,
-                'montant' => $montantMensualitesPool,
-                'time_ago' => $fiveMinutesAgo
+            $stmtMensDouble->execute([
+                'eleve_id_m' => $eleveId,
+                'montant_m' => $montantMensualitesPool,
+                'time_ago_m' => $fiveMinutesAgo
             ]);
-            $doubleMensualite = $montantMensualitesPool > 0 && ($stmt->fetchColumn() > 0);
+            $doubleMensualite = $montantMensualitesPool > 0 && ($stmtMensDouble->fetchColumn() > 0);
 
             if ($doubleInscription || $doubleMensualite) {
                 throw new Exception("Un paiement identique a été enregistré pour cet élève il y a moins de 5 minutes. Veuillez patienter pour éviter un doublon.");
