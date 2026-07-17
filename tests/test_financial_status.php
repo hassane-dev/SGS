@@ -527,6 +527,56 @@ if ($case === 'G') {
     exit(0);
 }
 
+if ($case === 'H') {
+    echo "Running Cas H: Verify Caissier role blocks sensitive operations (annuler_recu and rembourser_eleve)...\n";
+
+    $_SESSION['user'] = [
+        'id' => 2,
+        'nom' => 'Caissier',
+        'prenom' => 'Pierre',
+        'lycee_id' => 1,
+        'role_name' => 'caissier',
+        'permissions' => [
+            'paiement' => ['view', 'manage'] // No 'annuler_recu', no 'rembourser_eleve'
+        ]
+    ];
+
+    if (Auth::can('annuler_recu', 'paiement')) {
+        throw new Exception("Caissier has annuler_recu permission but should not!");
+    }
+    if (Auth::can('rembourser_eleve', 'paiement')) {
+        throw new Exception("Caissier has rembourser_eleve permission but should not!");
+    }
+
+    echo "CAS_H_SUCCESS\n";
+    exit(0);
+}
+
+if ($case === 'I') {
+    echo "Running Cas I: Verify Chef Comptable/Admin can perform sensitive operations (annuler_recu and rembourser_eleve)...\n";
+
+    $_SESSION['user'] = [
+        'id' => 1,
+        'nom' => 'Chef',
+        'prenom' => 'Comptable',
+        'lycee_id' => 1,
+        'role_name' => 'chef_comptable',
+        'permissions' => [
+            'paiement' => ['view', 'manage', 'annuler_recu', 'rembourser_eleve']
+        ]
+    ];
+
+    if (!Auth::can('annuler_recu', 'paiement')) {
+        throw new Exception("Chef Comptable does not have annuler_recu permission!");
+    }
+    if (!Auth::can('rembourser_eleve', 'paiement')) {
+        throw new Exception("Chef Comptable does not have rembourser_eleve permission!");
+    }
+
+    echo "CAS_I_SUCCESS\n";
+    exit(0);
+}
+
 if ($case === 'RUN_ALL') {
     // Run them in sequence by executing shell sub-processes
     echo "Initializing database...\n";
@@ -545,6 +595,10 @@ if ($case === 'RUN_ALL') {
     passthru("php tests/test_financial_status.php F");
     echo "\n";
     passthru("php tests/test_financial_status.php G");
+    echo "\n";
+    passthru("php tests/test_financial_status.php H");
+    echo "\n";
+    passthru("php tests/test_financial_status.php I");
     echo "\n";
 }
 ?>

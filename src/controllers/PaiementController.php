@@ -1236,8 +1236,8 @@ class PaiementController {
      * Annule un reçu de paiement (Inscription ou Mensualités).
      */
     public function annulerRecu() {
-        // Only users with cancel permission can cancel receipts (RBAC Dynamic Check)
-        if (!Auth::can('cancel', 'paiement')) {
+        // Only users with annuler_recu permission can cancel receipts (RBAC Dynamic Check)
+        if (!Auth::can('annuler_recu', 'paiement')) {
             http_response_code(403);
             View::render('errors/403');
             exit();
@@ -1370,8 +1370,8 @@ class PaiementController {
      * Effectue le remboursement d'un élève.
      */
     public function rembourser() {
-        // Only users with refund permission can perform refunds (RBAC Dynamic Check)
-        if (!Auth::can('refund', 'paiement')) {
+        // Only users with rembourser_eleve permission can perform refunds (RBAC Dynamic Check)
+        if (!Auth::can('rembourser_eleve', 'paiement')) {
             http_response_code(403);
             View::render('errors/403');
             exit();

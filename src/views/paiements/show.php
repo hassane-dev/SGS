@@ -79,11 +79,7 @@
                                         <a href="/eleves/details?id=<?= $eleve['id_eleve'] ?>" class="btn btn-outline-secondary">
                                             <i class="ph-duotone ph-user-focus me-2"></i>Profil
                                         </a>
-                                        <?php
-                                        $roleName = strtolower(Auth::get('role_name') ?? '');
-                                        $canRefund = (strpos($roleName, 'admin') !== false || strpos($roleName, 'super_admin') !== false || (strpos($roleName, 'chef') !== false && strpos($roleName, 'compt') !== false));
-                                        if ($canRefund):
-                                        ?>
+                                        <?php if (Auth::can('rembourser_eleve', 'paiement')): ?>
                                             <button type="button" class="btn btn-outline-warning" id="btn-trigger-rembourser">
                                                 <i class="ph-duotone ph-hand-coins me-1"></i>Rembourser
                                             </button>

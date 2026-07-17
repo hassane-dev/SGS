@@ -94,11 +94,7 @@
                                                     <a href="/paiements/show/<?= $r['id_eleve'] ?>" class="btn btn-icon btn-light-secondary" title="Historique élève">
                                                         <i class="ph-duotone ph-clock-counter-clockwise"></i>
                                                     </a>
-                                                    <?php
-                                                    $roleName = strtolower(Auth::get('role_name') ?? '');
-                                                    $canCancel = (strpos($roleName, 'admin') !== false || strpos($roleName, 'super_admin') !== false || (strpos($roleName, 'chef') !== false && strpos($roleName, 'compt') !== false));
-                                                    if ($canCancel):
-                                                    ?>
+                                                    <?php if (Auth::can('annuler_recu', 'paiement')): ?>
                                                         <button type="button" class="btn btn-icon btn-danger btn-cancel-recu" data-recu="<?= $r['recu_numero'] ?>" title="Annuler le reçu">
                                                             <i class="ph-duotone ph-x-circle"></i>
                                                         </button>
