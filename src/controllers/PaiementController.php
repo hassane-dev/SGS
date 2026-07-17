@@ -172,7 +172,7 @@ class PaiementController {
 
         // Elèves en attente de paiement initial (jamais payé)
         $stmt = $db->prepare("
-            SELECT e.*, c.id_classe, c.niveau, c.serie, c.cycle_id, c.niveau as nom_classe, 'En attente' as etat_finance, 0 as verse, 0 as reste
+            SELECT e.*, c.id_classe, c.niveau, c.serie, c.numero, c.cycle_id, 'En attente' as etat_finance, 0 as verse, 0 as reste
             FROM eleves e
             JOIN etudes et ON e.id_eleve = et.eleve_id
             JOIN classes c ON et.classe_id = c.id_classe
@@ -186,16 +186,16 @@ class PaiementController {
 
         // Calculer le montant réel attendu pour ceux qui n'ont rien payé
         foreach ($en_attente as &$e) {
-            $frais = Frais::findForClasse($e, $activeYear['id']);
-            if ($frais) {
-                $e['reste'] = (float)$frais['frais_inscription'];
-            }
+            $e['nom_classe'] = Classe::getFormattedName($e);
+            $status = FinancialStatusService::getStudentFinancialStatus($e['id_eleve'], $activeYear['id']);
+            $e['reste'] = $status ? $status['reste_inscription'] : 0.0;
         }
+        unset($e);
 
         // Elèves avec paiement partiel - On ne les affiche plus ici s'ils sont déjà actifs
         // car ils basculent dans "Gestion des restes"
         $stmt = $db->prepare("
-            SELECT e.*, c.niveau as nom_classe, 'Partiel' as etat_finance, i.montant_verse as verse, i.reste_a_payer as reste
+            SELECT e.*, c.id_classe, c.niveau, c.serie, c.numero, c.cycle_id, 'Partiel' as etat_finance, i.montant_verse as verse, i.reste_a_payer as reste
             FROM eleves e
             JOIN etudes et ON e.id_eleve = et.eleve_id
             JOIN classes c ON et.classe_id = c.id_classe
@@ -206,6 +206,13 @@ class PaiementController {
         ");
         $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
         $partiels = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($partiels as &$p) {
+            $p['nom_classe'] = Classe::getFormattedName($p);
+            $status = FinancialStatusService::getStudentFinancialStatus($p['id_eleve'], $activeYear['id']);
+            $p['reste'] = $status ? $status['reste_inscription'] : 0.0;
+        }
+        unset($p);
 
         $eleves = array_merge($en_attente, $partiels);
 
@@ -396,7 +403,19 @@ class PaiementController {
         $search = $_GET['search'] ?? '';
 
         $sql = "
-            SELECT * FROM (
+            SELECT
+                id_eleve,
+                identifiant_public,
+                nom,
+                prenom,
+                niveau,
+                serie,
+                numero,
+                SUM(CASE WHEN type = 'Inscription' THEN montant ELSE 0 END) as total_inscription,
+                SUM(CASE WHEN type LIKE 'Mensualité%' THEN montant ELSE 0 END) as total_mensualite,
+                SUM(montant) as total_paye,
+                MAX(date) as dernier_paiement
+            FROM (
                 SELECT
                     i.date_inscription as date,
                     e.nom, e.prenom,
@@ -452,11 +471,16 @@ class PaiementController {
             $params['s4'] = "%$search%";
         }
 
-        $sql .= " ORDER BY date DESC";
+        $sql .= " GROUP BY id_eleve, identifiant_public, nom, prenom, niveau, serie, numero ORDER BY dernier_paiement DESC";
 
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
         $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($transactions as &$t) {
+            $t['nom_classe'] = Classe::getFormattedName($t);
+        }
+        unset($t);
 
         View::render('paiements/historique', [
             'title' => 'Historique des Paiements',

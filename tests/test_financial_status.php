@@ -485,6 +485,48 @@ if ($case === 'F') {
     exit(0);
 }
 
+if ($case === 'G') {
+    echo "Running Cas G: Verify Payment History grouping for unique student rows...\n";
+    $_SERVER['REQUEST_METHOD'] = 'GET';
+    $_GET['date_debut'] = '2024-09-01';
+    $_GET['date_fin'] = date('Y-m-d');
+    $_GET['search'] = '';
+
+    $controller = new PaiementController();
+    ob_start();
+    $controller->historique();
+    $html = ob_get_clean();
+
+    // The student should be listed exactly once in the table.
+    // Jean Dupont has made multiple payments (REC-000001, REC-000002)
+    // We expect their total versé to be aggregated: 20000 + 30000 = 50000.
+    if (strpos($html, 'Jean') === false) {
+        throw new Exception("Student Jean not found in grouped history.");
+    }
+
+    // Extract the table body to avoid counting matches in headers, footers, alerts, or notifications
+    if (preg_match('#<tbody>(.*?)</tbody>#s', $html, $matches)) {
+        $tbody = $matches[1];
+    } else {
+        $tbody = $html;
+    }
+
+    $occurrences = substr_count($tbody, 'Dupont');
+    if ($occurrences > 1) {
+        echo "\n[DEBUG] Dupont found $occurrences times inside tbody. Printing matching lines of tbody:\n";
+        $lines = explode("\n", $tbody);
+        foreach ($lines as $idx => $line) {
+            if (strpos($line, 'Dupont') !== false) {
+                echo "Line " . ($idx + 1) . ": " . trim($line) . "\n";
+            }
+        }
+        throw new Exception("Duplicate student row found in payment history! Occurrences: " . $occurrences);
+    }
+
+    echo "CAS_G_SUCCESS\n";
+    exit(0);
+}
+
 if ($case === 'RUN_ALL') {
     // Run them in sequence by executing shell sub-processes
     echo "Initializing database...\n";
@@ -501,6 +543,8 @@ if ($case === 'RUN_ALL') {
     passthru("php tests/test_financial_status.php E");
     echo "\n";
     passthru("php tests/test_financial_status.php F");
+    echo "\n";
+    passthru("php tests/test_financial_status.php G");
     echo "\n";
 }
 ?>

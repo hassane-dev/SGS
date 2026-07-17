@@ -61,7 +61,8 @@
                                             $m_cap = ucfirst($month);
                                             $payment = $eleve['payments'][$m_cap] ?? null;
                                             $verse = $payment ? $payment['total'] : 0;
-                                            $reste = (float)($frais['frais_mensuel'] ?? 0) - $verse;
+                                            $expectedMonthly = FinanceService::applyFinancialAdvantages($eleve['id_eleve'], 'frais_mensuel', (float)($frais['frais_mensuel'] ?? 0));
+                                            $reste = $expectedMonthly - $verse;
 
                                             $statusClass = 'bg-light-danger text-danger';
                                             $icon = 'ph-x-circle';
