@@ -54,21 +54,19 @@
                             <table class="table table-hover mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Date & Heure</th>
                                         <th>Élève</th>
                                         <th>Classe</th>
-                                        <th>Type</th>
-                                        <th>Montant</th>
-                                        <th>Mode</th>
-                                        <th>N° Reçu</th>
-                                        <th>Caissier</th>
+                                        <th class="text-end">Total Inscription</th>
+                                        <th class="text-end">Total Mensualités</th>
+                                        <th class="text-end">Total Versé</th>
+                                        <th class="text-center">Dernier Paiement</th>
                                         <th class="text-center">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php if (empty($transactions)): ?>
                                         <tr>
-                                            <td colspan="9" class="text-center py-5 text-muted">
+                                            <td colspan="7" class="text-center py-5 text-muted">
                                                 <i class="ph-duotone ph-info fs-1 d-block mb-2"></i>
                                                 Aucune transaction trouvée pour cette période.
                                             </td>
@@ -76,24 +74,26 @@
                                     <?php else: ?>
                                         <?php foreach ($transactions as $t): ?>
                                             <tr>
-                                                <td><?= date('d/m/Y H:i', strtotime($t['date'])) ?></td>
-                                                <td class="fw-bold"><?= htmlspecialchars($t['nom'] . ' ' . $t['prenom']) ?></td>
-                                                <td><?= htmlspecialchars($t['niveau'] . ' ' . $t['serie'] . ' ' . $t['numero']) ?></td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="flex-grow-1">
+                                                            <h6 class="mb-0"><?= htmlspecialchars($t['prenom'] . ' ' . $t['nom']) ?></h6>
+                                                            <span class="badge bg-light-secondary text-secondary small">Mat: <?= htmlspecialchars($t['identifiant_public'] ?? 'N/A') ?></span>
+                                                        </div>
+                                                    </div>
+                                                </td>
                                                 <td>
                                                     <span class="badge bg-light-primary text-primary">
-                                                        <?= $t['type'] ?>
+                                                        <?= htmlspecialchars($t['nom_classe']) ?>
                                                     </span>
                                                 </td>
-                                                <td class="fw-bold text-dark"><?= number_format($t['montant'], 0, ',', ' ') ?> <small>FCFA</small></td>
-                                                <td><?= $t['mode'] ?></td>
-                                                <td><span class="badge bg-light-secondary text-secondary"><?= $t['recu_numero'] ?></span></td>
-                                                <td><small><?= htmlspecialchars($t['caissier_prenom'] . ' ' . $t['caissier_nom']) ?></small></td>
+                                                <td class="text-end fw-bold text-dark"><?= number_format($t['total_inscription'], 0, ',', ' ') ?> <small>FCFA</small></td>
+                                                <td class="text-end fw-bold text-dark"><?= number_format($t['total_mensualite'], 0, ',', ' ') ?> <small>FCFA</small></td>
+                                                <td class="text-end fw-bold text-success"><?= number_format($t['total_paye'], 0, ',', ' ') ?> <small>FCFA</small></td>
+                                                <td class="text-center text-muted"><?= date('d/m/Y H:i', strtotime($t['dernier_paiement'])) ?></td>
                                                 <td class="text-center">
-                                                    <a href="/recu/print?numero=<?= $t['recu_numero'] ?>" target="_blank" class="btn btn-icon btn-light-info" title="Réimprimer le reçu">
-                                                        <i class="ph-duotone ph-printer"></i>
-                                                    </a>
-                                                    <a href="/paiements/show/<?= $t['id_eleve'] ?>" class="btn btn-icon btn-light-primary" title="Voir fiche élève">
-                                                        <i class="ph-duotone ph-user-circle"></i>
+                                                    <a href="/paiements/show/<?= $t['id_eleve'] ?>" class="btn btn-icon btn-light-primary" title="Voir dossier financier de l'élève">
+                                                        <i class="ph-duotone ph-user-circle fs-5"></i>
                                                     </a>
                                                 </td>
                                             </tr>
