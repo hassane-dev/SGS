@@ -38,6 +38,25 @@
                         <p><strong>Statut :</strong> <span class="badge badge-info"><?= ucfirst(htmlspecialchars($bulletin['bulletin_record']['statut'] ?? 'Provisoire')) ?></span></p>
                     <?php endif; ?>
                     <p class="mt-3"><strong>Le Chef d'établissement</strong></p>
+                    <?php
+                    require_once __DIR__ . '/../../../models/User.php';
+                    require_once __DIR__ . '/../../../models/ParametreUtilisateur.php';
+
+                    // Find director or proviseur
+                    $dirUser = User::findOneByRoleName('proviseur') ?: User::findOneByRoleName('directeur');
+                    $dirSettings = null;
+                    if ($dirUser) {
+                        $dirSettings = ParametreUtilisateur::findByUserId($dirUser['id_user']);
+                    }
+                    ?>
+                    <div style="height: 65px; display: flex; align-items: center; justify-content: start; position: relative; margin-top: 5px; margin-bottom: 5px;">
+                        <?php if ($dirSettings && !empty($dirSettings->signature)): ?>
+                            <img src="<?= htmlspecialchars($dirSettings->signature) ?>" alt="Signature Directeur" style="max-height: 55px; position: absolute; z-index: 2; left: 20px;">
+                        <?php endif; ?>
+                        <?php if ($dirSettings && !empty($dirSettings->cachet)): ?>
+                            <img src="<?= htmlspecialchars($dirSettings->cachet) ?>" alt="Cachet Directeur" style="max-height: 60px; opacity: 0.85; position: absolute; z-index: 1; left: 10px;">
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>

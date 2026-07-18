@@ -159,6 +159,7 @@ $router->register('/users/update', 'UserController', 'update');
 $router->register('/users/destroy', 'UserController', 'destroy');
 $router->register('/profile', 'UserController', 'profile');
 $router->register('/profile/update-password', 'UserController', 'updatePassword');
+$router->register('/profile/update-settings', 'UserController', 'updateSettings');
 
 // Eleves CRUD
 $router->register('/eleves', 'EleveController', 'index');

@@ -219,6 +219,18 @@ function init_test_db() {
         actif BOOLEAN
     )");
 
+    $pdo->exec("CREATE TABLE IF NOT EXISTS parametres_utilisateurs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER UNIQUE NOT NULL,
+        lycee_id INTEGER,
+        signature TEXT,
+        cachet TEXT,
+        langue_preferee VARCHAR(10) DEFAULT 'fr_FR',
+        theme_prefere VARCHAR(50) DEFAULT 'light',
+        notifications_actives BOOLEAN DEFAULT 1,
+        date_modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )");
+
     Database::setInstance($pdo);
     return $pdo;
 }
