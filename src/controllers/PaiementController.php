@@ -1213,22 +1213,251 @@ class PaiementController {
      */
     public function journal() {
         $this->checkAccess('view');
-        $lycee_id = Auth::getLyceeId();
+
+        $db = Database::getInstance();
+
+        // 1. Mono vs Multi-établissement
+        require_once __DIR__ . '/../models/Lycee.php';
+        $lycees = Lycee::findAll();
+        if (count($lycees) > 1) {
+            $lycee_id = $_GET['lycee_id'] ?? Auth::getLyceeId();
+        } else {
+            $lycee_id = !empty($lycees) ? $lycees[0]['id'] : Auth::getLyceeId();
+        }
+
+        // 2. Année Académique (Filtre Obligatoire)
+        $activeYear = AnneeAcademique::findActive();
+        $annee_academique_id = $_GET['annee_academique_id'] ?? ($activeYear ? $activeYear['id'] : null);
+
+        // Fallback to first available if none is active or selected
+        if (!$annee_academique_id) {
+            $all_years = AnneeAcademique::findAll();
+            if (!empty($all_years)) {
+                $annee_academique_id = $all_years[0]['id'];
+            }
+        }
+
+        // 3. View Type
+        $view_type = $_GET['view_type'] ?? 'detailed'; // detailed, receipt, class, student
 
         $filters = [
-            'date_debut' => $_GET['date_debut'] ?? date('Y-m-01'),
-            'date_fin' => $_GET['date_fin'] ?? date('Y-m-d'),
+            'annee_academique_id' => $annee_academique_id,
+            'lycee_id' => $lycee_id,
+            'cycle_id' => $_GET['cycle_id'] ?? '',
+            'niveau' => $_GET['niveau'] ?? '',
+            'serie' => $_GET['serie'] ?? '',
+            'numero' => $_GET['numero'] ?? '',
+            'date_debut' => $_GET['date_debut'] ?? '',
+            'date_fin' => $_GET['date_fin'] ?? '',
             'operation' => $_GET['operation'] ?? '',
-            'search' => $_GET['search'] ?? ''
+            'search' => $_GET['search'] ?? '',
+            'view_type' => $view_type
         ];
 
+        // Fetch master lists for dropdowns
+        $annees = AnneeAcademique::findAll();
+        $cycles = Cycle::findByLycee($lycee_id);
+        $niveaux = Classe::getDistinctNiveaux($lycee_id);
+        $series = Classe::getDistinctSeries($lycee_id);
+
+        $stmt_num = $db->prepare("SELECT DISTINCT numero FROM classes WHERE lycee_id = :lycee_id AND numero IS NOT NULL ORDER BY numero ASC");
+        $stmt_num->execute(['lycee_id' => $lycee_id]);
+        $numeros = $stmt_num->fetchAll(PDO::FETCH_COLUMN);
+
+        // Fetch detailed entries
         require_once __DIR__ . '/../models/JournalComptable.php';
         $entries = JournalComptable::findAll($lycee_id, $filters);
+
+        // Vue 2 : Journal par reçu
+        $receipt_entries = [];
+        if ($view_type === 'receipt') {
+            foreach ($entries as $entry) {
+                $recu = $entry['recu_numero'];
+                if (empty($recu)) {
+                    continue;
+                }
+                if (!isset($receipt_entries[$recu])) {
+                    $receipt_entries[$recu] = [
+                        'recu_numero' => $recu,
+                        'date' => $entry['date_creation'],
+                        'eleve_nom' => $entry['eleve_nom'] ?? 'N/A',
+                        'eleve_prenom' => $entry['eleve_prenom'] ?? '',
+                        'eleve_matricule' => $entry['eleve_matricule'] ?? 'N/A',
+                        'eleve_id' => $entry['eleve_id'],
+                        'total_encaisse' => 0.00,
+                        'count_entries' => 0,
+                        'user_nom' => $entry['user_nom'] ?? '',
+                        'user_prenom' => $entry['user_prenom'] ?? ''
+                    ];
+                }
+                $receipt_entries[$recu]['total_encaisse'] += (float)$entry['montant'];
+                $receipt_entries[$recu]['count_entries'] += 1;
+            }
+        }
+
+        // Vue 3 : Synthèse par classe
+        $class_synthesis = [];
+        if ($view_type === 'class') {
+            // Find matched classes
+            $sql_classes = "
+                SELECT c.*, cy.nom_cycle
+                FROM classes c
+                JOIN cycles cy ON c.cycle_id = cy.id_cycle
+                WHERE c.lycee_id = :lycee_id
+            ";
+            $params_classes = ['lycee_id' => $lycee_id];
+
+            if (!empty($filters['cycle_id'])) {
+                $sql_classes .= " AND c.cycle_id = :cycle_id";
+                $params_classes['cycle_id'] = $filters['cycle_id'];
+            }
+            if (!empty($filters['niveau'])) {
+                $sql_classes .= " AND c.niveau = :niveau";
+                $params_classes['niveau'] = $filters['niveau'];
+            }
+            if (!empty($filters['serie'])) {
+                $sql_classes .= " AND c.serie = :serie";
+                $params_classes['serie'] = $filters['serie'];
+            }
+            if (!empty($filters['numero'])) {
+                $sql_classes .= " AND c.numero = :numero";
+                $params_classes['numero'] = $filters['numero'];
+            }
+
+            $sql_classes .= " ORDER BY cy.nom_cycle, c.niveau ASC, c.serie ASC, c.numero ASC";
+            $stmt_cl = $db->prepare($sql_classes);
+            $stmt_cl->execute($params_classes);
+            $matched_classes = $stmt_cl->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($matched_classes as $class) {
+                // Get all students in this class for the selected academic year
+                $stmt_std = $db->prepare("
+                    SELECT e.id_eleve
+                    FROM eleves e
+                    JOIN etudes et ON e.id_eleve = et.eleve_id
+                    WHERE et.classe_id = :classe_id
+                    AND et.annee_academique_id = :annee_id
+                    AND (et.status = 'active' OR et.status = 'en_attente_paiement')
+                ");
+                $stmt_std->execute(['classe_id' => $class['id_classe'], 'annee_id' => $annee_academique_id]);
+                $class_students = $stmt_std->fetchAll(PDO::FETCH_COLUMN);
+
+                $total_paid = 0.00;
+                $total_remaining = 0.00;
+
+                foreach ($class_students as $sId) {
+                    $status = FinancialStatusService::getStudentFinancialStatus($sId, $annee_academique_id);
+                    if ($status) {
+                        $total_paid += (float)$status['total_paye'];
+                        $total_remaining += (float)$status['total_reste'];
+                    }
+                }
+
+                $class_synthesis[] = [
+                    'classe_id' => $class['id_classe'],
+                    'nom_classe' => Classe::getFormattedName($class),
+                    'nom_cycle' => $class['nom_cycle'],
+                    'niveau' => $class['niveau'],
+                    'serie' => $class['serie'],
+                    'numero' => $class['numero'],
+                    'effectif' => count($class_students),
+                    'total_paye' => $total_paid,
+                    'reste' => $total_remaining
+                ];
+            }
+        }
+
+        // Vue 4 : Synthèse par élève
+        $student_synthesis = [];
+        if ($view_type === 'student') {
+            $sql_eleves = "
+                SELECT e.id_eleve, e.nom, e.prenom, e.identifiant_public,
+                       c.niveau, c.serie, c.numero, c.cycle_id, cy.nom_cycle
+                FROM eleves e
+                JOIN etudes et ON e.id_eleve = et.eleve_id
+                JOIN classes c ON et.classe_id = c.id_classe
+                JOIN cycles cy ON c.cycle_id = cy.id_cycle
+                WHERE et.annee_academique_id = :annee_id
+                AND e.lycee_id = :lycee_id
+            ";
+            $params_eleves = ['annee_id' => $annee_academique_id, 'lycee_id' => $lycee_id];
+
+            if (!empty($filters['cycle_id'])) {
+                $sql_eleves .= " AND c.cycle_id = :cycle_id";
+                $params_eleves['cycle_id'] = $filters['cycle_id'];
+            }
+            if (!empty($filters['niveau'])) {
+                $sql_eleves .= " AND c.niveau = :niveau";
+                $params_eleves['niveau'] = $filters['niveau'];
+            }
+            if (!empty($filters['serie'])) {
+                $sql_eleves .= " AND c.serie = :serie";
+                $params_eleves['serie'] = $filters['serie'];
+            }
+            if (!empty($filters['numero'])) {
+                $sql_eleves .= " AND c.numero = :numero";
+                $params_eleves['numero'] = $filters['numero'];
+            }
+            if (!empty($filters['search'])) {
+                $sql_eleves .= " AND (
+                    e.nom LIKE :s1
+                    OR e.prenom LIKE :s2
+                    OR e.identifiant_public LIKE :s3
+                )";
+                $s = "%" . $filters['search'] . "%";
+                $params_eleves['s1'] = $s;
+                $params_eleves['s2'] = $s;
+                $params_eleves['s3'] = $s;
+            }
+
+            $sql_eleves .= " ORDER BY e.nom, e.prenom";
+            $stmt_eleves = $db->prepare($sql_eleves);
+            $stmt_eleves->execute($params_eleves);
+            $students_list = $stmt_eleves->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($students_list as $student) {
+                $sId = $student['id_eleve'];
+                $status = FinancialStatusService::getStudentFinancialStatus($sId, $annee_academique_id);
+
+                if ($status) {
+                    // Collect personal history
+                    $student_history = [];
+                    foreach ($entries as $entry) {
+                        if ($entry['eleve_id'] == $sId) {
+                            $student_history[] = $entry;
+                        }
+                    }
+
+                    $student_synthesis[] = [
+                        'id_eleve' => $sId,
+                        'nom' => $student['nom'],
+                        'prenom' => $student['prenom'],
+                        'matricule' => $student['identifiant_public'],
+                        'nom_classe' => Classe::getFormattedName($student),
+                        'total_du' => (float)$status['total_du'],
+                        'total_paye' => (float)$status['total_paye'],
+                        'solde_restant' => (float)$status['total_reste'],
+                        'history' => $student_history
+                    ];
+                }
+            }
+        }
 
         View::render('paiements/journal', [
             'title' => 'Journal Comptable Unique',
             'entries' => $entries,
-            'filters' => $filters
+            'receipt_entries' => $receipt_entries,
+            'class_synthesis' => $class_synthesis,
+            'student_synthesis' => $student_synthesis,
+            'filters' => $filters,
+            'annees' => $annees,
+            'lycees' => $lycees,
+            'cycles' => $cycles,
+            'niveaux' => $niveaux,
+            'series' => $series,
+            'numeros' => $numeros,
+            'selected_lycee_id' => $lycee_id,
+            'selected_annee_id' => $annee_academique_id
         ]);
     }
 
