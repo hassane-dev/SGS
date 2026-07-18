@@ -27,7 +27,11 @@ class FinancialStatusService {
                 'reste_mensualite' => 0.0,
                 'total_reste' => 0.0,
                 'details_mensualites' => [],
-                'is_active' => false
+                'is_active' => false,
+                'paye_inscription' => 0.0,
+                'paye_mensualite' => 0.0,
+                'total_paye' => 0.0,
+                'total_du' => 0.0
             ];
         }
 
@@ -45,7 +49,11 @@ class FinancialStatusService {
                 'reste_mensualite' => 0.0,
                 'total_reste' => 0.0,
                 'details_mensualites' => [],
-                'is_active' => false
+                'is_active' => false,
+                'paye_inscription' => 0.0,
+                'paye_mensualite' => 0.0,
+                'total_paye' => 0.0,
+                'total_du' => 0.0
             ];
         }
 
@@ -57,7 +65,11 @@ class FinancialStatusService {
                 'reste_mensualite' => 0.0,
                 'total_reste' => 0.0,
                 'details_mensualites' => [],
-                'is_active' => false
+                'is_active' => false,
+                'paye_inscription' => 0.0,
+                'paye_mensualite' => 0.0,
+                'total_paye' => 0.0,
+                'total_du' => 0.0
             ];
         }
 
@@ -69,7 +81,11 @@ class FinancialStatusService {
                 'reste_mensualite' => 0.0,
                 'total_reste' => 0.0,
                 'details_mensualites' => [],
-                'is_active' => false
+                'is_active' => false,
+                'paye_inscription' => 0.0,
+                'paye_mensualite' => 0.0,
+                'total_paye' => 0.0,
+                'total_du' => 0.0
             ];
         }
 
@@ -199,13 +215,26 @@ class FinancialStatusService {
 
         $totalReste = $resteInscription + $resteMensualite;
 
+        // Calculate total paid monthly fees from the due months list
+        $payeMensualite = 0.0;
+        foreach ($detailsMensualites as $dm) {
+            $payeMensualite += (float)$dm['verse'];
+        }
+
+        $totalPaye = $verseInscription + $payeMensualite;
+        $totalDu = $totalPaye + $totalReste;
+
         return [
             'eleve_id' => $eleveId,
             'reste_inscription' => $resteInscription,
             'reste_mensualite' => $resteMensualite,
             'total_reste' => $totalReste,
             'details_mensualites' => $detailsMensualites,
-            'is_active' => (bool)$etude['is_active']
+            'is_active' => (bool)$etude['is_active'],
+            'paye_inscription' => $verseInscription,
+            'paye_mensualite' => $payeMensualite,
+            'total_paye' => $totalPaye,
+            'total_du' => $totalDu
         ];
     }
 }
