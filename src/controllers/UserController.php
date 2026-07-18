@@ -5,6 +5,7 @@ require_once __DIR__ . '/../models/Lycee.php';
 require_once __DIR__ . '/../models/Role.php';
 require_once __DIR__ . '/../models/TypeContrat.php';
 require_once __DIR__ . '/../core/Validator.php';
+require_once __DIR__ . '/../models/ParametreUtilisateur.php';
 
 class UserController {
 
@@ -264,8 +265,11 @@ class UserController {
             exit();
         }
 
+        $parametres = ParametreUtilisateur::findByUserId($user_id);
+
         $data = [
             'user' => $user,
+            'parametres' => $parametres,
             'title' => _('Mon Profil')
         ];
 
@@ -298,6 +302,123 @@ class UserController {
                 $_SESSION['success_message'] = 'Mot de passe mis à jour avec succès.';
             } else {
                 $_SESSION['error_message'] = 'Erreur lors de la mise à jour du mot de passe.';
+            }
+
+            header('Location: /profile');
+            exit();
+        }
+    }
+
+    public function updateSettings() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $user_id = Auth::get('id_user');
+            $user = User::findById($user_id);
+            if (!$user) {
+                $_SESSION['error_message'] = 'Utilisateur non trouvé.';
+                header('Location: /profile');
+                exit();
+            }
+
+            $parametres = ParametreUtilisateur::findByUserId($user_id);
+            $parametres->lycee_id = $user['lycee_id'] ?? null;
+            $parametres->langue_preferee = $_POST['langue_preferee'] ?? 'fr_FR';
+            $parametres->theme_prefere = $_POST['theme_prefere'] ?? 'light';
+            $parametres->notifications_actives = isset($_POST['notifications_actives']) ? 1 : 0;
+
+            // Handle standard file uploads
+            // 1. Signature file upload
+            if (isset($_FILES['signature_file']) && $_FILES['signature_file']['error'] === UPLOAD_ERR_OK) {
+                $uploadDir = UPLOAD_BASE_DIR . '/signatures/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+                @chmod($uploadDir, 0777);
+
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                $detectedType = mime_content_type($_FILES['signature_file']['tmp_name']);
+
+                if (in_array($detectedType, $allowedTypes)) {
+                    $extension = pathinfo($_FILES['signature_file']['name'], PATHINFO_EXTENSION);
+                    $fileName = 'signature_' . $user_id . '_' . time() . '.' . $extension;
+                    $targetFilePath = $uploadDir . $fileName;
+
+                    if (move_uploaded_file($_FILES['signature_file']['tmp_name'], $targetFilePath)) {
+                        if (!empty($parametres->signature)) {
+                            $oldPath = __DIR__ . '/../../public' . $parametres->signature;
+                            if (file_exists($oldPath)) {
+                                @unlink($oldPath);
+                            }
+                        }
+                        $parametres->signature = UPLOAD_PUBLIC_PATH . '/signatures/' . $fileName;
+                    }
+                }
+            }
+            // 2. Canvas Signature (Base64)
+            elseif (!empty($_POST['signature_base64'])) {
+                $base64 = $_POST['signature_base64'];
+                if (preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
+                    $imgData = substr($base64, strpos($base64, ',') + 1);
+                    $imgData = base64_decode($imgData);
+
+                    if ($imgData !== false) {
+                        $uploadDir = UPLOAD_BASE_DIR . '/signatures/';
+                        if (!is_dir($uploadDir)) {
+                            mkdir($uploadDir, 0777, true);
+                        }
+                        @chmod($uploadDir, 0777);
+
+                        $fileName = 'signature_' . $user_id . '_' . time() . '.png';
+                        $targetFilePath = $uploadDir . $fileName;
+
+                        if (file_put_contents($targetFilePath, $imgData)) {
+                            if (!empty($parametres->signature)) {
+                                $oldPath = __DIR__ . '/../../public' . $parametres->signature;
+                                if (file_exists($oldPath)) {
+                                    @unlink($oldPath);
+                                }
+                            }
+                            $parametres->signature = UPLOAD_PUBLIC_PATH . '/signatures/' . $fileName;
+                        }
+                    }
+                }
+            }
+
+            // 3. Cachet file upload
+            if (isset($_FILES['cachet_file']) && $_FILES['cachet_file']['error'] === UPLOAD_ERR_OK) {
+                $uploadDir = UPLOAD_BASE_DIR . '/tampons/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+                @chmod($uploadDir, 0777);
+
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                $detectedType = mime_content_type($_FILES['cachet_file']['tmp_name']);
+
+                if (in_array($detectedType, $allowedTypes)) {
+                    $extension = pathinfo($_FILES['cachet_file']['name'], PATHINFO_EXTENSION);
+                    $fileName = 'cachet_' . $user_id . '_' . time() . '.' . $extension;
+                    $targetFilePath = $uploadDir . $fileName;
+
+                    if (move_uploaded_file($_FILES['cachet_file']['tmp_name'], $targetFilePath)) {
+                        if (!empty($parametres->cachet)) {
+                            $oldPath = __DIR__ . '/../../public' . $parametres->cachet;
+                            if (file_exists($oldPath)) {
+                                @unlink($oldPath);
+                            }
+                        }
+                        $parametres->cachet = UPLOAD_PUBLIC_PATH . '/tampons/' . $fileName;
+                    }
+                }
+            }
+
+            // Save settings
+            if ($parametres->save()) {
+                $_SESSION['success_message'] = 'Paramètres et signatures enregistrés avec succès.';
+
+                // Update active locale session dynamically for the current user!
+                $_SESSION['locale'] = $parametres->langue_preferee;
+            } else {
+                $_SESSION['error_message'] = 'Erreur lors de l\'enregistrement des paramètres.';
             }
 
             header('Location: /profile');

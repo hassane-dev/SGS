@@ -190,6 +190,21 @@ try {
         }
     }
 
+    // Create parametres_utilisateurs table
+    $db->exec("CREATE TABLE IF NOT EXISTS parametres_utilisateurs (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL UNIQUE,
+        lycee_id INT DEFAULT NULL,
+        signature TEXT DEFAULT NULL,
+        cachet TEXT DEFAULT NULL,
+        langue_preferee VARCHAR(10) DEFAULT 'fr_FR',
+        theme_prefere VARCHAR(50) DEFAULT 'light',
+        notifications_actives TINYINT(1) DEFAULT 1,
+        date_modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE CASCADE,
+        FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE SET NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
     echo "Migration successful\n";
 } catch (Exception $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";

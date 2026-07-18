@@ -151,9 +151,24 @@
                 <p>Le Parent / L'Élève</p>
                 <div class="signature-line">Signature</div>
             </div>
-            <div class="signature-box">
+            <?php
+            require_once __DIR__ . '/../../models/ParametreUtilisateur.php';
+            $caissierSettings = null;
+            if (!empty($caissier['id_user'])) {
+                $caissierSettings = ParametreUtilisateur::findByUserId($caissier['id_user']);
+            }
+            ?>
+            <div class="signature-box" style="position: relative;">
                 <p>Le Caissier / Comptable</p>
-                <div class="signature-line">
+                <div style="height: 60px; display: flex; align-items: center; justify-content: center; position: relative;">
+                    <?php if ($caissierSettings && !empty($caissierSettings->signature)): ?>
+                        <img src="<?= htmlspecialchars($caissierSettings->signature) ?>" alt="Signature" style="max-height: 50px; position: absolute; z-index: 2;">
+                    <?php endif; ?>
+                    <?php if ($caissierSettings && !empty($caissierSettings->cachet)): ?>
+                        <img src="<?= htmlspecialchars($caissierSettings->cachet) ?>" alt="Cachet" style="max-height: 55px; opacity: 0.85; position: absolute; z-index: 1;">
+                    <?php endif; ?>
+                </div>
+                <div class="signature-line" style="margin-top: 5px;">
                     <?= htmlspecialchars(($caissier['prenom'] ?? '') . ' ' . ($caissier['nom'] ?? '')) ?>
                 </div>
                 <p style="font-size: 10px; margin-top: 5px;">Validé informatiquement</p>
