@@ -343,12 +343,6 @@ class UserController {
                     $targetFilePath = $uploadDir . $fileName;
 
                     if (move_uploaded_file($_FILES['signature_file']['tmp_name'], $targetFilePath)) {
-                        if (!empty($parametres->signature)) {
-                            $oldPath = __DIR__ . '/../../public' . $parametres->signature;
-                            if (file_exists($oldPath)) {
-                                @unlink($oldPath);
-                            }
-                        }
                         $parametres->signature = UPLOAD_PUBLIC_PATH . '/signatures/' . $fileName;
                     }
                 }
@@ -371,12 +365,6 @@ class UserController {
                         $targetFilePath = $uploadDir . $fileName;
 
                         if (file_put_contents($targetFilePath, $imgData)) {
-                            if (!empty($parametres->signature)) {
-                                $oldPath = __DIR__ . '/../../public' . $parametres->signature;
-                                if (file_exists($oldPath)) {
-                                    @unlink($oldPath);
-                                }
-                            }
                             $parametres->signature = UPLOAD_PUBLIC_PATH . '/signatures/' . $fileName;
                         }
                     }
@@ -400,12 +388,6 @@ class UserController {
                     $targetFilePath = $uploadDir . $fileName;
 
                     if (move_uploaded_file($_FILES['cachet_file']['tmp_name'], $targetFilePath)) {
-                        if (!empty($parametres->cachet)) {
-                            $oldPath = __DIR__ . '/../../public' . $parametres->cachet;
-                            if (file_exists($oldPath)) {
-                                @unlink($oldPath);
-                            }
-                        }
                         $parametres->cachet = UPLOAD_PUBLIC_PATH . '/tampons/' . $fileName;
                     }
                 }

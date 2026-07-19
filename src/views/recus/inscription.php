@@ -164,8 +164,8 @@
                     <?php if ($caissierSettings && !empty($caissierSettings->signature)): ?>
                         <img src="<?= htmlspecialchars($caissierSettings->signature) ?>" alt="Signature" style="max-height: 50px; position: absolute; z-index: 2;">
                     <?php endif; ?>
-                    <?php if ($caissierSettings && !empty($caissierSettings->cachet)): ?>
-                        <img src="<?= htmlspecialchars($caissierSettings->cachet) ?>" alt="Cachet" style="max-height: 55px; opacity: 0.85; position: absolute; z-index: 1;">
+                    <?php if (!empty($lycee['tampon_ecole'])): ?>
+                        <img src="<?= htmlspecialchars($lycee['tampon_ecole']) ?>" alt="Tampon Établissement" style="max-height: 55px; opacity: 0.75; position: absolute; z-index: 1;">
                     <?php endif; ?>
                 </div>
                 <div class="signature-line" style="margin-top: 5px;">

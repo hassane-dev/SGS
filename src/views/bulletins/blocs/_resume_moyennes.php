@@ -41,9 +41,11 @@
                     <?php
                     require_once __DIR__ . '/../../../models/User.php';
                     require_once __DIR__ . '/../../../models/ParametreUtilisateur.php';
+                    require_once __DIR__ . '/../../../models/ParamLycee.php';
 
-                    // Find director or proviseur
-                    $dirUser = User::findOneByRoleName('proviseur') ?: User::findOneByRoleName('directeur');
+                    // Find director or proviseur strictly filtered by the student's lycée
+                    $lyceeId = $bulletin['eleve']['lycee_id'] ?? null;
+                    $dirUser = User::findOneByRoleNameAndLycee('proviseur', $lyceeId) ?: User::findOneByRoleNameAndLycee('directeur', $lyceeId);
                     $dirSettings = null;
                     if ($dirUser) {
                         $dirSettings = ParametreUtilisateur::findByUserId($dirUser['id_user']);
@@ -53,8 +55,11 @@
                         <?php if ($dirSettings && !empty($dirSettings->signature)): ?>
                             <img src="<?= htmlspecialchars($dirSettings->signature) ?>" alt="Signature Directeur" style="max-height: 55px; position: absolute; z-index: 2; left: 20px;">
                         <?php endif; ?>
-                        <?php if ($dirSettings && !empty($dirSettings->cachet)): ?>
-                            <img src="<?= htmlspecialchars($dirSettings->cachet) ?>" alt="Cachet Directeur" style="max-height: 60px; opacity: 0.85; position: absolute; z-index: 1; left: 10px;">
+                        <?php
+                        $lyceeParams = ParamLycee::findByLyceeId($lyceeId);
+                        if ($lyceeParams && !empty($lyceeParams['tampon_ecole'])):
+                        ?>
+                            <img src="<?= htmlspecialchars($lyceeParams['tampon_ecole']) ?>" alt="Tampon Établissement" style="max-height: 60px; opacity: 0.75; position: absolute; z-index: 1; left: 10px;">
                         <?php endif; ?>
                     </div>
                 </div>
