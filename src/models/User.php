@@ -319,6 +319,21 @@ class User {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+    public static function findOneByRoleNameAndLycee($role_name, $lycee_id) {
+        if (empty($lycee_id)) {
+            return self::findOneByRoleName($role_name);
+        }
+        $db = Database::getInstance();
+        $stmt = $db->prepare("
+            SELECT u.* FROM utilisateurs u
+            JOIN roles r ON u.role_id = r.id_role
+            WHERE r.nom_role = :role_name AND u.lycee_id = :lycee_id
+            LIMIT 1
+        ");
+        $stmt->execute(['role_name' => $role_name, 'lycee_id' => $lycee_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     public static function getTeacherAssignments($teacher_id) {
         $db = Database::getInstance();
         $stmt = $db->prepare("
