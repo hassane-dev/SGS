@@ -37,9 +37,33 @@ $supported_languages = [
 ];
 $default_lang = 'fr_FR';
 
+// Normalization map to map short codes, free-text database parameters, or inputs to canonical locales
+$lang_map = [
+    'fr' => 'fr_FR',
+    'fr_FR' => 'fr_FR',
+    'Francais' => 'fr_FR',
+    'Français' => 'fr_FR',
+    'en' => 'en_US',
+    'en_US' => 'en_US',
+    'Anglais' => 'en_US',
+    'English' => 'en_US',
+    'ar' => 'ar',
+    'Arabe' => 'ar',
+    'Arabic' => 'ar'
+];
+
+// Normalize school default language if retrieved
+if ($school_lang) {
+    $school_lang = $lang_map[$school_lang] ?? $default_lang;
+}
+
 // 2. Check for language change in URL and update session
-if (isset($_GET['lang']) && isset($supported_languages[$_GET['lang']])) {
-    $_SESSION['lang'] = $_GET['lang'];
+if (isset($_GET['lang'])) {
+    $requested_lang = $_GET['lang'];
+    $normalized_lang = $lang_map[$requested_lang] ?? $lang_map[explode('_', $requested_lang)[0]] ?? $default_lang;
+    if (isset($supported_languages[$normalized_lang])) {
+        $_SESSION['lang'] = $normalized_lang;
+    }
     // Redirect to the same page without the lang parameter to have a clean URL
     $redirect_url = strtok($_SERVER['REQUEST_URI'], '?');
     header("Location: " . $redirect_url);
@@ -48,6 +72,9 @@ if (isset($_GET['lang']) && isset($supported_languages[$_GET['lang']])) {
 
 // 3. Determine the language to use
 $lang = $_SESSION['lang'] ?? $school_lang ?? $default_lang;
+
+// Settle on normalized key
+$lang = $lang_map[$lang] ?? $lang_map[explode('_', $lang)[0]] ?? $default_lang;
 if (!isset($supported_languages[$lang])) {
     $lang = $default_lang;
 }

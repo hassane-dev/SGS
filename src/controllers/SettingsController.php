@@ -72,7 +72,13 @@ class SettingsController {
     public function changeLanguage() {
         if (isset($_GET['lang'])) {
             $lang = $_GET['lang'];
-            $_SESSION['lang'] = $lang;
+            $lang_map = [
+                'fr' => 'fr_FR', 'fr_FR' => 'fr_FR',
+                'en' => 'en_US', 'en_US' => 'en_US',
+                'ar' => 'ar'
+            ];
+            $normalized = $lang_map[$lang] ?? $lang_map[explode('_', $lang)[0]] ?? 'fr_FR';
+            $_SESSION['lang'] = $normalized;
         }
         header('Location: ' . $_SERVER['HTTP_REFERER']);
         exit();

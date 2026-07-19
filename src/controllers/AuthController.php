@@ -9,7 +9,17 @@ class AuthController {
             $password = $_POST['password'] ?? '';
 
             if (Auth::login($email, $password)) {
-                // Successful login, redirect to home/dashboard
+                // Successful login, retrieve and set preferred user language
+                require_once __DIR__ . '/../models/ParametreUtilisateur.php';
+                $user_id = Auth::getUserId();
+                if ($user_id) {
+                    $user_settings = ParametreUtilisateur::findByUserId($user_id);
+                    if ($user_settings && !empty($user_settings->langue_preferee)) {
+                        $_SESSION['lang'] = $user_settings->langue_preferee;
+                    }
+                }
+
+                // Redirect to home/dashboard
                 header('Location: /');
                 exit();
             } else {

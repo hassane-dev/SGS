@@ -63,17 +63,25 @@ $active_sequence = $lycee_params['sequence_annuelle'] ?? _('Non définie');
 $unread_notifications = Notification::findUnreadByUser($current_user['id']);
 $notification_count = count($unread_notifications);
 
+// --- Determine active language and direction ---
+global $lang, $supported_languages;
+$lang_code = explode('_', $lang)[0]; // 'fr_FR' -> 'fr', 'ar' -> 'ar'
+$direction = $supported_languages[$lang]['dir'] ?? 'ltr';
+
 // --- End Data Loading ---
 ?>
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="<?= $lang_code ?>" dir="<?= $direction ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $title ?? 'Gestion Scolaire' ?></title>
-    <link rel="icon" href="<?= htmlspecialchars($lycee_params['logo'] ?? '/assets/img/placeholder-photo.png') ?>" type="image/x-icon">
+    <link class="icon" rel="icon" href="<?= htmlspecialchars($lycee_params['logo'] ?? '/assets/img/placeholder-photo.png') ?>" type="image/x-icon">
     <link rel="stylesheet" href="/assets/css/style.css" id="main-style-link" >
     <link rel="stylesheet" href="/assets/css/style-preset.css" >
+    <?php if ($direction === 'rtl'): ?>
+        <link rel="stylesheet" href="/assets/css/able-pro-rtl.css" id="rtl-style-link">
+    <?php endif; ?>
     <style>
         .pc-sidebar .navbar-content {
             height: calc(100vh - 70px); /* Adjust 70px to match the header's height */
@@ -82,7 +90,7 @@ $notification_count = count($unread_notifications);
         }
     </style>
 </head>
-<body>
+<body data-pc-direction="<?= $direction ?>">
 <!-- [ Pre-loader ] start -->
 <div class="loader-bg">
     <div class="loader-track">
@@ -168,8 +176,8 @@ $notification_count = count($unread_notifications);
                         <i class="ph-duotone ph-translate"></i>
                     </a>
                     <div class="dropdown-menu dropdown-menu-end pc-h-dropdown">
-                        <a href="/settings/change-language?lang=fr" class="dropdown-item"><span>Français</span></a>
-                        <a href="/settings/change-language?lang=en" class="dropdown-item"><span>English</span></a>
+                        <a href="/settings/change-language?lang=fr_FR" class="dropdown-item"><span>Français</span></a>
+                        <a href="/settings/change-language?lang=en_US" class="dropdown-item"><span>English</span></a>
                         <a href="/settings/change-language?lang=ar" class="dropdown-item"><span>العربية</span></a>
                     </div>
                 </li>

@@ -1,0 +1,85 @@
+/* Able Pro Theme RTL Overrides */
+
+html[dir="rtl"] {
+    text-align: right;
+}
+
+html[dir="rtl"] body {
+    direction: rtl;
+    text-align: right;
+}
+
+/* Sidebar Alignment */
+html[dir="rtl"] .pc-sidebar {
+    right: 0 !important;
+    left: auto !important;
+    border-left: var(--pc-sidebar-border);
+    border-right: none !important;
+}
+
+/* Main Container Adjustment */
+html[dir="rtl"] .pc-container {
+    margin-left: 0 !important;
+    margin-right: var(--pc-sidebar-width, 280px) !important;
+}
+
+/* Page Header Alignment */
+html[dir="rtl"] .page-header {
+    left: 0 !important;
+    right: var(--pc-sidebar-width, 280px) !important;
+}
+
+/* Navbar / Top Header Alignments */
+html[dir="rtl"] .pc-header {
+    left: 0 !important;
+    right: var(--pc-sidebar-width, 280px) !important;
+}
+
+@media (max-width: 1024px) {
+    html[dir="rtl"] .pc-container,
+    html[dir="rtl"] .pc-header,
+    html[dir="rtl"] .page-header {
+        margin-right: 0 !important;
+        right: 0 !important;
+    }
+}
+
+/* Specific text alignment overrides */
+html[dir="rtl"] .text-end {
+    text-align: left !important;
+}
+
+html[dir="rtl"] .text-start {
+    text-align: right !important;
+}
+
+html[dir="rtl"] th, html[dir="rtl"] td {
+    text-align: right;
+}
+
+html[dir="rtl"] .th-end, html[dir="rtl"] .td-end {
+    text-align: left !important;
+}
+
+/* Utility to ensure cards/dropdowns display correctly on RTL */
+html[dir="rtl"] .dropdown-menu {
+    text-align: right;
+}
+
+/* Spacing alignment corrections that are hardcoded */
+html[dir="rtl"] .ms-auto {
+    margin-right: auto !important;
+    margin-left: 0 !important;
+}
+
+html[dir="rtl"] .me-auto {
+    margin-left: auto !important;
+    margin-right: 0 !important;
+}
+
+/* Specific SimpleBar track alignment for RTL */
+html[dir="rtl"] [data-simplebar-direction=rtl] .simplebar-track.simplebar-vertical,
+html[dir="rtl"] .simplebar-track.simplebar-vertical {
+    right: auto !important;
+    left: 0 !important;
+}

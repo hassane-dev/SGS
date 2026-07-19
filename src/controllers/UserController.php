@@ -416,7 +416,7 @@ class UserController {
                 $_SESSION['success_message'] = 'Paramètres et signatures enregistrés avec succès.';
 
                 // Update active locale session dynamically for the current user!
-                $_SESSION['locale'] = $parametres->langue_preferee;
+                $_SESSION['lang'] = $parametres->langue_preferee;
             } else {
                 $_SESSION['error_message'] = 'Erreur lors de l\'enregistrement des paramètres.';
             }
