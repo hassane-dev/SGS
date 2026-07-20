@@ -413,12 +413,12 @@ class UserController {
 
             // Save settings
             if ($parametres->save()) {
-                $_SESSION['success_message'] = 'Paramètres et signatures enregistrés avec succès.';
+                $_SESSION['success_message'] = _('Paramètres et signatures enregistrés avec succès.');
 
                 // Update active locale session dynamically for the current user!
                 $_SESSION['lang'] = $parametres->langue_preferee;
             } else {
-                $_SESSION['error_message'] = 'Erreur lors de l\'enregistrement des paramètres.';
+                $_SESSION['error_message'] = _('Erreur lors de l\'enregistrement des paramètres.');
             }
 
             header('Location: /profile');
