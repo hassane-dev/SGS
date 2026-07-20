@@ -89,7 +89,15 @@ $locale_dir = __DIR__ . '/../../locale';
 
 // Set language environment variables
 putenv('LC_ALL=' . $lang);
-setlocale(LC_ALL, $lang . '.utf8', $lang);
+putenv('LANG=' . $lang);
+
+if ($lang === 'ar') {
+    setlocale(LC_ALL, 'ar_SA.utf8', 'ar_EG.utf8', 'ar_SA.UTF-8', 'ar_EG.UTF-8', 'ar.utf8', 'ar');
+} elseif ($lang === 'en_US') {
+    setlocale(LC_ALL, 'en_US.utf8', 'en_US.UTF-8', 'en_US', 'english');
+} else {
+    setlocale(LC_ALL, $lang . '.utf8', $lang . '.UTF-8', $lang, 'french');
+}
 
 // Bind the text domain
 bindtextdomain($domain, $locale_dir);
