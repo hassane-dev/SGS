@@ -86,6 +86,13 @@ class Auth {
      */
     public static function get($key) {
         self::startSession();
+        // Support both 'id' and 'id_user' interchangeably as aliases
+        if ($key === 'id_user') {
+            return $_SESSION['user']['id'] ?? null;
+        }
+        if ($key === 'id') {
+            return $_SESSION['user']['id'] ?? null;
+        }
         return $_SESSION['user'][$key] ?? null;
     }
 
