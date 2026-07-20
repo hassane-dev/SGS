@@ -3,7 +3,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Cartes d'Identité Scolaire</title>
+    <title><?= _("Cartes d'Identité Scolaire") ?></title>
     <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
     <script src="/assets/libs/qrcode/qrcode.min.js"></script>
     <style>
@@ -75,15 +75,15 @@
 
     <div class="text-center mt-4 no-print mb-5">
         <button onclick="window.print()" class="btn btn-primary btn-lg shadow">
-            <i class="ph ph-printer"></i> Imprimer les Cartes
+            <i class="ph ph-printer"></i> <?= _('Imprimer les Cartes') ?>
         </button>
         <?php if (count($data['students']) === 1): ?>
             <a href="/eleves/details?id=<?= $data['students'][0]['eleve']['id_eleve'] ?>" class="btn btn-outline-secondary btn-lg ms-2">
-                Retour
+                <?= _('Retour') ?>
             </a>
         <?php else: ?>
             <a href="/classes/show?id=<?= $data['classe']['id_classe'] ?>" class="btn btn-outline-secondary btn-lg ms-2">
-                Retour
+                <?= _('Retour') ?>
             </a>
         <?php endif; ?>
     </div>

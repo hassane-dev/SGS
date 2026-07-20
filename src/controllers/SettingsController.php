@@ -45,7 +45,7 @@ class SettingsController {
                 AnneeAcademique::setActive($data['annee_academique_id']);
             }
 
-            $_SESSION['success_message'] = 'Paramètres mis à jour avec succès.';
+            $_SESSION['success_message'] = _('Paramètres mis à jour avec succès.');
             header('Location: /settings');
             exit();
         }

@@ -63,7 +63,7 @@
             <p>Tel: <?= htmlspecialchars($lycee['tel'] ?? '') ?> / Email: <?= htmlspecialchars($lycee['email'] ?? '') ?></p>
             </div>
             <div style="width: 120px; text-align: right;">
-                <span class="info-label">N° Reçu</span>
+                <span class="info-label"><?= _('N° Reçu') ?></span>
                 <span class="info-value" style="font-size: 16px; color: #d9534f;">
                     <?= !empty($inscription['recu_numero']) ? htmlspecialchars($inscription['recu_numero'] ?? '') : 'INS-' . str_pad($inscription['id_inscription'] ?? 0, 5, '0', STR_PAD_LEFT) ?>
                 </span>
@@ -71,27 +71,27 @@
         </div>
 
         <div class="receipt-title">
-            <h2>Reçu de Paiement</h2>
+            <h2><?= _('Reçu de Paiement') ?></h2>
         </div>
 
         <div class="info-section">
             <div class="info-box">
-                <span class="info-label">Élève</span>
+                <span class="info-label"><?= _('Élève') ?></span>
                 <span class="info-value"><?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?></span>
                 <?php if (!empty($eleve['identifiant_public'])): ?>
-                    <br><span class="info-label" style="margin-top: 5px;">Matricule: <?= htmlspecialchars($eleve['identifiant_public'] ?? '') ?></span>
+                    <br><span class="info-label" style="margin-top: 5px;"><?= _('Matricule') ?>: <?= htmlspecialchars($eleve['identifiant_public'] ?? '') ?></span>
                 <?php endif; ?>
             </div>
             <div class="info-box">
-                <span class="info-label">Année Académique</span>
+                <span class="info-label"><?= _('Année Académique') ?></span>
                 <span class="info-value"><?= htmlspecialchars($inscription['annee_academique'] ?? '') ?></span>
             </div>
             <div class="info-box">
-                <span class="info-label">Classe</span>
+                <span class="info-label"><?= _('Classe') ?></span>
                 <span class="info-value"><?= htmlspecialchars($inscription['nom_classe'] ?? '') ?></span>
             </div>
             <div class="info-box">
-                <span class="info-label">Date de Paiement</span>
+                <span class="info-label"><?= _('Date de Paiement') ?></span>
                 <span class="info-value"><?= date('d/m/Y à H:i', strtotime($inscription['date_inscription'])) ?></span>
             </div>
         </div>
@@ -99,8 +99,8 @@
         <table>
             <thead>
                 <tr>
-                    <th>Désignation des frais</th>
-                    <th style="text-align: right;">Montant Versé</th>
+                    <th><?= _('Désignation des frais') ?></th>
+                    <th style="text-align: right;"><?= _('Montant Versé') ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -129,7 +129,7 @@
             </tbody>
             <tfoot>
                 <tr style="background: #f0f0f0;">
-                    <td style="text-align: right; font-weight: bold; text-transform: uppercase;">Total versé lors de l'opération</td>
+                    <td style="text-align: right; font-weight: bold; text-transform: uppercase;"><?= _("Total versé lors de l'opération") ?></td>
                     <td style="text-align: right; font-weight: bold; font-size: 16px; border-left: 2px solid #333;"><?= number_format($totalVerseOperation, 0, ',', ' ') ?> FCFA</td>
                 </tr>
             </tfoot>
@@ -137,18 +137,18 @@
 
         <?php if ($inscription['reste_a_payer'] > 0): ?>
             <div style="margin-bottom: 20px; text-align: right; color: #d9534f; font-weight: bold;">
-                Reliquat sur inscription : <?= number_format($inscription['reste_a_payer'], 0, ',', ' ') ?> FCFA
+                <?= _('Reliquat sur inscription') ?> : <?= number_format($inscription['reste_a_payer'], 0, ',', ' ') ?> FCFA
             </div>
         <?php endif; ?>
 
         <div class="amount-words">
-            <strong>Arrêté le présent reçu à la somme de :</strong><br>
+            <strong><?= _('Arrêté le présent reçu à la somme de :') ?></strong><br>
             <span style="text-transform: capitalize; font-weight: bold;"><?= number_format($totalVerseOperation, 0, ',', ' ') ?> Francs CFA</span>
         </div>
 
         <div class="footer">
             <div class="signature-box">
-                <p>Le Parent / L'Élève</p>
+                <p><?= _("Le Parent / L'Élève") ?></p>
                 <div class="signature-line">Signature</div>
             </div>
             <?php
@@ -159,7 +159,7 @@
             }
             ?>
             <div class="signature-box" style="position: relative;">
-                <p>Le Caissier / Comptable</p>
+                <p><?= _('Le Caissier / Comptable') ?></p>
                 <div style="height: 60px; display: flex; align-items: center; justify-content: center; position: relative;">
                     <?php if ($caissierSettings && !empty($caissierSettings->signature)): ?>
                         <img src="<?= htmlspecialchars($caissierSettings->signature) ?>" alt="Signature" style="max-height: 50px; position: absolute; z-index: 2;">

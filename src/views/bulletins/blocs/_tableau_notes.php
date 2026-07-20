@@ -1,11 +1,11 @@
 <table class="table table-bordered">
     <thead class="thead-light">
         <tr>
-            <th>Matières</th>
-            <th>Note / 20</th>
-            <th>Coefficient</th>
-            <th>Total (Note x Coef)</th>
-            <th>Appréciations de l'enseignant</th>
+            <th><?= _('Matières') ?></th>
+            <th><?= _('Note / 20') ?></th>
+            <th><?= _('Coefficient') ?></th>
+            <th><?= _('Total (Note x Coef)') ?></th>
+            <th><?= _("Appréciations de l'enseignant") ?></th>
         </tr>
     </thead>
     <tbody>
@@ -21,7 +21,7 @@
     </tbody>
     <tfoot class="font-weight-bold">
         <tr>
-            <td>Totaux</td>
+            <td><?= _('Totaux') ?></td>
             <td></td>
             <td><?= htmlspecialchars($bulletin['total_coefficients']) ?></td>
             <td><?= number_format($bulletin['total_points'], 2) ?></td>

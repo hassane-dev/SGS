@@ -376,11 +376,14 @@ msgstr "Cancel"
 msgid "Année"
 msgstr "Year"
 
+#: src/views/bulletins/blocs/_header.php
 #: src/views/paiements/journal.php
 #: src/views/eleves/details.php
 #: src/views/eleves/details.php
+#: src/views/recus/inscription.php
+#: src/views/recus/mensualite.php
 msgid "Année Académique"
-msgstr ""
+msgstr "Academic Year"
 
 #: src/views/settings/index.php
 msgid "Année Académique Active"
@@ -418,6 +421,14 @@ msgstr ""
 msgid "Appliquer la confidentialité nationale"
 msgstr ""
 
+#: src/views/bulletins/blocs/_resume_moyennes.php
+msgid "Appréciation du Conseil de Classe"
+msgstr "Class Council Appreciation"
+
+#: src/views/bulletins/blocs/_tableau_notes.php
+msgid "Appréciations de l'enseignant"
+msgstr "Teacher Appreciations"
+
 #: src/views/settings/index.php
 msgid "Après le test d'entrée"
 msgstr ""
@@ -435,6 +446,11 @@ msgstr "Are you sure you want to delete this high school?"
 #: src/views/emploi_du_temps/index.php
 msgid "Are you sure?"
 msgstr "Are you sure?"
+
+#: src/views/recus/inscription.php
+#: src/views/recus/mensualite.php
+msgid "Arrêté le présent reçu à la somme de :"
+msgstr "The present receipt is finalized at the sum of:"
 
 #: src/views/boutique/achats/recu.php
 #: src/views/boutique/achats/create.php
@@ -528,6 +544,14 @@ msgstr ""
 msgid "Aucune action disponible."
 msgstr "Aucune action disponible."
 
+#: src/controllers/PaiementController.php
+msgid "Aucune année académique active n'est définie."
+msgstr "No active academic year is defined."
+
+#: src/controllers/PaiementController.php
+msgid "Aucune année académique active."
+msgstr "No active academic year."
+
 #: src/views/annees_academiques/index.php
 msgid "Aucune année académique trouvée."
 msgstr ""
@@ -535,6 +559,10 @@ msgstr ""
 #: src/views/layouts/header_able.php
 msgid "Aucune année définie"
 msgstr ""
+
+#: src/views/bulletins/blocs/_resume_moyennes.php
+msgid "Aucune appréciation."
+msgstr "No appreciation."
 
 #: src/views/paiements/journal.php
 msgid "Aucune classe enregistrée ou correspondant aux critères."
@@ -624,6 +652,10 @@ msgstr "Shop"
 msgid "Boutique Scolaire"
 msgstr "Boutique Scolaire"
 
+#: src/views/bulletins/blocs/_header.php
+msgid "Bulletin de la Séquence :"
+msgstr "Report Card for Sequence:"
+
 #: src/views/layouts/sidebar_able.php
 msgid "Bulletins"
 msgstr "Report Cards"
@@ -660,6 +692,10 @@ msgstr "Textbook"
 #: src/views/lycees/create.php
 msgid "Cancel"
 msgstr "Cancel"
+
+#: src/views/carte/generer.php
+msgid "Cartes d'Identité Scolaire"
+msgstr "School Identity Cards"
 
 #: src/views/boutique/articles/edit.php
 #: src/views/boutique/articles/create.php
@@ -782,11 +818,14 @@ msgstr "Class"
 msgid "Class Results for:"
 msgstr "Class Results for:"
 
+#: src/views/bulletins/blocs/_info_eleve.php
 #: src/views/home/index.php
 #: src/views/paiements/journal.php
 #: src/views/eleves/details.php
 #: src/views/eleves/index.php
 #: src/views/cahier_texte/index.php
+#: src/views/recus/inscription.php
+#: src/views/recus/mensualite.php
 msgid "Classe"
 msgstr "Class"
 
@@ -815,6 +854,7 @@ msgstr ""
 msgid "Clôturée"
 msgstr ""
 
+#: src/views/bulletins/blocs/_tableau_notes.php
 #: src/views/classes/show.php
 #: src/views/classes/show.php
 msgid "Coefficient"
@@ -1022,6 +1062,7 @@ msgstr ""
 msgid "Date de Fin"
 msgstr "Date de Fin"
 
+#: src/views/bulletins/blocs/_info_eleve.php
 #: src/views/eleves/details.php
 #: src/views/eleves/_form.php
 #: src/views/eleves/archives.php
@@ -1029,6 +1070,10 @@ msgstr "Date de Fin"
 #: src/views/users/view.php
 msgid "Date de Naissance"
 msgstr "Date of Birth"
+
+#: src/views/recus/inscription.php
+msgid "Date de Paiement"
+msgstr "Payment Date"
 
 #: src/views/evaluations/deblocage_form.php
 msgid "Date de début"
@@ -1041,6 +1086,10 @@ msgstr "Date de fermeture"
 #: src/views/cahier_texte/_form.php
 msgid "Date du cours"
 msgstr "Date du cours"
+
+#: src/views/recus/mensualite.php
+msgid "Date du versement"
+msgstr "Deposit Date"
 
 #: src/controllers/RoleController.php
 msgid "Default roles cannot be deleted."
@@ -1115,6 +1164,14 @@ msgstr ""
 #: src/views/evaluations/parametres_index.php
 msgid "Définir une période"
 msgstr ""
+
+#: src/views/recus/mensualite.php
+msgid "Désignation de la mensualité"
+msgstr "Monthly fee designation"
+
+#: src/views/recus/inscription.php
+msgid "Désignation des frais"
+msgstr "Fee Designation"
 
 #: src/views/users/view.php
 msgid "Détail du membre du personnel"
@@ -1247,6 +1304,10 @@ msgstr "Save"
 msgid "Enregistrer l'Achat"
 msgstr "Enregistrer l'Achat"
 
+#: src/views/bulletins/blocs/_resume_moyennes.php
+msgid "Enregistrer l'Appréciation"
+msgstr "Save Appreciation"
+
 #: src/views/settings/index.php
 msgid "Enregistrer les Paramètres"
 msgstr ""
@@ -1286,6 +1347,10 @@ msgstr ""
 #: src/controllers/AnneeAcademiqueController.php
 msgid "Erreur lors de l'activation de l'année académique: "
 msgstr ""
+
+#: src/controllers/UserController.php
+msgid "Erreur lors de l'enregistrement des paramètres."
+msgstr "Error registering settings."
 
 #: src/views/modele_bulletin/edit.php
 msgid "Error:"
@@ -1800,6 +1865,10 @@ msgstr "Imprimer la liste"
 msgid "Imprimer le reçu"
 msgstr ""
 
+#: src/views/carte/generer.php
+msgid "Imprimer les Cartes"
+msgstr "Print Cards"
+
 #: src/views/classes/show.php
 #: src/views/mensualites/class_dashboard.php
 msgid "Imprimer les cartes de la classe"
@@ -1917,6 +1986,20 @@ msgstr "Layout saved successfully!"
 msgid "Le Caissier"
 msgstr "Le Caissier"
 
+#: src/views/recus/inscription.php
+#: src/views/recus/mensualite.php
+msgid "Le Caissier / Comptable"
+msgstr "Cashier / Accountant"
+
+#: src/views/bulletins/blocs/_resume_moyennes.php
+msgid "Le Chef d'établissement"
+msgstr "Head of Institution"
+
+#: src/views/recus/inscription.php
+#: src/views/recus/mensualite.php
+msgid "Le Parent / L'Élève"
+msgstr "Parent / Student"
+
 #: src/views/paiements/regler.php
 msgid "Le montant maximum autorisé est de "
 msgstr ""
@@ -1924,6 +2007,10 @@ msgstr ""
 #: src/views/roles/edit.php
 msgid "Le nom des rôles par défaut ne peut pas être modifié."
 msgstr ""
+
+#: src/controllers/PaiementController.php
+msgid "Le reçu N° %s a été annulé avec succès. Les dettes de l'élève ont été mises à jour."
+msgstr "Receipt No %s canceled successfully. Student debts have been updated."
 
 #: src/views/paiements/regler.php
 msgid "Les paiements seront affectés chronologiquement du mois le plus ancien au plus récent (Point 7)."
@@ -2027,6 +2114,7 @@ msgstr ""
 msgid "Matière: "
 msgstr ""
 
+#: src/views/bulletins/blocs/_tableau_notes.php
 #: src/views/layouts/sidebar_able.php
 msgid "Matières"
 msgstr "Subjects"
@@ -2034,6 +2122,12 @@ msgstr "Subjects"
 #: src/views/classes/show.php
 msgid "Matières et Enseignants"
 msgstr ""
+
+#: src/views/bulletins/blocs/_info_eleve.php
+#: src/views/recus/inscription.php
+#: src/views/recus/mensualite.php
+msgid "Matricule"
+msgstr "Registration Number"
 
 #: src/views/paiements/journal.php
 #: src/views/paiements/journal.php
@@ -2185,8 +2279,10 @@ msgstr "Montant Total"
 
 #: src/views/eleves/details.php
 #: src/views/eleves/details.php
+#: src/views/recus/inscription.php
+#: src/views/recus/mensualite.php
 msgid "Montant Versé"
-msgstr ""
+msgstr "Paid Amount"
 
 #: src/views/paiements/regler.php
 msgid "Montant à verser pour l'inscription"
@@ -2214,6 +2310,10 @@ msgstr "Motif"
 #: src/views/evaluations/deblocage_form.php
 msgid "Motif du déblocage"
 msgstr ""
+
+#: src/views/bulletins/blocs/_resume_moyennes.php
+msgid "Moyenne Générale"
+msgstr "General Average"
 
 #: src/views/eleves/details.php
 #: src/views/eleves/_form.php
@@ -2292,9 +2392,10 @@ msgstr "No results found for this selection. Please ensure grades have been ente
 msgid "Nom"
 msgstr "Last Name"
 
+#: src/views/bulletins/blocs/_info_eleve.php
 #: src/views/eleves/details.php
 msgid "Nom & Prénom"
-msgstr ""
+msgstr "First & Last Name"
 
 #: src/views/eleves/index.php
 msgid "Nom Complet"
@@ -2361,10 +2462,18 @@ msgstr "Nombre de places"
 msgid "Non assigné"
 msgstr ""
 
+#: src/views/bulletins/blocs/_resume_moyennes.php
+msgid "Non défini"
+msgstr "Not Defined"
+
 #: src/views/layouts/header_able.php
 #: src/views/layouts/header_able.php
 msgid "Non définie"
 msgstr "Not Defined"
+
+#: src/views/bulletins/blocs/_tableau_notes.php
+msgid "Note / 20"
+msgstr "Grade / 20"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Notes"
@@ -2434,8 +2543,10 @@ msgid "Numéro/Classe"
 msgstr ""
 
 #: src/views/paiements/journal.php
+#: src/views/recus/inscription.php
+#: src/views/recus/mensualite.php
 msgid "N° Reçu"
-msgstr ""
+msgstr "Receipt No"
 
 #: src/views/classes/show.php
 msgid "Obligatoire"
@@ -2468,6 +2579,10 @@ msgstr ""
 #: src/views/paiements/journal.php
 msgid "Opération"
 msgstr ""
+
+#: src/controllers/PaiementController.php
+msgid "Opération d'encaissement réussie. Reçu N° %s"
+msgstr "Cash operation successful. Receipt No %s"
 
 #: src/views/users/profile.php
 msgid "Ou dessinez directement ci-dessous :"
@@ -2562,9 +2677,17 @@ msgstr ""
 msgid "Paramètres du déblocage"
 msgstr ""
 
+#: src/controllers/UserController.php
+msgid "Paramètres et signatures enregistrés avec succès."
+msgstr "Settings and signatures registered successfully."
+
 #: src/views/eleves/index.php
 msgid "Paramètres financiers"
 msgstr ""
+
+#: src/controllers/SettingsController.php
+msgid "Paramètres mis à jour avec succès."
+msgstr "Settings updated successfully."
 
 #: src/views/classes/show.php
 msgid "Paramètres pour l'année"
@@ -2731,6 +2854,10 @@ msgstr ""
 msgid "Protégé"
 msgstr ""
 
+#: src/views/bulletins/blocs/_resume_moyennes.php
+msgid "Provisoire"
+msgstr "Provisional"
+
 #: src/views/users/profile.php
 msgid "Préférences & Signatures Numériques"
 msgstr ""
@@ -2757,6 +2884,10 @@ msgstr ""
 #: src/views/setup/step1_single.php
 msgid "Public"
 msgstr "Public"
+
+#: src/views/bulletins/blocs/_resume_moyennes.php
+msgid "Publié"
+msgstr "Published"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Pédagogie"
@@ -2809,6 +2940,14 @@ msgstr "Radier"
 msgid "Radier l'élève"
 msgstr ""
 
+#: src/views/bulletins/blocs/_resume_moyennes.php
+msgid "Rang"
+msgstr "Rank"
+
+#: src/views/bulletins/blocs/_resume_moyennes.php
+msgid "Rang de l'élève"
+msgstr "Student Rank"
+
 #: src/views/layouts/sidebar_able.php
 msgid "Rapports financiers"
 msgstr "Financial Reports"
@@ -2852,6 +2991,10 @@ msgstr "Record Result"
 #: src/views/modele_carte/edit.php
 msgid "Rectangle"
 msgstr "Rectangle"
+
+#: src/views/recus/inscription.php
+msgid "Reliquat sur inscription"
+msgstr "Registration balance due"
 
 #: src/views/paiements/journal.php
 #: src/views/paiements/journal.php
@@ -2904,6 +3047,8 @@ msgid "Retirer la matière"
 msgstr ""
 
 #: src/views/boutique/achats/recu.php
+#: src/views/carte/generer.php
+#: src/views/carte/generer.php
 msgid "Retour"
 msgstr "Retour"
 
@@ -2931,6 +3076,14 @@ msgstr ""
 #: src/views/paiements/journal.php
 msgid "Reçu N°"
 msgstr ""
+
+#: src/views/recus/inscription.php
+msgid "Reçu de Paiement"
+msgstr "Payment Receipt"
+
+#: src/views/recus/mensualite.php
+msgid "Reçu de Scolarité Mensuelle"
+msgstr "Monthly Tuition Receipt"
 
 #: src/views/boutique/achats/recu.php
 msgid "Reçu de Vente"
@@ -3130,6 +3283,7 @@ msgid "Status"
 msgstr "Status"
 
 #: src/views/annees_academiques/index.php
+#: src/views/bulletins/blocs/_resume_moyennes.php
 #: src/views/matieres/_form.php
 #: src/views/matieres/index.php
 #: src/views/classes/show.php
@@ -3140,6 +3294,10 @@ msgstr "Status"
 #: src/views/users/index.php
 msgid "Statut"
 msgstr "Statut"
+
+#: src/views/bulletins/blocs/_resume_moyennes.php
+msgid "Statut du bulletin"
+msgstr "Report Card Status"
 
 #: src/views/boutique/articles/edit.php
 #: src/views/boutique/articles/index.php
@@ -3362,6 +3520,10 @@ msgstr ""
 msgid "Total"
 msgstr "Total"
 
+#: src/views/bulletins/blocs/_tableau_notes.php
+msgid "Total (Note x Coef)"
+msgstr "Total (Grade x Coef)"
+
 #: src/views/paiements/journal.php
 msgid "Total Dû"
 msgstr ""
@@ -3387,6 +3549,15 @@ msgstr ""
 msgid "Total reste"
 msgstr "Total reste"
 
+#: src/views/recus/mensualite.php
+msgid "Total versé"
+msgstr "Total paid"
+
+#: src/views/recus/inscription.php
+msgid "Total versé lors de l'opération"
+msgstr "Total paid during the operation"
+
+#: src/views/bulletins/blocs/_tableau_notes.php
 #: src/views/paiements/journal.php
 #: src/views/paiements/journal.php
 msgid "Totaux"
@@ -3546,6 +3717,10 @@ msgstr "Valider l'encaissement global"
 msgid "Valider le recadrage"
 msgstr "Valider le recadrage"
 
+#: src/views/bulletins/blocs/_resume_moyennes.php
+msgid "Validé"
+msgstr "Validated"
+
 #: src/views/boutique/achats/recu.php
 msgid "Vendu par"
 msgstr "Vendu par"
@@ -3675,9 +3850,11 @@ msgstr ""
 #: src/views/presences/gerer.php
 #: src/views/paiements/restes_table.php
 #: src/views/eleves/assign_class.php
+#: src/views/recus/inscription.php
+#: src/views/recus/mensualite.php
 #: src/views/mensualites/class_dashboard.php
 msgid "Élève"
-msgstr ""
+msgstr "Student"
 
 #: src/views/paiements/journal.php
 #: src/views/paiements/journal.php

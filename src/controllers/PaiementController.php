@@ -36,7 +36,7 @@ class PaiementController {
         $activeYear = AnneeAcademique::findActive();
 
         if (!$activeYear) {
-            $_SESSION['error_message'] = "Aucune année académique active.";
+            $_SESSION['error_message'] = _("Aucune année académique active.");
             header('Location: /');
             exit();
         }
@@ -268,7 +268,7 @@ class PaiementController {
 
         $anneeActive = AnneeAcademique::findActive();
         if (!$anneeActive) {
-            $_SESSION['error_message'] = "Aucune année académique active n'est définie.";
+            $_SESSION['error_message'] = _("Aucune année académique active n'est définie.");
             header('Location: /eleves');
             exit();
         }
@@ -1195,7 +1195,7 @@ class PaiementController {
             FinanceService::updateFinancialState($eleveId);
 
             $db->commit();
-            $_SESSION['success_message'] = "Opération d'encaissement réussie. Reçu N° {$reference}";
+            $_SESSION['success_message'] = sprintf(_("Opération d'encaissement réussie. Reçu N° %s"), $reference);
 
         } catch (Throwable $e) {
             if (isset($db) && $db->inTransaction()) $db->rollBack();
@@ -1582,7 +1582,7 @@ class PaiementController {
             }
 
             $db->commit();
-            $_SESSION['success_message'] = "Le reçu N° {$recu_numero} a été annulé avec succès. Les dettes de l'élève ont été mises à jour.";
+            $_SESSION['success_message'] = sprintf(_("Le reçu N° %s a été annulé avec succès. Les dettes de l'élève ont été mises à jour."), $recu_numero);
 
         } catch (Throwable $e) {
             if (isset($db) && $db->inTransaction()) $db->rollBack();
