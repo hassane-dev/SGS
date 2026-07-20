@@ -242,13 +242,13 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Administration"
-msgstr ""
+msgstr "الإدارة"
 
 #: src/views/eleves/details.php
 #: src/views/users/_form.php
 #: src/views/users/view.php
 msgid "Adresse"
-msgstr ""
+msgstr "العنوان"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Affiche la page d'accueil avec les statistiques principales."
@@ -370,11 +370,11 @@ msgstr ""
 #: src/views/roles/edit.php
 #: src/views/roles/create.php
 msgid "Annuler"
-msgstr ""
+msgstr "إلغاء"
 
 #: src/views/layouts/header_able.php
 msgid "Année"
-msgstr ""
+msgstr "السنة"
 
 #: src/views/paiements/journal.php
 #: src/views/eleves/details.php
@@ -408,7 +408,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Années Académiques"
-msgstr ""
+msgstr "السنوات الأكاديمية"
 
 #: src/views/modele_carte/edit.php
 msgid "Aperçu de la Carte"
@@ -617,7 +617,7 @@ msgstr ""
 #: src/views/eleves/details.php
 #: src/views/eleves/index.php
 msgid "Boutique"
-msgstr ""
+msgstr "المتجر"
 
 #: src/views/boutique/shop/index.php
 #: src/views/boutique/shop/index.php
@@ -626,7 +626,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Bulletins"
-msgstr ""
+msgstr "كشوف النقاط"
 
 #: src/views/boutique/articles/index.php
 msgid "CA du Jour (FCFA)"
@@ -651,7 +651,7 @@ msgstr ""
 #: src/views/cahier_texte/create.php
 #: src/views/cahier_texte/index.php
 msgid "Cahier de Texte"
-msgstr ""
+msgstr "دفتر النصوص"
 
 #: src/views/tests_entree/create.php
 #: src/views/licences/edit.php
@@ -788,7 +788,7 @@ msgstr ""
 #: src/views/eleves/index.php
 #: src/views/cahier_texte/index.php
 msgid "Classe"
-msgstr ""
+msgstr "الفصل"
 
 #: src/views/cahier_texte/_form.php
 msgid "Classe et Matière"
@@ -801,7 +801,7 @@ msgstr ""
 #: src/views/home/index.php
 #: src/views/layouts/sidebar_able.php
 msgid "Classes"
-msgstr ""
+msgstr "الفصول"
 
 #: src/views/modele_carte/edit.php
 msgid "Cliquez sur un élément de la carte pour modifier ses propriétés."
@@ -836,7 +836,7 @@ msgstr ""
 #: src/views/layouts/sidebar_able.php
 #: src/views/mensualites/index.php
 msgid "Comptabilité"
-msgstr ""
+msgstr "المحاسبة"
 
 #: src/views/users/_form.php
 msgid "Compte Actif"
@@ -852,7 +852,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Configuration Frais"
-msgstr ""
+msgstr "إعداد الرسوم"
 
 #: src/views/setup/step1_multi.php
 msgid "Configuration Multi-écoles"
@@ -948,11 +948,11 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Contrats"
-msgstr ""
+msgstr "العقود"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Contrôle financier"
-msgstr ""
+msgstr "الرقابة المالية"
 
 #: src/views/modele_carte/edit.php
 msgid "Couleur"
@@ -980,7 +980,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Cycles"
-msgstr ""
+msgstr "الأطوار"
 
 #: src/views/boutique/achats/recu.php
 #: src/views/boutique/achats/index.php
@@ -1028,7 +1028,7 @@ msgstr ""
 #: src/views/users/_form.php
 #: src/views/users/view.php
 msgid "Date de Naissance"
-msgstr ""
+msgstr "تاريخ الميلاد"
 
 #: src/views/evaluations/deblocage_form.php
 msgid "Date de début"
@@ -1098,7 +1098,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Déblocage Notes"
-msgstr ""
+msgstr "إلغاء قفل الدرجات"
 
 #: src/views/evaluations/deblocage_form.php
 msgid "Déblocages"
@@ -1106,7 +1106,7 @@ msgstr ""
 
 #: src/views/layouts/header_able.php
 msgid "Déconnexion"
-msgstr ""
+msgstr "تسجيل الخروج"
 
 #: src/views/evaluations/parametres_form.php
 msgid "Définir une Période de Saisie"
@@ -1193,7 +1193,7 @@ msgstr ""
 #: src/views/users/view.php
 #: src/views/auth/login.php
 msgid "Email"
-msgstr ""
+msgstr "البريد الإلكتروني"
 
 #: src/views/auth/login.php
 msgid "Email ou mot de passe incorrect."
@@ -1202,7 +1202,7 @@ msgstr ""
 #: src/controllers/HomeController.php
 #: src/views/layouts/sidebar_able.php
 msgid "Emploi du Temps"
-msgstr ""
+msgstr "جدول التوقيت"
 
 #: src/views/presences/gerer.php
 #: src/views/mensualites/class_dashboard.php
@@ -1241,7 +1241,7 @@ msgstr ""
 #: src/views/users/_form.php
 #: src/views/roles/create.php
 msgid "Enregistrer"
-msgstr ""
+msgstr "حفظ"
 
 #: src/views/boutique/achats/create.php
 msgid "Enregistrer l'Achat"
@@ -1505,7 +1505,7 @@ msgstr ""
 #: src/views/paiements/restes.php
 #: src/views/layouts/sidebar_able.php
 msgid "Gestion des restes"
-msgstr ""
+msgstr "إدارة البواقي"
 
 #: src/views/eleves/index.php
 msgid "Gestion des Élèves Actifs"
@@ -1517,7 +1517,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gestion mensualités"
-msgstr ""
+msgstr "إدارة الأقساط الشهرية"
 
 #: src/views/evaluations/parametres_index.php
 #: src/views/roles/index.php
@@ -1747,7 +1747,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Historique paiements"
-msgstr ""
+msgstr "سجل المدفوعات"
 
 #: src/views/users/_form.php
 msgid "Homme"
@@ -1850,7 +1850,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Inscriptions"
-msgstr ""
+msgstr "التسجيلات"
 
 #: src/views/setup/step0_choice.php
 msgid "Installation Mono-école"
@@ -1867,7 +1867,7 @@ msgstr ""
 #: src/views/paiements/journal.php
 #: src/views/layouts/sidebar_able.php
 msgid "Journal Comptable"
-msgstr ""
+msgstr "الدفتر اليومي"
 
 #: src/views/paiements/journal.php
 msgid "Journal Comptable Unique"
@@ -1945,7 +1945,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Licences"
-msgstr ""
+msgstr "التراخيص"
 
 #: src/views/licences/edit.php
 #: src/views/licences/create.php
@@ -1961,7 +1961,7 @@ msgstr ""
 #: src/views/users/_form.php
 #: src/views/users/view.php
 msgid "Lieu de Naissance"
-msgstr ""
+msgstr "مكان الميلاد"
 
 #: src/views/boutique/articles/index.php
 msgid "Liste des Articles"
@@ -2010,7 +2010,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Lycées"
-msgstr ""
+msgstr "الثانويات"
 
 #: src/views/eleves/_form.php
 msgid "Masculin"
@@ -2029,7 +2029,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Matières"
-msgstr ""
+msgstr "المواد"
 
 #: src/views/classes/show.php
 msgid "Matières et Enseignants"
@@ -2061,7 +2061,7 @@ msgstr ""
 #: src/views/series/index.php
 #: src/views/roles/edit.php
 msgid "Mettre à jour"
-msgstr ""
+msgstr "تحديث"
 
 #: src/views/users/profile.php
 msgid "Mettre à jour le mot de passe"
@@ -2097,7 +2097,7 @@ msgstr ""
 #: src/views/users/view.php
 #: src/views/roles/index.php
 msgid "Modifier"
-msgstr ""
+msgstr "تعديل"
 
 #: src/views/cahier_texte/edit.php
 msgid "Modifier Entrée"
@@ -2172,7 +2172,7 @@ msgstr ""
 #: src/views/layouts/header_able.php
 #: src/views/users/profile.php
 msgid "Mon Profil"
-msgstr ""
+msgstr "ملفي الشخصي"
 
 #: src/views/paiements/journal.php
 #: src/views/paiements/journal.php
@@ -2218,7 +2218,7 @@ msgstr ""
 #: src/views/eleves/details.php
 #: src/views/eleves/_form.php
 msgid "Nationalité"
-msgstr ""
+msgstr "الجنسية"
 
 #: src/views/evaluations/parametres_index.php
 msgid "Nature"
@@ -2290,7 +2290,7 @@ msgstr ""
 #: src/views/users/_form.php
 #: src/views/users/index.php
 msgid "Nom"
-msgstr ""
+msgstr "اللقب"
 
 #: src/views/eleves/details.php
 msgid "Nom & Prénom"
@@ -2364,11 +2364,11 @@ msgstr ""
 #: src/views/layouts/header_able.php
 #: src/views/layouts/header_able.php
 msgid "Non définie"
-msgstr ""
+msgstr "غير محددة"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Notes"
-msgstr ""
+msgstr "الدرجات"
 
 #: src/views/layouts/header_able.php
 msgid "Notifications"
@@ -2487,7 +2487,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Paiement inscription"
-msgstr ""
+msgstr "دفع التسجيل"
 
 #: src/views/boutique/shop/index.php
 msgid "Panier de"
@@ -2521,26 +2521,26 @@ msgstr ""
 #: src/views/settings/index.php
 #: src/views/layouts/sidebar_able.php
 msgid "Paramètres"
-msgstr ""
+msgstr "الإعدادات"
 
 #: src/views/layouts/sidebar_able.php
 #: src/views/param_composition/edit.php
 msgid "Paramètres Compositions"
-msgstr ""
+msgstr "إعدادات الاختبارات"
 
 #: src/views/layouts/sidebar_able.php
 #: src/views/param_devoir/edit.php
 msgid "Paramètres Devoirs"
-msgstr ""
+msgstr "إعدادات الفروض"
 
 #: src/views/param_general/edit.php
 #: src/views/layouts/sidebar_able.php
 msgid "Paramètres Généraux"
-msgstr ""
+msgstr "الإعدادات العامة"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Paramètres Lycée"
-msgstr ""
+msgstr "إعدادات الثانوية"
 
 #: src/views/evaluations/parametres_index.php
 msgid "Paramètres de Blocage de Saisie"
@@ -2618,7 +2618,7 @@ msgstr ""
 #: src/views/users/index.php
 #: src/views/users/view.php
 msgid "Personnel"
-msgstr ""
+msgstr "الموظفون"
 
 #: src/views/home/index.php
 msgid "Personnel Actif"
@@ -2647,7 +2647,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Politique financière"
-msgstr ""
+msgstr "السياسة المالية"
 
 #: src/views/roles/edit.php
 #: src/views/roles/create.php
@@ -2741,7 +2741,7 @@ msgstr ""
 #: src/views/eleves/archives.php
 #: src/views/users/_form.php
 msgid "Prénom"
-msgstr ""
+msgstr "الاسم"
 
 #: src/views/presences/gerer.php
 msgid "Présences enregistrées avec succès."
@@ -2760,7 +2760,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Pédagogie"
-msgstr ""
+msgstr "البيداغوجيا"
 
 #: src/views/evaluations/deblocage_index.php
 msgid "Période"
@@ -2811,7 +2811,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Rapports financiers"
-msgstr ""
+msgstr "التقارير المالية"
 
 #: src/views/eleves/_form.php
 msgid "Recadrer la photo"
@@ -2942,7 +2942,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Reçus"
-msgstr ""
+msgstr "الإيصالات"
 
 #: src/controllers/RoleController.php
 #: src/controllers/RoleController.php
@@ -2993,7 +2993,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Réinscriptions"
-msgstr ""
+msgstr "إعادة التسجيل"
 
 #: src/views/annees_academiques/index.php
 msgid "Réouvrir"
@@ -3011,7 +3011,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Rôles"
-msgstr ""
+msgstr "الأدوار"
 
 #: src/views/paiements/regler.php
 msgid "SOLDÉ"
@@ -3035,7 +3035,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Salaires"
-msgstr ""
+msgstr "الرواتب"
 
 #: src/views/lycees/create.php
 msgid "Save"
@@ -3084,7 +3084,7 @@ msgstr ""
 #: src/views/users/_form.php
 #: src/views/users/view.php
 msgid "Sexe"
-msgstr ""
+msgstr "الجنس"
 
 #: src/views/bulletins/index.php
 msgid "Show Results"
@@ -3189,7 +3189,7 @@ msgstr ""
 #: src/views/users/view.php
 #: src/views/roles/index.php
 msgid "Supprimer"
-msgstr ""
+msgstr "حذف"
 
 #: src/views/series/index.php
 msgid "Supprimer cette série ?"
@@ -3221,7 +3221,7 @@ msgstr ""
 #: src/views/layouts/header_able.php
 #: src/views/evaluations/parametres_index.php
 msgid "Séquence"
-msgstr ""
+msgstr "الفترة"
 
 #: src/views/evaluations/deblocage_form.php
 #: src/views/evaluations/parametres_form.php
@@ -3230,7 +3230,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Séquences"
-msgstr ""
+msgstr "الفترات"
 
 #: src/views/classes/show.php
 #: src/views/classes/edit.php
@@ -3248,7 +3248,7 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Séries"
-msgstr ""
+msgstr "الشعب"
 
 #: src/views/boutique/achats/recu.php
 msgid "TOTAL À PAYER"
@@ -3280,7 +3280,7 @@ msgstr ""
 #: src/views/users/view.php
 #: src/views/mensualites/index.php
 msgid "Tableau de Bord"
-msgstr ""
+msgstr "لوحة القيادة"
 
 #: src/views/layouts/sidebar_able.php
 #: src/views/evaluations/deblocage_index.php
@@ -3503,7 +3503,7 @@ msgstr ""
 #: src/views/users/_form.php
 #: src/views/users/view.php
 msgid "Téléphone"
-msgstr ""
+msgstr "الهاتف"
 
 #: src/views/eleves/_form.php
 msgid "Téléphone du Parent / Tuteur"
@@ -3659,12 +3659,12 @@ msgstr ""
 
 #: src/views/layouts/sidebar_able.php
 msgid "Éditeur de Bulletin"
-msgstr ""
+msgstr "محرر كشوف النقاط"
 
 #: src/controllers/HomeController.php
 #: src/views/layouts/sidebar_able.php
 msgid "Éditeur de Carte"
-msgstr ""
+msgstr "محرر البطاقات"
 
 #: src/views/annees_academiques/edit.php
 msgid "Édition de l'année: "
@@ -3691,7 +3691,7 @@ msgstr ""
 #: src/views/layouts/sidebar_able.php
 #: src/views/eleves/index.php
 msgid "Élèves"
-msgstr ""
+msgstr "الطلاب"
 
 #: src/views/home/index.php
 msgid "Élèves Actifs"
