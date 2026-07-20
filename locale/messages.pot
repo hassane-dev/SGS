@@ -1,941 +1,3794 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
-#, fuzzy
-msgid ""
-msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-05 08:28+0000\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
-"Content-Transfer-Encoding: 8bit\n"
-
-#: src/views/cycles/edit.php:4
-msgid "Edit Cycle"
-msgstr ""
-
-#: src/views/cycles/edit.php:12 src/views/cycles/index.php:22
-#: src/views/cycles/create.php:11
-msgid "Cycle Name"
-msgstr ""
-
-#: src/views/cycles/edit.php:18 src/views/cycles/index.php:23
-#: src/views/cycles/create.php:17
-msgid "Start Level"
-msgstr ""
-
-#: src/views/cycles/edit.php:22 src/views/cycles/index.php:24
-#: src/views/cycles/create.php:21
-msgid "End Level"
-msgstr ""
-
-#: src/views/cycles/edit.php:30 src/views/cycles/create.php:29
-#: src/views/notes/grade_entry.php:42 src/views/tests_entree/create.php:36
-#: src/views/users/edit.php:67 src/views/users/create.php:64
-#: src/views/lycees/edit.php:55 src/views/lycees/create.php:53
-#: src/views/matieres/assign.php:23 src/views/matieres/edit.php:24
-#: src/views/matieres/create.php:23 src/views/eleves/edit.php:48
-#: src/views/eleves/create.php:42 src/views/paiements/create.php:40
-#: src/views/classes/edit.php:66 src/views/classes/create.php:61
-#: src/views/inscriptions/enroll.php:42 src/views/boutique/articles/edit.php:42
-#: src/views/boutique/articles/create.php:39
-#: src/views/boutique/achats/create.php:31 src/views/licences/edit.php:44
-#: src/views/licences/create.php:44
-msgid "Cancel"
-msgstr ""
-
-#: src/views/cycles/edit.php:32 src/views/users/edit.php:69
-#: src/views/lycees/edit.php:57 src/views/matieres/edit.php:26
-#: src/views/eleves/edit.php:50 src/views/classes/edit.php:68
-#: src/views/boutique/articles/edit.php:44 src/views/licences/edit.php:46
-msgid "Update"
-msgstr ""
-
-#: src/views/cycles/index.php:5
-msgid "Cycle Management"
-msgstr ""
-
-#: src/views/cycles/index.php:7
-msgid "Add Cycle"
-msgstr ""
-
-#: src/views/cycles/index.php:13 src/views/matieres/index.php:13
-#: src/views/auth/login.php:9
-msgid "Error!"
-msgstr ""
-
-#: src/views/cycles/index.php:14
-msgid "Cannot delete this cycle because it is used by one or more classes."
-msgstr ""
-
-#: src/views/cycles/index.php:25 src/views/notes/teacher_classes.php:14
-#: src/views/tests_entree/index.php:21 src/views/users/index.php:19
-#: src/views/lycees/index.php:18 src/views/matieres/index.php:24
-#: src/views/eleves/details.php:26 src/views/eleves/index.php:18
-#: src/views/classes/index.php:20 src/views/boutique/articles/index.php:18
-#: src/views/licences/index.php:20
-msgid "Actions"
-msgstr ""
-
-#: src/views/cycles/index.php:32
-msgid "No cycles found."
-msgstr ""
-
-#: src/views/cycles/index.php:42 src/views/users/index.php:41
-#: src/views/lycees/index.php:35 src/views/matieres/index.php:40
-#: src/views/eleves/index.php:42 src/views/classes/index.php:40
-#: src/views/boutique/articles/index.php:28 src/views/licences/index.php:38
-msgid "Edit"
-msgstr ""
-
-#: src/views/cycles/index.php:43
-msgid "Are you sure you want to delete this cycle?"
-msgstr ""
-
-#: src/views/cycles/index.php:45 src/views/tests_entree/index.php:41
-#: src/views/users/index.php:44 src/views/lycees/index.php:38
-#: src/views/matieres/index.php:43 src/views/eleves/index.php:45
-#: src/views/classes/index.php:43 src/views/boutique/articles/index.php:31
-#: src/views/licences/index.php:41
-msgid "Delete"
-msgstr ""
-
-#: src/views/cycles/create.php:4
-msgid "Add New Cycle"
-msgstr ""
-
-#: src/views/cycles/create.php:12
-msgid "Ex: High School"
-msgstr ""
-
-#: src/views/cycles/create.php:18 src/views/classes/create.php:31
-msgid "Ex: 1"
-msgstr ""
-
-#: src/views/cycles/create.php:22
-msgid "Ex: 3"
-msgstr ""
-
-#: src/views/cycles/create.php:31 src/views/users/create.php:66
-#: src/views/lycees/create.php:55 src/views/matieres/create.php:25
-#: src/views/eleves/create.php:44 src/views/classes/create.php:63
-#: src/views/boutique/articles/create.php:41
-msgid "Save"
-msgstr ""
-
-#: src/views/notes/grade_entry.php:4
-msgid "Grade Entry"
-msgstr ""
-
-#: src/views/notes/grade_entry.php:6 src/views/notes/teacher_classes.php:12
-#: src/views/bulletins/show.php:29 src/views/eleves/details.php:24
-#: src/views/inscriptions/enroll.php:19
-msgid "Class"
-msgstr ""
-
-#: src/views/notes/grade_entry.php:7 src/views/notes/teacher_classes.php:13
-msgid "Subject"
-msgstr ""
-
-#: src/views/notes/grade_entry.php:8 src/views/lycees/index.php:16
-#: src/views/paiements/index.php:19
-msgid "Type"
-msgstr ""
-
-#: src/views/notes/grade_entry.php:20
-msgid "Student Name"
-msgstr ""
-
-#: src/views/notes/grade_entry.php:21
-msgid "Grade"
-msgstr ""
-
-#: src/views/notes/grade_entry.php:44
-msgid "Save Grades"
-msgstr ""
-
-#: src/views/notes/teacher_classes.php:5
-msgid "My Classes and Subjects"
-msgstr ""
-
-#: src/views/notes/teacher_classes.php:21
-msgid "You are not assigned to any classes at the moment."
-msgstr ""
-
-#: src/views/notes/teacher_classes.php:30
-msgid "Enter Homework Grades"
-msgstr ""
-
-#: src/views/notes/teacher_classes.php:31
-msgid "Enter Exam Grades"
-msgstr ""
-
-#: src/views/settings/index.php:4
-msgid "General Settings"
-msgstr ""
-
-#: src/views/settings/index.php:18 src/views/lycees/edit.php:13
-#: src/views/lycees/index.php:15 src/views/lycees/create.php:11
-msgid "High School Name"
-msgstr ""
-
-#: src/views/settings/index.php:24 src/views/lycees/edit.php:18
-#: src/views/lycees/create.php:16
-msgid "High School Type"
-msgstr ""
-
-#: src/views/settings/index.php:26 src/views/lycees/edit.php:20
-#: src/views/lycees/create.php:18
-msgid "Public"
-msgstr ""
-
-#: src/views/settings/index.php:27 src/views/lycees/edit.php:21
-#: src/views/lycees/create.php:19
-msgid "Private"
-msgstr ""
-
-#: src/views/settings/index.php:28 src/views/lycees/edit.php:22
-#: src/views/lycees/create.php:20
-msgid "Parapublic"
-msgstr ""
-
-#: src/views/settings/index.php:34 src/views/bulletins/show.php:23
-#: src/views/eleves/details.php:23 src/views/inscriptions/enroll.php:14
-msgid "Academic Year"
-msgstr ""
-
-#: src/views/settings/index.php:40
-msgid "Homework per Term"
-msgstr ""
-
-#: src/views/settings/index.php:46
-msgid "Payment Method"
-msgstr ""
-
-#: src/views/settings/index.php:48
-msgid "Before registration"
-msgstr ""
-
-#: src/views/settings/index.php:49
-msgid "After entrance test"
-msgstr ""
-
-#: src/views/settings/index.php:50
-msgid "Installments"
-msgstr ""
-
-#: src/views/settings/index.php:58
-msgid "Multilingual"
-msgstr ""
-
-#: src/views/settings/index.php:62
-msgid "Biometrics"
-msgstr ""
-
-#: src/views/settings/index.php:66
-msgid "National Privacy"
-msgstr ""
-
-#: src/views/settings/index.php:73
-msgid "Save Settings"
-msgstr ""
-
-#: src/views/bulletins/show.php:23
-msgid "Report Card"
-msgstr ""
-
-#: src/views/bulletins/show.php:28 src/views/eleves/index.php:16
-msgid "Full Name"
-msgstr ""
-
-#: src/views/bulletins/show.php:30 src/views/eleves/edit.php:26
-#: src/views/eleves/create.php:25
-msgid "Date of Birth"
-msgstr ""
-
-#: src/views/bulletins/show.php:37
-msgid "Subjects"
-msgstr ""
-
-#: src/views/bulletins/show.php:38
-msgid "Coeff."
-msgstr ""
-
-#: src/views/bulletins/show.php:39
-msgid "Homework Avg."
-msgstr ""
-
-#: src/views/bulletins/show.php:40
-msgid "Exam Grade"
-msgstr ""
-
-#: src/views/bulletins/show.php:41
-msgid "Subject Avg."
-msgstr ""
-
-#: src/views/bulletins/show.php:42
-msgid "Total (Avg * Coeff)"
-msgstr ""
-
-#: src/views/bulletins/show.php:43
-msgid "Appreciation"
-msgstr ""
-
-#: src/views/bulletins/show.php:64
-msgid "Summary"
-msgstr ""
-
-#: src/views/bulletins/show.php:66
-msgid "Overall Average"
-msgstr ""
-
-#: src/views/bulletins/show.php:70
-msgid "General Appreciation"
-msgstr ""
-
-#: src/views/bulletins/show.php:74
-msgid "Rank"
-msgstr ""
-
-#: src/views/bulletins/show.php:83
-msgid "Parent's Signature"
-msgstr ""
-
-#: src/views/bulletins/show.php:87
-msgid "Headmaster's Signature"
-msgstr ""
-
-#: src/views/bulletins/show.php:95
-msgid "Print Report Card"
-msgstr ""
-
-#: src/views/bulletins/show.php:98
-msgid "Back"
-msgstr ""
-
-#: src/views/tests_entree/index.php:6
-msgid "Entrance Test Management"
-msgstr ""
-
-#: src/views/tests_entree/index.php:7 src/views/paiements/index.php:7
-#: src/views/inscriptions/enroll.php:5 src/views/boutique/achats/index.php:7
-msgid "Student"
-msgstr ""
+# POT Template Generated by extract_i18n.php
+# Language: French (Pivot)
 
-#: src/views/tests_entree/index.php:10
-msgid "New Test"
+#: src/views/classes/show.php
+msgid "-- Assigner --"
 msgstr ""
 
-#: src/views/tests_entree/index.php:18 src/views/tests_entree/create.php:29
-msgid "Test Date"
+#: src/views/classes/show.php
+#: src/views/users/_form.php
+#: src/views/users/_form.php
+msgid "-- Aucun --"
 msgstr ""
 
-#: src/views/tests_entree/index.php:19 src/views/tests_entree/create.php:14
-msgid "Target Class"
+#: src/views/boutique/achats/create.php
+msgid "-- Choisir un article --"
 msgstr ""
 
-#: src/views/tests_entree/index.php:20 src/views/tests_entree/create.php:24
-msgid "Score"
+#: src/views/classes/create.php
+msgid "-- Choisir un cycle --"
 msgstr ""
 
-#: src/views/tests_entree/index.php:28
-msgid "No entrance tests found for this student."
+#: src/views/classes/create.php
+msgid "-- Choisir un lycée --"
 msgstr ""
 
-#: src/views/tests_entree/index.php:38 src/views/boutique/articles/index.php:29
-#: src/views/licences/index.php:39
-msgid "Are you sure?"
+#: src/views/classes/create.php
+#: src/views/classes/create.php
+msgid "-- Choisir un niveau --"
 msgstr ""
 
-#: src/views/tests_entree/index.php:51 src/views/boutique/achats/index.php:39
-msgid "Back to student file"
+#: src/views/classes/edit.php
+#: src/views/classes/create.php
+msgid "-- Choisir une catégorie --"
 msgstr ""
 
-#: src/views/tests_entree/create.php:4
-msgid "Record Entrance Test"
+#: src/views/classes/show.php
+msgid "-- Choisir une matière --"
 msgstr ""
 
-#: src/views/tests_entree/create.php:5 src/views/paiements/create.php:5
-#: src/views/boutique/achats/create.php:5
-msgid "For student"
+#: src/views/classes/edit.php
+#: src/views/classes/create.php
+msgid "-- Choisir une série --"
 msgstr ""
 
-#: src/views/tests_entree/create.php:16 src/views/inscriptions/enroll.php:21
+#: src/views/tests_entree/create.php
 msgid "-- Choose a class --"
 msgstr ""
 
-#: src/views/tests_entree/create.php:38
-msgid "Record Result"
-msgstr ""
-
-#: src/views/users/edit.php:4
-msgid "Edit User"
-msgstr ""
-
-#: src/views/users/edit.php:12 src/views/users/create.php:11
-#: src/views/eleves/edit.php:12 src/views/eleves/create.php:11
-msgid "First Name"
-msgstr ""
-
-#: src/views/users/edit.php:16 src/views/users/create.php:15
-#: src/views/eleves/edit.php:16 src/views/eleves/create.php:15
-msgid "Last Name"
-msgstr ""
-
-#: src/views/users/edit.php:21 src/views/users/index.php:16
-#: src/views/users/create.php:20 src/views/lycees/edit.php:27
-#: src/views/lycees/create.php:25 src/views/eleves/edit.php:21
-#: src/views/eleves/index.php:17 src/views/eleves/create.php:20
-#: src/views/auth/login.php:16
-msgid "Email"
-msgstr ""
-
-#: src/views/users/edit.php:26
-msgid "New Password"
-msgstr ""
-
-#: src/views/users/edit.php:27
-msgid "Leave blank to keep current password"
-msgstr ""
-
-#: src/views/users/edit.php:31 src/views/users/index.php:17
-#: src/views/users/create.php:30
-msgid "Role"
-msgstr ""
-
-#: src/views/users/edit.php:33 src/views/users/create.php:32
-msgid "Teacher"
-msgstr ""
-
-#: src/views/users/edit.php:34 src/views/users/create.php:33
-msgid "Supervisor"
-msgstr ""
-
-#: src/views/users/edit.php:35 src/views/users/create.php:34
-msgid "Censor"
-msgstr ""
-
-#: src/views/users/edit.php:37 src/views/users/create.php:36
-msgid "Local Administrator"
-msgstr ""
-
-#: src/views/users/edit.php:38 src/views/users/create.php:37
-msgid "Regional Administrator"
-msgstr ""
-
-#: src/views/users/edit.php:45 src/views/users/create.php:44
-#: src/views/classes/edit.php:50 src/views/classes/index.php:18
-#: src/views/classes/create.php:48 src/views/boutique/articles/edit.php:28
-#: src/views/boutique/articles/create.php:27 src/views/licences/edit.php:12
-#: src/views/licences/index.php:15 src/views/licences/create.php:11
-msgid "High School"
-msgstr ""
-
-#: src/views/users/edit.php:47 src/views/users/create.php:46
-msgid "-- None --"
-msgstr ""
-
-#: src/views/users/edit.php:60 src/views/users/create.php:57
-msgid "Account Active"
-msgstr ""
-
-#: src/views/users/index.php:5
-msgid "User Management"
-msgstr ""
-
-#: src/views/users/index.php:7
-msgid "Add User"
-msgstr ""
-
-#: src/views/users/index.php:15
-msgid "Name"
-msgstr ""
-
-#: src/views/users/index.php:18 src/views/eleves/details.php:25
-#: src/views/paiements/index.php:21 src/views/paiements/create.php:29
-#: src/views/licences/index.php:19
-msgid "Status"
-msgstr ""
-
-#: src/views/users/index.php:31 src/views/eleves/details.php:43
-#: src/views/licences/index.php:32
-msgid "Active"
-msgstr ""
-
-#: src/views/users/index.php:35 src/views/eleves/details.php:45
-#: src/views/licences/index.php:34
-msgid "Inactive"
-msgstr ""
-
-#: src/views/users/index.php:42
-msgid "Are you sure you want to delete this user?"
-msgstr ""
-
-#: src/views/users/create.php:4
-msgid "Add New User"
-msgstr ""
-
-#: src/views/users/create.php:25 src/views/auth/login.php:23
-msgid "Password"
-msgstr ""
-
-#: src/views/lycees/edit.php:4
-msgid "Edit High School"
-msgstr ""
-
-#: src/views/lycees/edit.php:32 src/views/lycees/create.php:30
-#: src/views/eleves/edit.php:31 src/views/eleves/create.php:30
-msgid "Phone"
-msgstr ""
-
-#: src/views/lycees/edit.php:37 src/views/lycees/create.php:35
-msgid "Address"
-msgstr ""
-
-#: src/views/lycees/edit.php:43 src/views/lycees/index.php:17
-#: src/views/lycees/create.php:41
-msgid "City"
-msgstr ""
-
-#: src/views/lycees/edit.php:47 src/views/lycees/create.php:45
-msgid "District"
-msgstr ""
-
-#: src/views/lycees/index.php:5
-msgid "High School Management"
-msgstr ""
-
-#: src/views/lycees/index.php:7
-msgid "Add High School"
-msgstr ""
-
-#: src/views/lycees/index.php:25
-msgid "No high schools found."
-msgstr ""
-
-#: src/views/lycees/index.php:36
-msgid "Are you sure you want to delete this high school?"
-msgstr ""
-
-#: src/views/lycees/create.php:4
-msgid "Add New High School"
-msgstr ""
-
-#: src/views/matieres/assign.php:4 src/views/classes/index.php:39
-msgid "Assign Subjects"
-msgstr ""
-
-#: src/views/matieres/assign.php:5
-msgid "For class"
-msgstr ""
-
-#: src/views/matieres/assign.php:25
-msgid "Save Assignments"
-msgstr ""
-
-#: src/views/matieres/edit.php:4
-msgid "Edit Subject"
-msgstr ""
-
-#: src/views/matieres/edit.php:12 src/views/matieres/index.php:22
-#: src/views/matieres/create.php:11
-msgid "Subject Name"
-msgstr ""
-
-#: src/views/matieres/edit.php:17 src/views/matieres/index.php:23
-#: src/views/matieres/create.php:16
-msgid "Coefficient"
-msgstr ""
-
-#: src/views/matieres/index.php:5
-msgid "Subject Management"
-msgstr ""
-
-#: src/views/matieres/index.php:7
-msgid "Add Subject"
-msgstr ""
-
-#: src/views/matieres/index.php:14
-msgid "Cannot delete this subject because it is in use."
-msgstr ""
-
-#: src/views/matieres/index.php:31
-msgid "No subjects found."
-msgstr ""
-
-#: src/views/matieres/index.php:41
-msgid "Are you sure you want to delete this subject?"
-msgstr ""
-
-#: src/views/matieres/create.php:4
-msgid "Add New Subject"
-msgstr ""
-
-#: src/views/matieres/create.php:12
-msgid "Ex: Mathematics"
-msgstr ""
-
-#: src/views/matieres/create.php:17
-msgid "Ex: 2.5"
-msgstr ""
-
-#: src/views/eleves/details.php:6 src/views/eleves/index.php:33
-msgid "Student Photo"
-msgstr ""
-
-#: src/views/eleves/details.php:15
-msgid "Enrollment History"
-msgstr ""
-
-#: src/views/eleves/details.php:17 src/views/boutique/achats/index.php:6
-msgid "Purchase History"
-msgstr ""
-
-#: src/views/eleves/details.php:18
-msgid "Entrance Tests"
-msgstr ""
-
-#: src/views/eleves/details.php:33
-msgid "No enrollments found."
-msgstr ""
-
-#: src/views/eleves/details.php:49
-msgid "View Report Card"
-msgstr ""
-
-#: src/views/eleves/details.php:59 src/views/paiements/index.php:55
-msgid "Back to student list"
-msgstr ""
-
-#: src/views/eleves/edit.php:4
-msgid "Edit Student File"
-msgstr ""
-
-#: src/views/eleves/edit.php:36
-msgid "Change Photo"
-msgstr ""
-
-#: src/views/eleves/edit.php:39
-msgid "Current Photo"
-msgstr ""
-
-#: src/views/eleves/index.php:5
-msgid "Student Management"
-msgstr ""
-
-#: src/views/eleves/index.php:7
-msgid "Add Student"
-msgstr ""
-
-#: src/views/eleves/index.php:15 src/views/eleves/create.php:35
-msgid "Photo"
-msgstr ""
-
-#: src/views/eleves/index.php:25
-msgid "No students found."
-msgstr ""
-
-#: src/views/eleves/index.php:39
-msgid "Details/Report Card"
-msgstr ""
-
-#: src/views/eleves/index.php:40
-msgid "Payments"
-msgstr ""
-
-#: src/views/eleves/index.php:41
-msgid "Enroll"
-msgstr ""
-
-#: src/views/eleves/index.php:43
-msgid "Are you sure you want to delete this student?"
-msgstr ""
-
-#: src/views/eleves/create.php:4
-msgid "Add New Student"
-msgstr ""
-
-#: src/views/paiements/index.php:6
-msgid "Payment Tracking"
-msgstr ""
-
-#: src/views/paiements/index.php:10 src/views/paiements/create.php:4
-msgid "Add Payment"
-msgstr ""
-
-#: src/views/paiements/index.php:18 src/views/boutique/achats/index.php:18
-msgid "Date"
-msgstr ""
-
-#: src/views/paiements/index.php:20 src/views/paiements/create.php:24
-msgid "Amount"
-msgstr ""
-
-#: src/views/paiements/index.php:28
-msgid "No payments found for this student."
-msgstr ""
-
-#: src/views/paiements/create.php:14
-msgid "Payment Type"
-msgstr ""
-
-#: src/views/paiements/create.php:16
-msgid "Registration"
-msgstr ""
-
-#: src/views/paiements/create.php:17
-msgid "Monthly Fee"
-msgstr ""
-
-#: src/views/paiements/create.php:18
-msgid "Insurance"
-msgstr ""
-
-#: src/views/paiements/create.php:19
-msgid "Shop"
-msgstr ""
-
-#: src/views/paiements/create.php:31
-msgid "Paid"
-msgstr ""
-
-#: src/views/paiements/create.php:32
-msgid "Partial"
-msgstr ""
-
-#: src/views/paiements/create.php:33
-msgid "Unpaid"
-msgstr ""
-
-#: src/views/paiements/create.php:42
-msgid "Record Payment"
-msgstr ""
-
-#: src/views/classes/edit.php:4
-msgid "Edit Class"
-msgstr ""
-
-#: src/views/classes/edit.php:13 src/views/classes/index.php:15
-#: src/views/classes/create.php:12
-msgid "Class Name"
-msgstr ""
-
-#: src/views/classes/edit.php:19 src/views/classes/create.php:18
-msgid "Level"
-msgstr ""
-
-#: src/views/classes/edit.php:25 src/views/classes/create.php:24
-msgid "Series"
-msgstr ""
-
-#: src/views/classes/edit.php:31 src/views/classes/create.php:30
-msgid "Class Number"
-msgstr ""
-
-#: src/views/classes/edit.php:37 src/views/classes/index.php:16
-#: src/views/classes/create.php:36
-msgid "Cycle"
-msgstr ""
-
-#: src/views/classes/index.php:5
-msgid "Class Management"
-msgstr ""
-
-#: src/views/classes/index.php:7
-msgid "Add Class"
-msgstr ""
-
-#: src/views/classes/index.php:27
-msgid "No classes found."
-msgstr ""
-
-#: src/views/classes/index.php:41
-msgid "Are you sure you want to delete this class?"
-msgstr ""
-
-#: src/views/classes/create.php:4
-msgid "Add New Class"
-msgstr ""
-
-#: src/views/classes/create.php:13
-msgid "Ex: Tenth Grade"
-msgstr ""
-
-#: src/views/classes/create.php:19
-msgid "Ex: 10"
-msgstr ""
-
-#: src/views/classes/create.php:25
-msgid "Ex: A4"
-msgstr ""
-
-#: src/views/classes/create.php:38
-msgid "-- Choose a cycle --"
-msgstr ""
-
-#: src/views/classes/create.php:50 src/views/licences/create.php:13
+#: src/views/licences/create.php
 msgid "-- Choose a high school --"
 msgstr ""
 
-#: src/views/inscriptions/enroll.php:4 src/views/inscriptions/enroll.php:44
-msgid "Enroll Student"
+#: src/views/bulletins/index.php
+msgid "-- Select a class --"
 msgstr ""
 
-#: src/views/inscriptions/enroll.php:34
-msgid "Activate enrollment immediately"
+#: src/views/bulletins/index.php
+msgid "-- Select a period --"
 msgstr ""
 
-#: src/views/inscriptions/enroll.php:36
-msgid ""
-"The enrollment must be active for the student to appear in class lists for "
-"grading, etc."
+#: src/views/cahier_texte/_form.php
+msgid "-- Sélectionner --"
 msgstr ""
 
-#: src/views/boutique/articles/edit.php:4
-msgid "Edit Article"
+#: src/views/eleves/assign_class.php
+msgid "-- Sélectionner un cycle --"
 msgstr ""
 
-#: src/views/boutique/articles/edit.php:12
-#: src/views/boutique/articles/create.php:11
-msgid "Article Name"
+#: src/views/type_contrat/_form.php
+msgid "-- Sélectionner un lycée --"
 msgstr ""
 
-#: src/views/boutique/articles/edit.php:17
-#: src/views/boutique/articles/index.php:16
-#: src/views/boutique/articles/create.php:16
-msgid "Price"
+#: src/views/eleves/assign_class.php
+#: src/views/eleves/assign_class.php
+msgid "-- Sélectionner un niveau --"
 msgstr ""
 
-#: src/views/boutique/articles/edit.php:22
-#: src/views/boutique/articles/index.php:17
-#: src/views/boutique/articles/create.php:21
-msgid "Stock"
+#: src/views/eleves/assign_class.php
+#: src/views/eleves/assign_class.php
+#: src/views/eleves/assign_class.php
+#: src/views/eleves/assign_class.php
+msgid "-- Sélectionner un numéro --"
 msgstr ""
 
-#: src/views/boutique/articles/index.php:5
-msgid "Shop Management"
+#: src/views/settings/index.php
+msgid "-- Sélectionner une année --"
 msgstr ""
 
-#: src/views/boutique/articles/index.php:7
-msgid "Add Article"
+#: src/views/eleves/assign_class.php
+#: src/views/eleves/assign_class.php
+#: src/views/eleves/assign_class.php
+msgid "-- Sélectionner une série --"
 msgstr ""
 
-#: src/views/boutique/articles/index.php:15
-#: src/views/boutique/achats/index.php:19
-#: src/views/boutique/achats/create.php:14
-msgid "Article"
+#: src/views/boutique/articles/edit.php
+#: src/views/boutique/articles/create.php
+#: src/views/boutique/articles/create.php
+msgid "0.00"
 msgstr ""
 
-#: src/views/boutique/articles/create.php:4
-msgid "Add Article to Shop"
-msgstr ""
-
-#: src/views/boutique/achats/index.php:10
-msgid "New Purchase"
-msgstr ""
-
-#: src/views/boutique/achats/index.php:20
-#: src/views/boutique/achats/create.php:24
-msgid "Quantity"
-msgstr ""
-
-#: src/views/boutique/achats/index.php:21
-msgid "Unit Price"
-msgstr ""
-
-#: src/views/boutique/achats/index.php:22
-msgid "Total"
-msgstr ""
-
-#: src/views/boutique/achats/create.php:4
-msgid "Record a Purchase"
-msgstr ""
-
-#: src/views/boutique/achats/create.php:16
-msgid "-- Choose an article --"
-msgstr ""
-
-#: src/views/boutique/achats/create.php:33
-msgid "Record Purchase"
-msgstr ""
-
-#: src/views/licences/edit.php:4
-msgid "Edit License"
-msgstr ""
-
-#: src/views/licences/edit.php:21 src/views/licences/create.php:21
-msgid "Duration (in months)"
-msgstr ""
-
-#: src/views/licences/edit.php:23 src/views/licences/create.php:23
-msgid "3 months"
-msgstr ""
-
-#: src/views/licences/edit.php:24 src/views/licences/create.php:24
-msgid "6 months"
-msgstr ""
-
-#: src/views/licences/edit.php:25 src/views/licences/create.php:25
+#: src/views/licences/edit.php
+#: src/views/licences/create.php
 msgid "1 year"
 msgstr ""
 
-#: src/views/licences/edit.php:30 src/views/licences/index.php:16
-#: src/views/licences/create.php:30
-msgid "Start Date"
+#: src/views/modele_carte/edit.php
+msgid "1. Ajustements Rapides"
 msgstr ""
 
-#: src/views/licences/edit.php:37 src/views/licences/create.php:37
-msgid "License Active"
+#: src/views/modele_carte/edit.php
+msgid "2. Couleurs & Style Global"
 msgstr ""
 
-#: src/views/licences/index.php:5
-msgid "License Management"
+#: src/views/licences/edit.php
+#: src/views/licences/create.php
+msgid "3 months"
 msgstr ""
 
-#: src/views/licences/index.php:7 src/views/licences/create.php:46
-msgid "Generate License"
+#: src/views/modele_carte/edit.php
+msgid "3. Personnaliser un Élément"
 msgstr ""
 
-#: src/views/licences/index.php:17
-msgid "End Date"
+#: src/views/modele_carte/edit.php
+msgid "4. Fond de Carte & Image"
 msgstr ""
 
-#: src/views/licences/index.php:18
+#: src/views/modele_carte/edit.php
+msgid "5. Outils Avancés"
+msgstr ""
+
+#: src/views/licences/edit.php
+#: src/views/licences/create.php
+msgid "6 months"
+msgstr ""
+
+#: src/views/modele_bulletin/edit.php
+msgid "A communication error occurred."
+msgstr ""
+
+#: src/views/presences/gerer.php
+msgid "Absent"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+msgid "Accorder le déblocage"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+msgid "Accorder un Déblocage Exceptionnel"
+msgstr ""
+
+#: src/views/evaluations/deblocage_index.php
+msgid "Accordé par"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Accueil"
+msgstr ""
+
+#: src/views/home/index.php
+msgid "Accès Rapide"
+msgstr ""
+
+#: src/views/boutique/achats/index.php
+msgid "Achats de"
+msgstr ""
+
+#: src/views/evaluations/deblocage_index.php
+#: src/views/users/index.php
+#: src/views/users/view.php
+msgid "Actif"
+msgstr ""
+
+#: src/views/paiements/restes_table.php
+msgid "Action"
+msgstr ""
+
+#: src/views/annees_academiques/index.php
+#: src/views/boutique/articles/index.php
+#: src/views/tests_entree/index.php
+#: src/views/licences/index.php
+#: src/views/bulletins/show.php
+#: src/views/bulletins/class_results.php
+#: src/views/matieres/index.php
+#: src/views/cycles/index.php
+#: src/views/home/index.php
+#: src/views/lycees/index.php
+#: src/views/classes/show.php
+#: src/views/classes/index.php
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+#: src/views/type_contrat/index.php
+#: src/views/eleves/index.php
+#: src/views/eleves/archives.php
+#: src/views/series/index.php
+#: src/views/evaluations/deblocage_index.php
+#: src/views/evaluations/parametres_index.php
+#: src/views/cahier_texte/index.php
+#: src/views/users/index.php
+#: src/views/roles/index.php
+#: src/views/mensualites/class_dashboard.php
+msgid "Actions"
+msgstr ""
+
+#: src/views/annees_academiques/index.php
+#: src/views/licences/index.php
+msgid "Active"
+msgstr ""
+
+#: src/views/annees_academiques/index.php
+msgid "Activer cette année"
+msgstr ""
+
+#: src/views/settings/index.php
+msgid "Activer la biométrie"
+msgstr ""
+
+#: src/views/settings/index.php
+msgid "Activer le mode multilingue"
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Activer les notifications système par email/dashboard"
+msgstr ""
+
+#: src/views/lycees/index.php
+msgid "Add High School"
+msgstr ""
+
+#: src/views/lycees/create.php
+msgid "Add New High School"
+msgstr ""
+
+#: src/views/lycees/edit.php
+#: src/views/lycees/create.php
+msgid "Address"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Administration"
+msgstr ""
+
+#: src/views/eleves/details.php
+#: src/views/users/_form.php
+#: src/views/users/view.php
+msgid "Adresse"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Affiche la page d'accueil avec les statistiques principales."
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Afficher/Masquer le Motif"
+msgstr ""
+
+#: src/views/type_contrat/create.php
+msgid "Ajouter"
+msgstr ""
+
+#: src/views/classes/show.php
+msgid "Ajouter la Matière"
+msgstr ""
+
+#: src/views/boutique/articles/create.php
+#: src/views/boutique/articles/create.php
+#: src/views/boutique/articles/index.php
+msgid "Ajouter un Article"
+msgstr ""
+
+#: src/views/cycles/index.php
+msgid "Ajouter un Cycle"
+msgstr ""
+
+#: src/views/users/index.php
+msgid "Ajouter un membre"
+msgstr ""
+
+#: src/views/cycles/create.php
+msgid "Ajouter un nouveau Cycle"
+msgstr ""
+
+#: src/views/users/create.php
+msgid "Ajouter un nouveau membre du personnel"
+msgstr ""
+
+#: src/views/roles/create.php
+msgid "Ajouter un nouveau rôle"
+msgstr ""
+
+#: src/views/eleves/create.php
+msgid "Ajouter un nouvel élève"
+msgstr ""
+
+#: src/views/roles/index.php
+msgid "Ajouter un rôle"
+msgstr ""
+
+#: src/views/type_contrat/create.php
+#: src/views/type_contrat/index.php
+msgid "Ajouter un type de contrat"
+msgstr ""
+
+#: src/views/eleves/index.php
+msgid "Ajouter un Élève"
+msgstr ""
+
+#: src/views/annees_academiques/create.php
+msgid "Ajouter une Année Académique"
+msgstr ""
+
+#: src/views/series/index.php
+msgid "Ajouter une Série"
+msgstr ""
+
+#: src/views/annees_academiques/index.php
+msgid "Ajouter une année"
+msgstr ""
+
+#: src/views/cahier_texte/create.php
+msgid "Ajouter une entrée au cahier de texte"
+msgstr ""
+
+#: src/views/classes/create.php
+msgid "Ajouter une nouvelle classe"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Ajustez votre modèle professionnel prêt à l'emploi."
+msgstr ""
+
+#: src/views/layouts/footer.php
+msgid "All rights reserved."
+msgstr ""
+
+#: src/views/boutique/articles/edit.php
+#: src/views/boutique/articles/create.php
+msgid "Ancien Prix (Promo)"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+msgid "Annulation"
+msgstr ""
+
+#: src/views/annees_academiques/_form.php
+#: src/views/boutique/achats/create.php
+#: src/views/boutique/articles/edit.php
+#: src/views/boutique/articles/create.php
+#: src/views/matieres/edit.php
+#: src/views/matieres/create.php
+#: src/views/cycles/edit.php
+#: src/views/cycles/create.php
+#: src/views/classes/edit.php
+#: src/views/classes/create.php
+#: src/views/type_contrat/_form.php
+#: src/views/eleves/edit.php
+#: src/views/eleves/assign_class.php
+#: src/views/eleves/_form.php
+#: src/views/eleves/create.php
+#: src/views/series/index.php
+#: src/views/evaluations/deblocage_form.php
+#: src/views/evaluations/parametres_form.php
+#: src/views/cahier_texte/_form.php
+#: src/views/users/_form.php
+#: src/views/roles/edit.php
+#: src/views/roles/create.php
+msgid "Annuler"
+msgstr ""
+
+#: src/views/layouts/header_able.php
+msgid "Année"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/eleves/details.php
+#: src/views/eleves/details.php
+msgid "Année Académique"
+msgstr ""
+
+#: src/views/settings/index.php
+msgid "Année Académique Active"
+msgstr ""
+
+#: src/views/setup/step1_single.php
+msgid "Année Académique Actuelle"
+msgstr ""
+
+#: src/controllers/AnneeAcademiqueController.php
+msgid "Année académique activée avec succès."
+msgstr ""
+
+#: src/controllers/AnneeAcademiqueController.php
+msgid "Année académique créée avec succès."
+msgstr ""
+
+#: src/controllers/AnneeAcademiqueController.php
+msgid "Année académique mise à jour avec succès."
+msgstr ""
+
+#: src/controllers/AnneeAcademiqueController.php
+msgid "Année académique supprimée avec succès."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Années Académiques"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Aperçu de la Carte"
+msgstr ""
+
+#: src/views/settings/index.php
+msgid "Appliquer la confidentialité nationale"
+msgstr ""
+
+#: src/views/settings/index.php
+msgid "Après le test d'entrée"
+msgstr ""
+
+#: src/views/eleves/index.php
+msgid "Archives"
+msgstr ""
+
+#: src/views/lycees/index.php
+msgid "Are you sure you want to delete this high school?"
+msgstr ""
+
+#: src/views/tests_entree/index.php
+#: src/views/licences/index.php
+#: src/views/emploi_du_temps/index.php
+msgid "Are you sure?"
+msgstr ""
+
+#: src/views/boutique/achats/recu.php
+#: src/views/boutique/achats/create.php
+#: src/views/boutique/achats/index.php
+#: src/views/boutique/articles/index.php
+msgid "Article"
+msgstr ""
+
+#: src/views/eleves/assign_class.php
+msgid "Assigner la Classe"
+msgstr ""
+
+#: src/views/eleves/assign_class.php
+msgid "Assigner une Classe à l'Élève"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Attendu"
+msgstr ""
+
+#: src/views/home/index.php
+msgid "Attention !"
+msgstr ""
+
+#: src/views/classes/show.php
+msgid "Attribuer une Matière"
+msgstr ""
+
+#: src/views/evaluations/deblocage_index.php
+msgid "Au"
+msgstr ""
+
+#: src/views/type_contrat/_form.php
+msgid "Aucun"
+msgstr ""
+
+#: src/views/boutique/achats/index.php
+msgid "Aucun achat trouvé"
+msgstr ""
+
+#: src/views/boutique/articles/index.php
+msgid "Aucun article trouvé"
+msgstr ""
+
+#: src/views/cycles/index.php
+msgid "Aucun cycle trouvé."
+msgstr ""
+
+#: src/views/layouts/header_able.php
+#: src/views/layouts/header_able.php
+msgid "Aucun lycée configuré"
+msgstr ""
+
+#: src/views/users/index.php
+msgid "Aucun membre du personnel trouvé."
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Aucun reçu enregistré pour les critères sélectionnés."
+msgstr ""
+
+#: src/views/roles/index.php
+msgid "Aucun rôle trouvé."
+msgstr ""
+
+#: src/views/type_contrat/index.php
+msgid "Aucun type de contrat trouvé."
+msgstr ""
+
+#: src/views/eleves/index.php
+msgid "Aucun élève actif ou en attente trouvé."
+msgstr ""
+
+#: src/views/mensualites/class_dashboard.php
+msgid "Aucun élève actif trouvé dans cette classe."
+msgstr ""
+
+#: src/views/eleves/archives.php
+msgid "Aucun élève archivé trouvé."
+msgstr ""
+
+#: src/views/paiements/restes_table.php
+msgid "Aucun élève de cette classe ne présente actuellement un reste à payer."
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Aucun élève trouvé pour les critères sélectionnés."
+msgstr ""
+
+#: src/views/home/index.php
+msgid "Aucune action disponible."
+msgstr ""
+
+#: src/views/annees_academiques/index.php
+msgid "Aucune année académique trouvée."
+msgstr ""
+
+#: src/views/layouts/header_able.php
+msgid "Aucune année définie"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Aucune classe enregistrée ou correspondant aux critères."
+msgstr ""
+
+#: src/views/classes/index.php
+msgid "Aucune classe trouvée."
+msgstr ""
+
+#: src/views/cahier_texte/index.php
+msgid "Aucune entrée trouvée."
+msgstr ""
+
+#: src/views/matieres/index.php
+msgid "Aucune matière trouvée."
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Aucune mensualité exigible pour le moment."
+msgstr ""
+
+#: src/views/layouts/header_able.php
+msgid "Aucune nouvelle notification"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Aucune opération enregistrée dans le journal pour les critères sélectionnés."
+msgstr ""
+
+#: src/views/series/index.php
+msgid "Aucune série trouvée."
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Aucune écriture trouvée pour cet élève dans cette période."
+msgstr ""
+
+#: src/views/series/index.php
+#: src/views/series/index.php
+msgid "Autre"
+msgstr ""
+
+#: src/views/settings/index.php
+msgid "Avant l'inscription"
+msgstr ""
+
+#: src/views/bulletins/show.php
+msgid "Back to Results"
+msgstr ""
+
+#: src/views/bulletins/class_results.php
+msgid "Back to Selection"
+msgstr ""
+
+#: src/views/tests_entree/index.php
+msgid "Back to student file"
+msgstr ""
+
+#: src/views/setup/step0_choice.php
+msgid "Bienvenue dans l'installation"
+msgstr ""
+
+#: src/views/home/index.php
+msgid "Bienvenue,"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+msgid "Bilan Net"
+msgstr ""
+
+#: src/views/bulletins/class_results.php
+msgid "Bloqué"
+msgstr ""
+
+#: src/views/boutique/articles/edit.php
+#: src/views/boutique/articles/create.php
+#: src/views/boutique/articles/index.php
+#: src/views/layouts/sidebar_able.php
+#: src/views/eleves/details.php
+#: src/views/eleves/index.php
+msgid "Boutique"
+msgstr ""
+
+#: src/views/boutique/shop/index.php
+#: src/views/boutique/shop/index.php
+msgid "Boutique Scolaire"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Bulletins"
+msgstr ""
+
+#: src/views/boutique/articles/index.php
+msgid "CA du Jour (FCFA)"
+msgstr ""
+
+#: src/views/boutique/articles/index.php
+msgid "CA du Mois (FCFA)"
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Cachet Nominatif / Tampon officiel (PNG transparent)"
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Cachet actif"
+msgstr ""
+
+#: src/controllers/HomeController.php
+#: src/views/home/index.php
+#: src/views/layouts/sidebar_able.php
+#: src/views/cahier_texte/edit.php
+#: src/views/cahier_texte/create.php
+#: src/views/cahier_texte/index.php
+msgid "Cahier de Texte"
+msgstr ""
+
+#: src/views/tests_entree/create.php
+#: src/views/licences/edit.php
+#: src/views/licences/create.php
+#: src/views/lycees/edit.php
+#: src/views/lycees/create.php
+msgid "Cancel"
+msgstr ""
+
+#: src/views/boutique/articles/edit.php
+#: src/views/boutique/articles/create.php
+#: src/views/boutique/articles/index.php
+#: src/views/classes/show.php
+#: src/views/classes/edit.php
+#: src/views/classes/create.php
+#: src/views/series/index.php
+#: src/views/series/index.php
+#: src/views/series/index.php
+msgid "Catégorie"
+msgstr ""
+
+#: src/views/setup/step1_multi.php
+msgid "Ce compte gérera toutes les écoles du système."
+msgstr ""
+
+#: src/views/home/index.php
+msgid "Ceci est votre tableau de bord."
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Centrer le Logo"
+msgstr ""
+
+#: src/views/eleves/archives.php
+msgid "Cette page liste les élèves qui ne sont plus actifs dans l'établissement (transférés, radiés, diplômés, etc.)."
+msgstr ""
+
+#: src/views/presences/gerer.php
+msgid "Changer de date"
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Changer mon mot de passe"
+msgstr ""
+
+#: src/views/mensualites/index.php
+msgid "Chargement du tableau de bord..."
+msgstr ""
+
+#: src/views/paiements/restes.php
+#: src/views/paiements/restes.php
+#: src/views/mensualites/index.php
+#: src/views/mensualites/index.php
+msgid "Chargement..."
+msgstr ""
+
+#: src/views/paiements/restes.php
+#: src/views/mensualites/index.php
+msgid "Choisir un cycle"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+#: src/views/evaluations/parametres_form.php
+msgid "Choisir un enseignant..."
+msgstr ""
+
+#: src/views/eleves/_form.php
+msgid "Choisir un fichier"
+msgstr ""
+
+#: src/views/paiements/restes.php
+#: src/views/paiements/restes.php
+#: src/views/mensualites/index.php
+#: src/views/mensualites/index.php
+msgid "Choisir un niveau"
+msgstr ""
+
+#: src/views/paiements/restes.php
+#: src/views/paiements/restes.php
+#: src/views/paiements/restes.php
+#: src/views/mensualites/index.php
+#: src/views/mensualites/index.php
+#: src/views/mensualites/index.php
+msgid "Choisir une classe"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+#: src/views/evaluations/parametres_form.php
+msgid "Choisir une classe..."
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+#: src/views/evaluations/parametres_form.php
+msgid "Choisir une matière..."
+msgstr ""
+
+#: src/views/paiements/restes.php
+#: src/views/paiements/restes.php
+#: src/views/mensualites/index.php
+#: src/views/mensualites/index.php
+msgid "Choisir une série"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Choisissez une palette de couleurs pour votre établissement :"
+msgstr ""
+
+#: src/views/evaluations/deblocage_index.php
+#: src/views/evaluations/parametres_index.php
+msgid "Cible"
+msgstr ""
+
+#: src/views/lycees/edit.php
+#: src/views/lycees/create.php
+#: src/views/lycees/index.php
+msgid "City"
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Clair"
+msgstr ""
+
+#: src/views/bulletins/index.php
+msgid "Class"
+msgstr ""
+
+#: src/views/bulletins/class_results.php
+msgid "Class Results for:"
+msgstr ""
+
+#: src/views/home/index.php
+#: src/views/paiements/journal.php
+#: src/views/eleves/details.php
+#: src/views/eleves/index.php
+#: src/views/cahier_texte/index.php
+msgid "Classe"
+msgstr ""
+
+#: src/views/cahier_texte/_form.php
+msgid "Classe et Matière"
+msgstr ""
+
+#: src/views/evaluations/parametres_index.php
+msgid "Classe: "
+msgstr ""
+
+#: src/views/home/index.php
+#: src/views/layouts/sidebar_able.php
+msgid "Classes"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Cliquez sur un élément de la carte pour modifier ses propriétés."
+msgstr ""
+
+#: src/views/annees_academiques/index.php
+msgid "Clôturer"
+msgstr ""
+
+#: src/views/annees_academiques/index.php
+msgid "Clôturée"
+msgstr ""
+
+#: src/views/classes/show.php
+#: src/views/classes/show.php
+msgid "Coefficient"
+msgstr ""
+
+#: src/views/classes/show.php
+#: src/views/presences/gerer.php
+#: src/views/evaluations/parametres_index.php
+msgid "Commentaire"
+msgstr ""
+
+#: src/views/evaluations/parametres_form.php
+msgid "Commentaire / Instruction"
+msgstr ""
+
+#: src/views/paiements/regler.php
+#: src/views/paiements/journal.php
+#: src/views/paiements/restes.php
+#: src/views/layouts/sidebar_able.php
+#: src/views/mensualites/index.php
+msgid "Comptabilité"
+msgstr ""
+
+#: src/views/users/_form.php
+msgid "Compte Actif"
+msgstr ""
+
+#: src/views/setup/step1_multi.php
+msgid "Compte Administrateur National"
+msgstr ""
+
+#: src/views/setup/step1_single.php
+msgid "Compte de l'Administrateur"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Configuration Frais"
+msgstr ""
+
+#: src/views/setup/step1_multi.php
+msgid "Configuration Multi-écoles"
+msgstr ""
+
+#: src/views/setup/step1_single.php
+msgid "Configuration de l'école"
+msgstr ""
+
+#: src/views/settings/index.php
+msgid "Configuration de l'établissement"
+msgstr ""
+
+#: src/views/evaluations/parametres_form.php
+msgid "Configuration de la période"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Configurer et consulter les emplois du temps."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Configurer les différents types de frais scolaires."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Configurer les paramètres globaux de l'établissement."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Configurer les paramètres pour les compositions."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Configurer les paramètres pour les devoirs."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Configurer les paramètres spécifiques au lycée."
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Confirmer le nouveau mot de passe"
+msgstr ""
+
+#: src/views/auth/login.php
+msgid "Connexion"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Conseil de Personnalisation :"
+msgstr ""
+
+#: src/views/cahier_texte/index.php
+msgid "Consultation du Cahier de Texte"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Consulter l'historique des transactions."
+msgstr ""
+
+#: src/views/eleves/archives.php
+msgid "Consulter le dossier"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Consulter le journal comptable unique."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Consulter les rapports financiers."
+msgstr ""
+
+#: src/views/eleves/_form.php
+msgid "Contact de l'élève (Optionnel)"
+msgstr ""
+
+#: src/views/cahier_texte/index.php
+msgid "Contenu"
+msgstr ""
+
+#: src/views/cahier_texte/_form.php
+msgid "Contenu du cours"
+msgstr ""
+
+#: src/views/setup/step0_choice.php
+msgid "Continuer"
+msgstr ""
+
+#: src/views/type_contrat/_form.php
+msgid "Contrat Global (disponible pour tous les lycées)"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Contrats"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Contrôle financier"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Couleur"
+msgstr ""
+
+#: src/views/classes/edit.php
+#: src/views/classes/create.php
+#: src/views/classes/index.php
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+#: src/views/paiements/restes.php
+#: src/views/eleves/index.php
+#: src/views/mensualites/index.php
+msgid "Cycle"
+msgstr ""
+
+#: src/views/matieres/_form.php
+#: src/views/matieres/index.php
+msgid "Cycle Concerné"
+msgstr ""
+
+#: src/views/eleves/assign_class.php
+msgid "Cycle d'Études"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Cycles"
+msgstr ""
+
+#: src/views/boutique/achats/recu.php
+#: src/views/boutique/achats/index.php
+#: src/views/paiements/journal.php
+#: src/views/eleves/details.php
+#: src/views/eleves/details.php
+#: src/views/cahier_texte/index.php
+msgid "Date"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Date & Heure"
+msgstr ""
+
+#: src/views/users/_form.php
+#: src/views/users/view.php
+msgid "Date d'embauche"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+msgid "Date d'expiration"
+msgstr ""
+
+#: src/views/evaluations/parametres_form.php
+msgid "Date d'ouverture"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Date d'émission"
+msgstr ""
+
+#: src/views/annees_academiques/_form.php
+#: src/views/annees_academiques/index.php
+msgid "Date de Début"
+msgstr ""
+
+#: src/views/annees_academiques/_form.php
+#: src/views/annees_academiques/index.php
+msgid "Date de Fin"
+msgstr ""
+
+#: src/views/eleves/details.php
+#: src/views/eleves/_form.php
+#: src/views/eleves/archives.php
+#: src/views/users/_form.php
+#: src/views/users/view.php
+msgid "Date de Naissance"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+msgid "Date de début"
+msgstr ""
+
+#: src/views/evaluations/parametres_form.php
+msgid "Date de fermeture"
+msgstr ""
+
+#: src/views/cahier_texte/_form.php
+msgid "Date du cours"
+msgstr ""
+
+#: src/controllers/RoleController.php
+msgid "Default roles cannot be deleted."
+msgstr ""
+
+#: src/views/tests_entree/index.php
+#: src/views/licences/index.php
+#: src/views/lycees/index.php
+msgid "Delete"
+msgstr ""
+
+#: src/views/matieres/_form.php
+#: src/views/type_contrat/_form.php
+msgid "Description"
+msgstr ""
+
+#: src/views/cahier_texte/_form.php
+msgid "Devoirs, exercices, etc."
+msgstr ""
+
+#: src/views/classes/show.php
+msgid "Dissocier l'enseignant"
+msgstr ""
+
+#: src/views/lycees/edit.php
+#: src/views/lycees/create.php
+msgid "District"
+msgstr ""
+
+#: src/views/boutique/shop/index.php
+#: src/views/boutique/articles/index.php
+msgid "Divers"
+msgstr ""
+
+#: src/views/eleves/index.php
+msgid "Dossier complet"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Dossier Élève"
+msgstr ""
+
+#: src/views/evaluations/deblocage_index.php
+msgid "Du"
+msgstr ""
+
+#: src/views/licences/index.php
 msgid "Duration"
 msgstr ""
 
-#: src/views/licences/index.php:29
-msgid "months"
+#: src/views/licences/edit.php
+#: src/views/licences/create.php
+msgid "Duration (in months)"
 msgstr ""
 
-#: src/views/licences/create.php:4
+#: src/views/layouts/sidebar_able.php
+msgid "Déblocage Notes"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+msgid "Déblocages"
+msgstr ""
+
+#: src/views/layouts/header_able.php
+msgid "Déconnexion"
+msgstr ""
+
+#: src/views/evaluations/parametres_form.php
+msgid "Définir une Période de Saisie"
+msgstr ""
+
+#: src/views/evaluations/parametres_index.php
+msgid "Définir une période"
+msgstr ""
+
+#: src/views/users/view.php
+msgid "Détail du membre du personnel"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/eleves/index.php
+#: src/views/users/view.php
+msgid "Détails"
+msgstr ""
+
+#: src/views/eleves/details.php
+msgid "Détails de l'Élève"
+msgstr ""
+
+#: src/views/classes/show.php
+msgid "Détails de la Classe"
+msgstr ""
+
+#: src/views/matieres/edit.php
+#: src/views/matieres/create.php
+msgid "Détails de la matière"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Détails des mensualités exigibles"
+msgstr ""
+
+#: src/views/roles/edit.php
+msgid "Détails du Rôle"
+msgstr ""
+
+#: src/views/classes/index.php
+msgid "Détails et matières"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "EN RETARD"
+msgstr ""
+
+#: src/views/licences/index.php
+#: src/views/lycees/index.php
+msgid "Edit"
+msgstr ""
+
+#: src/views/lycees/edit.php
+msgid "Edit High School"
+msgstr ""
+
+#: src/views/licences/edit.php
+msgid "Edit License"
+msgstr ""
+
+#: src/views/cahier_texte/index.php
+msgid "Effacer"
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Effacer le dessin"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Effectif"
+msgstr ""
+
+#: src/views/classes/show.php
+msgid "Effectif actuel"
+msgstr ""
+
+#: src/views/lycees/edit.php
+#: src/views/lycees/create.php
+#: src/views/setup/step1_multi.php
+#: src/views/setup/step1_single.php
+#: src/views/eleves/_form.php
+#: src/views/users/_form.php
+#: src/views/users/view.php
+#: src/views/auth/login.php
+msgid "Email"
+msgstr ""
+
+#: src/views/auth/login.php
+msgid "Email ou mot de passe incorrect."
+msgstr ""
+
+#: src/controllers/HomeController.php
+#: src/views/layouts/sidebar_able.php
+msgid "Emploi du Temps"
+msgstr ""
+
+#: src/views/presences/gerer.php
+#: src/views/mensualites/class_dashboard.php
+msgid "En retard"
+msgstr ""
+
+#: src/views/boutique/shop/index.php
+msgid "En stock"
+msgstr ""
+
+#: src/views/settings/index.php
+msgid "En-tête Administrative (Principale)"
+msgstr ""
+
+#: src/views/settings/index.php
+msgid "En-tête Administrative (Secondaire / Arabe)"
+msgstr ""
+
+#: src/views/mensualites/class_dashboard.php
+msgid "Encaisser"
+msgstr ""
+
+#: src/views/licences/index.php
+msgid "End Date"
+msgstr ""
+
+#: src/views/annees_academiques/_form.php
+#: src/views/boutique/articles/create.php
+#: src/views/matieres/create.php
+#: src/views/cycles/create.php
+#: src/views/classes/create.php
+#: src/views/type_contrat/_form.php
+#: src/views/eleves/create.php
+#: src/views/series/index.php
+#: src/views/cahier_texte/_form.php
+#: src/views/users/_form.php
+#: src/views/roles/create.php
+msgid "Enregistrer"
+msgstr ""
+
+#: src/views/boutique/achats/create.php
+msgid "Enregistrer l'Achat"
+msgstr ""
+
+#: src/views/settings/index.php
+msgid "Enregistrer les Paramètres"
+msgstr ""
+
+#: src/views/presences/gerer.php
+msgid "Enregistrer les Présences"
+msgstr ""
+
+#: src/views/classes/show.php
+#: src/views/evaluations/parametres_form.php
+#: src/views/users/profile.php
+msgid "Enregistrer les paramètres"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Enregistrer ma Personnalisation"
+msgstr ""
+
+#: src/views/boutique/achats/create.php
+#: src/views/boutique/achats/create.php
+msgid "Enregistrer un Achat"
+msgstr ""
+
+#: src/views/classes/show.php
+#: src/views/cahier_texte/index.php
+msgid "Enseignant"
+msgstr ""
+
+#: src/views/tests_entree/index.php
+msgid "Entrance Test Management"
+msgstr ""
+
+#: src/views/cahier_texte/index.php
+msgid "Entrées du Cahier de Texte"
+msgstr ""
+
+#: src/controllers/AnneeAcademiqueController.php
+msgid "Erreur lors de l'activation de l'année académique: "
+msgstr ""
+
+#: src/views/modele_bulletin/edit.php
+msgid "Error:"
+msgstr ""
+
+#: src/views/cycles/create.php
+#: src/views/classes/create.php
+msgid "Ex: 1"
+msgstr ""
+
+#: src/views/annees_academiques/_form.php
+msgid "Ex: 2024-2025"
+msgstr ""
+
+#: src/views/cycles/create.php
+msgid "Ex: 3"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+msgid "Ex: Correction d'erreur de saisie demandée par le proviseur"
+msgstr ""
+
+#: src/views/cycles/create.php
+msgid "Ex: Lycée"
+msgstr ""
+
+#: src/views/boutique/articles/edit.php
+#: src/views/boutique/articles/create.php
+msgid "Ex: Papeterie"
+msgstr ""
+
+#: src/views/evaluations/parametres_form.php
+msgid "Ex: Période de saisie normale pour le premier semestre"
+msgstr ""
+
+#: src/views/boutique/articles/create.php
+msgid "Ex: Uniforme scolaire"
+msgstr ""
+
+#: src/views/evaluations/deblocage_index.php
+msgid "Expiré"
+msgstr ""
+
+#: src/views/boutique/articles/index.php
+msgid "Faible"
+msgstr ""
+
+#: src/controllers/RoleController.php
+msgid "Failed to create role. Please try again."
+msgstr ""
+
+#: src/controllers/RoleController.php
+msgid "Failed to delete the role."
+msgstr ""
+
+#: src/controllers/RoleController.php
+msgid "Failed to update role. Please try again."
+msgstr ""
+
+#: src/views/users/_form.php
+msgid "Femme"
+msgstr ""
+
+#: src/views/evaluations/parametres_index.php
+msgid "Fermeture"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Fiche"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/eleves/index.php
+#: src/views/cahier_texte/index.php
+msgid "Filtrer"
+msgstr ""
+
+#: src/views/cahier_texte/index.php
+msgid "Filtrer par classe"
+msgstr ""
+
+#: src/views/cahier_texte/index.php
+msgid "Filtrer par date"
+msgstr ""
+
+#: src/views/cahier_texte/index.php
+msgid "Filtrer par enseignant"
+msgstr ""
+
+#: src/views/cahier_texte/index.php
+msgid "Filtres"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Filtres de recherche"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Finalisation du règlement"
+msgstr ""
+
+#: src/views/type_contrat/_form.php
+msgid "Fixe"
+msgstr ""
+
+#: src/views/users/_form.php
+#: src/views/users/index.php
+msgid "Fonction"
+msgstr ""
+
+#: src/views/tests_entree/create.php
+msgid "For student"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Format Standard CR80"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Format recommandé : 85.6 x 53.98mm"
+msgstr ""
+
+#: src/views/eleves/_form.php
+msgid "Format recommandé : Portrait (3:4). La photo sera automatiquement redimensionnée."
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Forme"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Frais d'inscription"
+msgstr ""
+
+#: src/views/eleves/_form.php
+msgid "Féminin"
+msgstr ""
+
+#: src/views/bulletins/class_results.php
+msgid "General Average"
+msgstr ""
+
+#: src/views/licences/create.php
+#: src/views/licences/index.php
+msgid "Generate License"
+msgstr ""
+
+#: src/views/licences/create.php
 msgid "Generate New License"
 msgstr ""
 
-#: src/views/auth/login.php:5 src/views/auth/login.php:32
-msgid "Login"
+#: src/views/layouts/sidebar_able.php
+msgid "Gestion"
 msgstr ""
 
-#: src/views/auth/login.php:10
-msgid "Incorrect email or password."
+#: src/views/boutique/articles/index.php
+msgid "Gestion de la Boutique"
 msgstr ""
 
-#: src/views/layouts/header.php:6 src/views/layouts/header.php:28
-#: src/views/layouts/footer.php:4
+#: src/views/annees_academiques/index.php
+msgid "Gestion des Années Académiques"
+msgstr ""
+
+#: src/views/classes/index.php
+msgid "Gestion des Classes"
+msgstr ""
+
+#: src/views/cycles/index.php
+msgid "Gestion des Cycles"
+msgstr ""
+
+#: src/views/evaluations/deblocage_index.php
+msgid "Gestion des Déblocages"
+msgstr ""
+
+#: src/views/evaluations/deblocage_index.php
+msgid "Gestion des Déblocages des Notes"
+msgstr ""
+
+#: src/views/matieres/index.php
+msgid "Gestion des Matières"
+msgstr ""
+
+#: src/views/mensualites/index.php
+msgid "Gestion des Mensualités"
+msgstr ""
+
+#: src/views/presences/gerer.php
+msgid "Gestion des Présences"
+msgstr ""
+
+#: src/views/evaluations/parametres_index.php
+msgid "Gestion des Périodes de Saisie"
+msgstr ""
+
+#: src/views/evaluations/parametres_index.php
+msgid "Gestion des Périodes de Saisie des Notes"
+msgstr ""
+
+#: src/views/paiements/restes.php
+msgid "Gestion des Restes / Dettes"
+msgstr ""
+
+#: src/views/roles/index.php
+msgid "Gestion des Rôles"
+msgstr ""
+
+#: src/views/series/index.php
+msgid "Gestion des Séries"
+msgstr ""
+
+#: src/views/type_contrat/index.php
+msgid "Gestion des Types de Contrat"
+msgstr ""
+
+#: src/views/paiements/regler.php
+#: src/views/paiements/restes.php
+#: src/views/layouts/sidebar_able.php
+msgid "Gestion des restes"
+msgstr ""
+
+#: src/views/eleves/index.php
+msgid "Gestion des Élèves Actifs"
+msgstr ""
+
+#: src/views/users/index.php
+msgid "Gestion du personnel"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gestion mensualités"
+msgstr ""
+
+#: src/views/evaluations/parametres_index.php
+#: src/views/roles/index.php
+msgid "Global"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+#: src/views/evaluations/parametres_form.php
+msgid "Global (Tout l'établissement)"
+msgstr ""
+
+#: src/views/modele_bulletin/edit.php
+msgid "Grades Table"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Générer et consulter les bulletins de notes."
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/paiements/rapports.php
+msgid "Généré le"
+msgstr ""
+
+#: src/views/home/index.php
+msgid "Gérer Présences"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer et imprimer les reçus."
+msgstr ""
+
+#: src/controllers/HomeController.php
+msgid "Gérer la Boutique"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer la liste des matières enseignées."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer la paie des employés."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer la politique financière globale."
+msgstr ""
+
+#: src/controllers/HomeController.php
+msgid "Gérer les Années Académiques"
+msgstr ""
+
+#: src/controllers/HomeController.php
+msgid "Gérer les Classes"
+msgstr ""
+
+#: src/controllers/HomeController.php
+msgid "Gérer les Contrats"
+msgstr ""
+
+#: src/controllers/HomeController.php
+msgid "Gérer les Cycles"
+msgstr ""
+
+#: src/controllers/HomeController.php
+msgid "Gérer les Licences"
+msgstr ""
+
+#: src/controllers/HomeController.php
+msgid "Gérer les Lycées"
+msgstr ""
+
+#: src/controllers/HomeController.php
+msgid "Gérer les Matières"
+msgstr ""
+
+#: src/controllers/HomeController.php
+msgid "Gérer les Rôles"
+msgstr ""
+
+#: src/controllers/HomeController.php
+msgid "Gérer les Salaires"
+msgstr ""
+
+#: src/controllers/HomeController.php
+msgid "Gérer les Utilisateurs"
+msgstr ""
+
+#: src/views/layouts/header_able.php
+msgid "Gérer les années"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer les années académiques et définir l'année active."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer les articles et les achats de la boutique."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer les classes, les matières et les enseignants associés."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer les cycles d'enseignement (collège, lycée)."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer les différents établissements scolaires."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer les dossiers des élèves, inscriptions et archives."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer les déblocages exceptionnels pour la saisie des notes."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer les impayés et restes à payer."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer les inscriptions des nouveaux élèves."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer les licences de l'application."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer les membres du personnel, leurs rôles et leurs accès."
+msgstr ""
+
+#: src/views/eleves/index.php
+msgid "Gérer les paiements"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer les paiements d'inscription."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer les paiements mensuels."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer les réinscriptions des élèves existants."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer les rôles et les permissions associées."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer les séquences et les périodes d'évaluation."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer les séries d'enseignement."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Gérer les types de contrats du personnel."
+msgstr ""
+
+#: src/controllers/HomeController.php
+msgid "Gérer les Élèves"
+msgstr ""
+
+#: src/views/modele_bulletin/edit.php
+msgid "Header (School Name, etc.)"
+msgstr ""
+
+#: src/views/cahier_texte/_form.php
+msgid "Heure de début"
+msgstr ""
+
+#: src/views/cahier_texte/_form.php
+msgid "Heure de fin"
+msgstr ""
+
+#: src/views/licences/edit.php
+#: src/views/licences/create.php
+#: src/views/licences/index.php
+msgid "High School"
+msgstr ""
+
+#: src/views/lycees/index.php
+msgid "High School Management"
+msgstr ""
+
+#: src/views/lycees/edit.php
+#: src/views/lycees/create.php
+#: src/views/lycees/index.php
+msgid "High School Name"
+msgstr ""
+
+#: src/views/lycees/edit.php
+#: src/views/lycees/create.php
+msgid "High School Type"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Historique"
+msgstr ""
+
+#: src/views/boutique/achats/create.php
+#: src/views/boutique/achats/index.php
+#: src/views/boutique/achats/index.php
+msgid "Historique des Achats"
+msgstr ""
+
+#: src/views/evaluations/deblocage_index.php
+msgid "Historique des Déblocages"
+msgstr ""
+
+#: src/views/eleves/details.php
+msgid "Historique des Inscriptions"
+msgstr ""
+
+#: src/views/eleves/details.php
+msgid "Historique des Paiements Mensuels"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Historique paiements"
+msgstr ""
+
+#: src/views/users/_form.php
+msgid "Homme"
+msgstr ""
+
+#: src/views/boutique/achats/recu.php
+msgid "ID"
+msgstr ""
+
+#: src/views/users/view.php
+msgid "Identifiant Public"
+msgstr ""
+
+#: src/views/eleves/details.php
+msgid "Identifiant Public / Matricule"
+msgstr ""
+
+#: src/views/home/index.php
+msgid "Il y a %d élève(s) en attente de paiement initial."
+msgstr ""
+
+#: src/views/boutique/articles/index.php
+msgid "Image"
+msgstr ""
+
+#: src/views/boutique/articles/edit.php
+#: src/views/boutique/articles/create.php
+msgid "Image de l'Article"
+msgstr ""
+
+#: src/views/cycles/index.php
+msgid "Impossible de supprimer ce cycle car il est utilisé par une ou plusieurs classes."
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Imprimer"
+msgstr ""
+
+#: src/views/eleves/details.php
+#: src/views/eleves/index.php
+msgid "Imprimer la carte"
+msgstr ""
+
+#: src/views/paiements/restes_table.php
+msgid "Imprimer la liste"
+msgstr ""
+
+#: src/views/boutique/achats/recu.php
+#: src/views/paiements/journal.php
+msgid "Imprimer le reçu"
+msgstr ""
+
+#: src/views/classes/show.php
+#: src/views/mensualites/class_dashboard.php
+msgid "Imprimer les cartes de la classe"
+msgstr ""
+
+#: src/views/users/index.php
+#: src/views/users/view.php
+msgid "Inactif"
+msgstr ""
+
+#: src/views/annees_academiques/index.php
+#: src/views/licences/index.php
+msgid "Inactive"
+msgstr ""
+
+#: src/views/modele_bulletin/edit.php
+msgid "Information"
+msgstr ""
+
+#: src/views/eleves/details.php
+#: src/views/users/_form.php
+#: src/views/users/view.php
+msgid "Informations Personnelles"
+msgstr ""
+
+#: src/views/users/_form.php
+#: src/views/users/view.php
+msgid "Informations Professionnelles"
+msgstr ""
+
+#: src/views/eleves/_form.php
+msgid "Informations des Parents / Tuteur"
+msgstr ""
+
+#: src/views/users/_form.php
+#: src/views/users/view.php
+msgid "Informations du Compte"
+msgstr ""
+
+#: src/views/setup/step1_single.php
+msgid "Informations sur l'école"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+msgid "Inscription"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Inscriptions"
+msgstr ""
+
+#: src/views/setup/step0_choice.php
+msgid "Installation Mono-école"
+msgstr ""
+
+#: src/views/setup/step0_choice.php
+msgid "Installation Multi-écoles"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Inverser Photo / Infos"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/layouts/sidebar_able.php
+msgid "Journal Comptable"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Journal Comptable Unique"
+msgstr ""
+
+#: src/views/presences/gerer.php
+msgid "Justifié"
+msgstr ""
+
+#: src/controllers/AnneeAcademiqueController.php
+msgid "L'année académique a été clôturée avec succès. Les opérations comptables sont désormais verrouillées."
+msgstr ""
+
+#: src/controllers/AnneeAcademiqueController.php
+msgid "L'année académique a été réouverte. Les opérations comptables sont à nouveau autorisées."
+msgstr ""
+
+#: src/controllers/AnneeAcademiqueController.php
+msgid "L'année académique demandée n'existe pas."
+msgstr ""
+
+#: src/views/matieres/index.php
+msgid "La suppression a échoué. La matière est probablement utilisée dans une ou plusieurs classes ou par un enseignant."
+msgstr ""
+
+#: src/views/roles/create.php
+msgid "Laissez sur \"Global\" pour les rôles généraux (ex: Enseignant), ou assignez à une école pour un rôle local (ex: Administrateur local)."
+msgstr ""
+
+#: src/views/boutique/articles/edit.php
+msgid "Laissez vide pour conserver l'image actuelle."
+msgstr ""
+
+#: src/views/users/_form.php
+msgid "Laissez vide pour ne pas changer."
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Langue préférée"
+msgstr ""
+
+#: src/views/modele_bulletin/edit.php
+msgid "Layout saved successfully!"
+msgstr ""
+
+#: src/views/boutique/achats/recu.php
+msgid "Le Caissier"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Le montant maximum autorisé est de "
+msgstr ""
+
+#: src/views/roles/edit.php
+msgid "Le nom des rôles par défaut ne peut pas être modifié."
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Les paiements seront affectés chronologiquement du mois le plus ancien au plus récent (Point 7)."
+msgstr ""
+
+#: src/views/classes/show.php
+msgid "Les paramètres annuels ne peuvent pas être modifiés car aucune année académique n'est active ou vous n'avez pas les permissions."
+msgstr ""
+
+#: src/views/annees_academiques/_form.php
+#: src/views/annees_academiques/index.php
+#: src/views/type_contrat/index.php
+msgid "Libellé"
+msgstr ""
+
+#: src/views/type_contrat/_form.php
+msgid "Libellé du contrat"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Licences"
+msgstr ""
+
+#: src/views/licences/edit.php
+#: src/views/licences/create.php
+msgid "License Active"
+msgstr ""
+
+#: src/views/licences/index.php
+msgid "License Management"
+msgstr ""
+
+#: src/views/eleves/details.php
+#: src/views/eleves/_form.php
+#: src/views/users/_form.php
+#: src/views/users/view.php
+msgid "Lieu de Naissance"
+msgstr ""
+
+#: src/views/boutique/articles/index.php
+msgid "Liste des Articles"
+msgstr ""
+
+#: src/views/mensualites/class_dashboard.php
+msgid "Liste des Élèves"
+msgstr ""
+
+#: src/views/matieres/_form.php
+#: src/views/classes/edit.php
+#: src/views/classes/create.php
+#: src/views/series/index.php
+#: src/views/series/index.php
+msgid "Littéraire"
+msgstr ""
+
+#: src/views/lycees/edit.php
+#: src/views/lycees/create.php
+#: src/views/modele_carte/edit.php
+#: src/views/modele_carte/edit.php
+msgid "Logo"
+msgstr ""
+
+#: src/views/settings/index.php
+msgid "Logo du Lycée"
+msgstr ""
+
+#: src/views/boutique/articles/edit.php
+#: src/views/boutique/articles/create.php
+#: src/views/classes/edit.php
+#: src/views/classes/create.php
+#: src/views/classes/index.php
+#: src/views/eleves/index.php
+#: src/views/eleves/index.php
+msgid "Lycée"
+msgstr ""
+
+#: src/views/type_contrat/_form.php
+msgid "Lycée Spécifique"
+msgstr ""
+
+#: src/views/users/_form.php
+msgid "Lycée d'affectation"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Lycées"
+msgstr ""
+
+#: src/views/eleves/_form.php
+msgid "Masculin"
+msgstr ""
+
+#: src/views/home/index.php
+#: src/views/classes/show.php
+#: src/views/classes/show.php
+#: src/views/cahier_texte/index.php
+msgid "Matière"
+msgstr ""
+
+#: src/views/evaluations/parametres_index.php
+msgid "Matière: "
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Matières"
+msgstr ""
+
+#: src/views/classes/show.php
+msgid "Matières et Enseignants"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+msgid "Mensualité"
+msgstr ""
+
+#: src/views/mensualites/index.php
+msgid "Mensualités"
+msgstr ""
+
+#: src/views/boutique/achats/recu.php
+msgid "Merci pour votre achat !"
+msgstr ""
+
+#: src/views/home/index.php
+msgid "Mes Classes et Matières"
+msgstr ""
+
+#: src/views/annees_academiques/_form.php
+#: src/views/boutique/articles/edit.php
+#: src/views/matieres/edit.php
+#: src/views/cycles/edit.php
+#: src/views/classes/edit.php
+#: src/views/eleves/edit.php
+#: src/views/series/index.php
+#: src/views/roles/edit.php
+msgid "Mettre à jour"
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Mettre à jour le mot de passe"
+msgstr ""
+
+#: src/views/type_contrat/_form.php
+msgid "Mixte"
+msgstr ""
+
+#: src/views/settings/index.php
+msgid "Modalité de Paiement des Frais de Scolarité"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+msgid "Mode"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Mode de paiement"
+msgstr ""
+
+#: src/views/annees_academiques/index.php
+#: src/views/matieres/index.php
+#: src/views/cycles/index.php
+#: src/views/classes/index.php
+#: src/views/classes/index.php
+#: src/views/type_contrat/edit.php
+#: src/views/type_contrat/index.php
+#: src/views/eleves/index.php
+#: src/views/eleves/index.php
+#: src/views/users/index.php
+#: src/views/users/view.php
+#: src/views/roles/index.php
+msgid "Modifier"
+msgstr ""
+
+#: src/views/cahier_texte/edit.php
+msgid "Modifier Entrée"
+msgstr ""
+
+#: src/views/roles/index.php
+msgid "Modifier Permissions"
+msgstr ""
+
+#: src/views/annees_academiques/edit.php
+msgid "Modifier l'Année Académique"
+msgstr ""
+
+#: src/views/boutique/articles/edit.php
+#: src/views/boutique/articles/edit.php
+msgid "Modifier l'Article"
+msgstr ""
+
+#: src/views/cahier_texte/edit.php
+msgid "Modifier l'entrée du cahier de texte"
+msgstr ""
+
+#: src/views/eleves/edit.php
+msgid "Modifier l'élève"
+msgstr ""
+
+#: src/views/classes/edit.php
+msgid "Modifier la Classe"
+msgstr ""
+
+#: src/views/matieres/edit.php
+msgid "Modifier la Matière"
+msgstr ""
+
+#: src/views/series/index.php
+msgid "Modifier la Série"
+msgstr ""
+
+#: src/views/cycles/edit.php
+msgid "Modifier le Cycle"
+msgstr ""
+
+#: src/views/roles/edit.php
+msgid "Modifier le Rôle"
+msgstr ""
+
+#: src/views/users/edit.php
+msgid "Modifier le membre du personnel"
+msgstr ""
+
+#: src/views/type_contrat/edit.php
+msgid "Modifier le type de contrat"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Modèle Prêt à l'Emploi"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Mois"
+msgstr ""
+
+#: src/views/eleves/details.php
+msgid "Mois/Séquence"
+msgstr ""
+
+#: src/views/cahier_texte/index.php
+msgid "Mon Cahier de Texte"
+msgstr ""
+
+#: src/controllers/UserController.php
+#: src/views/layouts/header_able.php
+#: src/views/users/profile.php
+msgid "Mon Profil"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+msgid "Montant"
+msgstr ""
+
+#: src/views/eleves/details.php
+msgid "Montant Total"
+msgstr ""
+
+#: src/views/eleves/details.php
+#: src/views/eleves/details.php
+msgid "Montant Versé"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Montant à verser pour l'inscription"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Montant à verser pour les mensualités"
+msgstr ""
+
+#: src/views/setup/step1_multi.php
+#: src/views/setup/step1_single.php
+#: src/views/users/_form.php
+#: src/views/auth/login.php
+msgid "Mot de passe"
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Mot de passe actuel"
+msgstr ""
+
+#: src/views/evaluations/deblocage_index.php
+msgid "Motif"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+msgid "Motif du déblocage"
+msgstr ""
+
+#: src/views/eleves/details.php
+#: src/views/eleves/_form.php
+msgid "Nationalité"
+msgstr ""
+
+#: src/views/evaluations/parametres_index.php
+msgid "Nature"
+msgstr ""
+
+#: src/views/evaluations/parametres_form.php
+msgid "Nature de l'évaluation"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+msgid "Nature de l'évaluation à débloquer"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Navigation"
+msgstr ""
+
+#: src/views/tests_entree/index.php
+msgid "New Test"
+msgstr ""
+
+#: src/views/classes/show.php
+#: src/views/classes/edit.php
+#: src/views/classes/create.php
+#: src/views/classes/index.php
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+#: src/views/paiements/restes.php
+#: src/views/eleves/assign_class.php
+#: src/views/eleves/index.php
+#: src/views/evaluations/deblocage_index.php
+#: src/views/mensualites/index.php
+msgid "Niveau"
+msgstr ""
+
+#: src/views/cycles/edit.php
+#: src/views/cycles/create.php
+#: src/views/cycles/index.php
+msgid "Niveau de Début"
+msgstr ""
+
+#: src/views/cycles/edit.php
+#: src/views/cycles/create.php
+#: src/views/cycles/index.php
+msgid "Niveau de Fin"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+#: src/views/evaluations/parametres_form.php
+msgid "Niveau de ciblage"
+msgstr ""
+
+#: src/views/tests_entree/index.php
+msgid "No entrance tests found for this student."
+msgstr ""
+
+#: src/views/lycees/index.php
+msgid "No high schools found."
+msgstr ""
+
+#: src/views/bulletins/class_results.php
+msgid "No results found for this selection. Please ensure grades have been entered."
+msgstr ""
+
+#: src/views/setup/step1_multi.php
+#: src/views/setup/step1_single.php
+#: src/views/eleves/_form.php
+#: src/views/eleves/archives.php
+#: src/views/users/_form.php
+#: src/views/users/index.php
+msgid "Nom"
+msgstr ""
+
+#: src/views/eleves/details.php
+msgid "Nom & Prénom"
+msgstr ""
+
+#: src/views/eleves/index.php
+msgid "Nom Complet"
+msgstr ""
+
+#: src/views/boutique/articles/edit.php
+#: src/views/boutique/articles/create.php
+msgid "Nom de l'Article"
+msgstr ""
+
+#: src/views/eleves/_form.php
+msgid "Nom de la Mère"
+msgstr ""
+
+#: src/views/series/index.php
+#: src/views/series/index.php
+msgid "Nom de la Série"
+msgstr ""
+
+#: src/views/classes/index.php
+msgid "Nom de la classe"
+msgstr ""
+
+#: src/views/matieres/_form.php
+#: src/views/matieres/index.php
+msgid "Nom de la matière"
+msgstr ""
+
+#: src/views/cycles/edit.php
+#: src/views/cycles/create.php
+#: src/views/cycles/index.php
+msgid "Nom du Cycle"
+msgstr ""
+
+#: src/views/settings/index.php
+#: src/views/setup/step1_single.php
+msgid "Nom du Lycée"
+msgstr ""
+
+#: src/views/eleves/_form.php
+msgid "Nom du Père"
+msgstr ""
+
+#: src/views/roles/edit.php
+#: src/views/roles/create.php
+#: src/views/roles/index.php
+msgid "Nom du Rôle"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Nombre d'écritures"
+msgstr ""
+
+#: src/views/settings/index.php
+msgid "Nombre de devoirs par trimestre"
+msgstr ""
+
+#: src/views/classes/show.php
+msgid "Nombre de places"
+msgstr ""
+
+#: src/views/classes/show.php
+#: src/views/eleves/index.php
+msgid "Non assigné"
+msgstr ""
+
+#: src/views/layouts/header_able.php
+#: src/views/layouts/header_able.php
+msgid "Non définie"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Notes"
+msgstr ""
+
+#: src/views/layouts/header_able.php
+msgid "Notifications"
+msgstr ""
+
+#: src/views/evaluations/deblocage_index.php
+#: src/views/evaluations/deblocage_form.php
+msgid "Nouveau Déblocage"
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Nouveau mot de passe"
+msgstr ""
+
+#: src/views/evaluations/parametres_form.php
+msgid "Nouveaux Paramètres"
+msgstr ""
+
+#: src/views/boutique/achats/index.php
+msgid "Nouvel Achat"
+msgstr ""
+
+#: src/views/annees_academiques/create.php
+msgid "Nouvelle Année Académique"
+msgstr ""
+
+#: src/views/classes/index.php
+msgid "Nouvelle Classe"
+msgstr ""
+
+#: src/views/cahier_texte/create.php
+#: src/views/cahier_texte/index.php
+msgid "Nouvelle Entrée"
+msgstr ""
+
+#: src/views/matieres/create.php
+#: src/views/matieres/index.php
+msgid "Nouvelle Matière"
+msgstr ""
+
+#: src/views/classes/edit.php
+#: src/views/classes/create.php
+#: src/views/paiements/journal.php
+#: src/views/eleves/index.php
+msgid "Numéro"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Numéro de classe"
+msgstr ""
+
+#: src/views/eleves/assign_class.php
+msgid "Numéro de la Classe"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Numéro de référence / Reçu"
+msgstr ""
+
+#: src/views/paiements/restes.php
+#: src/views/mensualites/index.php
+msgid "Numéro/Classe"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "N° Reçu"
+msgstr ""
+
+#: src/views/classes/show.php
+msgid "Obligatoire"
+msgstr ""
+
+#: src/views/cahier_texte/_form.php
+msgid "Observations"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Opacité"
+msgstr ""
+
+#: src/views/settings/index.php
+msgid "Optionnel. Utile pour les lycées bilingues."
+msgstr ""
+
+#: src/views/matieres/_form.php
+#: src/views/classes/show.php
+msgid "Optionnelle"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+msgid "Opérateur"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+msgid "Opération"
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Ou dessinez directement ci-dessous :"
+msgstr ""
+
+#: src/views/evaluations/parametres_index.php
+msgid "Ouverture"
+msgstr ""
+
+#: src/views/boutique/shop/index.php
+msgid "PROMO"
+msgstr ""
+
+#: src/views/settings/index.php
+msgid "Paiement fractionné"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Paiement inscription"
+msgstr ""
+
+#: src/views/boutique/shop/index.php
+msgid "Panier de"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+#: src/views/evaluations/parametres_form.php
+msgid "Par classe"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+#: src/views/evaluations/parametres_form.php
+msgid "Par classe + matière"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+#: src/views/evaluations/parametres_form.php
+msgid "Par enseignant (Spécifique)"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+#: src/views/evaluations/parametres_form.php
+msgid "Par matière"
+msgstr ""
+
+#: src/views/classes/show.php
+msgid "Params Éval."
+msgstr ""
+
+#: src/controllers/HomeController.php
+#: src/views/settings/index.php
+#: src/views/layouts/sidebar_able.php
+msgid "Paramètres"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+#: src/views/param_composition/edit.php
+msgid "Paramètres Compositions"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+#: src/views/param_devoir/edit.php
+msgid "Paramètres Devoirs"
+msgstr ""
+
+#: src/views/param_general/edit.php
+#: src/views/layouts/sidebar_able.php
+msgid "Paramètres Généraux"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Paramètres Lycée"
+msgstr ""
+
+#: src/views/evaluations/parametres_index.php
+msgid "Paramètres de Blocage de Saisie"
+msgstr ""
+
+#: src/views/evaluations/parametres_form.php
+msgid "Paramètres de Saisie"
+msgstr ""
+
+#: src/views/classes/show.php
+msgid "Paramètres des évaluations"
+msgstr ""
+
+#: src/views/param_lycee/edit.php
+msgid "Paramètres du Lycée"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+msgid "Paramètres du déblocage"
+msgstr ""
+
+#: src/views/eleves/index.php
+msgid "Paramètres financiers"
+msgstr ""
+
+#: src/views/classes/show.php
+msgid "Paramètres pour l'année"
+msgstr ""
+
+#: src/views/mensualites/class_dashboard.php
+msgid "Partiels"
+msgstr ""
+
+#: src/views/eleves/index.php
+msgid "Payer"
+msgstr ""
+
+#: src/views/eleves/details.php
+msgid "Payer Mensualité"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Payé"
+msgstr ""
+
+#: src/views/bulletins/index.php
+msgid "Period"
+msgstr ""
+
+#: src/views/bulletins/class_results.php
+msgid "Period:"
+msgstr ""
+
+#: src/views/roles/edit.php
+msgid "Permissions"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Personnalisation de la Carte Scolaire"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Personnaliser le modèle de la carte d'identité scolaire."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Personnaliser le modèle du bulletin de notes."
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Personnalisez les couleurs et ajustez les positions selon vos besoins."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+#: src/views/users/index.php
+#: src/views/users/view.php
+msgid "Personnel"
+msgstr ""
+
+#: src/views/home/index.php
+msgid "Personnel Actif"
+msgstr ""
+
+#: src/views/lycees/edit.php
+#: src/views/lycees/create.php
+msgid "Phone"
+msgstr ""
+
+#: src/views/eleves/index.php
+#: src/views/users/_form.php
+#: src/views/users/index.php
+#: src/views/modele_carte/edit.php
+#: src/views/modele_carte/edit.php
+msgid "Photo"
+msgstr ""
+
+#: src/views/eleves/_form.php
+msgid "Photo de l'élève"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Police"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Politique financière"
+msgstr ""
+
+#: src/views/roles/edit.php
+#: src/views/roles/create.php
+#: src/views/roles/index.php
+msgid "Portée"
+msgstr ""
+
+#: src/views/setup/step0_choice.php
+msgid "Pour une administration nationale ou régionale."
+msgstr ""
+
+#: src/views/setup/step0_choice.php
+msgid "Pour une école privée ou parapublique."
+msgstr ""
+
+#: src/views/eleves/_form.php
+msgid "Prendre une photo"
+msgstr ""
+
+#: src/views/matieres/_form.php
+msgid "Principale"
+msgstr ""
+
+#: src/views/bulletins/show.php
+msgid "Print / PDF"
+msgstr ""
+
+#: src/views/type_contrat/index.php
+msgid "Prise en Charge"
+msgstr ""
+
+#: src/views/type_contrat/_form.php
+msgid "Prise en Charge par"
+msgstr ""
+
+#: src/views/lycees/edit.php
+#: src/views/lycees/create.php
+msgid "Private"
+msgstr ""
+
+#: src/views/settings/index.php
+#: src/views/setup/step1_single.php
+msgid "Privé"
+msgstr ""
+
+#: src/views/boutique/articles/index.php
+msgid "Prix"
+msgstr ""
+
+#: src/views/boutique/articles/edit.php
+#: src/views/boutique/articles/create.php
+msgid "Prix Actuel"
+msgstr ""
+
+#: src/views/boutique/achats/recu.php
+#: src/views/boutique/achats/index.php
+msgid "Prix Unitaire"
+msgstr ""
+
+#: src/views/boutique/articles/index.php
+msgid "Produits en rupture"
+msgstr ""
+
+#: src/views/boutique/articles/index.php
+msgid "Produits en stock"
+msgstr ""
+
+#: src/views/classes/show.php
+msgid "Professeur Principal"
+msgstr ""
+
+#: src/views/eleves/_form.php
+msgid "Profession de la Mère"
+msgstr ""
+
+#: src/views/eleves/_form.php
+msgid "Profession du Père"
+msgstr ""
+
+#: src/views/roles/index.php
+msgid "Protégé"
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Préférences & Signatures Numériques"
+msgstr ""
+
+#: src/views/setup/step1_multi.php
+#: src/views/setup/step1_single.php
+#: src/views/eleves/_form.php
+#: src/views/eleves/archives.php
+#: src/views/users/_form.php
+msgid "Prénom"
+msgstr ""
+
+#: src/views/presences/gerer.php
+msgid "Présences enregistrées avec succès."
+msgstr ""
+
+#: src/views/presences/gerer.php
+msgid "Présent"
+msgstr ""
+
+#: src/views/settings/index.php
+#: src/views/lycees/edit.php
+#: src/views/lycees/create.php
+#: src/views/setup/step1_single.php
+msgid "Public"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Pédagogie"
+msgstr ""
+
+#: src/views/evaluations/deblocage_index.php
+msgid "Période"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+msgid "Période du"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "QR"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "QR Code"
+msgstr ""
+
+#: src/views/cahier_texte/_form.php
+msgid "Qu'avez-vous enseigné aujourd'hui ?"
+msgstr ""
+
+#: src/views/boutique/achats/recu.php
+#: src/views/boutique/achats/create.php
+#: src/views/boutique/achats/index.php
+msgid "Quantité"
+msgstr ""
+
+#: src/views/eleves/_form.php
+msgid "Quartier / Adresse"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "RESTANT"
+msgstr ""
+
+#: src/views/boutique/achats/recu.php
+msgid "REÇU"
+msgstr ""
+
+#: src/views/eleves/index.php
+msgid "Radier"
+msgstr ""
+
+#: src/views/eleves/index.php
+msgid "Radier l'élève"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Rapports financiers"
+msgstr ""
+
+#: src/views/eleves/_form.php
+msgid "Recadrer la photo"
+msgstr ""
+
+#: src/views/home/index.php
+msgid "Recettes (F CFA)"
+msgstr ""
+
+#: src/views/paiements/restes.php
+msgid "Recherche des restes en cours..."
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Recherche Élève (Nom, Prénom, Matricule, Reçu)"
+msgstr ""
+
+#: src/views/users/index.php
+msgid "Rechercher un membre du personnel (nom, fonction)..."
+msgstr ""
+
+#: src/views/boutique/shop/index.php
+msgid "Rechercher un produit..."
+msgstr ""
+
+#: src/views/eleves/index.php
+msgid "Rechercher un élève (nom, email, classe)..."
+msgstr ""
+
+#: src/views/tests_entree/create.php
+msgid "Record Entrance Test"
+msgstr ""
+
+#: src/views/tests_entree/create.php
+msgid "Record Result"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Rectangle"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+msgid "Remboursement"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Remplacez le fond blanc par une image personnalisée :"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Remplir et consulter le cahier de texte."
+msgstr ""
+
+#: src/views/bulletins/index.php
+msgid "Report Card Generation"
+msgstr ""
+
+#: src/views/modele_bulletin/edit.php
+msgid "Report Card Template Editor"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Reste"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Reste d'inscription à payer :"
+msgstr ""
+
+#: src/views/paiements/restes_table.php
+msgid "Reste inscription"
+msgstr ""
+
+#: src/views/paiements/restes_table.php
+msgid "Reste mensualité"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/eleves/details.php
+msgid "Reste à Payer"
+msgstr ""
+
+#: src/views/classes/show.php
+msgid "Retirer"
+msgstr ""
+
+#: src/views/classes/show.php
+msgid "Retirer la matière"
+msgstr ""
+
+#: src/views/boutique/achats/recu.php
+msgid "Retour"
+msgstr ""
+
+#: src/views/boutique/achats/index.php
+msgid "Retour au dossier élève"
+msgstr ""
+
+#: src/views/presences/gerer.php
+msgid "Retour au tableau de bord"
+msgstr ""
+
+#: src/views/eleves/archives.php
+msgid "Retour aux élèves actifs"
+msgstr ""
+
+#: src/views/eleves/details.php
+#: src/views/users/view.php
+msgid "Retour à la liste"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Reçu"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Reçu N°"
+msgstr ""
+
+#: src/views/boutique/achats/recu.php
+msgid "Reçu de Vente"
+msgstr ""
+
+#: src/views/boutique/achats/recu.php
+msgid "Reçu de Vente Boutique"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Reçus"
+msgstr ""
+
+#: src/controllers/RoleController.php
+#: src/controllers/RoleController.php
+msgid "Role ID is missing."
+msgstr ""
+
+#: src/controllers/RoleController.php
+msgid "Role created successfully."
+msgstr ""
+
+#: src/controllers/RoleController.php
+msgid "Role deleted successfully."
+msgstr ""
+
+#: src/controllers/RoleController.php
+msgid "Role not found."
+msgstr ""
+
+#: src/controllers/RoleController.php
+msgid "Role updated successfully."
+msgstr ""
+
+#: src/views/boutique/shop/index.php
+#: src/views/boutique/shop/index.php
+#: src/views/boutique/articles/index.php
+msgid "Rupture"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Règlement"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Réf Origine"
+msgstr ""
+
+#: src/views/paiements/restes_table.php
+msgid "Régler"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Régulariser la situation"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Réinitialiser au Modèle Pro"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Réinscriptions"
+msgstr ""
+
+#: src/views/annees_academiques/index.php
+msgid "Réouvrir"
+msgstr ""
+
+#: src/views/users/_form.php
+#: src/views/users/view.php
+msgid "Rôle"
+msgstr ""
+
+#: src/views/roles/edit.php
+#: src/views/roles/create.php
+msgid "Rôle Global"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Rôles"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "SOLDÉ"
+msgstr ""
+
+#: src/views/home/index.php
+msgid "Saisir Notes"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Saisir et consulter les notes des élèves."
+msgstr ""
+
+#: src/controllers/HomeController.php
+msgid "Saisir les Notes"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Saisir nom, prénom, matricule, reçu..."
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Salaires"
+msgstr ""
+
+#: src/views/lycees/create.php
+msgid "Save"
+msgstr ""
+
+#: src/views/modele_bulletin/edit.php
+msgid "Saving..."
+msgstr ""
+
+#: src/views/layouts/header_centered.php
+#: src/views/layouts/footer.php
 msgid "School Management"
 msgstr ""
 
-#: src/views/layouts/header.php:29
-msgid "Admin Interface"
+#: src/views/matieres/_form.php
+#: src/views/classes/edit.php
+#: src/views/classes/create.php
+#: src/views/series/index.php
+#: src/views/series/index.php
+msgid "Scientifique"
 msgstr ""
 
-#: src/views/layouts/footer.php:4
-msgid "All rights reserved."
+#: src/views/tests_entree/create.php
+#: src/views/tests_entree/index.php
+msgid "Score"
+msgstr ""
+
+#: src/views/auth/login.php
+msgid "Se connecter"
+msgstr ""
+
+#: src/views/bulletins/index.php
+msgid "Select Class and Period"
+msgstr ""
+
+#: src/views/settings/index.php
+#: src/views/lycees/edit.php
+#: src/views/lycees/create.php
+#: src/views/setup/step1_single.php
+msgid "Semi-public"
+msgstr ""
+
+#: src/views/eleves/details.php
+#: src/views/eleves/_form.php
+#: src/views/eleves/archives.php
+#: src/views/users/_form.php
+#: src/views/users/view.php
+msgid "Sexe"
+msgstr ""
+
+#: src/views/bulletins/index.php
+msgid "Show Results"
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Signature Numérique (PNG transparent)"
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Signature active"
+msgstr ""
+
+#: src/views/boutique/achats/recu.php
+msgid "Signature de l'élève"
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Signez ici"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Solde Restant"
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Sombre"
+msgstr ""
+
+#: src/views/roles/edit.php
+#: src/views/roles/create.php
+msgid "Spécifique à"
+msgstr ""
+
+#: src/views/licences/edit.php
+#: src/views/licences/create.php
+#: src/views/licences/index.php
+msgid "Start Date"
+msgstr ""
+
+#: src/views/licences/index.php
+msgid "Status"
+msgstr ""
+
+#: src/views/annees_academiques/index.php
+#: src/views/matieres/_form.php
+#: src/views/matieres/index.php
+#: src/views/classes/show.php
+#: src/views/presences/gerer.php
+#: src/views/paiements/regler.php
+#: src/views/eleves/archives.php
+#: src/views/evaluations/deblocage_index.php
+#: src/views/users/index.php
+msgid "Statut"
+msgstr ""
+
+#: src/views/boutique/articles/edit.php
+#: src/views/boutique/articles/index.php
+msgid "Stock"
+msgstr ""
+
+#: src/views/boutique/articles/create.php
+msgid "Stock Initial"
+msgstr ""
+
+#: src/views/boutique/shop/index.php
+msgid "Stock faible"
+msgstr ""
+
+#: src/views/boutique/shop/index.php
+#: src/views/boutique/shop/index.php
+msgid "Stock insuffisant"
+msgstr ""
+
+#: src/views/tests_entree/index.php
+msgid "Student"
+msgstr ""
+
+#: src/views/modele_bulletin/edit.php
+msgid "Student Information"
+msgstr ""
+
+#: src/views/bulletins/class_results.php
+msgid "Student Name"
+msgstr ""
+
+#: src/views/bulletins/show.php
+msgid "Student Report Card"
+msgstr ""
+
+#: src/views/modele_bulletin/edit.php
+msgid "Summary (Averages and Appreciations)"
+msgstr ""
+
+#: src/views/annees_academiques/index.php
+#: src/views/matieres/index.php
+#: src/views/cycles/index.php
+#: src/views/classes/index.php
+#: src/views/classes/index.php
+#: src/views/type_contrat/index.php
+#: src/views/users/index.php
+#: src/views/users/view.php
+#: src/views/roles/index.php
+msgid "Supprimer"
+msgstr ""
+
+#: src/views/series/index.php
+msgid "Supprimer cette série ?"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+#: src/views/evaluations/parametres_form.php
+msgid "Sélectionner l'enseignant"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+#: src/views/evaluations/parametres_form.php
+msgid "Sélectionner la classe"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+#: src/views/evaluations/parametres_form.php
+msgid "Sélectionner la matière"
+msgstr ""
+
+#: src/views/mensualites/index.php
+msgid "Sélectionner une classe"
+msgstr ""
+
+#: src/views/paiements/restes.php
+msgid "Sélectionner une classe pour afficher les restes"
+msgstr ""
+
+#: src/views/layouts/header_able.php
+#: src/views/evaluations/parametres_index.php
+msgid "Séquence"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+#: src/views/evaluations/parametres_form.php
+msgid "Séquence concernée"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Séquences"
+msgstr ""
+
+#: src/views/classes/show.php
+#: src/views/classes/edit.php
+#: src/views/classes/create.php
+#: src/views/classes/index.php
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+#: src/views/paiements/restes.php
+#: src/views/eleves/assign_class.php
+#: src/views/eleves/index.php
+#: src/views/series/index.php
+#: src/views/mensualites/index.php
+msgid "Série"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Séries"
+msgstr ""
+
+#: src/views/boutique/achats/recu.php
+msgid "TOTAL À PAYER"
+msgstr ""
+
+#: src/views/boutique/achats/create.php
+#: src/views/boutique/achats/index.php
+#: src/views/boutique/shop/index.php
+#: src/views/boutique/articles/edit.php
+#: src/views/boutique/articles/create.php
+#: src/views/boutique/articles/index.php
+#: src/views/param_general/edit.php
+#: src/views/home/index.php
+#: src/views/paiements/regler.php
+#: src/views/paiements/restes.php
+#: src/views/layouts/sidebar_able.php
+#: src/views/type_contrat/edit.php
+#: src/views/type_contrat/create.php
+#: src/views/type_contrat/index.php
+#: src/views/eleves/index.php
+#: src/views/param_lycee/edit.php
+#: src/views/series/index.php
+#: src/views/param_devoir/edit.php
+#: src/views/cahier_texte/edit.php
+#: src/views/cahier_texte/create.php
+#: src/views/cahier_texte/index.php
+#: src/views/param_composition/edit.php
+#: src/views/users/index.php
+#: src/views/users/view.php
+#: src/views/mensualites/index.php
+msgid "Tableau de Bord"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+#: src/views/evaluations/deblocage_index.php
+#: src/views/evaluations/deblocage_form.php
+#: src/views/evaluations/parametres_index.php
+#: src/views/evaluations/parametres_form.php
+msgid "Tableau de bord"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Tableau de bord comptable."
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Tableau de bord de classe"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Taille du texte (px)"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+#: src/views/modele_carte/edit.php
+msgid "Tampon"
+msgstr ""
+
+#: src/views/tests_entree/create.php
+#: src/views/tests_entree/index.php
+msgid "Target Class"
+msgstr ""
+
+#: src/views/series/index.php
+#: src/views/series/index.php
+msgid "Technique"
+msgstr ""
+
+#: src/views/modele_bulletin/edit.php
+msgid "Template Structure"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Template saved successfully!"
+msgstr ""
+
+#: src/views/setup/step1_multi.php
+#: src/views/setup/step1_single.php
+msgid "Terminer la configuration"
+msgstr ""
+
+#: src/views/tests_entree/create.php
+#: src/views/tests_entree/index.php
+msgid "Test Date"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+#: src/views/modele_carte/edit.php
+msgid "Texte"
+msgstr ""
+
+#: src/views/modele_bulletin/edit.php
+msgid "The order you define here will be the display order on the final report card."
+msgstr ""
+
+#: src/views/modele_bulletin/edit.php
+msgid "This is a structural preview of the block."
+msgstr ""
+
+#: src/views/modele_bulletin/edit.php
+msgid "This template will apply to all report cards generated for this school."
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Thème d'affichage"
+msgstr ""
+
+#: src/views/boutique/achats/recu.php
+#: src/views/boutique/achats/index.php
+#: src/views/boutique/shop/index.php
+msgid "Total"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Total Dû"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Total Encaissé"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+msgid "Total Payé"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Total général à payer :"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Total mensualités exigibles :"
+msgstr ""
+
+#: src/views/paiements/restes_table.php
+msgid "Total reste"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+msgid "Totaux"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/eleves/index.php
+msgid "Tous les cycles"
+msgstr ""
+
+#: src/views/cahier_texte/index.php
+msgid "Tous les enseignants"
+msgstr ""
+
+#: src/views/eleves/index.php
+msgid "Tous les lycées"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/eleves/index.php
+#: src/views/eleves/index.php
+#: src/views/eleves/index.php
+msgid "Tous les niveaux"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/eleves/index.php
+#: src/views/eleves/index.php
+#: src/views/eleves/index.php
+msgid "Tous les numéros"
+msgstr ""
+
+#: src/views/boutique/shop/index.php
+msgid "Tous les stocks"
+msgstr ""
+
+#: src/views/evaluations/deblocage_index.php
+msgid "Tout l'établissement"
+msgstr ""
+
+#: src/views/layouts/header_able.php
+msgid "Tout marquer comme lu"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/evaluations/parametres_index.php
+msgid "Toutes"
+msgstr ""
+
+#: src/views/notifications/index.php
+msgid "Toutes les Notifications"
+msgstr ""
+
+#: src/views/boutique/shop/index.php
+msgid "Toutes les catégories"
+msgstr ""
+
+#: src/views/cahier_texte/index.php
+msgid "Toutes les classes"
+msgstr ""
+
+#: src/views/evaluations/deblocage_form.php
+#: src/views/evaluations/parametres_form.php
+msgid "Toutes les séquences"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/eleves/index.php
+#: src/views/eleves/index.php
+msgid "Toutes les séries"
+msgstr ""
+
+#: src/views/cahier_texte/_form.php
+msgid "Travail à faire"
+msgstr ""
+
+#: src/views/matieres/_form.php
+#: src/views/matieres/index.php
+#: src/views/lycees/index.php
+#: src/views/evaluations/parametres_index.php
+msgid "Type"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Type d'opération"
+msgstr ""
+
+#: src/views/users/_form.php
+#: src/views/users/view.php
+msgid "Type de Contrat"
+msgstr ""
+
+#: src/views/settings/index.php
+#: src/views/setup/step1_single.php
+msgid "Type de Lycée"
+msgstr ""
+
+#: src/views/type_contrat/_form.php
+#: src/views/type_contrat/index.php
+msgid "Type de Paiement"
+msgstr ""
+
+#: src/views/type_contrat/edit.php
+#: src/views/type_contrat/create.php
+#: src/views/type_contrat/index.php
+msgid "Types de Contrat"
+msgstr ""
+
+#: src/views/boutique/achats/recu.php
+msgid "Tél"
+msgstr ""
+
+#: src/views/eleves/_form.php
+#: src/views/users/_form.php
+#: src/views/users/view.php
+msgid "Téléphone"
+msgstr ""
+
+#: src/views/eleves/_form.php
+msgid "Téléphone du Parent / Tuteur"
+msgstr ""
+
+#: src/views/users/profile.php
+msgid "Téléversez une image détourée (.png) de votre cachet officiel."
+msgstr ""
+
+#: src/views/modele_bulletin/edit.php
+msgid "Unknown Block"
+msgstr ""
+
+#: src/views/licences/edit.php
+#: src/views/lycees/edit.php
+msgid "Update"
+msgstr ""
+
+#: src/views/modele_bulletin/edit.php
+msgid "Use drag-and-drop to reorder the report card sections. The layout is saved automatically."
+msgstr ""
+
+#: src/views/settings/index.php
+msgid "Utilisez des retours à la ligne pour structurer l'en-tête."
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Utilisez les \"Theme Colors\" à gauche pour changer instantanément le style. Vous pouvez déplacer les éléments existants, mais nous recommandons de garder la structure professionnelle par défaut."
+msgstr ""
+
+#: src/views/boutique/shop/index.php
+msgid "Valider l'achat"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "Valider l'encaissement global"
+msgstr ""
+
+#: src/views/eleves/_form.php
+msgid "Valider le recadrage"
+msgstr ""
+
+#: src/views/boutique/achats/recu.php
+msgid "Vendu par"
+msgstr ""
+
+#: src/views/setup/step0_choice.php
+msgid "Veuillez choisir le mode d'installation."
+msgstr ""
+
+#: src/views/paiements/restes.php
+msgid "Veuillez sélectionner un cycle, un niveau et une classe pour afficher la situation financière des élèves débiteurs (Point 2)."
+msgstr ""
+
+#: src/views/mensualites/index.php
+msgid "Veuillez sélectionner un cycle, un niveau et une classe pour afficher le tableau de bord des paiements."
+msgstr ""
+
+#: src/views/bulletins/class_results.php
+msgid "View Report Card"
+msgstr ""
+
+#: src/views/classes/index.php
+#: src/views/users/index.php
+msgid "Voir"
+msgstr ""
+
+#: src/views/home/index.php
+msgid "Voir la liste"
+msgstr ""
+
+#: src/views/notifications/index.php
+msgid "Voir les détails"
+msgstr ""
+
+#: src/views/layouts/header_able.php
+msgid "Voir toutes les notifications"
+msgstr ""
+
+#: src/views/boutique/shop/index.php
+#: src/views/boutique/shop/index.php
+msgid "Votre panier est vide"
+msgstr ""
+
+#: src/views/notifications/index.php
+msgid "Vous n'avez aucune notification."
+msgstr ""
+
+#: src/views/classes/show.php
+msgid "Vous n'avez pas la permission d'attribuer des matières."
+msgstr ""
+
+#: src/controllers/AnneeAcademiqueController.php
+msgid "Vous ne pouvez pas supprimer l'année académique active."
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Vue 1 : Journal Détaillé"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Vue 2 : Journal par Reçu"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Vue 3 : Synthèse par Classe"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Vue 4 : Synthèse par Élève"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Vérifier et contrôler la situation financière des élèves."
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "active"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+msgid "au"
+msgstr ""
+
+#: src/views/licences/index.php
+msgid "months"
+msgstr ""
+
+#: src/views/paiements/regler.php
+msgid "À JOUR"
+msgstr ""
+
+#: src/views/mensualites/class_dashboard.php
+msgid "À jour"
+msgstr ""
+
+#: src/views/type_contrat/_form.php
+msgid "À l'heure"
+msgstr ""
+
+#: src/views/evaluations/deblocage_index.php
+msgid "À venir"
+msgstr ""
+
+#: src/views/type_contrat/_form.php
+msgid "École"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Écritures de l'élève dans la période"
+msgstr ""
+
+#: src/views/layouts/sidebar_able.php
+msgid "Éditeur de Bulletin"
+msgstr ""
+
+#: src/controllers/HomeController.php
+#: src/views/layouts/sidebar_able.php
+msgid "Éditeur de Carte"
+msgstr ""
+
+#: src/views/annees_academiques/edit.php
+msgid "Édition de l'année: "
+msgstr ""
+
+#: src/views/boutique/achats/recu.php
+#: src/views/boutique/achats/create.php
+#: src/views/presences/gerer.php
+#: src/views/paiements/restes_table.php
+#: src/views/eleves/assign_class.php
+#: src/views/mensualites/class_dashboard.php
+msgid "Élève"
+msgstr ""
+
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php
+msgid "Élève (Identifiant)"
+msgstr ""
+
+#: src/views/boutique/achats/create.php
+#: src/views/boutique/achats/index.php
+#: src/views/boutique/shop/index.php
+#: src/views/layouts/sidebar_able.php
+#: src/views/eleves/index.php
+msgid "Élèves"
+msgstr ""
+
+#: src/views/home/index.php
+msgid "Élèves Actifs"
+msgstr ""
+
+#: src/views/eleves/archives.php
+msgid "Élèves Archivés"
+msgstr ""
+
+#: src/views/cahier_texte/_form.php
+msgid "Élèves absents, incidents, etc."
+msgstr ""
+
+#: src/views/paiements/restes_table.php
+msgid "Élèves endettés de la classe"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Épaisseur bordure"
+msgstr ""
+
+#: src/views/paiements/journal.php
+msgid "Établissement"
+msgstr ""
+
+#: src/views/type_contrat/_form.php
+msgid "État"
+msgstr ""
+
+#: src/views/evaluations/deblocage_index.php
+msgid "Évaluations"
+msgstr ""
+
+#: src/views/boutique/articles/index.php
+#: src/views/type_contrat/index.php
+#: src/views/roles/index.php
+msgid "Êtes-vous sûr ?"
+msgstr ""
+
+#: src/views/annees_academiques/index.php
+msgid "Êtes-vous sûr de vouloir clôturer cette année ?"
+msgstr ""
+
+#: src/views/eleves/index.php
+msgid "Êtes-vous sûr de vouloir radier cet élève ? Cette action est réversible."
+msgstr ""
+
+#: src/views/classes/show.php
+msgid "Êtes-vous sûr de vouloir retirer cette matière de la classe ?"
+msgstr ""
+
+#: src/views/modele_carte/edit.php
+msgid "Êtes-vous sûr de vouloir réinitialiser la carte ? Vos personnalisations actuelles seront perdues et le modèle professionnel d'origine sera restauré."
+msgstr ""
+
+#: src/views/annees_academiques/index.php
+msgid "Êtes-vous sûr de vouloir réouvrir cette année ?"
+msgstr ""
+
+#: src/views/cycles/index.php
+msgid "Êtes-vous sûr de vouloir supprimer ce cycle ?"
+msgstr ""
+
+#: src/views/evaluations/deblocage_index.php
+msgid "Êtes-vous sûr de vouloir supprimer ce déblocage ?"
+msgstr ""
+
+#: src/views/users/index.php
+#: src/views/users/view.php
+msgid "Êtes-vous sûr de vouloir supprimer ce membre ?"
+msgstr ""
+
+#: src/views/evaluations/parametres_index.php
+msgid "Êtes-vous sûr de vouloir supprimer ce paramètre ?"
+msgstr ""
+
+#: src/views/annees_academiques/index.php
+msgid "Êtes-vous sûr de vouloir supprimer cette année ?"
+msgstr ""
+
+#: src/views/classes/index.php
+msgid "Êtes-vous sûr de vouloir supprimer cette classe ?"
+msgstr ""
+
+#: src/views/cahier_texte/index.php
+msgid "Êtes-vous sûr de vouloir supprimer cette entrée ?"
+msgstr ""
+
+#: src/views/matieres/index.php
+msgid "Êtes-vous sûr de vouloir supprimer cette matière ?"
+msgstr ""
+
+#: src/views/classes/show.php
+msgid "élèves"
+msgstr ""
+
+#: src/views/mensualites/class_dashboard.php
+msgid "élèves actifs"
+msgstr ""
+
+#: src/views/paiements/restes_table.php
+msgid "élèves débiteurs"
 msgstr ""
