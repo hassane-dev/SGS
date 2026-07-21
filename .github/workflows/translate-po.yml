@@ -1,4 +1,4 @@
-      - name: Traduire les fichiers PO
+      name: Translate PO file
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
