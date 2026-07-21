@@ -6,12 +6,12 @@
     <?php endif; ?>
 
     <div class="row mb-3">
-        <label class="col-sm-3 col-form-label">Type de configuration</label>
+        <label class="col-sm-3 col-form-label"><?= _('Type de configuration') ?></label>
         <div class="col-sm-9">
              <select class="form-select" name="type_config" id="type_config" required>
-                <option value="">Sélectionnez un type</option>
-                <option value="cycle" <?= ($old_input['type_config'] ?? '') === 'cycle' ? 'selected' : '' ?>>Par Cycle</option>
-                <option value="plage" <?= ($old_input['type_config'] ?? '') === 'plage' ? 'selected' : '' ?>>Par Plage de Niveaux</option>
+                <option value=""><?= _('Sélectionnez un type') ?></option>
+                <option value="cycle" <?= ($old_input['type_config'] ?? '') === 'cycle' ? 'selected' : '' ?>><?= _('Par Cycle') ?></option>
+                <option value="plage" <?= ($old_input['type_config'] ?? '') === 'plage' ? 'selected' : '' ?>><?= _('Par Plage de Niveaux') ?></option>
             </select>
         </div>
     </div>
@@ -19,10 +19,10 @@
     <!-- Configuration par Cycle -->
     <div id="config_cycle" class="config-fields" style="display:none;">
         <div class="row mb-3">
-            <label for="cycle" class="col-sm-3 col-form-label">Cycle</label>
+            <label for="cycle" class="col-sm-3 col-form-label"><?= _('Cycle') ?></label>
             <div class="col-sm-9">
                 <select class="form-select" id="cycle" name="cycle">
-                    <option value="">Sélectionnez un cycle</option>
+                    <option value=""><?= _('Sélectionnez un cycle') ?></option>
                     <?php if (isset($cycles)): ?>
                         <?php foreach ($cycles as $c): ?>
                             <option value="<?= htmlspecialchars($c['nom_cycle']) ?>" <?= ($old_input['cycle'] ?? '') === $c['nom_cycle'] ? 'selected' : '' ?>>
@@ -38,22 +38,22 @@
     <!-- Configuration par Plage de Niveaux -->
     <div id="config_plage" class="config-fields" style="display:none;">
         <div class="row mb-3">
-            <label for="niveau_debut" class="col-sm-3 col-form-label">Niveau Début</label>
+            <label for="niveau_debut" class="col-sm-3 col-form-label"><?= _('Niveau Début') ?></label>
             <div class="col-sm-9">
                 <select class="form-select" id="niveau_debut" name="niveau_debut"></select>
             </div>
         </div>
         <div class="row mb-3">
-            <label for="niveau_fin" class="col-sm-3 col-form-label">Niveau Fin</label>
+            <label for="niveau_fin" class="col-sm-3 col-form-label"><?= _('Niveau Fin') ?></label>
             <div class="col-sm-9">
                 <select class="form-select" id="niveau_fin" name="niveau_fin"></select>
             </div>
         </div>
         <div class="row mb-3">
-            <label for="serie" class="col-sm-3 col-form-label">Série (Optionnel)</label>
+            <label for="serie" class="col-sm-3 col-form-label"><?= _('Série (Optionnel)') ?></label>
             <div class="col-sm-9">
                 <select class="form-select" id="serie" name="serie">
-                    <option value="">Toutes les séries</option>
+                    <option value=""><?= _('Toutes les séries') ?></option>
                 </select>
             </div>
         </div>
@@ -63,38 +63,38 @@
 
     <!-- Champs communs -->
     <div class="row mb-3">
-        <label for="frais_inscription" class="col-sm-3 col-form-label">Frais d'Inscription</label>
+        <label for="frais_inscription" class="col-sm-3 col-form-label"><?= _("Frais d'Inscription") ?></label>
         <div class="col-sm-9">
             <input type="number" step="0.01" class="form-control" id="frais_inscription" name="frais_inscription" value="<?= $old_input['frais_inscription'] ?? '' ?>" required>
         </div>
     </div>
 
     <div class="row mb-3">
-        <label for="frais_mensuel" class="col-sm-3 col-form-label">Mensualité</label>
+        <label for="frais_mensuel" class="col-sm-3 col-form-label"><?= _('Mensualité') ?></label>
         <div class="col-sm-9">
             <input type="number" step="0.01" class="form-control" id="frais_mensuel" name="frais_mensuel" value="<?= $old_input['frais_mensuel'] ?? '' ?>" required>
         </div>
     </div>
 
     <div class="row mb-3">
-        <label for="frais_logo" class="col-sm-3 col-form-label">Frais Logo (Optionnel)</label>
+        <label for="frais_logo" class="col-sm-3 col-form-label"><?= _('Frais Logo (Optionnel)') ?></label>
         <div class="col-sm-9">
-            <input type="number" step="0.01" class="form-control" id="frais_logo" name="frais_logo" value="<?= $old_input['frais_logo'] ?? '' ?>" placeholder="Ex: 2000">
+            <input type="number" step="0.01" class="form-control" id="frais_logo" name="frais_logo" value="<?= $old_input['frais_logo'] ?? '' ?>" placeholder="<?= _('Ex: 2000') ?>">
         </div>
     </div>
 
     <div class="row mb-3">
-        <label for="frais_carte" class="col-sm-3 col-form-label">Frais Carte d'identité (Optionnel)</label>
+        <label for="frais_carte" class="col-sm-3 col-form-label"><?= _("Frais Carte d'identité (Optionnel)") ?></label>
         <div class="col-sm-9">
-            <input type="number" step="0.01" class="form-control" id="frais_carte" name="frais_carte" value="<?= $old_input['frais_carte'] ?? '' ?>" placeholder="Ex: 3000">
+            <input type="number" step="0.01" class="form-control" id="frais_carte" name="frais_carte" value="<?= $old_input['frais_carte'] ?? '' ?>" placeholder="<?= _('Ex: 3000') ?>">
         </div>
     </div>
 
 
     <div class="row">
         <div class="col-sm-9 offset-sm-3">
-            <button type="submit" class="btn btn-primary">Enregistrer</button>
-            <a href="/frais" class="btn btn-light">Annuler</a>
+            <button type="submit" class="btn btn-primary"><?= _('Enregistrer') ?></button>
+            <a href="/frais" class="btn btn-light"><?= _('Annuler') ?></a>
         </div>
     </div>
 </form>

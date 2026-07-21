@@ -8,11 +8,11 @@
                 <div class="row align-items-center">
                     <div class="col-md-12">
                         <div class="page-header-title">
-                            <h5 class="m-b-10">Gestion de l'Emploi du Temps</h5>
+                            <h5 class="m-b-10"><?= _("Gestion de l'Emploi du Temps") ?></h5>
                         </div>
                         <ul class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="/home">Tableau de Bord</a></li>
-                            <li class="breadcrumb-item" aria-current="page">Emploi du Temps</li>
+                            <li class="breadcrumb-item"><a href="/home"><?= _('Tableau de Bord') ?></a></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= _('Emploi du Temps') ?></li>
                         </ul>
                     </div>
                 </div>
@@ -26,9 +26,9 @@
                 <div class="card">
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5>Emploi du Temps</h5>
+                            <h5><?= _('Emploi du Temps') ?></h5>
                             <a href="/emploi-du-temps/create" class="btn btn-primary btn-sm">
-                                <i class="ti ti-plus"></i> Ajouter un Cours
+                                <i class="ti ti-plus"></i> <?= _('Ajouter un Cours') ?>
                             </a>
                         </div>
                     </div>
@@ -37,12 +37,12 @@
                         <div class="mb-4">
                             <form action="/emploi-du-temps" method="GET" class="row g-3 align-items-center">
                                 <div class="col-auto">
-                                    <label for="classe_id" class="form-label">Voir l'emploi du temps pour la classe :</label>
+                                    <label for="classe_id" class="form-label"><?= _("Voir l'emploi du temps pour la classe :") ?></label>
                                 </div>
                                 <div class="col-auto">
                                     <select name="classe_id" id="classe_id" onchange="this.form.submit()" class="form-select form-select-sm" style="width: 200px;">
                                         <?php if (empty($classes)): ?>
-                                            <option>Aucune classe trouvée</option>
+                                            <option><?= _('Aucune classe trouvée') ?></option>
                                         <?php else: ?>
                                             <?php foreach ($classes as $classe): ?>
                                                 <option value="<?= $classe['id_classe'] ?>" <?= ($view_classe_id == $classe['id_classe']) ? 'selected' : '' ?>>
@@ -60,7 +60,7 @@
                             <table class="table table-bordered text-center">
                                 <thead>
                                     <tr>
-                                        <th style="width: 100px;">Heure</th>
+                                        <th style="width: 100px;"><?= _('Heure') ?></th>
                                         <?php $days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']; ?>
                                         <?php foreach ($days as $day): ?>
                                             <th><?= _($day) ?></th>

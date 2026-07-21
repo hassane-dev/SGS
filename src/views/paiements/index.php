@@ -8,12 +8,12 @@
                 <div class="row align-items-center">
                     <div class="col-md-12">
                         <div class="page-header-title">
-                            <h2 class="mb-0"><?= $title ?></h2>
+                            <h2 class="mb-0"><?= _($title) ?></h2>
                         </div>
                         <ul class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="/">Tableau de Bord</a></li>
-                            <li class="breadcrumb-item"><a href="/paiements">Finances</a></li>
-                            <li class="breadcrumb-item" aria-current="page"><?= $title ?></li>
+                            <li class="breadcrumb-item"><a href="/"><?= _('Tableau de Bord') ?></a></li>
+                            <li class="breadcrumb-item"><a href="/paiements"><?= _('Finances') ?></a></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= _($title) ?></li>
                         </ul>
                     </div>
                 </div>
@@ -32,7 +32,7 @@
                                 </div>
                             </div>
                             <div class="flex-grow-1 ms-3">
-                                <h6 class="text-white mb-1">Encaissement Total</h6>
+                                <h6 class="text-white mb-1"><?= _('Encaissement Total') ?></h6>
                                 <h3 class="text-white mb-0"><?= number_format($totalGlobal, 0, ',', ' ') ?> <small>FCFA</small></h3>
                             </div>
                         </div>
@@ -49,7 +49,7 @@
                                 </div>
                             </div>
                             <div class="flex-grow-1 ms-3">
-                                <h6 class="text-white mb-1">Total ce mois</h6>
+                                <h6 class="text-white mb-1"><?= _('Total ce mois') ?></h6>
                                 <h3 class="text-white mb-0"><?= number_format($totalMonth, 0, ',', ' ') ?> <small>FCFA</small></h3>
                             </div>
                         </div>
@@ -66,7 +66,7 @@
                                 </div>
                             </div>
                             <div class="flex-grow-1 ms-3">
-                                <h6 class="text-white mb-1">Aujourd'hui</h6>
+                                <h6 class="text-white mb-1"><?= _("Aujourd'hui") ?></h6>
                                 <h3 class="text-white mb-0"><?= number_format($totalToday, 0, ',', ' ') ?> <small>FCFA</small></h3>
                             </div>
                         </div>
@@ -83,7 +83,7 @@
                                 </div>
                             </div>
                             <div class="flex-grow-1 ms-3">
-                                <h6 class="text-white mb-1">Restes à percevoir</h6>
+                                <h6 class="text-white mb-1"><?= _('Restes à percevoir') ?></h6>
                                 <h3 class="text-white mb-0"><?= number_format($arrieresInscriptions, 0, ',', ' ') ?> <small>FCFA</small></h3>
                             </div>
                         </div>
@@ -101,9 +101,9 @@
                             <div class="d-flex align-items-center">
                                 <i class="ph-duotone ph-warning-circle fs-2 me-3"></i>
                                 <div>
-                                    <strong>Attention !</strong> <?= htmlspecialchars($alert['message']) ?>
+                                    <strong><?= _('Attention !') ?></strong> <?= htmlspecialchars($alert['message']) ?>
                                     <?php if (!empty($alert['link'])): ?>
-                                        <a href="<?= $alert['link'] ?>" class="alert-link ms-2 text-decoration-underline">Consulter la liste</a>
+                                        <a href="<?= $alert['link'] ?>" class="alert-link ms-2 text-decoration-underline"><?= _('Consulter la liste') ?></a>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -121,7 +121,7 @@
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
-                                <h6 class="mb-1">Élèves en attente</h6>
+                                <h6 class="mb-1"><?= _('Élèves en attente') ?></h6>
                                 <h3 class="mb-0 text-warning"><?= $nbEnAttente ?></h3>
                             </div>
                             <div class="flex-shrink-0 ms-3">
@@ -130,7 +130,7 @@
                                 </div>
                             </div>
                         </div>
-                        <a href="/paiements/pending" class="btn btn-link-warning p-0 mt-3">Voir la file d'attente <i class="ph-duotone ph-arrow-right"></i></a>
+                        <a href="/paiements/pending" class="btn btn-link-warning p-0 mt-3"><?= _("Voir la file d'attente") ?> <i class="ph-duotone ph-arrow-right"></i></a>
                     </div>
                 </div>
             </div>
@@ -139,7 +139,7 @@
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
-                                <h6 class="mb-1">Paiements partiels</h6>
+                                <h6 class="mb-1"><?= _('Paiements partiels') ?></h6>
                                 <h3 class="mb-0 text-info"><?= $nbPartiel ?></h3>
                             </div>
                             <div class="flex-shrink-0 ms-3">
@@ -148,7 +148,7 @@
                                 </div>
                             </div>
                         </div>
-                        <p class="text-muted small mt-3 mb-0">Inscriptions non soldées</p>
+                        <p class="text-muted small mt-3 mb-0"><?= _('Inscriptions non soldées') ?></p>
                     </div>
                 </div>
             </div>
@@ -157,7 +157,7 @@
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
-                                <h6 class="mb-1">Élèves activés</h6>
+                                <h6 class="mb-1"><?= _('Élèves activés') ?></h6>
                                 <h3 class="mb-0 text-success"><?= $nbActif ?></h3>
                             </div>
                             <div class="flex-shrink-0 ms-3">
@@ -166,7 +166,7 @@
                                 </div>
                             </div>
                         </div>
-                        <p class="text-muted small mt-3 mb-0">Dossiers financiers à jour</p>
+                        <p class="text-muted small mt-3 mb-0"><?= _('Dossiers financiers à jour') ?></p>
                     </div>
                 </div>
             </div>
@@ -177,10 +177,10 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5>Dernières Opérations de Caisse</h5>
+                        <h5><?= _('Dernières Opérations de Caisse') ?></h5>
                         <div class="card-header-right">
                             <a href="/paiements/pending" class="btn btn-warning btn-sm">
-                                <i class="ph-duotone ph-clock-counter-clockwise me-2"></i>File d'attente
+                                <i class="ph-duotone ph-clock-counter-clockwise me-2"></i><?= _("File d'attente") ?>
                             </a>
                         </div>
                     </div>
@@ -189,13 +189,13 @@
                             <table class="table table-hover mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Date & Heure</th>
-                                        <th>Élève</th>
-                                        <th>Type</th>
-                                        <th>Mode</th>
-                                        <th>Caissier</th>
-                                        <th class="text-end">Montant</th>
-                                        <th class="text-center">Action</th>
+                                        <th><?= _('Date & Heure') ?></th>
+                                        <th><?= _('Élève') ?></th>
+                                        <th><?= _('Type') ?></th>
+                                        <th><?= _('Mode') ?></th>
+                                        <th><?= _('Caissier') ?></th>
+                                        <th class="text-end"><?= _('Montant') ?></th>
+                                        <th class="text-center"><?= _('Action') ?></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -216,7 +216,7 @@
                                                     $color = ($type == 'Inscription') ? 'success' : 'info';
                                                 ?>
                                                 <span class="badge bg-light-<?= $color ?> text-<?= $color ?>">
-                                                    <?= $type ?>
+                                                    <?= _($type) ?>
                                                 </span>
                                                 <?php endforeach; ?>
                                             </td>
@@ -224,7 +224,7 @@
                                             <td><small class="text-muted"><?= htmlspecialchars($t['caissier']) ?></small></td>
                                             <td class="text-end fw-bold text-dark"><?= number_format($t['montant'], 0, ',', ' ') ?> <small>FCFA</small></td>
                                             <td class="text-center">
-                                                <a href="/paiements/show/<?= $t['eleve_id'] ?>" class="btn btn-icon btn-light-primary" title="Voir l'historique complet">
+                                                <a href="/paiements/show/<?= $t['eleve_id'] ?>" class="btn btn-icon btn-light-primary" title="<?= _("Voir l'historique complet") ?>">
                                                     <i class="ph-duotone ph-receipt"></i>
                                                 </a>
                                             </td>
@@ -232,7 +232,7 @@
                                     <?php endforeach; ?>
                                     <?php if (empty($recentTransactions)): ?>
                                         <tr>
-                                            <td colspan="7" class="text-center py-4 text-muted">Aucune transaction enregistrée pour le moment.</td>
+                                            <td colspan="7" class="text-center py-4 text-muted"><?= _('Aucune transaction enregistrée pour le moment.') ?></td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>

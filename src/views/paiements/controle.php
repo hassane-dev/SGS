@@ -1,5 +1,5 @@
 <?php
-$title = "Contrôle Financier & Droits Établissement";
+$title = _("Contrôle Financier & Droits Établissement");
 ob_start();
 
 require_once __DIR__ . '/../layouts/header_able.php';
@@ -17,8 +17,8 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                             <h5 class="m-b-10"><?= htmlspecialchars($title) ?></h5>
                         </div>
                         <ul class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="/home">Tableau de Bord</a></li>
-                            <li class="breadcrumb-item" aria-current="page">Contrôle Financier</li>
+                            <li class="breadcrumb-item"><a href="/home"><?= _('Tableau de Bord') ?></a></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= _("Contrôle Financier") ?></li>
                         </ul>
                     </div>
                 </div>
@@ -40,7 +40,7 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                             </div>
                             <div class="flex-grow-1 ms-3">
                                 <h3 class="mb-0"><?= $stats['total_students'] ?></h3>
-                                <p class="text-muted mb-0">Élèves Enregistrés</p>
+                                <p class="text-muted mb-0"><?= _('Élèves Enregistrés') ?></p>
                             </div>
                         </div>
                     </div>
@@ -59,7 +59,7 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                             </div>
                             <div class="flex-grow-1 ms-3">
                                 <h3 class="mb-0"><?= $stats['advantages_count'] ?></h3>
-                                <p class="text-muted mb-0">Élèves avec Avantages</p>
+                                <p class="text-muted mb-0"><?= _('Élèves avec Avantages') ?></p>
                             </div>
                         </div>
                     </div>
@@ -78,7 +78,7 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                             </div>
                             <div class="flex-grow-1 ms-3">
                                 <h3 class="mb-0"><?= $stats['blocked_notes_count'] ?></h3>
-                                <p class="text-muted mb-0">Consultation Notes Bloquée</p>
+                                <p class="text-muted mb-0"><?= _('Consultation Notes Bloquée') ?></p>
                             </div>
                         </div>
                     </div>
@@ -97,7 +97,7 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                             </div>
                             <div class="flex-grow-1 ms-3">
                                 <h3 class="mb-0"><?= $stats['blocked_bulletins_count'] ?></h3>
-                                <p class="text-muted mb-0">Impression Bulletins Bloquée</p>
+                                <p class="text-muted mb-0"><?= _('Impression Bulletins Bloquée') ?></p>
                             </div>
                         </div>
                     </div>
@@ -111,28 +111,28 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5>Rapport des États Financiers et Droits d'Accès</h5>
-                        <span class="badge bg-light-dark">Année: <?= htmlspecialchars($activeYear['libelle']) ?></span>
+                        <h5><?= _("Rapport des États Financiers et Droits d'Accès") ?></h5>
+                        <span class="badge bg-light-dark"><?= _('Année: ') ?><?= htmlspecialchars($activeYear['libelle']) ?></span>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-striped table-hover" id="controlFinanceTable">
                                 <thead>
                                     <tr>
-                                        <th>Élève</th>
-                                        <th>Classe</th>
-                                        <th>Politique Particulière</th>
-                                        <th>Inscription</th>
-                                        <th>Mensualités</th>
-                                        <th>Accès Notes</th>
-                                        <th>Impression Bulletin</th>
-                                        <th>Actions</th>
+                                        <th><?= _('Élève') ?></th>
+                                        <th><?= _('Classe') ?></th>
+                                        <th><?= _('Politique Particulière') ?></th>
+                                        <th><?= _('Inscription') ?></th>
+                                        <th><?= _('Mensualités') ?></th>
+                                        <th><?= _('Accès Notes') ?></th>
+                                        <th><?= _('Impression Bulletin') ?></th>
+                                        <th><?= _('Actions') ?></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php if (empty($students)): ?>
                                         <tr>
-                                            <td colspan="8" class="text-center text-muted">Aucun élève inscrit pour l'année en cours.</td>
+                                            <td colspan="8" class="text-center text-muted"><?= _("Aucun élève inscrit pour l'année en cours.") ?></td>
                                         </tr>
                                     <?php else: ?>
                                         <?php foreach ($students as $s): ?>
@@ -149,39 +149,39 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                                                         <span class="badge bg-light-success text-success"><i class="ph-duotone ph-award me-1"></i><?= htmlspecialchars($s['type_avantage']) ?></span>
                                                         <span class="d-block text-muted small"><?= $s['valeur_type'] === 'Pourcentage' ? $s['valeur'] . '%' : number_format($s['valeur'], 0, ',', ' ') . ' FCFA' ?></span>
                                                     <?php else: ?>
-                                                        <span class="text-muted small">Standard</span>
+                                                        <span class="text-muted small"><?= _('Standard') ?></span>
                                                     <?php endif; ?>
                                                 </td>
                                                 <td>
                                                     <?php if (($s['inscription_statut'] ?? '') === 'Payée'): ?>
-                                                        <span class="badge bg-light-success text-success">Payée</span>
+                                                        <span class="badge bg-light-success text-success"><?= _('Payée') ?></span>
                                                     <?php elseif (($s['inscription_statut'] ?? '') === 'Partiellement payée'): ?>
-                                                        <span class="badge bg-light-warning text-warning">Partiel</span>
+                                                        <span class="badge bg-light-warning text-warning"><?= _('Partiel') ?></span>
                                                     <?php else: ?>
-                                                        <span class="badge bg-light-danger text-danger">Impayée</span>
+                                                        <span class="badge bg-light-danger text-danger"><?= _('Impayée') ?></span>
                                                     <?php endif; ?>
                                                 </td>
                                                 <td>
                                                     <?php if (($s['mensualite_statut'] ?? '') === 'À jour'): ?>
-                                                        <span class="badge bg-light-success text-success">À jour</span>
+                                                        <span class="badge bg-light-success text-success"><?= _('À jour') ?></span>
                                                     <?php elseif (($s['mensualite_statut'] ?? '') === 'Partiellement payée'): ?>
-                                                        <span class="badge bg-light-warning text-warning">Partiel</span>
+                                                        <span class="badge bg-light-warning text-warning"><?= _('Partiel') ?></span>
                                                     <?php else: ?>
-                                                        <span class="badge bg-light-danger text-danger">En retard</span>
+                                                        <span class="badge bg-light-danger text-danger"><?= _('En retard') ?></span>
                                                     <?php endif; ?>
                                                 </td>
                                                 <td>
                                                     <?php if (($s['notes_consultation'] ?? '') === 'Autorisée'): ?>
-                                                        <span class="badge bg-light-success text-success"><i class="ph-duotone ph-check-circle me-1"></i>Autorisée</span>
+                                                        <span class="badge bg-light-success text-success"><i class="ph-duotone ph-check-circle me-1"></i><?= _('Autorisée') ?></span>
                                                     <?php else: ?>
-                                                        <span class="badge bg-light-danger text-danger"><i class="ph-duotone ph-x-circle me-1"></i>Interdite</span>
+                                                        <span class="badge bg-light-danger text-danger"><i class="ph-duotone ph-x-circle me-1"></i><?= _('Interdite') ?></span>
                                                     <?php endif; ?>
                                                 </td>
                                                 <td>
                                                     <?php if (($s['bulletin_impression'] ?? '') === 'Autorisée'): ?>
-                                                        <span class="badge bg-light-success text-success"><i class="ph-duotone ph-check-circle me-1"></i>Autorisée</span>
+                                                        <span class="badge bg-light-success text-success"><i class="ph-duotone ph-check-circle me-1"></i><?= _('Autorisée') ?></span>
                                                     <?php else: ?>
-                                                        <span class="badge bg-light-danger text-danger"><i class="ph-duotone ph-x-circle me-1"></i>Interdite</span>
+                                                        <span class="badge bg-light-danger text-danger"><i class="ph-duotone ph-x-circle me-1"></i><?= _('Interdite') ?></span>
                                                     <?php endif; ?>
                                                 </td>
                                                 <td>

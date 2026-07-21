@@ -11,12 +11,12 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                 <div class="row align-items-center">
                     <div class="col-md-12">
                         <div class="page-header-title">
-                            <h5 class="m-b-10">Séquences Annuelles</h5>
+                            <h5 class="m-b-10"><?= _('Séquences Annuelles') ?></h5>
                         </div>
                         <ul class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="/home">Tableau de Bord</a></li>
-                            <li class="breadcrumb-item"><a href="/sequences">Liste des Séquences</a></li>
-                            <li class="breadcrumb-item" aria-current="page">Nouvelle Séquence</li>
+                            <li class="breadcrumb-item"><a href="/home"><?= _('Tableau de Bord') ?></a></li>
+                            <li class="breadcrumb-item"><a href="/sequences"><?= _('Liste des Séquences') ?></a></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= _('Nouvelle Séquence') ?></li>
                         </ul>
                     </div>
                 </div>
@@ -29,7 +29,7 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5>Créer une nouvelle séquence</h5>
+                        <h5><?= _('Créer une nouvelle séquence') ?></h5>
                     </div>
                     <div class="card-body">
                         <form action="/sequences/store" method="POST">

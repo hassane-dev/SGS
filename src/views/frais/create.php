@@ -1,5 +1,5 @@
 <?php
-$title = "Ajouter une Grille Tarifaire";
+$title = _("Ajouter une Grille Tarifaire");
 ob_start();
 
 require_once __DIR__ . '/../layouts/header_able.php';
@@ -17,12 +17,12 @@ unset($_SESSION['old_input']);
                 <div class="row align-items-center">
                     <div class="col-md-12">
                         <div class="page-header-title">
-                            <h5 class="m-b-10"><?= $title ?></h5>
+                            <h5 class="m-b-10"><?= htmlspecialchars($title) ?></h5>
                         </div>
                         <ul class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="/home">Tableau de bord</a></li>
-                            <li class="breadcrumb-item"><a href="/frais">Grille Tarifaire</a></li>
-                            <li class="breadcrumb-item" aria-current="page">Ajouter</li>
+                            <li class="breadcrumb-item"><a href="/home"><?= _('Tableau de bord') ?></a></li>
+                            <li class="breadcrumb-item"><a href="/frais"><?= _('Grille Tarifaire') ?></a></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= _('Ajouter') ?></li>
                         </ul>
                     </div>
                 </div>
@@ -35,7 +35,7 @@ unset($_SESSION['old_input']);
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5>Formulaire de création de grille tarifaire</h5>
+                        <h5><?= _('Formulaire de création de grille tarifaire') ?></h5>
                     </div>
                     <div class="card-body">
                        <?php include '_form.php'; ?>
