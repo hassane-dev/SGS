@@ -1,4 +1,4 @@
-name: Translate PO files
+name: Translate POT to Arabic
 
 on:
   workflow_dispatch:
@@ -8,15 +8,15 @@ permissions:
   pull-requests: write
 
 jobs:
-  translate:
+  translate-arabic:
     runs-on: ubuntu-latest
 
     steps:
       - name: Récupérer le dépôt
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Installer Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -25,7 +25,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install google-genai polib
 
-      - name: Traduire les fichiers PO
+      - name: Traduire le fichier POT vers l'arabe
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
@@ -36,8 +36,7 @@ jobs:
           import polib
           from google import genai
 
-          SOURCE_FILE = "locale/fr_FR/LC_MESSAGES/messages.po"
-          ENGLISH_FILE = "locale/en_US/LC_MESSAGES/messages.po"
+          POT_FILE = "locale/message.pot"
           ARABIC_FILE = "locale/ar/LC_MESSAGES/messages.po"
 
           PRIMARY_MODEL = "gemini-3.1-flash-lite"
@@ -96,10 +95,8 @@ jobs:
 
               return text
 
-          def translate(
-              text,
-              target_language
-          ):
+          def translate_to_arabic(text):
+
               protected_text, protected = (
                   protect_placeholders(text)
               )
@@ -107,17 +104,18 @@ jobs:
               prompt = f"""
           You are a professional software translator.
 
-          Translate the following French software interface text into {target_language}.
+          Translate the following French software interface text into Modern Standard Arabic.
 
-          Rules:
-          - Return ONLY the translation.
-          - Do not explain anything.
+          STRICT RULES:
+          - Return ONLY the Arabic translation.
+          - Do not add explanations.
           - Do not add quotation marks.
-          - Preserve placeholders exactly.
+          - Preserve every placeholder exactly.
           - Preserve HTML tags exactly.
           - Preserve variables exactly.
-          - Preserve technical identifiers.
-          - Keep the translation natural and appropriate for a school management application.
+          - Do not translate technical identifiers.
+          - Use clear and natural Modern Standard Arabic.
+          - The application is a school management system.
 
           French source:
           {protected_text}
@@ -148,7 +146,7 @@ jobs:
 
                           if not response.text:
                               raise RuntimeError(
-                                  "Réponse vide"
+                                  "Réponse vide de Gemini"
                               )
 
                           result = (
@@ -169,29 +167,57 @@ jobs:
 
                           if attempt < 3:
 
-                              time.sleep(
-                                  15
-                              )
+                              time.sleep(15)
 
               return None
 
-          source = polib.pofile(
-              SOURCE_FILE
+          print("Lecture du fichier POT...")
+
+          pot = polib.pofile(
+              POT_FILE
           )
 
-          english = polib.pofile(
-              ENGLISH_FILE
-          )
+          if os.path.exists(ARABIC_FILE):
 
-          arabic = polib.pofile(
-              ARABIC_FILE
-          )
+              print(
+                  "Fichier arabe existant détecté."
+              )
 
-          english_entries = {
-              entry.msgid: entry
-              for entry in english
-              if entry.msgid
-          }
+              arabic = polib.pofile(
+                  ARABIC_FILE
+              )
+
+          else:
+
+              print(
+                  "Création du fichier arabe..."
+              )
+
+              arabic = polib.POFile()
+
+              arabic.metadata = (
+                  pot.metadata.copy()
+              )
+
+              arabic.metadata[
+                  "Language"
+              ] = "ar"
+
+              arabic.metadata[
+                  "Language-Team"
+              ] = "Arabic"
+              
+              arabic.metadata[
+                  "Plural-Forms"
+              ] = (
+                  "nplurals=6; "
+                  "plural=n==0 ? 0 : "
+                  "n==1 ? 1 : "
+                  "n==2 ? 2 : "
+                  "n%100>=3 && "
+                  "n%100<=10 ? 3 : "
+                  "n%100>=11 ? 4 : 5;"
+              )
 
           arabic_entries = {
               entry.msgid: entry
@@ -201,87 +227,72 @@ jobs:
 
           translated_count = 0
 
-          for source_entry in source:
+          for pot_entry in pot:
 
-              msgid = source_entry.msgid
+              if not pot_entry.msgid:
 
-              if not msgid:
                   continue
 
-              english_entry = (
-                  english_entries.get(msgid)
-              )
+              msgid = pot_entry.msgid
 
               arabic_entry = (
                   arabic_entries.get(msgid)
               )
 
-              if (
-                  english_entry
-                  and not english_entry.msgstr
-              ):
+              if arabic_entry is None:
+
+                  arabic_entry = polib.POEntry(
+                      msgid=msgid
+                  )
+
+                  arabic.append(
+                      arabic_entry
+                  )
+
+                  arabic_entries[
+                      msgid
+                  ] = arabic_entry
+
+              if arabic_entry.msgstr:
 
                   print(
-                      f"EN: {msgid}"
+                      f"DÉJÀ TRADUIT: {msgid}"
                   )
 
-                  translation = translate(
-                      msgid,
-                      "English"
+                  continue
+
+              print(
+                  f"AR: {msgid}"
+              )
+
+              translation = (
+                  translate_to_arabic(
+                      msgid
+                  )
+              )
+
+              if translation:
+
+                  arabic_entry.msgstr = (
+                      translation
                   )
 
-                  if translation:
+                  translated_count += 1
 
-                      english_entry.msgstr = (
-                          translation
-                      )
-
-                      translated_count += 1
-
-                      english.save(
-                          ENGLISH_FILE
-                      )
-
-                  else:
-
-                      failed_translations.append(
-                          f"EN | {msgid}"
-                      )
-
-              if (
-                  arabic_entry
-                  and not arabic_entry.msgstr
-              ):
-
-                  print(
-                      f"AR: {msgid}"
+                  arabic.save(
+                      ARABIC_FILE
                   )
 
-                  translation = translate(
-                      msgid,
-                      "Modern Standard Arabic"
+              else:
+
+                  failed_translations.append(
+                      msgid
                   )
-
-                  if translation:
-
-                      arabic_entry.msgstr = (
-                          translation
-                      )
-
-                      translated_count += 1
-
-                      arabic.save(
-                          ARABIC_FILE
-                      )
-
-                  else:
-
-                      failed_translations.append(
-                          f"AR | {msgid}"
-                      )
 
           print("")
-          print("===== RÉSUMÉ =====")
+          print("==============================")
+          print("RÉSUMÉ DE LA TRADUCTION ARABE")
+          print("==============================")
 
           print(
               f"Traductions réussies: "
@@ -296,15 +307,21 @@ jobs:
           if failed_translations:
 
               print("")
-              print("===== ÉCHECS =====")
+              print("Entrées échouées:")
 
-              for item in failed_translations:
+              for msgid in failed_translations:
 
-                  print(item)
+                  print(
+                      f"- {msgid}"
+                  )
 
           print("")
           print(
-              "Les fichiers PO ont été sauvegardés."
+              "Fichier arabe sauvegardé:"
+          )
+
+          print(
+              ARABIC_FILE
           )
           PY
 
@@ -312,12 +329,12 @@ jobs:
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "🌍 Traduction automatique des fichiers PO"
-          title: "🌍 Traductions automatiques anglais et arabe"
+          commit-message: "🌍 Traduction automatique du POT vers l'arabe"
+          title: "🌍 Traduction française → arabe"
           body: |
-            Traductions générées automatiquement par Gemini.
+            Traduction automatique du fichier message.pot français vers l'arabe avec Gemini.
 
             Une vérification humaine est nécessaire avant fusion.
 
-          branch: translation/automatic-gemini
+          branch: translation/arabic-gemini
           delete-branch: true
