@@ -6,368 +6,328 @@ msgstr ""
 
 #: src/views/classes/show.php
 msgid "-- Assigner --"
-msgstr ""
+msgstr "-- تعيين --"
 
-#: src/views/classes/show.php
-#: src/views/users/_form.php
+#: src/views/classes/show.php src/views/users/_form.php
 #: src/views/users/_form.php
 msgid "-- Aucun --"
-msgstr ""
+msgstr "-- لا أحد --"
 
 #: src/views/boutique/achats/create.php
 msgid "-- Choisir un article --"
-msgstr ""
+msgstr "-- اختر عنصرًا --"
 
 #: src/views/classes/create.php
 msgid "-- Choisir un cycle --"
-msgstr ""
+msgstr "-- اختر دورة --"
 
 #: src/views/classes/create.php
 msgid "-- Choisir un lycée --"
-msgstr ""
+msgstr "-- اختر المدرسة الثانوية --"
 
-#: src/views/classes/create.php
-#: src/views/classes/create.php
+#: src/views/classes/create.php src/views/classes/create.php
 msgid "-- Choisir un niveau --"
-msgstr ""
+msgstr "- اختر المستوى -"
 
-#: src/views/classes/edit.php
-#: src/views/classes/create.php
+#: src/views/classes/edit.php src/views/classes/create.php
 msgid "-- Choisir une catégorie --"
-msgstr ""
+msgstr "-- اختر فئة --"
 
 #: src/views/classes/show.php
 msgid "-- Choisir une matière --"
-msgstr ""
+msgstr "-- اختر الموضوع --"
 
-#: src/views/classes/edit.php
-#: src/views/classes/create.php
+#: src/views/classes/edit.php src/views/classes/create.php
 msgid "-- Choisir une série --"
-msgstr ""
+msgstr "-- اختر السلسلة --"
 
 #: src/views/tests_entree/create.php
 msgid "-- Choose a class --"
-msgstr ""
+msgstr "-- اختر الفصل --"
 
 #: src/views/licences/create.php
 msgid "-- Choose a high school --"
-msgstr ""
+msgstr "-- اختر المدرسة الثانوية --"
 
 #: src/views/bulletins/index.php
 msgid "-- Select a class --"
-msgstr ""
+msgstr "-- اختر الفصل --"
 
 #: src/views/bulletins/index.php
 msgid "-- Select a period --"
-msgstr ""
+msgstr "-- اختر الفترة --"
 
 #: src/views/cahier_texte/_form.php
 msgid "-- Sélectionner --"
-msgstr ""
+msgstr "-- يختار --"
 
 #: src/views/eleves/assign_class.php
 msgid "-- Sélectionner un cycle --"
-msgstr ""
+msgstr "-- اختر دورة --"
 
 #: src/views/type_contrat/_form.php
 msgid "-- Sélectionner un lycée --"
-msgstr ""
+msgstr "-- اختر المدرسة الثانوية --"
 
-#: src/views/eleves/assign_class.php
-#: src/views/eleves/assign_class.php
+#: src/views/eleves/assign_class.php src/views/eleves/assign_class.php
 msgid "-- Sélectionner un niveau --"
-msgstr ""
+msgstr "-- اختر المستوى --"
 
-#: src/views/eleves/assign_class.php
-#: src/views/eleves/assign_class.php
-#: src/views/eleves/assign_class.php
-#: src/views/eleves/assign_class.php
+#: src/views/eleves/assign_class.php src/views/eleves/assign_class.php
+#: src/views/eleves/assign_class.php src/views/eleves/assign_class.php
 msgid "-- Sélectionner un numéro --"
-msgstr ""
+msgstr "-- اختر رقم --"
 
 #: src/views/settings/index.php
 msgid "-- Sélectionner une année --"
-msgstr ""
+msgstr "-- اختر سنة --"
 
-#: src/views/eleves/assign_class.php
-#: src/views/eleves/assign_class.php
+#: src/views/eleves/assign_class.php src/views/eleves/assign_class.php
 #: src/views/eleves/assign_class.php
 msgid "-- Sélectionner une série --"
-msgstr ""
+msgstr "-- اختر سلسلة --"
 
-#: src/views/boutique/articles/edit.php
-#: src/views/boutique/articles/create.php
+#: src/views/boutique/articles/edit.php src/views/boutique/articles/create.php
 #: src/views/boutique/articles/create.php
 msgid "0.00"
-msgstr ""
+msgstr "0.00"
 
-#: src/views/licences/edit.php
-#: src/views/licences/create.php
+#: src/views/licences/edit.php src/views/licences/create.php
 msgid "1 year"
-msgstr ""
+msgstr "1 سنة"
 
 #: src/views/modele_carte/edit.php
 msgid "1. Ajustements Rapides"
-msgstr ""
+msgstr "1. تعديلات سريعة"
 
 #: src/views/modele_carte/edit.php
 msgid "2. Couleurs & Style Global"
-msgstr ""
+msgstr "2. الألوان والنمط العام"
 
-#: src/views/licences/edit.php
-#: src/views/licences/create.php
+#: src/views/licences/edit.php src/views/licences/create.php
 msgid "3 months"
-msgstr ""
+msgstr "3 أشهر"
 
 #: src/views/modele_carte/edit.php
 msgid "3. Personnaliser un Élément"
-msgstr ""
+msgstr "3. قم بتخصيص أحد العناصر"
 
 #: src/views/modele_carte/edit.php
 msgid "4. Fond de Carte & Image"
-msgstr ""
+msgstr "4. خريطة الأساس والصورة"
 
 #: src/views/modele_carte/edit.php
 msgid "5. Outils Avancés"
-msgstr ""
+msgstr "5. الأدوات المتقدمة"
 
-#: src/views/licences/edit.php
-#: src/views/licences/create.php
+#: src/views/licences/edit.php src/views/licences/create.php
 msgid "6 months"
-msgstr ""
+msgstr "6 أشهر"
 
 #: src/views/modele_bulletin/edit.php
 msgid "A communication error occurred."
-msgstr ""
+msgstr "حدث خطأ في الاتصال."
 
 #: src/views/presences/gerer.php
 msgid "Absent"
-msgstr ""
+msgstr "غائب"
 
 #: src/views/evaluations/deblocage_form.php
 msgid "Accorder le déblocage"
-msgstr ""
+msgstr "منح فتح"
 
 #: src/views/evaluations/deblocage_form.php
 msgid "Accorder un Déblocage Exceptionnel"
-msgstr ""
+msgstr "منح فتح استثنائي"
 
 #: src/views/evaluations/deblocage_index.php
 msgid "Accordé par"
-msgstr ""
+msgstr "ممنوحة من قبل"
 
 #: src/views/paiements/journal.php
 msgid "Accueil"
-msgstr ""
+msgstr "مرحباً"
 
 #: src/views/home/index.php
 msgid "Accès Rapide"
-msgstr ""
+msgstr "الوصول السريع"
 
 #: src/views/boutique/achats/index.php
 msgid "Achats de"
-msgstr ""
+msgstr "مشتريات"
 
-#: src/views/evaluations/deblocage_index.php
-#: src/views/users/index.php
+#: src/views/evaluations/deblocage_index.php src/views/users/index.php
 #: src/views/users/view.php
 msgid "Actif"
-msgstr ""
+msgstr "نشيط"
 
 #: src/views/paiements/restes_table.php
 msgid "Action"
-msgstr ""
+msgstr "فعل"
 
 #: src/views/annees_academiques/index.php
-#: src/views/boutique/articles/index.php
-#: src/views/tests_entree/index.php
-#: src/views/licences/index.php
-#: src/views/bulletins/show.php
-#: src/views/bulletins/class_results.php
-#: src/views/matieres/index.php
-#: src/views/cycles/index.php
-#: src/views/home/index.php
-#: src/views/lycees/index.php
-#: src/views/classes/show.php
-#: src/views/classes/index.php
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
-#: src/views/type_contrat/index.php
-#: src/views/eleves/index.php
-#: src/views/eleves/archives.php
-#: src/views/series/index.php
+#: src/views/boutique/articles/index.php src/views/tests_entree/index.php
+#: src/views/licences/index.php src/views/bulletins/show.php
+#: src/views/bulletins/class_results.php src/views/matieres/index.php
+#: src/views/cycles/index.php src/views/home/index.php
+#: src/views/lycees/index.php src/views/classes/show.php
+#: src/views/classes/index.php src/views/paiements/journal.php
+#: src/views/paiements/journal.php src/views/paiements/journal.php
+#: src/views/type_contrat/index.php src/views/eleves/index.php
+#: src/views/eleves/archives.php src/views/series/index.php
 #: src/views/evaluations/deblocage_index.php
-#: src/views/evaluations/parametres_index.php
-#: src/views/cahier_texte/index.php
-#: src/views/users/index.php
-#: src/views/roles/index.php
+#: src/views/evaluations/parametres_index.php src/views/cahier_texte/index.php
+#: src/views/users/index.php src/views/roles/index.php
 #: src/views/mensualites/class_dashboard.php
 msgid "Actions"
-msgstr ""
+msgstr "الإجراءات"
 
-#: src/views/annees_academiques/index.php
-#: src/views/licences/index.php
+#: src/views/annees_academiques/index.php src/views/licences/index.php
 msgid "Active"
-msgstr ""
+msgstr "نشيط"
 
 #: src/views/annees_academiques/index.php
 msgid "Activer cette année"
-msgstr ""
+msgstr "تفعيل هذا العام"
 
 #: src/views/settings/index.php
 msgid "Activer la biométrie"
-msgstr ""
+msgstr "تمكين القياسات الحيوية"
 
 #: src/views/settings/index.php
 msgid "Activer le mode multilingue"
-msgstr ""
+msgstr "تمكين الوضع متعدد اللغات"
 
 #: src/views/users/profile.php
 msgid "Activer les notifications système par email/dashboard"
-msgstr ""
+msgstr "تمكين إشعارات النظام عبر البريد الإلكتروني/لوحة المعلومات"
 
 #: src/views/lycees/index.php
 msgid "Add High School"
-msgstr ""
+msgstr "أضف الثانوية العامة"
 
 #: src/views/lycees/create.php
 msgid "Add New High School"
-msgstr ""
+msgstr "إضافة مدرسة ثانوية جديدة"
 
-#: src/views/lycees/edit.php
-#: src/views/lycees/create.php
+#: src/views/lycees/edit.php src/views/lycees/create.php
 msgid "Address"
-msgstr ""
+msgstr "عنوان"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Administration"
 msgstr "الإدارة"
 
-#: src/views/eleves/details.php
-#: src/views/users/_form.php
+#: src/views/eleves/details.php src/views/users/_form.php
 #: src/views/users/view.php
 msgid "Adresse"
 msgstr "العنوان"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Affiche la page d'accueil avec les statistiques principales."
-msgstr ""
+msgstr "يعرض الصفحة الرئيسية مع الإحصائيات الرئيسية."
 
 #: src/views/modele_carte/edit.php
 msgid "Afficher/Masquer le Motif"
-msgstr ""
+msgstr "إظهار/إخفاء النمط"
 
 #: src/views/type_contrat/create.php
 msgid "Ajouter"
-msgstr ""
+msgstr "يضيف"
 
 #: src/views/classes/show.php
 msgid "Ajouter la Matière"
-msgstr ""
+msgstr "أضف مادة"
 
 #: src/views/boutique/articles/create.php
 #: src/views/boutique/articles/create.php
 #: src/views/boutique/articles/index.php
 msgid "Ajouter un Article"
-msgstr ""
+msgstr "إضافة عنصر"
 
 #: src/views/cycles/index.php
 msgid "Ajouter un Cycle"
-msgstr ""
+msgstr "أضف دورة"
 
 #: src/views/users/index.php
 msgid "Ajouter un membre"
-msgstr ""
+msgstr "إضافة عضو"
 
 #: src/views/cycles/create.php
 msgid "Ajouter un nouveau Cycle"
-msgstr ""
+msgstr "أضف دورة جديدة"
 
 #: src/views/users/create.php
 msgid "Ajouter un nouveau membre du personnel"
-msgstr ""
+msgstr "إضافة موظف جديد"
 
 #: src/views/roles/create.php
 msgid "Ajouter un nouveau rôle"
-msgstr ""
+msgstr "إضافة دور جديد"
 
 #: src/views/eleves/create.php
 msgid "Ajouter un nouvel élève"
-msgstr ""
+msgstr "إضافة طالب جديد"
 
 #: src/views/roles/index.php
 msgid "Ajouter un rôle"
-msgstr ""
+msgstr "أضف دورًا"
 
-#: src/views/type_contrat/create.php
-#: src/views/type_contrat/index.php
+#: src/views/type_contrat/create.php src/views/type_contrat/index.php
 msgid "Ajouter un type de contrat"
-msgstr ""
+msgstr "إضافة نوع العقد"
 
 #: src/views/eleves/index.php
 msgid "Ajouter un Élève"
-msgstr ""
+msgstr "إضافة طالب"
 
 #: src/views/annees_academiques/create.php
 msgid "Ajouter une Année Académique"
-msgstr ""
+msgstr "إضافة سنة دراسية"
 
 #: src/views/series/index.php
 msgid "Ajouter une Série"
-msgstr ""
+msgstr "أضف سلسلة"
 
 #: src/views/annees_academiques/index.php
 msgid "Ajouter une année"
-msgstr ""
+msgstr "أضف سنة"
 
 #: src/views/cahier_texte/create.php
 msgid "Ajouter une entrée au cahier de texte"
-msgstr ""
+msgstr "إضافة إدخال إلى الكتاب المدرسي"
 
 #: src/views/classes/create.php
 msgid "Ajouter une nouvelle classe"
-msgstr ""
+msgstr "إضافة فئة جديدة"
 
 #: src/views/modele_carte/edit.php
 msgid "Ajustez votre modèle professionnel prêt à l'emploi."
-msgstr ""
+msgstr "اضبط قالبك الاحترافي الجاهز للاستخدام."
 
 #: src/views/layouts/footer.php
 msgid "All rights reserved."
-msgstr ""
+msgstr "جميع الحقوق محفوظة."
 
-#: src/views/boutique/articles/edit.php
-#: src/views/boutique/articles/create.php
+#: src/views/boutique/articles/edit.php src/views/boutique/articles/create.php
 msgid "Ancien Prix (Promo)"
-msgstr ""
+msgstr "السعر القديم (ترويجي)"
 
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php src/views/paiements/journal.php
 msgid "Annulation"
-msgstr ""
+msgstr "الإلغاء"
 
-#: src/views/annees_academiques/_form.php
-#: src/views/boutique/achats/create.php
-#: src/views/boutique/articles/edit.php
-#: src/views/boutique/articles/create.php
-#: src/views/matieres/edit.php
-#: src/views/matieres/create.php
-#: src/views/cycles/edit.php
-#: src/views/cycles/create.php
-#: src/views/classes/edit.php
-#: src/views/classes/create.php
-#: src/views/type_contrat/_form.php
-#: src/views/eleves/edit.php
-#: src/views/eleves/assign_class.php
-#: src/views/eleves/_form.php
-#: src/views/eleves/create.php
-#: src/views/series/index.php
+#: src/views/annees_academiques/_form.php src/views/boutique/achats/create.php
+#: src/views/boutique/articles/edit.php src/views/boutique/articles/create.php
+#: src/views/matieres/edit.php src/views/matieres/create.php
+#: src/views/cycles/edit.php src/views/cycles/create.php
+#: src/views/classes/edit.php src/views/classes/create.php
+#: src/views/type_contrat/_form.php src/views/eleves/edit.php
+#: src/views/eleves/assign_class.php src/views/eleves/_form.php
+#: src/views/eleves/create.php src/views/series/index.php
 #: src/views/evaluations/deblocage_form.php
-#: src/views/evaluations/parametres_form.php
-#: src/views/cahier_texte/_form.php
-#: src/views/users/_form.php
-#: src/views/roles/edit.php
+#: src/views/evaluations/parametres_form.php src/views/cahier_texte/_form.php
+#: src/views/users/_form.php src/views/roles/edit.php
 #: src/views/roles/create.php
 msgid "Annuler"
 msgstr "إلغاء"
@@ -376,38 +336,35 @@ msgstr "إلغاء"
 msgid "Année"
 msgstr "السنة"
 
-#: src/views/bulletins/blocs/_header.php
-#: src/views/paiements/journal.php
-#: src/views/eleves/details.php
-#: src/views/eleves/details.php
-#: src/views/recus/inscription.php
-#: src/views/recus/mensualite.php
+#: src/views/bulletins/blocs/_header.php src/views/paiements/journal.php
+#: src/views/eleves/details.php src/views/eleves/details.php
+#: src/views/recus/inscription.php src/views/recus/mensualite.php
 msgid "Année Académique"
 msgstr "السنة الأكاديمية"
 
 #: src/views/settings/index.php
 msgid "Année Académique Active"
-msgstr ""
+msgstr "سنة دراسية نشطة"
 
 #: src/views/setup/step1_single.php
 msgid "Année Académique Actuelle"
-msgstr ""
+msgstr "العام الدراسي الحالي"
 
 #: src/controllers/AnneeAcademiqueController.php
 msgid "Année académique activée avec succès."
-msgstr ""
+msgstr "تم تفعيل العام الدراسي بنجاح."
 
 #: src/controllers/AnneeAcademiqueController.php
 msgid "Année académique créée avec succès."
-msgstr ""
+msgstr "تم إنشاء العام الدراسي بنجاح."
 
 #: src/controllers/AnneeAcademiqueController.php
 msgid "Année académique mise à jour avec succès."
-msgstr ""
+msgstr "تم تحديث العام الدراسي بنجاح."
 
 #: src/controllers/AnneeAcademiqueController.php
 msgid "Année académique supprimée avec succès."
-msgstr ""
+msgstr "تم حذف العام الدراسي بنجاح."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Années Académiques"
@@ -415,11 +372,11 @@ msgstr "السنوات الأكاديمية"
 
 #: src/views/modele_carte/edit.php
 msgid "Aperçu de la Carte"
-msgstr ""
+msgstr "نظرة عامة على الخريطة"
 
 #: src/views/settings/index.php
 msgid "Appliquer la confidentialité nationale"
-msgstr ""
+msgstr "تطبيق السرية الوطنية"
 
 #: src/views/bulletins/blocs/_resume_moyennes.php
 msgid "Appréciation du Conseil de Classe"
@@ -431,118 +388,113 @@ msgstr "ملاحظات المعلم"
 
 #: src/views/settings/index.php
 msgid "Après le test d'entrée"
-msgstr ""
+msgstr "بعد اختبار القبول"
 
 #: src/views/eleves/index.php
 msgid "Archives"
-msgstr ""
+msgstr "أرشيف"
 
 #: src/views/lycees/index.php
 msgid "Are you sure you want to delete this high school?"
-msgstr ""
+msgstr "هل أنت متأكد أنك تريد حذف هذه المدرسة الثانوية؟"
 
-#: src/views/tests_entree/index.php
-#: src/views/licences/index.php
+#: src/views/tests_entree/index.php src/views/licences/index.php
 #: src/views/emploi_du_temps/index.php
 msgid "Are you sure?"
-msgstr ""
+msgstr "هل أنت متأكد؟"
 
-#: src/views/recus/inscription.php
-#: src/views/recus/mensualite.php
+#: src/views/recus/inscription.php src/views/recus/mensualite.php
 msgid "Arrêté le présent reçu à la somme de :"
 msgstr "أوقف هذا الإيصال عند مبلغ:"
 
-#: src/views/boutique/achats/recu.php
-#: src/views/boutique/achats/create.php
-#: src/views/boutique/achats/index.php
-#: src/views/boutique/articles/index.php
+#: src/views/boutique/achats/recu.php src/views/boutique/achats/create.php
+#: src/views/boutique/achats/index.php src/views/boutique/articles/index.php
 msgid "Article"
-msgstr ""
+msgstr "شرط"
 
 #: src/views/eleves/assign_class.php
 msgid "Assigner la Classe"
-msgstr ""
+msgstr "تعيين فئة"
 
 #: src/views/eleves/assign_class.php
 msgid "Assigner une Classe à l'Élève"
-msgstr ""
+msgstr "تعيين فصل للطالب"
 
 #: src/views/paiements/regler.php
 msgid "Attendu"
-msgstr ""
+msgstr "مُتوقع"
 
 #: src/views/home/index.php
 msgid "Attention !"
-msgstr ""
+msgstr "انتباه !"
 
 #: src/views/classes/show.php
 msgid "Attribuer une Matière"
-msgstr ""
+msgstr "تعيين موضوع"
 
 #: src/views/evaluations/deblocage_index.php
 msgid "Au"
-msgstr ""
+msgstr "في"
 
 #: src/views/type_contrat/_form.php
 msgid "Aucun"
-msgstr ""
+msgstr "لا أحد"
 
 #: src/views/boutique/achats/index.php
 msgid "Aucun achat trouvé"
-msgstr ""
+msgstr "لم يتم العثور على مشتريات"
 
 #: src/views/boutique/articles/index.php
 msgid "Aucun article trouvé"
-msgstr ""
+msgstr "لم يتم العثور على أي عناصر"
 
 #: src/views/cycles/index.php
 msgid "Aucun cycle trouvé."
-msgstr ""
+msgstr "لم يتم العثور على دورات."
 
-#: src/views/layouts/header_able.php
-#: src/views/layouts/header_able.php
+#: src/views/layouts/header_able.php src/views/layouts/header_able.php
 msgid "Aucun lycée configuré"
-msgstr ""
+msgstr "لم يتم تكوين مدرسة ثانوية"
 
 #: src/views/users/index.php
 msgid "Aucun membre du personnel trouvé."
-msgstr ""
+msgstr "لم يتم العثور على الموظفين."
 
 #: src/views/paiements/journal.php
 msgid "Aucun reçu enregistré pour les critères sélectionnés."
-msgstr ""
+msgstr "لم يتم حفظ أي إيصالات للمعايير المحددة."
 
 #: src/views/roles/index.php
 msgid "Aucun rôle trouvé."
-msgstr ""
+msgstr "لم يتم العثور على الأدوار."
 
 #: src/views/type_contrat/index.php
 msgid "Aucun type de contrat trouvé."
-msgstr ""
+msgstr "لم يتم العثور على أنواع العقود."
 
 #: src/views/eleves/index.php
 msgid "Aucun élève actif ou en attente trouvé."
-msgstr ""
+msgstr "لم يتم العثور على طلاب نشطين أو في انتظارهم."
 
 #: src/views/mensualites/class_dashboard.php
 msgid "Aucun élève actif trouvé dans cette classe."
-msgstr ""
+msgstr "لم يتم العثور على طلاب نشطين في هذا الفصل."
 
 #: src/views/eleves/archives.php
 msgid "Aucun élève archivé trouvé."
-msgstr ""
+msgstr "لم يتم العثور على طلاب مؤرشفين."
 
 #: src/views/paiements/restes_table.php
 msgid "Aucun élève de cette classe ne présente actuellement un reste à payer."
-msgstr ""
+msgstr "لا يوجد طالب في هذا الفصل لديه حاليًا مدفوعات مستحقة."
 
 #: src/views/paiements/journal.php
 msgid "Aucun élève trouvé pour les critères sélectionnés."
-msgstr ""
+msgstr "لم يتم العثور على طلاب للمعايير المحددة."
 
 #: src/views/home/index.php
 msgid "Aucune action disponible."
-msgstr ""
+msgstr "لا يوجد إجراء متاح."
 
 #: src/controllers/PaiementController.php
 msgid "Aucune année académique active n'est définie."
@@ -554,11 +506,11 @@ msgstr "لا توجد سنة أكاديمية نشطة."
 
 #: src/views/annees_academiques/index.php
 msgid "Aucune année académique trouvée."
-msgstr ""
+msgstr "لم يتم العثور على العام الدراسي."
 
 #: src/views/layouts/header_able.php
 msgid "Aucune année définie"
-msgstr ""
+msgstr "لم يتم تحديد سنة"
 
 #: src/views/bulletins/blocs/_resume_moyennes.php
 msgid "Aucune appréciation."
@@ -566,91 +518,86 @@ msgstr "لا يوجد تقييم."
 
 #: src/views/paiements/journal.php
 msgid "Aucune classe enregistrée ou correspondant aux critères."
-msgstr ""
+msgstr "لا توجد فئات مسجلة أو مطابقة للمعايير."
 
 #: src/views/classes/index.php
 msgid "Aucune classe trouvée."
-msgstr ""
+msgstr "لم يتم العثور على فئات."
 
 #: src/views/cahier_texte/index.php
 msgid "Aucune entrée trouvée."
-msgstr ""
+msgstr "لم يتم العثور على إدخالات."
 
 #: src/views/matieres/index.php
 msgid "Aucune matière trouvée."
-msgstr ""
+msgstr "لم يتم العثور على أي مادة."
 
 #: src/views/paiements/regler.php
 msgid "Aucune mensualité exigible pour le moment."
-msgstr ""
+msgstr "لا توجد دفعات شهرية مستحقة في هذا الوقت."
 
 #: src/views/layouts/header_able.php
 msgid "Aucune nouvelle notification"
-msgstr ""
+msgstr "لا توجد إشعارات جديدة"
 
 #: src/views/paiements/journal.php
-msgid "Aucune opération enregistrée dans le journal pour les critères sélectionnés."
-msgstr ""
+msgid ""
+"Aucune opération enregistrée dans le journal pour les critères sélectionnés."
+msgstr "لم يتم تسجيل أي عمليات في السجل للمعايير المحددة."
 
 #: src/views/series/index.php
 msgid "Aucune série trouvée."
-msgstr ""
+msgstr "لم يتم العثور على سلسلة."
 
 #: src/views/paiements/journal.php
 msgid "Aucune écriture trouvée pour cet élève dans cette période."
-msgstr ""
+msgstr "لم يتم العثور على كتابة لهذا الطالب في هذه الفترة."
 
-#: src/views/series/index.php
-#: src/views/series/index.php
+#: src/views/series/index.php src/views/series/index.php
 msgid "Autre"
-msgstr ""
+msgstr "آخر"
 
 #: src/views/settings/index.php
 msgid "Avant l'inscription"
-msgstr ""
+msgstr "قبل التسجيل"
 
 #: src/views/bulletins/show.php
 msgid "Back to Results"
-msgstr ""
+msgstr "العودة إلى النتائج"
 
 #: src/views/bulletins/class_results.php
 msgid "Back to Selection"
-msgstr ""
+msgstr "العودة إلى التحديد"
 
 #: src/views/tests_entree/index.php
 msgid "Back to student file"
-msgstr ""
+msgstr "العودة إلى ملف الطالب"
 
 #: src/views/setup/step0_choice.php
 msgid "Bienvenue dans l'installation"
-msgstr ""
+msgstr "مرحبا بكم في التثبيت"
 
 #: src/views/home/index.php
 msgid "Bienvenue,"
-msgstr ""
+msgstr "مرحباً،"
 
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php src/views/paiements/journal.php
 msgid "Bilan Net"
-msgstr ""
+msgstr "صافي الميزانية العمومية"
 
 #: src/views/bulletins/class_results.php
 msgid "Bloqué"
-msgstr ""
+msgstr "محظور"
 
-#: src/views/boutique/articles/edit.php
-#: src/views/boutique/articles/create.php
-#: src/views/boutique/articles/index.php
-#: src/views/layouts/sidebar_able.php
-#: src/views/eleves/details.php
-#: src/views/eleves/index.php
+#: src/views/boutique/articles/edit.php src/views/boutique/articles/create.php
+#: src/views/boutique/articles/index.php src/views/layouts/sidebar_able.php
+#: src/views/eleves/details.php src/views/eleves/index.php
 msgid "Boutique"
 msgstr "المتجر"
 
-#: src/views/boutique/shop/index.php
-#: src/views/boutique/shop/index.php
+#: src/views/boutique/shop/index.php src/views/boutique/shop/index.php
 msgid "Boutique Scolaire"
-msgstr ""
+msgstr "متجر المدرسة"
 
 #: src/views/bulletins/blocs/_header.php
 msgid "Bulletin de la Séquence :"
@@ -662,233 +609,208 @@ msgstr "كشوف النقاط"
 
 #: src/views/boutique/articles/index.php
 msgid "CA du Jour (FCFA)"
-msgstr ""
+msgstr "دوران اليوم (FCFA)"
 
 #: src/views/boutique/articles/index.php
 msgid "CA du Mois (FCFA)"
-msgstr ""
+msgstr "مبيعات الشهر (FCFA)"
 
 #: src/views/users/profile.php
 msgid "Cachet Nominatif / Tampon officiel (PNG transparent)"
-msgstr ""
+msgstr "ختم الاسم / الختم الرسمي (PNG الشفاف)"
 
 #: src/views/users/profile.php
 msgid "Cachet actif"
-msgstr ""
+msgstr "ختم نشط"
 
-#: src/controllers/HomeController.php
-#: src/views/home/index.php
-#: src/views/layouts/sidebar_able.php
-#: src/views/cahier_texte/edit.php
-#: src/views/cahier_texte/create.php
-#: src/views/cahier_texte/index.php
+#: src/controllers/HomeController.php src/views/home/index.php
+#: src/views/layouts/sidebar_able.php src/views/cahier_texte/edit.php
+#: src/views/cahier_texte/create.php src/views/cahier_texte/index.php
 msgid "Cahier de Texte"
 msgstr "دفتر النصوص"
 
-#: src/views/tests_entree/create.php
-#: src/views/licences/edit.php
-#: src/views/licences/create.php
-#: src/views/lycees/edit.php
+#: src/views/tests_entree/create.php src/views/licences/edit.php
+#: src/views/licences/create.php src/views/lycees/edit.php
 #: src/views/lycees/create.php
 msgid "Cancel"
-msgstr ""
+msgstr "يلغي"
 
 #: src/views/carte/generer.php
 msgid "Cartes d'Identité Scolaire"
 msgstr "بطاقات الهوية المدرسية"
 
-#: src/views/boutique/articles/edit.php
-#: src/views/boutique/articles/create.php
-#: src/views/boutique/articles/index.php
-#: src/views/classes/show.php
-#: src/views/classes/edit.php
-#: src/views/classes/create.php
-#: src/views/series/index.php
-#: src/views/series/index.php
+#: src/views/boutique/articles/edit.php src/views/boutique/articles/create.php
+#: src/views/boutique/articles/index.php src/views/classes/show.php
+#: src/views/classes/edit.php src/views/classes/create.php
+#: src/views/series/index.php src/views/series/index.php
 #: src/views/series/index.php
 msgid "Catégorie"
-msgstr ""
+msgstr "فئة"
 
 #: src/views/setup/step1_multi.php
 msgid "Ce compte gérera toutes les écoles du système."
-msgstr ""
+msgstr "سيقوم هذا الحساب بإدارة جميع المدارس في النظام."
 
 #: src/views/home/index.php
 msgid "Ceci est votre tableau de bord."
-msgstr ""
+msgstr "هذه هي لوحة القيادة الخاصة بك."
 
 #: src/views/modele_carte/edit.php
 msgid "Centrer le Logo"
-msgstr ""
+msgstr "مركز الشعار"
 
 #: src/views/eleves/archives.php
-msgid "Cette page liste les élèves qui ne sont plus actifs dans l'établissement (transférés, radiés, diplômés, etc.)."
+msgid ""
+"Cette page liste les élèves qui ne sont plus actifs dans l'établissement "
+"(transférés, radiés, diplômés, etc.)."
 msgstr ""
+"تدرج هذه الصفحة الطلاب الذين لم يعودوا فاعلين في المؤسسة (المنقولين، "
+"المحذوفين، المتخرجين، الخ)."
 
 #: src/views/presences/gerer.php
 msgid "Changer de date"
-msgstr ""
+msgstr "تغيير التاريخ"
 
 #: src/views/users/profile.php
 msgid "Changer mon mot de passe"
-msgstr ""
+msgstr "تغيير كلمة المرور الخاصة بي"
 
 #: src/views/mensualites/index.php
 msgid "Chargement du tableau de bord..."
-msgstr ""
+msgstr "جارٍ تحميل لوحة القيادة..."
 
-#: src/views/paiements/restes.php
-#: src/views/paiements/restes.php
-#: src/views/mensualites/index.php
-#: src/views/mensualites/index.php
+#: src/views/paiements/restes.php src/views/paiements/restes.php
+#: src/views/mensualites/index.php src/views/mensualites/index.php
 msgid "Chargement..."
-msgstr ""
+msgstr "تحميل..."
 
-#: src/views/paiements/restes.php
-#: src/views/mensualites/index.php
+#: src/views/paiements/restes.php src/views/mensualites/index.php
 msgid "Choisir un cycle"
-msgstr ""
+msgstr "اختر دورة"
 
 #: src/views/evaluations/deblocage_form.php
 #: src/views/evaluations/parametres_form.php
 msgid "Choisir un enseignant..."
-msgstr ""
+msgstr "اختيار المعلم..."
 
 #: src/views/eleves/_form.php
 msgid "Choisir un fichier"
-msgstr ""
+msgstr "اختر ملفًا"
 
-#: src/views/paiements/restes.php
-#: src/views/paiements/restes.php
-#: src/views/mensualites/index.php
-#: src/views/mensualites/index.php
+#: src/views/paiements/restes.php src/views/paiements/restes.php
+#: src/views/mensualites/index.php src/views/mensualites/index.php
 msgid "Choisir un niveau"
-msgstr ""
+msgstr "اختر المستوى"
 
-#: src/views/paiements/restes.php
-#: src/views/paiements/restes.php
-#: src/views/paiements/restes.php
-#: src/views/mensualites/index.php
-#: src/views/mensualites/index.php
-#: src/views/mensualites/index.php
+#: src/views/paiements/restes.php src/views/paiements/restes.php
+#: src/views/paiements/restes.php src/views/mensualites/index.php
+#: src/views/mensualites/index.php src/views/mensualites/index.php
 msgid "Choisir une classe"
-msgstr ""
+msgstr "اختر فئة"
 
 #: src/views/evaluations/deblocage_form.php
 #: src/views/evaluations/parametres_form.php
 msgid "Choisir une classe..."
-msgstr ""
+msgstr "اختر الصف..."
 
 #: src/views/evaluations/deblocage_form.php
 #: src/views/evaluations/parametres_form.php
 msgid "Choisir une matière..."
-msgstr ""
+msgstr "اختيار موضوع..."
 
-#: src/views/paiements/restes.php
-#: src/views/paiements/restes.php
-#: src/views/mensualites/index.php
-#: src/views/mensualites/index.php
+#: src/views/paiements/restes.php src/views/paiements/restes.php
+#: src/views/mensualites/index.php src/views/mensualites/index.php
 msgid "Choisir une série"
-msgstr ""
+msgstr "اختر سلسلة"
 
 #: src/views/modele_carte/edit.php
 msgid "Choisissez une palette de couleurs pour votre établissement :"
-msgstr ""
+msgstr "اختر لوحة الألوان لمؤسستك:"
 
 #: src/views/evaluations/deblocage_index.php
 #: src/views/evaluations/parametres_index.php
 msgid "Cible"
-msgstr ""
+msgstr "هدف"
 
-#: src/views/lycees/edit.php
-#: src/views/lycees/create.php
+#: src/views/lycees/edit.php src/views/lycees/create.php
 #: src/views/lycees/index.php
 msgid "City"
-msgstr ""
+msgstr "مدينة"
 
 #: src/views/users/profile.php
 msgid "Clair"
-msgstr ""
+msgstr "واضح"
 
 #: src/views/bulletins/index.php
 msgid "Class"
-msgstr ""
+msgstr "فصل"
 
 #: src/views/bulletins/class_results.php
 msgid "Class Results for:"
-msgstr ""
+msgstr "نتائج الصف ل:"
 
-#: src/views/bulletins/blocs/_info_eleve.php
-#: src/views/home/index.php
-#: src/views/paiements/journal.php
-#: src/views/eleves/details.php
-#: src/views/eleves/index.php
-#: src/views/cahier_texte/index.php
-#: src/views/recus/inscription.php
-#: src/views/recus/mensualite.php
+#: src/views/bulletins/blocs/_info_eleve.php src/views/home/index.php
+#: src/views/paiements/journal.php src/views/eleves/details.php
+#: src/views/eleves/index.php src/views/cahier_texte/index.php
+#: src/views/recus/inscription.php src/views/recus/mensualite.php
 msgid "Classe"
 msgstr "الفصل"
 
 #: src/views/cahier_texte/_form.php
 msgid "Classe et Matière"
-msgstr ""
+msgstr "الطبقة والموضوع"
 
 #: src/views/evaluations/parametres_index.php
 msgid "Classe: "
-msgstr ""
+msgstr "فصل:"
 
-#: src/views/home/index.php
-#: src/views/layouts/sidebar_able.php
+#: src/views/home/index.php src/views/layouts/sidebar_able.php
 msgid "Classes"
 msgstr "الفصول"
 
 #: src/views/modele_carte/edit.php
 msgid "Cliquez sur un élément de la carte pour modifier ses propriétés."
-msgstr ""
+msgstr "انقر على عنصر الخريطة لتعديل خصائصه."
 
 #: src/views/annees_academiques/index.php
 msgid "Clôturer"
-msgstr ""
+msgstr "لإحاطة"
 
 #: src/views/annees_academiques/index.php
 msgid "Clôturée"
-msgstr ""
+msgstr "مغلق"
 
-#: src/views/bulletins/blocs/_tableau_notes.php
-#: src/views/classes/show.php
+#: src/views/bulletins/blocs/_tableau_notes.php src/views/classes/show.php
 #: src/views/classes/show.php
 msgid "Coefficient"
 msgstr "المعامل"
 
-#: src/views/classes/show.php
-#: src/views/presences/gerer.php
+#: src/views/classes/show.php src/views/presences/gerer.php
 #: src/views/evaluations/parametres_index.php
 msgid "Commentaire"
-msgstr ""
+msgstr "تعليق"
 
 #: src/views/evaluations/parametres_form.php
 msgid "Commentaire / Instruction"
-msgstr ""
+msgstr "التعليق/التعليمات"
 
-#: src/views/paiements/regler.php
-#: src/views/paiements/journal.php
-#: src/views/paiements/restes.php
-#: src/views/layouts/sidebar_able.php
+#: src/views/paiements/regler.php src/views/paiements/journal.php
+#: src/views/paiements/restes.php src/views/layouts/sidebar_able.php
 #: src/views/mensualites/index.php
 msgid "Comptabilité"
 msgstr "المحاسبة"
 
 #: src/views/users/_form.php
 msgid "Compte Actif"
-msgstr ""
+msgstr "الحساب النشط"
 
 #: src/views/setup/step1_multi.php
 msgid "Compte Administrateur National"
-msgstr ""
+msgstr "حساب المسؤول الوطني"
 
 #: src/views/setup/step1_single.php
 msgid "Compte de l'Administrateur"
-msgstr ""
+msgstr "حساب المسؤول"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Configuration Frais"
@@ -896,95 +818,95 @@ msgstr "إعداد الرسوم"
 
 #: src/views/setup/step1_multi.php
 msgid "Configuration Multi-écoles"
-msgstr ""
+msgstr "تكوين متعدد المدارس"
 
 #: src/views/setup/step1_single.php
 msgid "Configuration de l'école"
-msgstr ""
+msgstr "إعداد المدرسة"
 
 #: src/views/settings/index.php
 msgid "Configuration de l'établissement"
-msgstr ""
+msgstr "إعداد المنشأة"
 
 #: src/views/evaluations/parametres_form.php
 msgid "Configuration de la période"
-msgstr ""
+msgstr "تكوين الفترة"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Configurer et consulter les emplois du temps."
-msgstr ""
+msgstr "تكوين وعرض الجداول الزمنية."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Configurer les différents types de frais scolaires."
-msgstr ""
+msgstr "تكوين أنواع مختلفة من الرسوم المدرسية."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Configurer les paramètres globaux de l'établissement."
-msgstr ""
+msgstr "تكوين إعدادات المنشأة العالمية."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Configurer les paramètres pour les compositions."
-msgstr ""
+msgstr "تكوين الإعدادات للتركيبات."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Configurer les paramètres pour les devoirs."
-msgstr ""
+msgstr "تكوين الإعدادات للمهام."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Configurer les paramètres spécifiques au lycée."
-msgstr ""
+msgstr "تكوين الإعدادات الخاصة بالمدرسة الثانوية."
 
 #: src/views/users/profile.php
 msgid "Confirmer le nouveau mot de passe"
-msgstr ""
+msgstr "تأكيد كلمة المرور الجديدة"
 
 #: src/views/auth/login.php
 msgid "Connexion"
-msgstr ""
+msgstr "اتصال"
 
 #: src/views/modele_carte/edit.php
 msgid "Conseil de Personnalisation :"
-msgstr ""
+msgstr "نصيحة التخصيص:"
 
 #: src/views/cahier_texte/index.php
 msgid "Consultation du Cahier de Texte"
-msgstr ""
+msgstr "التشاور حول كتاب النص"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Consulter l'historique des transactions."
-msgstr ""
+msgstr "عرض تاريخ المعاملات."
 
 #: src/views/eleves/archives.php
 msgid "Consulter le dossier"
-msgstr ""
+msgstr "عرض الملف"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Consulter le journal comptable unique."
-msgstr ""
+msgstr "راجع مجلة المحاسبة الواحدة."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Consulter les rapports financiers."
-msgstr ""
+msgstr "عرض التقارير المالية."
 
 #: src/views/eleves/_form.php
 msgid "Contact de l'élève (Optionnel)"
-msgstr ""
+msgstr "الاتصال بالطالب (اختياري)"
 
 #: src/views/cahier_texte/index.php
 msgid "Contenu"
-msgstr ""
+msgstr "محتوى"
 
 #: src/views/cahier_texte/_form.php
 msgid "Contenu du cours"
-msgstr ""
+msgstr "محتوى الدورة"
 
 #: src/views/setup/step0_choice.php
 msgid "Continuer"
-msgstr ""
+msgstr "يكمل"
 
 #: src/views/type_contrat/_form.php
 msgid "Contrat Global (disponible pour tous les lycées)"
-msgstr ""
+msgstr "العقد العالمي (متاح لجميع المدارس الثانوية)"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Contrats"
@@ -996,78 +918,66 @@ msgstr "الرقابة المالية"
 
 #: src/views/modele_carte/edit.php
 msgid "Couleur"
-msgstr ""
+msgstr "لون"
 
-#: src/views/classes/edit.php
-#: src/views/classes/create.php
-#: src/views/classes/index.php
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
-#: src/views/paiements/restes.php
-#: src/views/eleves/index.php
-#: src/views/mensualites/index.php
+#: src/views/classes/edit.php src/views/classes/create.php
+#: src/views/classes/index.php src/views/paiements/journal.php
+#: src/views/paiements/journal.php src/views/paiements/restes.php
+#: src/views/eleves/index.php src/views/mensualites/index.php
 msgid "Cycle"
-msgstr ""
+msgstr "دورة"
 
-#: src/views/matieres/_form.php
-#: src/views/matieres/index.php
+#: src/views/matieres/_form.php src/views/matieres/index.php
 msgid "Cycle Concerné"
-msgstr ""
+msgstr "دورة المعنية"
 
 #: src/views/eleves/assign_class.php
 msgid "Cycle d'Études"
-msgstr ""
+msgstr "دورة الدراسة"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Cycles"
 msgstr "الأطوار"
 
-#: src/views/boutique/achats/recu.php
-#: src/views/boutique/achats/index.php
-#: src/views/paiements/journal.php
-#: src/views/eleves/details.php
-#: src/views/eleves/details.php
-#: src/views/cahier_texte/index.php
+#: src/views/boutique/achats/recu.php src/views/boutique/achats/index.php
+#: src/views/paiements/journal.php src/views/eleves/details.php
+#: src/views/eleves/details.php src/views/cahier_texte/index.php
 msgid "Date"
-msgstr ""
+msgstr "تاريخ"
 
 #: src/views/paiements/journal.php
 msgid "Date & Heure"
-msgstr ""
+msgstr "التاريخ والوقت"
 
-#: src/views/users/_form.php
-#: src/views/users/view.php
+#: src/views/users/_form.php src/views/users/view.php
 msgid "Date d'embauche"
-msgstr ""
+msgstr "تاريخ الاستئجار"
 
 #: src/views/evaluations/deblocage_form.php
 msgid "Date d'expiration"
-msgstr ""
+msgstr "تاريخ انتهاء الصلاحية"
 
 #: src/views/evaluations/parametres_form.php
 msgid "Date d'ouverture"
-msgstr ""
+msgstr "تاريخ الافتتاح"
 
 #: src/views/paiements/journal.php
 msgid "Date d'émission"
-msgstr ""
+msgstr "تاريخ الإصدار"
 
 #: src/views/annees_academiques/_form.php
 #: src/views/annees_academiques/index.php
 msgid "Date de Début"
-msgstr ""
+msgstr "تاريخ البدء"
 
 #: src/views/annees_academiques/_form.php
 #: src/views/annees_academiques/index.php
 msgid "Date de Fin"
-msgstr ""
+msgstr "تاريخ الانتهاء"
 
-#: src/views/bulletins/blocs/_info_eleve.php
-#: src/views/eleves/details.php
-#: src/views/eleves/_form.php
-#: src/views/eleves/archives.php
-#: src/views/users/_form.php
-#: src/views/users/view.php
+#: src/views/bulletins/blocs/_info_eleve.php src/views/eleves/details.php
+#: src/views/eleves/_form.php src/views/eleves/archives.php
+#: src/views/users/_form.php src/views/users/view.php
 msgid "Date de Naissance"
 msgstr "تاريخ الميلاد"
 
@@ -1077,15 +987,15 @@ msgstr "تاريخ الدفع"
 
 #: src/views/evaluations/deblocage_form.php
 msgid "Date de début"
-msgstr ""
+msgstr "تاريخ البدء"
 
 #: src/views/evaluations/parametres_form.php
 msgid "Date de fermeture"
-msgstr ""
+msgstr "تاريخ الإغلاق"
 
 #: src/views/cahier_texte/_form.php
 msgid "Date du cours"
-msgstr ""
+msgstr "تاريخ الدورة"
 
 #: src/views/recus/mensualite.php
 msgid "Date du versement"
@@ -1093,57 +1003,52 @@ msgstr "تاريخ الإيداع"
 
 #: src/controllers/RoleController.php
 msgid "Default roles cannot be deleted."
-msgstr ""
+msgstr "لا يمكن حذف الأدوار الافتراضية."
 
-#: src/views/tests_entree/index.php
-#: src/views/licences/index.php
+#: src/views/tests_entree/index.php src/views/licences/index.php
 #: src/views/lycees/index.php
 msgid "Delete"
-msgstr ""
+msgstr "يمسح"
 
-#: src/views/matieres/_form.php
-#: src/views/type_contrat/_form.php
+#: src/views/matieres/_form.php src/views/type_contrat/_form.php
 msgid "Description"
-msgstr ""
+msgstr "وصف"
 
 #: src/views/cahier_texte/_form.php
 msgid "Devoirs, exercices, etc."
-msgstr ""
+msgstr "الواجبات المنزلية والتمارين وما إلى ذلك."
 
 #: src/views/classes/show.php
 msgid "Dissocier l'enseignant"
-msgstr ""
+msgstr "قم بإلغاء ربط المعلم"
 
-#: src/views/lycees/edit.php
-#: src/views/lycees/create.php
+#: src/views/lycees/edit.php src/views/lycees/create.php
 msgid "District"
-msgstr ""
+msgstr "يصرف"
 
-#: src/views/boutique/shop/index.php
-#: src/views/boutique/articles/index.php
+#: src/views/boutique/shop/index.php src/views/boutique/articles/index.php
 msgid "Divers"
-msgstr ""
+msgstr "متنوع"
 
 #: src/views/eleves/index.php
 msgid "Dossier complet"
-msgstr ""
+msgstr "ملف كامل"
 
 #: src/views/paiements/journal.php
 msgid "Dossier Élève"
-msgstr ""
+msgstr "ملف الطالب"
 
 #: src/views/evaluations/deblocage_index.php
 msgid "Du"
-msgstr ""
+msgstr "ل"
 
 #: src/views/licences/index.php
 msgid "Duration"
-msgstr ""
+msgstr "مدة"
 
-#: src/views/licences/edit.php
-#: src/views/licences/create.php
+#: src/views/licences/edit.php src/views/licences/create.php
 msgid "Duration (in months)"
-msgstr ""
+msgstr "المدة (بالشهور)"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Déblocage Notes"
@@ -1151,7 +1056,7 @@ msgstr "إلغاء قفل الدرجات"
 
 #: src/views/evaluations/deblocage_form.php
 msgid "Déblocages"
-msgstr ""
+msgstr "يفتح"
 
 #: src/views/layouts/header_able.php
 msgid "Déconnexion"
@@ -1159,11 +1064,11 @@ msgstr "تسجيل الخروج"
 
 #: src/views/evaluations/parametres_form.php
 msgid "Définir une Période de Saisie"
-msgstr ""
+msgstr "تحديد فترة النوبة"
 
 #: src/views/evaluations/parametres_index.php
 msgid "Définir une période"
-msgstr ""
+msgstr "تحديد فترة"
 
 #: src/views/recus/mensualite.php
 msgid "Désignation de la mensualité"
@@ -1175,134 +1080,120 @@ msgstr "تسمية الرسوم"
 
 #: src/views/users/view.php
 msgid "Détail du membre du personnel"
-msgstr ""
+msgstr "تفاصيل الموظف"
 
-#: src/views/paiements/journal.php
-#: src/views/eleves/index.php
+#: src/views/paiements/journal.php src/views/eleves/index.php
 #: src/views/users/view.php
 msgid "Détails"
-msgstr ""
+msgstr "تفاصيل"
 
 #: src/views/eleves/details.php
 msgid "Détails de l'Élève"
-msgstr ""
+msgstr "تفاصيل الطالب"
 
 #: src/views/classes/show.php
 msgid "Détails de la Classe"
-msgstr ""
+msgstr "تفاصيل الفصل"
 
-#: src/views/matieres/edit.php
-#: src/views/matieres/create.php
+#: src/views/matieres/edit.php src/views/matieres/create.php
 msgid "Détails de la matière"
-msgstr ""
+msgstr "تفاصيل المواد"
 
 #: src/views/paiements/regler.php
 msgid "Détails des mensualités exigibles"
-msgstr ""
+msgstr "تفاصيل الدفعات الشهرية المستحقة"
 
 #: src/views/roles/edit.php
 msgid "Détails du Rôle"
-msgstr ""
+msgstr "تفاصيل الدور"
 
 #: src/views/classes/index.php
 msgid "Détails et matières"
-msgstr ""
+msgstr "التفاصيل والمواد"
 
 #: src/views/paiements/regler.php
 msgid "EN RETARD"
-msgstr ""
+msgstr "متأخر"
 
-#: src/views/licences/index.php
-#: src/views/lycees/index.php
+#: src/views/licences/index.php src/views/lycees/index.php
 msgid "Edit"
-msgstr ""
+msgstr "يحرر"
 
 #: src/views/lycees/edit.php
 msgid "Edit High School"
-msgstr ""
+msgstr "تحرير المدرسة الثانوية"
 
 #: src/views/licences/edit.php
 msgid "Edit License"
-msgstr ""
+msgstr "تحرير الترخيص"
 
 #: src/views/cahier_texte/index.php
 msgid "Effacer"
-msgstr ""
+msgstr "لمحو"
 
 #: src/views/users/profile.php
 msgid "Effacer le dessin"
-msgstr ""
+msgstr "محو الرسم"
 
 #: src/views/paiements/journal.php
 msgid "Effectif"
-msgstr ""
+msgstr "فعال"
 
 #: src/views/classes/show.php
 msgid "Effectif actuel"
-msgstr ""
+msgstr "القوى العاملة الحالية"
 
-#: src/views/lycees/edit.php
-#: src/views/lycees/create.php
-#: src/views/setup/step1_multi.php
-#: src/views/setup/step1_single.php
-#: src/views/eleves/_form.php
-#: src/views/users/_form.php
-#: src/views/users/view.php
-#: src/views/auth/login.php
+#: src/views/lycees/edit.php src/views/lycees/create.php
+#: src/views/setup/step1_multi.php src/views/setup/step1_single.php
+#: src/views/eleves/_form.php src/views/users/_form.php
+#: src/views/users/view.php src/views/auth/login.php
 msgid "Email"
 msgstr "البريد الإلكتروني"
 
 #: src/views/auth/login.php
 msgid "Email ou mot de passe incorrect."
-msgstr ""
+msgstr "البريد الإلكتروني أو كلمة المرور غير صحيحة."
 
-#: src/controllers/HomeController.php
-#: src/views/layouts/sidebar_able.php
+#: src/controllers/HomeController.php src/views/layouts/sidebar_able.php
 msgid "Emploi du Temps"
 msgstr "جدول التوقيت"
 
-#: src/views/presences/gerer.php
-#: src/views/mensualites/class_dashboard.php
+#: src/views/presences/gerer.php src/views/mensualites/class_dashboard.php
 msgid "En retard"
-msgstr ""
+msgstr "متأخر"
 
 #: src/views/boutique/shop/index.php
 msgid "En stock"
-msgstr ""
+msgstr "في الأوراق المالية"
 
 #: src/views/settings/index.php
 msgid "En-tête Administrative (Principale)"
-msgstr ""
+msgstr "العنوان الإداري (الرئيسي)"
 
 #: src/views/settings/index.php
 msgid "En-tête Administrative (Secondaire / Arabe)"
-msgstr ""
+msgstr "ترويسة إدارية (ثانوي / عربي)"
 
 #: src/views/mensualites/class_dashboard.php
 msgid "Encaisser"
-msgstr ""
+msgstr "نقدا في"
 
 #: src/views/licences/index.php
 msgid "End Date"
-msgstr ""
+msgstr "تاريخ الانتهاء"
 
 #: src/views/annees_academiques/_form.php
-#: src/views/boutique/articles/create.php
-#: src/views/matieres/create.php
-#: src/views/cycles/create.php
-#: src/views/classes/create.php
-#: src/views/type_contrat/_form.php
-#: src/views/eleves/create.php
-#: src/views/series/index.php
-#: src/views/cahier_texte/_form.php
-#: src/views/users/_form.php
-#: src/views/roles/create.php
+#: src/views/boutique/articles/create.php src/views/matieres/create.php
+#: src/views/cycles/create.php src/views/classes/create.php
+#: src/views/type_contrat/_form.php src/views/eleves/create.php
+#: src/views/series/index.php src/views/cahier_texte/_form.php
+#: src/views/users/_form.php src/views/roles/create.php
 msgid "Enregistrer"
 msgstr "حفظ"
 
 #: src/views/boutique/achats/create.php
 msgid "Enregistrer l'Achat"
-msgstr ""
+msgstr "حفظ الشراء"
 
 #: src/views/bulletins/blocs/_resume_moyennes.php
 msgid "Enregistrer l'Appréciation"
@@ -1310,43 +1201,40 @@ msgstr "حفظ التقييم"
 
 #: src/views/settings/index.php
 msgid "Enregistrer les Paramètres"
-msgstr ""
+msgstr "حفظ الإعدادات"
 
 #: src/views/presences/gerer.php
 msgid "Enregistrer les Présences"
-msgstr ""
+msgstr "تسجيل الحضور"
 
-#: src/views/classes/show.php
-#: src/views/evaluations/parametres_form.php
+#: src/views/classes/show.php src/views/evaluations/parametres_form.php
 #: src/views/users/profile.php
 msgid "Enregistrer les paramètres"
-msgstr ""
+msgstr "حفظ الإعدادات"
 
 #: src/views/modele_carte/edit.php
 msgid "Enregistrer ma Personnalisation"
-msgstr ""
+msgstr "حفظ التخصيص الخاص بي"
 
-#: src/views/boutique/achats/create.php
-#: src/views/boutique/achats/create.php
+#: src/views/boutique/achats/create.php src/views/boutique/achats/create.php
 msgid "Enregistrer un Achat"
-msgstr ""
+msgstr "تسجيل عملية شراء"
 
-#: src/views/classes/show.php
-#: src/views/cahier_texte/index.php
+#: src/views/classes/show.php src/views/cahier_texte/index.php
 msgid "Enseignant"
-msgstr ""
+msgstr "مدرس"
 
 #: src/views/tests_entree/index.php
 msgid "Entrance Test Management"
-msgstr ""
+msgstr "إدارة اختبار القبول"
 
 #: src/views/cahier_texte/index.php
 msgid "Entrées du Cahier de Texte"
-msgstr ""
+msgstr "إدخالات الكتاب النصي"
 
 #: src/controllers/AnneeAcademiqueController.php
 msgid "Erreur lors de l'activation de l'année académique: "
-msgstr ""
+msgstr "خطأ عند تفعيل العام الدراسي:"
 
 #: src/controllers/UserController.php
 msgid "Erreur lors de l'enregistrement des paramètres."
@@ -1354,461 +1242,451 @@ msgstr "خطأ أثناء تسجيل الإعدادات."
 
 #: src/views/modele_bulletin/edit.php
 msgid "Error:"
-msgstr ""
+msgstr "خطأ:"
 
-#: src/views/cycles/create.php
-#: src/views/classes/create.php
+#: src/views/cycles/create.php src/views/classes/create.php
 msgid "Ex: 1"
-msgstr ""
+msgstr "على سبيل المثال: 1"
 
 #: src/views/annees_academiques/_form.php
 msgid "Ex: 2024-2025"
-msgstr ""
+msgstr "مثال: 2024-2025"
 
 #: src/views/cycles/create.php
 msgid "Ex: 3"
-msgstr ""
+msgstr "على سبيل المثال: 3"
 
 #: src/views/evaluations/deblocage_form.php
 msgid "Ex: Correction d'erreur de saisie demandée par le proviseur"
-msgstr ""
+msgstr "على سبيل المثال: تصحيح خطأ الإدخال الذي طلبه مدير المدرسة"
 
 #: src/views/cycles/create.php
 msgid "Ex: Lycée"
-msgstr ""
+msgstr "على سبيل المثال: المدرسة الثانوية"
 
-#: src/views/boutique/articles/edit.php
-#: src/views/boutique/articles/create.php
+#: src/views/boutique/articles/edit.php src/views/boutique/articles/create.php
 msgid "Ex: Papeterie"
-msgstr ""
+msgstr "على سبيل المثال: القرطاسية"
 
 #: src/views/evaluations/parametres_form.php
 msgid "Ex: Période de saisie normale pour le premier semestre"
-msgstr ""
+msgstr "على سبيل المثال: فترة الدخول العادية للفصل الدراسي الأول"
 
 #: src/views/boutique/articles/create.php
 msgid "Ex: Uniforme scolaire"
-msgstr ""
+msgstr "على سبيل المثال: الزي المدرسي"
 
 #: src/views/evaluations/deblocage_index.php
 msgid "Expiré"
-msgstr ""
+msgstr "منتهي الصلاحية"
 
 #: src/views/boutique/articles/index.php
 msgid "Faible"
-msgstr ""
+msgstr "ضعيف"
 
 #: src/controllers/RoleController.php
 msgid "Failed to create role. Please try again."
-msgstr ""
+msgstr "فشل إنشاء الدور. يرجى المحاولة مرة أخرى."
 
 #: src/controllers/RoleController.php
 msgid "Failed to delete the role."
-msgstr ""
+msgstr "فشل حذف الدور."
 
 #: src/controllers/RoleController.php
 msgid "Failed to update role. Please try again."
-msgstr ""
+msgstr "فشل تحديث الدور. يرجى المحاولة مرة أخرى."
 
 #: src/views/users/_form.php
 msgid "Femme"
-msgstr ""
+msgstr "نحيف"
 
 #: src/views/evaluations/parametres_index.php
 msgid "Fermeture"
-msgstr ""
+msgstr "إغلاق"
 
 #: src/views/paiements/journal.php
 msgid "Fiche"
-msgstr ""
+msgstr "استمارة"
 
-#: src/views/paiements/journal.php
-#: src/views/eleves/index.php
+#: src/views/paiements/journal.php src/views/eleves/index.php
 #: src/views/cahier_texte/index.php
 msgid "Filtrer"
-msgstr ""
+msgstr "فلتر"
 
 #: src/views/cahier_texte/index.php
 msgid "Filtrer par classe"
-msgstr ""
+msgstr "تصفية حسب الفئة"
 
 #: src/views/cahier_texte/index.php
 msgid "Filtrer par date"
-msgstr ""
+msgstr "تصفية حسب التاريخ"
 
 #: src/views/cahier_texte/index.php
 msgid "Filtrer par enseignant"
-msgstr ""
+msgstr "تصفية حسب المعلم"
 
 #: src/views/cahier_texte/index.php
 msgid "Filtres"
-msgstr ""
+msgstr "المرشحات"
 
 #: src/views/paiements/journal.php
 msgid "Filtres de recherche"
-msgstr ""
+msgstr "مرشحات البحث"
 
 #: src/views/paiements/regler.php
 msgid "Finalisation du règlement"
-msgstr ""
+msgstr "الانتهاء من التسوية"
 
 #: src/views/type_contrat/_form.php
 msgid "Fixe"
-msgstr ""
+msgstr "مُثَبَّت"
 
-#: src/views/users/_form.php
-#: src/views/users/index.php
+#: src/views/users/_form.php src/views/users/index.php
 msgid "Fonction"
-msgstr ""
+msgstr "وظيفة"
 
 #: src/views/tests_entree/create.php
 msgid "For student"
-msgstr ""
+msgstr "للطلاب"
 
 #: src/views/modele_carte/edit.php
 msgid "Format Standard CR80"
-msgstr ""
+msgstr "تنسيق CR80 القياسي"
 
 #: src/views/modele_carte/edit.php
 msgid "Format recommandé : 85.6 x 53.98mm"
-msgstr ""
+msgstr "التنسيق الموصى به: 85.6 × 53.98 ملم"
 
 #: src/views/eleves/_form.php
-msgid "Format recommandé : Portrait (3:4). La photo sera automatiquement redimensionnée."
-msgstr ""
+msgid ""
+"Format recommandé : Portrait (3:4). La photo sera automatiquement "
+"redimensionnée."
+msgstr "التنسيق الموصى به: عمودي (3:4). سيتم تغيير حجم الصورة تلقائيًا."
 
 #: src/views/modele_carte/edit.php
 msgid "Forme"
-msgstr ""
+msgstr "شكل"
 
 #: src/views/paiements/regler.php
 msgid "Frais d'inscription"
-msgstr ""
+msgstr "رسوم التسجيل"
 
 #: src/views/eleves/_form.php
 msgid "Féminin"
-msgstr ""
+msgstr "أنثى"
 
 #: src/views/bulletins/class_results.php
 msgid "General Average"
-msgstr ""
+msgstr "المتوسط ​​العام"
 
-#: src/views/licences/create.php
-#: src/views/licences/index.php
+#: src/views/licences/create.php src/views/licences/index.php
 msgid "Generate License"
-msgstr ""
+msgstr "إنشاء الترخيص"
 
 #: src/views/licences/create.php
 msgid "Generate New License"
-msgstr ""
+msgstr "إنشاء ترخيص جديد"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gestion"
-msgstr ""
+msgstr "إدارة"
 
 #: src/views/boutique/articles/index.php
 msgid "Gestion de la Boutique"
-msgstr ""
+msgstr "إدارة المتجر"
 
 #: src/views/annees_academiques/index.php
 msgid "Gestion des Années Académiques"
-msgstr ""
+msgstr "إدارة السنوات الأكاديمية"
 
 #: src/views/classes/index.php
 msgid "Gestion des Classes"
-msgstr ""
+msgstr "إدارة الصف"
 
 #: src/views/cycles/index.php
 msgid "Gestion des Cycles"
-msgstr ""
+msgstr "إدارة الدورة"
 
 #: src/views/evaluations/deblocage_index.php
 msgid "Gestion des Déblocages"
-msgstr ""
+msgstr "إدارة رفع الحظر"
 
 #: src/views/evaluations/deblocage_index.php
 msgid "Gestion des Déblocages des Notes"
-msgstr ""
+msgstr "إدارة إصدارات المذكرة"
 
 #: src/views/matieres/index.php
 msgid "Gestion des Matières"
-msgstr ""
+msgstr "إدارة المواد"
 
 #: src/views/mensualites/index.php
 msgid "Gestion des Mensualités"
-msgstr ""
+msgstr "إدارة المدفوعات الشهرية"
 
 #: src/views/presences/gerer.php
 msgid "Gestion des Présences"
-msgstr ""
+msgstr "إدارة الحضور"
 
 #: src/views/evaluations/parametres_index.php
 msgid "Gestion des Périodes de Saisie"
-msgstr ""
+msgstr "إدارة فترات الدخول"
 
 #: src/views/evaluations/parametres_index.php
 msgid "Gestion des Périodes de Saisie des Notes"
-msgstr ""
+msgstr "إدارة فترات إدخال المذكرة"
 
 #: src/views/paiements/restes.php
 msgid "Gestion des Restes / Dettes"
-msgstr ""
+msgstr "إدارة الرفات / الديون"
 
 #: src/views/roles/index.php
 msgid "Gestion des Rôles"
-msgstr ""
+msgstr "إدارة الأدوار"
 
 #: src/views/series/index.php
 msgid "Gestion des Séries"
-msgstr ""
+msgstr "إدارة السلسلة"
 
 #: src/views/type_contrat/index.php
 msgid "Gestion des Types de Contrat"
-msgstr ""
+msgstr "إدارة أنواع العقود"
 
-#: src/views/paiements/regler.php
-#: src/views/paiements/restes.php
+#: src/views/paiements/regler.php src/views/paiements/restes.php
 #: src/views/layouts/sidebar_able.php
 msgid "Gestion des restes"
 msgstr "إدارة البواقي"
 
 #: src/views/eleves/index.php
 msgid "Gestion des Élèves Actifs"
-msgstr ""
+msgstr "إدارة الطلاب النشطين"
 
 #: src/views/users/index.php
 msgid "Gestion du personnel"
-msgstr ""
+msgstr "إدارة شؤون الموظفين"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gestion mensualités"
 msgstr "إدارة الأقساط الشهرية"
 
-#: src/views/evaluations/parametres_index.php
-#: src/views/roles/index.php
+#: src/views/evaluations/parametres_index.php src/views/roles/index.php
 msgid "Global"
-msgstr ""
+msgstr "إجمالي"
 
 #: src/views/evaluations/deblocage_form.php
 #: src/views/evaluations/parametres_form.php
 msgid "Global (Tout l'établissement)"
-msgstr ""
+msgstr "الإجمالي (المنشأة بأكملها)"
 
 #: src/views/modele_bulletin/edit.php
 msgid "Grades Table"
-msgstr ""
+msgstr "جدول الدرجات"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Générer et consulter les bulletins de notes."
-msgstr ""
+msgstr "إنشاء وعرض بطاقات التقرير."
 
-#: src/views/paiements/journal.php
-#: src/views/paiements/rapports.php
+#: src/views/paiements/journal.php src/views/paiements/rapports.php
 msgid "Généré le"
-msgstr ""
+msgstr "تم الإنشاء بتاريخ"
 
 #: src/views/home/index.php
 msgid "Gérer Présences"
-msgstr ""
+msgstr "إدارة الحضور"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer et imprimer les reçus."
-msgstr ""
+msgstr "إدارة وطباعة الإيصالات."
 
 #: src/controllers/HomeController.php
 msgid "Gérer la Boutique"
-msgstr ""
+msgstr "إدارة المتجر"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer la liste des matières enseignées."
-msgstr ""
+msgstr "إدارة قائمة المواد التي يتم تدريسها."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer la paie des employés."
-msgstr ""
+msgstr "إدارة رواتب الموظفين."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer la politique financière globale."
-msgstr ""
+msgstr "إدارة السياسة المالية الشاملة."
 
 #: src/controllers/HomeController.php
 msgid "Gérer les Années Académiques"
-msgstr ""
+msgstr "إدارة السنوات الأكاديمية"
 
 #: src/controllers/HomeController.php
 msgid "Gérer les Classes"
-msgstr ""
+msgstr "إدارة الفصول"
 
 #: src/controllers/HomeController.php
 msgid "Gérer les Contrats"
-msgstr ""
+msgstr "إدارة العقود"
 
 #: src/controllers/HomeController.php
 msgid "Gérer les Cycles"
-msgstr ""
+msgstr "إدارة الدورات الدراسية"
 
 #: src/controllers/HomeController.php
 msgid "Gérer les Licences"
-msgstr ""
+msgstr "إدارة التراخيص"
 
 #: src/controllers/HomeController.php
 msgid "Gérer les Lycées"
-msgstr ""
+msgstr "إدارة المدارس الثانوية"
 
 #: src/controllers/HomeController.php
 msgid "Gérer les Matières"
-msgstr ""
+msgstr "إدارة المواد"
 
 #: src/controllers/HomeController.php
 msgid "Gérer les Rôles"
-msgstr ""
+msgstr "إدارة الأدوار"
 
 #: src/controllers/HomeController.php
 msgid "Gérer les Salaires"
-msgstr ""
+msgstr "إدارة الرواتب"
 
 #: src/controllers/HomeController.php
 msgid "Gérer les Utilisateurs"
-msgstr ""
+msgstr "إدارة المستخدمين"
 
 #: src/views/layouts/header_able.php
 msgid "Gérer les années"
-msgstr ""
+msgstr "إدارة السنوات"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer les années académiques et définir l'année active."
-msgstr ""
+msgstr "إدارة السنوات الدراسية وتحديد السنة النشطة."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer les articles et les achats de la boutique."
-msgstr ""
+msgstr "إدارة عناصر المتجر والمشتريات."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer les classes, les matières et les enseignants associés."
-msgstr ""
+msgstr "إدارة الفصول الدراسية والموضوعات والمعلمين المرتبطين بها."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer les cycles d'enseignement (collège, lycée)."
-msgstr ""
+msgstr "إدارة الدورات التعليمية (المرحلة المتوسطة، المرحلة الثانوية)."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer les différents établissements scolaires."
-msgstr ""
+msgstr "إدارة المؤسسات التعليمية المختلفة."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer les dossiers des élèves, inscriptions et archives."
-msgstr ""
+msgstr "إدارة ملفات الطلاب والتسجيلات والمحفوظات."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer les déblocages exceptionnels pour la saisie des notes."
-msgstr ""
+msgstr "إدارة الإصدارات الاستثنائية لإدخال الملاحظات."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer les impayés et restes à payer."
-msgstr ""
+msgstr "إدارة المدفوعات غير المدفوعة والمستحقة."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer les inscriptions des nouveaux élèves."
-msgstr ""
+msgstr "إدارة تسجيلات الطلاب الجدد."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer les licences de l'application."
-msgstr ""
+msgstr "إدارة تراخيص التطبيقات."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer les membres du personnel, leurs rôles et leurs accès."
-msgstr ""
+msgstr "إدارة الموظفين وأدوارهم وإمكانية الوصول إليهم."
 
 #: src/views/eleves/index.php
 msgid "Gérer les paiements"
-msgstr ""
+msgstr "إدارة المدفوعات"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer les paiements d'inscription."
-msgstr ""
+msgstr "إدارة مدفوعات التسجيل."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer les paiements mensuels."
-msgstr ""
+msgstr "إدارة المدفوعات الشهرية."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer les réinscriptions des élèves existants."
-msgstr ""
+msgstr "إدارة إعادة تسجيل الطلاب الحاليين."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer les rôles et les permissions associées."
-msgstr ""
+msgstr "إدارة الأدوار والأذونات المرتبطة بها."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer les séquences et les périodes d'évaluation."
-msgstr ""
+msgstr "إدارة تسلسل وفترات التقييم."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer les séries d'enseignement."
-msgstr ""
+msgstr "إدارة سلسلة التدريس."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Gérer les types de contrats du personnel."
-msgstr ""
+msgstr "إدارة أنواع عقود الموظفين."
 
 #: src/controllers/HomeController.php
 msgid "Gérer les Élèves"
-msgstr ""
+msgstr "إدارة الطلاب"
 
 #: src/views/modele_bulletin/edit.php
 msgid "Header (School Name, etc.)"
-msgstr ""
+msgstr "العنوان (اسم المدرسة، وما إلى ذلك)"
 
 #: src/views/cahier_texte/_form.php
 msgid "Heure de début"
-msgstr ""
+msgstr "وقت البدء"
 
 #: src/views/cahier_texte/_form.php
 msgid "Heure de fin"
-msgstr ""
+msgstr "وقت الانتهاء"
 
-#: src/views/licences/edit.php
-#: src/views/licences/create.php
+#: src/views/licences/edit.php src/views/licences/create.php
 #: src/views/licences/index.php
 msgid "High School"
-msgstr ""
+msgstr "مدرسة ثانوية"
 
 #: src/views/lycees/index.php
 msgid "High School Management"
-msgstr ""
+msgstr "إدارة المدرسة الثانوية"
 
-#: src/views/lycees/edit.php
-#: src/views/lycees/create.php
+#: src/views/lycees/edit.php src/views/lycees/create.php
 #: src/views/lycees/index.php
 msgid "High School Name"
-msgstr ""
+msgstr "اسم المدرسة الثانوية"
 
-#: src/views/lycees/edit.php
-#: src/views/lycees/create.php
+#: src/views/lycees/edit.php src/views/lycees/create.php
 msgid "High School Type"
-msgstr ""
+msgstr "نوع المدرسة الثانوية"
 
 #: src/views/paiements/journal.php
 msgid "Historique"
-msgstr ""
+msgstr "تاريخية"
 
-#: src/views/boutique/achats/create.php
-#: src/views/boutique/achats/index.php
+#: src/views/boutique/achats/create.php src/views/boutique/achats/index.php
 #: src/views/boutique/achats/index.php
 msgid "Historique des Achats"
-msgstr ""
+msgstr "تاريخ الشراء"
 
 #: src/views/evaluations/deblocage_index.php
 msgid "Historique des Déblocages"
-msgstr ""
+msgstr "فتح التاريخ"
 
 #: src/views/eleves/details.php
 msgid "Historique des Inscriptions"
-msgstr ""
+msgstr "تاريخ التسجيل"
 
 #: src/views/eleves/details.php
 msgid "Historique des Paiements Mensuels"
-msgstr ""
+msgstr "تاريخ الدفع الشهري"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Historique paiements"
@@ -1816,106 +1694,98 @@ msgstr "سجل المدفوعات"
 
 #: src/views/users/_form.php
 msgid "Homme"
-msgstr ""
+msgstr "رجل"
 
 #: src/views/boutique/achats/recu.php
 msgid "ID"
-msgstr ""
+msgstr "بطاقة تعريف"
 
 #: src/views/users/view.php
 msgid "Identifiant Public"
-msgstr ""
+msgstr "المعرف العام"
 
 #: src/views/eleves/details.php
 msgid "Identifiant Public / Matricule"
-msgstr ""
+msgstr "المعرف العام / رقم التسجيل"
 
 #: src/views/home/index.php
 msgid "Il y a %d élève(s) en attente de paiement initial."
-msgstr ""
+msgstr "هناك %d طالب (طلاب) في انتظار الدفعة الأولية."
 
 #: src/views/boutique/articles/index.php
 msgid "Image"
-msgstr ""
+msgstr "صورة"
 
-#: src/views/boutique/articles/edit.php
-#: src/views/boutique/articles/create.php
+#: src/views/boutique/articles/edit.php src/views/boutique/articles/create.php
 msgid "Image de l'Article"
-msgstr ""
+msgstr "صورة العنصر"
 
 #: src/views/cycles/index.php
-msgid "Impossible de supprimer ce cycle car il est utilisé par une ou plusieurs classes."
-msgstr ""
+msgid ""
+"Impossible de supprimer ce cycle car il est utilisé par une ou plusieurs "
+"classes."
+msgstr "لا يمكن حذف هذه الدورة لأنه يتم استخدامها بواسطة فئة واحدة أو أكثر."
 
 #: src/views/paiements/journal.php
 msgid "Imprimer"
-msgstr ""
+msgstr "مطبعة"
 
-#: src/views/eleves/details.php
-#: src/views/eleves/index.php
+#: src/views/eleves/details.php src/views/eleves/index.php
 msgid "Imprimer la carte"
-msgstr ""
+msgstr "اطبع الخريطة"
 
 #: src/views/paiements/restes_table.php
 msgid "Imprimer la liste"
-msgstr ""
+msgstr "قائمة الطباعة"
 
-#: src/views/boutique/achats/recu.php
-#: src/views/paiements/journal.php
+#: src/views/boutique/achats/recu.php src/views/paiements/journal.php
 msgid "Imprimer le reçu"
-msgstr ""
+msgstr "طباعة الإيصال"
 
 #: src/views/carte/generer.php
 msgid "Imprimer les Cartes"
 msgstr "طباعة البطاقات"
 
-#: src/views/classes/show.php
-#: src/views/mensualites/class_dashboard.php
+#: src/views/classes/show.php src/views/mensualites/class_dashboard.php
 msgid "Imprimer les cartes de la classe"
-msgstr ""
+msgstr "طباعة بطاقات الصف"
 
-#: src/views/users/index.php
-#: src/views/users/view.php
+#: src/views/users/index.php src/views/users/view.php
 msgid "Inactif"
-msgstr ""
+msgstr "غير نشط"
 
-#: src/views/annees_academiques/index.php
-#: src/views/licences/index.php
+#: src/views/annees_academiques/index.php src/views/licences/index.php
 msgid "Inactive"
-msgstr ""
+msgstr "غير نشط"
 
 #: src/views/modele_bulletin/edit.php
 msgid "Information"
-msgstr ""
+msgstr "معلومة"
 
-#: src/views/eleves/details.php
-#: src/views/users/_form.php
+#: src/views/eleves/details.php src/views/users/_form.php
 #: src/views/users/view.php
 msgid "Informations Personnelles"
-msgstr ""
+msgstr "معلومات شخصية"
 
-#: src/views/users/_form.php
-#: src/views/users/view.php
+#: src/views/users/_form.php src/views/users/view.php
 msgid "Informations Professionnelles"
-msgstr ""
+msgstr "المعلومات المهنية"
 
 #: src/views/eleves/_form.php
 msgid "Informations des Parents / Tuteur"
-msgstr ""
+msgstr "معلومات ولي الأمر/الوصي"
 
-#: src/views/users/_form.php
-#: src/views/users/view.php
+#: src/views/users/_form.php src/views/users/view.php
 msgid "Informations du Compte"
-msgstr ""
+msgstr "معلومات الحساب"
 
 #: src/views/setup/step1_single.php
 msgid "Informations sur l'école"
-msgstr ""
+msgstr "معلومات المدرسة"
 
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php src/views/paiements/journal.php
 msgid "Inscription"
-msgstr ""
+msgstr "تسجيل"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Inscriptions"
@@ -1923,71 +1793,81 @@ msgstr "التسجيلات"
 
 #: src/views/setup/step0_choice.php
 msgid "Installation Mono-école"
-msgstr ""
+msgstr "تركيب المدرسة الأحادية"
 
 #: src/views/setup/step0_choice.php
 msgid "Installation Multi-écoles"
-msgstr ""
+msgstr "تركيب متعدد المدارس"
 
 #: src/views/modele_carte/edit.php
 msgid "Inverser Photo / Infos"
-msgstr ""
+msgstr "عكس الصورة / المعلومات"
 
-#: src/views/paiements/journal.php
-#: src/views/layouts/sidebar_able.php
+#: src/views/paiements/journal.php src/views/layouts/sidebar_able.php
 msgid "Journal Comptable"
 msgstr "الدفتر اليومي"
 
 #: src/views/paiements/journal.php
 msgid "Journal Comptable Unique"
-msgstr ""
+msgstr "مجلة محاسبة واحدة"
 
 #: src/views/presences/gerer.php
 msgid "Justifié"
-msgstr ""
+msgstr "مبرر"
 
 #: src/controllers/AnneeAcademiqueController.php
-msgid "L'année académique a été clôturée avec succès. Les opérations comptables sont désormais verrouillées."
-msgstr ""
+msgid ""
+"L'année académique a été clôturée avec succès. Les opérations comptables "
+"sont désormais verrouillées."
+msgstr "تم الانتهاء من العام الدراسي بنجاح. العمليات المحاسبية مقفلة الآن."
 
 #: src/controllers/AnneeAcademiqueController.php
-msgid "L'année académique a été réouverte. Les opérations comptables sont à nouveau autorisées."
-msgstr ""
+msgid ""
+"L'année académique a été réouverte. Les opérations comptables sont à nouveau"
+" autorisées."
+msgstr "تم إعادة فتح العام الدراسي. يتم السماح بالعمليات المحاسبية مرة أخرى."
 
 #: src/controllers/AnneeAcademiqueController.php
 msgid "L'année académique demandée n'existe pas."
-msgstr ""
+msgstr "العام الدراسي المطلوب غير موجود."
 
 #: src/views/matieres/index.php
-msgid "La suppression a échoué. La matière est probablement utilisée dans une ou plusieurs classes ou par un enseignant."
+msgid ""
+"La suppression a échoué. La matière est probablement utilisée dans une ou "
+"plusieurs classes ou par un enseignant."
 msgstr ""
+"فشل الحذف. من المحتمل أن يتم استخدام المادة في فصل واحد أو أكثر أو بواسطة "
+"المعلم."
 
 #: src/views/roles/create.php
-msgid "Laissez sur \"Global\" pour les rôles généraux (ex: Enseignant), ou assignez à une école pour un rôle local (ex: Administrateur local)."
+msgid ""
+"Laissez sur \"Global\" pour les rôles généraux (ex: Enseignant), ou assignez"
+" à une école pour un rôle local (ex: Administrateur local)."
 msgstr ""
+"اترك الوضع \"عام\" للأدوار العامة (على سبيل المثال: المعلم)، أو قم بتعيينه "
+"لمدرسة للقيام بدور محلي (على سبيل المثال: المسؤول المحلي)."
 
 #: src/views/boutique/articles/edit.php
 msgid "Laissez vide pour conserver l'image actuelle."
-msgstr ""
+msgstr "اتركه فارغًا للاحتفاظ بالصورة الحالية."
 
 #: src/views/users/_form.php
 msgid "Laissez vide pour ne pas changer."
-msgstr ""
+msgstr "اتركه فارغا حتى لا يتغير."
 
 #: src/views/users/profile.php
 msgid "Langue préférée"
-msgstr ""
+msgstr "اللغة المفضلة"
 
 #: src/views/modele_bulletin/edit.php
 msgid "Layout saved successfully!"
-msgstr ""
+msgstr "تم حفظ التخطيط بنجاح!"
 
 #: src/views/boutique/achats/recu.php
 msgid "Le Caissier"
-msgstr ""
+msgstr "أمين الصندوق"
 
-#: src/views/recus/inscription.php
-#: src/views/recus/mensualite.php
+#: src/views/recus/inscription.php src/views/recus/mensualite.php
 msgid "Le Caissier / Comptable"
 msgstr "أمين الصندوق / المحاسب"
 
@@ -1995,105 +1875,100 @@ msgstr "أمين الصندوق / المحاسب"
 msgid "Le Chef d'établissement"
 msgstr "رئيس المؤسسة"
 
-#: src/views/recus/inscription.php
-#: src/views/recus/mensualite.php
+#: src/views/recus/inscription.php src/views/recus/mensualite.php
 msgid "Le Parent / L'Élève"
 msgstr "ولي الأمر / الطالب"
 
 #: src/views/paiements/regler.php
 msgid "Le montant maximum autorisé est de "
-msgstr ""
+msgstr "الحد الأقصى للمبلغ المصرح به هو"
 
 #: src/views/roles/edit.php
 msgid "Le nom des rôles par défaut ne peut pas être modifié."
-msgstr ""
+msgstr "لا يمكن تغيير أسماء الأدوار الافتراضية."
 
 #: src/controllers/PaiementController.php
-msgid "Le reçu N° %s a été annulé avec succès. Les dettes de l'élève ont été mises à jour."
+msgid ""
+"Le reçu N° %s a été annulé avec succès. Les dettes de l'élève ont été mises "
+"à jour."
 msgstr "تم إلغاء الإيصال رقم %s بنجاح. تم تحديث ديون الطالب."
 
 #: src/views/paiements/regler.php
-msgid "Les paiements seront affectés chronologiquement du mois le plus ancien au plus récent (Point 7)."
-msgstr ""
+msgid ""
+"Les paiements seront affectés chronologiquement du mois le plus ancien au "
+"plus récent (Point 7)."
+msgstr "سيتم تخصيص الدفعات بترتيب زمني من أقدم شهر إلى أحدث شهر (النقطة 7)."
 
 #: src/views/classes/show.php
-msgid "Les paramètres annuels ne peuvent pas être modifiés car aucune année académique n'est active ou vous n'avez pas les permissions."
+msgid ""
+"Les paramètres annuels ne peuvent pas être modifiés car aucune année "
+"académique n'est active ou vous n'avez pas les permissions."
 msgstr ""
+"لا يمكن تغيير إعدادات السنة لأنه لا يوجد عام دراسي نشط أو ليس لديك الأذونات."
 
 #: src/views/annees_academiques/_form.php
-#: src/views/annees_academiques/index.php
-#: src/views/type_contrat/index.php
+#: src/views/annees_academiques/index.php src/views/type_contrat/index.php
 msgid "Libellé"
-msgstr ""
+msgstr "التسمية"
 
 #: src/views/type_contrat/_form.php
 msgid "Libellé du contrat"
-msgstr ""
+msgstr "صياغة العقد"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Licences"
 msgstr "التراخيص"
 
-#: src/views/licences/edit.php
-#: src/views/licences/create.php
+#: src/views/licences/edit.php src/views/licences/create.php
 msgid "License Active"
-msgstr ""
+msgstr "الترخيص نشط"
 
 #: src/views/licences/index.php
 msgid "License Management"
-msgstr ""
+msgstr "إدارة التراخيص"
 
-#: src/views/eleves/details.php
-#: src/views/eleves/_form.php
-#: src/views/users/_form.php
-#: src/views/users/view.php
+#: src/views/eleves/details.php src/views/eleves/_form.php
+#: src/views/users/_form.php src/views/users/view.php
 msgid "Lieu de Naissance"
 msgstr "مكان الميلاد"
 
 #: src/views/boutique/articles/index.php
 msgid "Liste des Articles"
-msgstr ""
+msgstr "قائمة المقالات"
 
 #: src/views/mensualites/class_dashboard.php
 msgid "Liste des Élèves"
-msgstr ""
+msgstr "قائمة الطلاب"
 
-#: src/views/matieres/_form.php
-#: src/views/classes/edit.php
-#: src/views/classes/create.php
-#: src/views/series/index.php
+#: src/views/matieres/_form.php src/views/classes/edit.php
+#: src/views/classes/create.php src/views/series/index.php
 #: src/views/series/index.php
 msgid "Littéraire"
-msgstr ""
+msgstr "الأدبية"
 
-#: src/views/lycees/edit.php
-#: src/views/lycees/create.php
-#: src/views/modele_carte/edit.php
-#: src/views/modele_carte/edit.php
+#: src/views/lycees/edit.php src/views/lycees/create.php
+#: src/views/modele_carte/edit.php src/views/modele_carte/edit.php
 msgid "Logo"
-msgstr ""
+msgstr "الشعار"
 
 #: src/views/settings/index.php
 msgid "Logo du Lycée"
-msgstr ""
+msgstr "شعار المدرسة الثانوية"
 
-#: src/views/boutique/articles/edit.php
-#: src/views/boutique/articles/create.php
-#: src/views/classes/edit.php
-#: src/views/classes/create.php
-#: src/views/classes/index.php
-#: src/views/eleves/index.php
+#: src/views/boutique/articles/edit.php src/views/boutique/articles/create.php
+#: src/views/classes/edit.php src/views/classes/create.php
+#: src/views/classes/index.php src/views/eleves/index.php
 #: src/views/eleves/index.php
 msgid "Lycée"
-msgstr ""
+msgstr "مدرسة ثانوية"
 
 #: src/views/type_contrat/_form.php
 msgid "Lycée Spécifique"
-msgstr ""
+msgstr "ثانوية خاصة"
 
 #: src/views/users/_form.php
 msgid "Lycée d'affectation"
-msgstr ""
+msgstr "تكليف بالثانوية العامة"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Lycées"
@@ -2101,18 +1976,16 @@ msgstr "الثانويات"
 
 #: src/views/eleves/_form.php
 msgid "Masculin"
-msgstr ""
+msgstr "ذكر"
 
-#: src/views/home/index.php
-#: src/views/classes/show.php
-#: src/views/classes/show.php
-#: src/views/cahier_texte/index.php
+#: src/views/home/index.php src/views/classes/show.php
+#: src/views/classes/show.php src/views/cahier_texte/index.php
 msgid "Matière"
-msgstr ""
+msgstr "موضوع"
 
 #: src/views/evaluations/parametres_index.php
 msgid "Matière: "
-msgstr ""
+msgstr "موضوع:"
 
 #: src/views/bulletins/blocs/_tableau_notes.php
 #: src/views/layouts/sidebar_able.php
@@ -2121,353 +1994,315 @@ msgstr "المواد"
 
 #: src/views/classes/show.php
 msgid "Matières et Enseignants"
-msgstr ""
+msgstr "المواد والمعلمين"
 
-#: src/views/bulletins/blocs/_info_eleve.php
-#: src/views/recus/inscription.php
+#: src/views/bulletins/blocs/_info_eleve.php src/views/recus/inscription.php
 #: src/views/recus/mensualite.php
 msgid "Matricule"
 msgstr "رقم التسجيل"
 
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php src/views/paiements/journal.php
 msgid "Mensualité"
-msgstr ""
+msgstr "الدفع الشهري"
 
 #: src/views/mensualites/index.php
 msgid "Mensualités"
-msgstr ""
+msgstr "دفعات شهرية"
 
 #: src/views/boutique/achats/recu.php
 msgid "Merci pour votre achat !"
-msgstr ""
+msgstr "شكرا لك على الشراء!"
 
 #: src/views/home/index.php
 msgid "Mes Classes et Matières"
-msgstr ""
+msgstr "فصولي ومواضيعي"
 
-#: src/views/annees_academiques/_form.php
-#: src/views/boutique/articles/edit.php
-#: src/views/matieres/edit.php
-#: src/views/cycles/edit.php
-#: src/views/classes/edit.php
-#: src/views/eleves/edit.php
-#: src/views/series/index.php
-#: src/views/roles/edit.php
+#: src/views/annees_academiques/_form.php src/views/boutique/articles/edit.php
+#: src/views/matieres/edit.php src/views/cycles/edit.php
+#: src/views/classes/edit.php src/views/eleves/edit.php
+#: src/views/series/index.php src/views/roles/edit.php
 msgid "Mettre à jour"
 msgstr "تحديث"
 
 #: src/views/users/profile.php
 msgid "Mettre à jour le mot de passe"
-msgstr ""
+msgstr "تحديث كلمة المرور"
 
 #: src/views/type_contrat/_form.php
 msgid "Mixte"
-msgstr ""
+msgstr "مختلط"
 
 #: src/views/settings/index.php
 msgid "Modalité de Paiement des Frais de Scolarité"
-msgstr ""
+msgstr "طريقة دفع الرسوم المدرسية"
 
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php src/views/paiements/journal.php
 msgid "Mode"
-msgstr ""
+msgstr "موضة"
 
 #: src/views/paiements/regler.php
 msgid "Mode de paiement"
-msgstr ""
+msgstr "طريقة الدفع"
 
-#: src/views/annees_academiques/index.php
-#: src/views/matieres/index.php
-#: src/views/cycles/index.php
-#: src/views/classes/index.php
-#: src/views/classes/index.php
-#: src/views/type_contrat/edit.php
-#: src/views/type_contrat/index.php
-#: src/views/eleves/index.php
-#: src/views/eleves/index.php
-#: src/views/users/index.php
-#: src/views/users/view.php
-#: src/views/roles/index.php
+#: src/views/annees_academiques/index.php src/views/matieres/index.php
+#: src/views/cycles/index.php src/views/classes/index.php
+#: src/views/classes/index.php src/views/type_contrat/edit.php
+#: src/views/type_contrat/index.php src/views/eleves/index.php
+#: src/views/eleves/index.php src/views/users/index.php
+#: src/views/users/view.php src/views/roles/index.php
 msgid "Modifier"
 msgstr "تعديل"
 
 #: src/views/cahier_texte/edit.php
 msgid "Modifier Entrée"
-msgstr ""
+msgstr "تحرير الإدخال"
 
 #: src/views/roles/index.php
 msgid "Modifier Permissions"
-msgstr ""
+msgstr "تحرير الأذونات"
 
 #: src/views/annees_academiques/edit.php
 msgid "Modifier l'Année Académique"
-msgstr ""
+msgstr "تعديل السنة الأكاديمية"
 
-#: src/views/boutique/articles/edit.php
-#: src/views/boutique/articles/edit.php
+#: src/views/boutique/articles/edit.php src/views/boutique/articles/edit.php
 msgid "Modifier l'Article"
-msgstr ""
+msgstr "تحرير المادة"
 
 #: src/views/cahier_texte/edit.php
 msgid "Modifier l'entrée du cahier de texte"
-msgstr ""
+msgstr "تحرير إدخال دفتر الملاحظات"
 
 #: src/views/eleves/edit.php
 msgid "Modifier l'élève"
-msgstr ""
+msgstr "تحرير الطالب"
 
 #: src/views/classes/edit.php
 msgid "Modifier la Classe"
-msgstr ""
+msgstr "تحرير الفصل"
 
 #: src/views/matieres/edit.php
 msgid "Modifier la Matière"
-msgstr ""
+msgstr "تحرير المواد"
 
 #: src/views/series/index.php
 msgid "Modifier la Série"
-msgstr ""
+msgstr "تحرير السلسلة"
 
 #: src/views/cycles/edit.php
 msgid "Modifier le Cycle"
-msgstr ""
+msgstr "تحرير الدورة"
 
 #: src/views/roles/edit.php
 msgid "Modifier le Rôle"
-msgstr ""
+msgstr "تحرير الدور"
 
 #: src/views/users/edit.php
 msgid "Modifier le membre du personnel"
-msgstr ""
+msgstr "تحرير الموظف"
 
 #: src/views/type_contrat/edit.php
 msgid "Modifier le type de contrat"
-msgstr ""
+msgstr "تغيير نوع العقد"
 
 #: src/views/modele_carte/edit.php
 msgid "Modèle Prêt à l'Emploi"
-msgstr ""
+msgstr "نموذج جاهز للاستخدام"
 
 #: src/views/paiements/regler.php
 msgid "Mois"
-msgstr ""
+msgstr "شهر"
 
 #: src/views/eleves/details.php
 msgid "Mois/Séquence"
-msgstr ""
+msgstr "الشهر/التسلسل"
 
 #: src/views/cahier_texte/index.php
 msgid "Mon Cahier de Texte"
-msgstr ""
+msgstr "كتابي المدرسي"
 
-#: src/controllers/UserController.php
-#: src/views/layouts/header_able.php
+#: src/controllers/UserController.php src/views/layouts/header_able.php
 #: src/views/users/profile.php
 msgid "Mon Profil"
 msgstr "ملفي الشخصي"
 
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php src/views/paiements/journal.php
 msgid "Montant"
-msgstr ""
+msgstr "كمية"
 
 #: src/views/eleves/details.php
 msgid "Montant Total"
-msgstr ""
+msgstr "المبلغ الإجمالي"
 
-#: src/views/eleves/details.php
-#: src/views/eleves/details.php
-#: src/views/recus/inscription.php
-#: src/views/recus/mensualite.php
+#: src/views/eleves/details.php src/views/eleves/details.php
+#: src/views/recus/inscription.php src/views/recus/mensualite.php
 msgid "Montant Versé"
 msgstr "المبلغ المدفوع"
 
 #: src/views/paiements/regler.php
 msgid "Montant à verser pour l'inscription"
-msgstr ""
+msgstr "المبلغ الذي يجب دفعه مقابل التسجيل"
 
 #: src/views/paiements/regler.php
 msgid "Montant à verser pour les mensualités"
-msgstr ""
+msgstr "المبلغ المطلوب دفعه مقابل دفعات شهرية"
 
-#: src/views/setup/step1_multi.php
-#: src/views/setup/step1_single.php
-#: src/views/users/_form.php
-#: src/views/auth/login.php
+#: src/views/setup/step1_multi.php src/views/setup/step1_single.php
+#: src/views/users/_form.php src/views/auth/login.php
 msgid "Mot de passe"
-msgstr ""
+msgstr "كلمة المرور"
 
 #: src/views/users/profile.php
 msgid "Mot de passe actuel"
-msgstr ""
+msgstr "كلمة المرور الحالية"
 
 #: src/views/evaluations/deblocage_index.php
 msgid "Motif"
-msgstr ""
+msgstr "نمط"
 
 #: src/views/evaluations/deblocage_form.php
 msgid "Motif du déblocage"
-msgstr ""
+msgstr "سبب فتح"
 
 #: src/views/bulletins/blocs/_resume_moyennes.php
 msgid "Moyenne Générale"
 msgstr "المعدل العام"
 
-#: src/views/eleves/details.php
-#: src/views/eleves/_form.php
+#: src/views/eleves/details.php src/views/eleves/_form.php
 msgid "Nationalité"
 msgstr "الجنسية"
 
 #: src/views/evaluations/parametres_index.php
 msgid "Nature"
-msgstr ""
+msgstr "طبيعة"
 
 #: src/views/evaluations/parametres_form.php
 msgid "Nature de l'évaluation"
-msgstr ""
+msgstr "طبيعة التقييم"
 
 #: src/views/evaluations/deblocage_form.php
 msgid "Nature de l'évaluation à débloquer"
-msgstr ""
+msgstr "طبيعة التقييم المراد فتحه"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Navigation"
-msgstr ""
+msgstr "ملاحة"
 
 #: src/views/tests_entree/index.php
 msgid "New Test"
-msgstr ""
+msgstr "اختبار جديد"
 
-#: src/views/classes/show.php
-#: src/views/classes/edit.php
-#: src/views/classes/create.php
-#: src/views/classes/index.php
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
-#: src/views/paiements/restes.php
-#: src/views/eleves/assign_class.php
-#: src/views/eleves/index.php
-#: src/views/evaluations/deblocage_index.php
+#: src/views/classes/show.php src/views/classes/edit.php
+#: src/views/classes/create.php src/views/classes/index.php
+#: src/views/paiements/journal.php src/views/paiements/journal.php
+#: src/views/paiements/restes.php src/views/eleves/assign_class.php
+#: src/views/eleves/index.php src/views/evaluations/deblocage_index.php
 #: src/views/mensualites/index.php
 msgid "Niveau"
-msgstr ""
+msgstr "مستوى"
 
-#: src/views/cycles/edit.php
-#: src/views/cycles/create.php
+#: src/views/cycles/edit.php src/views/cycles/create.php
 #: src/views/cycles/index.php
 msgid "Niveau de Début"
-msgstr ""
+msgstr "ابدأ المستوى"
 
-#: src/views/cycles/edit.php
-#: src/views/cycles/create.php
+#: src/views/cycles/edit.php src/views/cycles/create.php
 #: src/views/cycles/index.php
 msgid "Niveau de Fin"
-msgstr ""
+msgstr "مستوى النهاية"
 
 #: src/views/evaluations/deblocage_form.php
 #: src/views/evaluations/parametres_form.php
 msgid "Niveau de ciblage"
-msgstr ""
+msgstr "مستوى الاستهداف"
 
 #: src/views/tests_entree/index.php
 msgid "No entrance tests found for this student."
-msgstr ""
+msgstr "لم يتم العثور على اختبارات القبول لهذا الطالب."
 
 #: src/views/lycees/index.php
 msgid "No high schools found."
-msgstr ""
+msgstr "لم يتم العثور على المدارس الثانوية."
 
 #: src/views/bulletins/class_results.php
-msgid "No results found for this selection. Please ensure grades have been entered."
+msgid ""
+"No results found for this selection. Please ensure grades have been entered."
 msgstr ""
+"لم يتم العثور على نتائج لهذا الاختيار. الرجاء التأكد من إدخال الدرجات."
 
-#: src/views/setup/step1_multi.php
-#: src/views/setup/step1_single.php
-#: src/views/eleves/_form.php
-#: src/views/eleves/archives.php
-#: src/views/users/_form.php
-#: src/views/users/index.php
+#: src/views/setup/step1_multi.php src/views/setup/step1_single.php
+#: src/views/eleves/_form.php src/views/eleves/archives.php
+#: src/views/users/_form.php src/views/users/index.php
 msgid "Nom"
 msgstr "اللقب"
 
-#: src/views/bulletins/blocs/_info_eleve.php
-#: src/views/eleves/details.php
+#: src/views/bulletins/blocs/_info_eleve.php src/views/eleves/details.php
 msgid "Nom & Prénom"
 msgstr "الاسم واللقب"
 
 #: src/views/eleves/index.php
 msgid "Nom Complet"
-msgstr ""
+msgstr "الاسم الكامل"
 
-#: src/views/boutique/articles/edit.php
-#: src/views/boutique/articles/create.php
+#: src/views/boutique/articles/edit.php src/views/boutique/articles/create.php
 msgid "Nom de l'Article"
-msgstr ""
+msgstr "اسم العنصر"
 
 #: src/views/eleves/_form.php
 msgid "Nom de la Mère"
-msgstr ""
+msgstr "اسم الأم"
 
-#: src/views/series/index.php
-#: src/views/series/index.php
+#: src/views/series/index.php src/views/series/index.php
 msgid "Nom de la Série"
-msgstr ""
+msgstr "اسم السلسلة"
 
 #: src/views/classes/index.php
 msgid "Nom de la classe"
-msgstr ""
+msgstr "اسم الفئة"
 
-#: src/views/matieres/_form.php
-#: src/views/matieres/index.php
+#: src/views/matieres/_form.php src/views/matieres/index.php
 msgid "Nom de la matière"
-msgstr ""
+msgstr "اسم المادة"
 
-#: src/views/cycles/edit.php
-#: src/views/cycles/create.php
+#: src/views/cycles/edit.php src/views/cycles/create.php
 #: src/views/cycles/index.php
 msgid "Nom du Cycle"
-msgstr ""
+msgstr "اسم الدورة"
 
-#: src/views/settings/index.php
-#: src/views/setup/step1_single.php
+#: src/views/settings/index.php src/views/setup/step1_single.php
 msgid "Nom du Lycée"
-msgstr ""
+msgstr "اسم المدرسة الثانوية"
 
 #: src/views/eleves/_form.php
 msgid "Nom du Père"
-msgstr ""
+msgstr "اسم الأب"
 
-#: src/views/roles/edit.php
-#: src/views/roles/create.php
+#: src/views/roles/edit.php src/views/roles/create.php
 #: src/views/roles/index.php
 msgid "Nom du Rôle"
-msgstr ""
+msgstr "اسم الدور"
 
 #: src/views/paiements/journal.php
 msgid "Nombre d'écritures"
-msgstr ""
+msgstr "عدد الكتابات"
 
 #: src/views/settings/index.php
 msgid "Nombre de devoirs par trimestre"
-msgstr ""
+msgstr "عدد المهام لكل فصل دراسي"
 
 #: src/views/classes/show.php
 msgid "Nombre de places"
-msgstr ""
+msgstr "عدد الأماكن"
 
-#: src/views/classes/show.php
-#: src/views/eleves/index.php
+#: src/views/classes/show.php src/views/eleves/index.php
 msgid "Non assigné"
-msgstr ""
+msgstr "غير معين"
 
 #: src/views/bulletins/blocs/_resume_moyennes.php
 msgid "Non défini"
 msgstr "غير محدد"
 
-#: src/views/layouts/header_able.php
-#: src/views/layouts/header_able.php
+#: src/views/layouts/header_able.php src/views/layouts/header_able.php
 msgid "Non définie"
 msgstr "غير محددة"
 
@@ -2481,104 +2316,95 @@ msgstr "الدرجات"
 
 #: src/views/layouts/header_able.php
 msgid "Notifications"
-msgstr ""
+msgstr "إشعارات"
 
 #: src/views/evaluations/deblocage_index.php
 #: src/views/evaluations/deblocage_form.php
 msgid "Nouveau Déblocage"
-msgstr ""
+msgstr "إفتح جديد"
 
 #: src/views/users/profile.php
 msgid "Nouveau mot de passe"
-msgstr ""
+msgstr "كلمة المرور الجديدة"
 
 #: src/views/evaluations/parametres_form.php
 msgid "Nouveaux Paramètres"
-msgstr ""
+msgstr "إعدادات جديدة"
 
 #: src/views/boutique/achats/index.php
 msgid "Nouvel Achat"
-msgstr ""
+msgstr "شراء جديد"
 
 #: src/views/annees_academiques/create.php
 msgid "Nouvelle Année Académique"
-msgstr ""
+msgstr "العام الدراسي الجديد"
 
 #: src/views/classes/index.php
 msgid "Nouvelle Classe"
-msgstr ""
+msgstr "فئة جديدة"
 
-#: src/views/cahier_texte/create.php
-#: src/views/cahier_texte/index.php
+#: src/views/cahier_texte/create.php src/views/cahier_texte/index.php
 msgid "Nouvelle Entrée"
-msgstr ""
+msgstr "دخول جديد"
 
-#: src/views/matieres/create.php
-#: src/views/matieres/index.php
+#: src/views/matieres/create.php src/views/matieres/index.php
 msgid "Nouvelle Matière"
-msgstr ""
+msgstr "مادة جديدة"
 
-#: src/views/classes/edit.php
-#: src/views/classes/create.php
-#: src/views/paiements/journal.php
-#: src/views/eleves/index.php
+#: src/views/classes/edit.php src/views/classes/create.php
+#: src/views/paiements/journal.php src/views/eleves/index.php
 msgid "Numéro"
-msgstr ""
+msgstr "رقم"
 
 #: src/views/paiements/journal.php
 msgid "Numéro de classe"
-msgstr ""
+msgstr "رقم الفصل"
 
 #: src/views/eleves/assign_class.php
 msgid "Numéro de la Classe"
-msgstr ""
+msgstr "رقم الفصل"
 
 #: src/views/paiements/regler.php
 msgid "Numéro de référence / Reçu"
-msgstr ""
+msgstr "الرقم المرجعي / الإيصال"
 
-#: src/views/paiements/restes.php
-#: src/views/mensualites/index.php
+#: src/views/paiements/restes.php src/views/mensualites/index.php
 msgid "Numéro/Classe"
-msgstr ""
+msgstr "الرقم / الفئة"
 
-#: src/views/paiements/journal.php
-#: src/views/recus/inscription.php
+#: src/views/paiements/journal.php src/views/recus/inscription.php
 #: src/views/recus/mensualite.php
 msgid "N° Reçu"
 msgstr "رقم الإيصال"
 
 #: src/views/classes/show.php
 msgid "Obligatoire"
-msgstr ""
+msgstr "إلزامي"
 
 #: src/views/cahier_texte/_form.php
 msgid "Observations"
-msgstr ""
+msgstr "تعليقات"
 
 #: src/views/modele_carte/edit.php
 msgid "Opacité"
-msgstr ""
+msgstr "العتامة"
 
 #: src/views/settings/index.php
 msgid "Optionnel. Utile pour les lycées bilingues."
-msgstr ""
+msgstr "خياري. مفيد للمدارس الثانوية ثنائية اللغة."
 
-#: src/views/matieres/_form.php
-#: src/views/classes/show.php
+#: src/views/matieres/_form.php src/views/classes/show.php
 msgid "Optionnelle"
-msgstr ""
+msgstr "خياري"
 
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php src/views/paiements/journal.php
 #: src/views/paiements/journal.php
 msgid "Opérateur"
-msgstr ""
+msgstr "المشغل"
 
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php src/views/paiements/journal.php
 msgid "Opération"
-msgstr ""
+msgstr "عملية"
 
 #: src/controllers/PaiementController.php
 msgid "Opération d'encaissement réussie. Reçu N° %s"
@@ -2586,19 +2412,19 @@ msgstr "عملية تحصيل ناجحة. إيصال رقم %s"
 
 #: src/views/users/profile.php
 msgid "Ou dessinez directement ci-dessous :"
-msgstr ""
+msgstr "أو ارسم أدناه مباشرة:"
 
 #: src/views/evaluations/parametres_index.php
 msgid "Ouverture"
-msgstr ""
+msgstr "افتتاح"
 
 #: src/views/boutique/shop/index.php
 msgid "PROMO"
-msgstr ""
+msgstr "عرض ترويجي"
 
 #: src/views/settings/index.php
 msgid "Paiement fractionné"
-msgstr ""
+msgstr "تقسيم الدفع"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Paiement inscription"
@@ -2606,50 +2432,46 @@ msgstr "دفع التسجيل"
 
 #: src/views/boutique/shop/index.php
 msgid "Panier de"
-msgstr ""
+msgstr "سلة"
 
 #: src/views/evaluations/deblocage_form.php
 #: src/views/evaluations/parametres_form.php
 msgid "Par classe"
-msgstr ""
+msgstr "حسب الفصل"
 
 #: src/views/evaluations/deblocage_form.php
 #: src/views/evaluations/parametres_form.php
 msgid "Par classe + matière"
-msgstr ""
+msgstr "حسب الصف + المادة"
 
 #: src/views/evaluations/deblocage_form.php
 #: src/views/evaluations/parametres_form.php
 msgid "Par enseignant (Spécifique)"
-msgstr ""
+msgstr "بواسطة المعلم (محدد)"
 
 #: src/views/evaluations/deblocage_form.php
 #: src/views/evaluations/parametres_form.php
 msgid "Par matière"
-msgstr ""
+msgstr "حسب الموضوع"
 
 #: src/views/classes/show.php
 msgid "Params Éval."
-msgstr ""
+msgstr "بارامس إيفال."
 
-#: src/controllers/HomeController.php
-#: src/views/settings/index.php
+#: src/controllers/HomeController.php src/views/settings/index.php
 #: src/views/layouts/sidebar_able.php
 msgid "Paramètres"
 msgstr "الإعدادات"
 
-#: src/views/layouts/sidebar_able.php
-#: src/views/param_composition/edit.php
+#: src/views/layouts/sidebar_able.php src/views/param_composition/edit.php
 msgid "Paramètres Compositions"
 msgstr "إعدادات الاختبارات"
 
-#: src/views/layouts/sidebar_able.php
-#: src/views/param_devoir/edit.php
+#: src/views/layouts/sidebar_able.php src/views/param_devoir/edit.php
 msgid "Paramètres Devoirs"
 msgstr "إعدادات الفروض"
 
-#: src/views/param_general/edit.php
-#: src/views/layouts/sidebar_able.php
+#: src/views/param_general/edit.php src/views/layouts/sidebar_able.php
 msgid "Paramètres Généraux"
 msgstr "الإعدادات العامة"
 
@@ -2659,23 +2481,23 @@ msgstr "إعدادات الثانوية"
 
 #: src/views/evaluations/parametres_index.php
 msgid "Paramètres de Blocage de Saisie"
-msgstr ""
+msgstr "إعدادات حظر الإدخال"
 
 #: src/views/evaluations/parametres_form.php
 msgid "Paramètres de Saisie"
-msgstr ""
+msgstr "إعدادات الإدخال"
 
 #: src/views/classes/show.php
 msgid "Paramètres des évaluations"
-msgstr ""
+msgstr "إعدادات التقييم"
 
 #: src/views/param_lycee/edit.php
 msgid "Paramètres du Lycée"
-msgstr ""
+msgstr "إعدادات المدرسة الثانوية"
 
 #: src/views/evaluations/deblocage_form.php
 msgid "Paramètres du déblocage"
-msgstr ""
+msgstr "إلغاء حظر الإعدادات"
 
 #: src/controllers/UserController.php
 msgid "Paramètres et signatures enregistrés avec succès."
@@ -2683,7 +2505,7 @@ msgstr "تم تسجيل الإعدادات والتوقيعات بنجاح."
 
 #: src/views/eleves/index.php
 msgid "Paramètres financiers"
-msgstr ""
+msgstr "الإعدادات المالية"
 
 #: src/controllers/SettingsController.php
 msgid "Paramètres mis à jour avec succès."
@@ -2691,168 +2513,159 @@ msgstr "تم تحديث الإعدادات بنجاح."
 
 #: src/views/classes/show.php
 msgid "Paramètres pour l'année"
-msgstr ""
+msgstr "معلمات السنة"
 
 #: src/views/mensualites/class_dashboard.php
 msgid "Partiels"
-msgstr ""
+msgstr "جزئيات"
 
 #: src/views/eleves/index.php
 msgid "Payer"
-msgstr ""
+msgstr "يدفع"
 
 #: src/views/eleves/details.php
 msgid "Payer Mensualité"
-msgstr ""
+msgstr "دفع الدفعة الشهرية"
 
 #: src/views/paiements/regler.php
 msgid "Payé"
-msgstr ""
+msgstr "مدفوع"
 
 #: src/views/bulletins/index.php
 msgid "Period"
-msgstr ""
+msgstr "فترة"
 
 #: src/views/bulletins/class_results.php
 msgid "Period:"
-msgstr ""
+msgstr "فترة:"
 
 #: src/views/roles/edit.php
 msgid "Permissions"
-msgstr ""
+msgstr "الأذونات"
 
 #: src/views/modele_carte/edit.php
 msgid "Personnalisation de la Carte Scolaire"
-msgstr ""
+msgstr "تخصيص البطاقة المدرسية"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Personnaliser le modèle de la carte d'identité scolaire."
-msgstr ""
+msgstr "تخصيص قالب بطاقة الهوية المدرسية."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Personnaliser le modèle du bulletin de notes."
-msgstr ""
+msgstr "تخصيص قالب بطاقة التقرير."
 
 #: src/views/modele_carte/edit.php
 msgid "Personnalisez les couleurs et ajustez les positions selon vos besoins."
-msgstr ""
+msgstr "تخصيص الألوان وضبط المواضع حسب الحاجة."
 
-#: src/views/layouts/sidebar_able.php
-#: src/views/users/index.php
+#: src/views/layouts/sidebar_able.php src/views/users/index.php
 #: src/views/users/view.php
 msgid "Personnel"
 msgstr "الموظفون"
 
 #: src/views/home/index.php
 msgid "Personnel Actif"
-msgstr ""
+msgstr "طاقم العمل النشط"
 
-#: src/views/lycees/edit.php
-#: src/views/lycees/create.php
+#: src/views/lycees/edit.php src/views/lycees/create.php
 msgid "Phone"
-msgstr ""
+msgstr "هاتف"
 
-#: src/views/eleves/index.php
-#: src/views/users/_form.php
-#: src/views/users/index.php
-#: src/views/modele_carte/edit.php
+#: src/views/eleves/index.php src/views/users/_form.php
+#: src/views/users/index.php src/views/modele_carte/edit.php
 #: src/views/modele_carte/edit.php
 msgid "Photo"
-msgstr ""
+msgstr "صورة"
 
 #: src/views/eleves/_form.php
 msgid "Photo de l'élève"
-msgstr ""
+msgstr "صورة الطالب"
 
 #: src/views/modele_carte/edit.php
 msgid "Police"
-msgstr ""
+msgstr "شرطة"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Politique financière"
 msgstr "السياسة المالية"
 
-#: src/views/roles/edit.php
-#: src/views/roles/create.php
+#: src/views/roles/edit.php src/views/roles/create.php
 #: src/views/roles/index.php
 msgid "Portée"
-msgstr ""
+msgstr "نِطَاق"
 
 #: src/views/setup/step0_choice.php
 msgid "Pour une administration nationale ou régionale."
-msgstr ""
+msgstr "لإدارة وطنية أو إقليمية."
 
 #: src/views/setup/step0_choice.php
 msgid "Pour une école privée ou parapublique."
-msgstr ""
+msgstr "لمدرسة خاصة أو شبه حكومية."
 
 #: src/views/eleves/_form.php
 msgid "Prendre une photo"
-msgstr ""
+msgstr "التقط صورة"
 
 #: src/views/matieres/_form.php
 msgid "Principale"
-msgstr ""
+msgstr "رئيسي"
 
 #: src/views/bulletins/show.php
 msgid "Print / PDF"
-msgstr ""
+msgstr "طباعة / قوات الدفاع الشعبي"
 
 #: src/views/type_contrat/index.php
 msgid "Prise en Charge"
-msgstr ""
+msgstr "يدعم"
 
 #: src/views/type_contrat/_form.php
 msgid "Prise en Charge par"
-msgstr ""
+msgstr "بدعم من"
 
-#: src/views/lycees/edit.php
-#: src/views/lycees/create.php
+#: src/views/lycees/edit.php src/views/lycees/create.php
 msgid "Private"
-msgstr ""
+msgstr "خاص"
 
-#: src/views/settings/index.php
-#: src/views/setup/step1_single.php
+#: src/views/settings/index.php src/views/setup/step1_single.php
 msgid "Privé"
-msgstr ""
+msgstr "خاص"
 
 #: src/views/boutique/articles/index.php
 msgid "Prix"
-msgstr ""
+msgstr "سعر"
 
-#: src/views/boutique/articles/edit.php
-#: src/views/boutique/articles/create.php
+#: src/views/boutique/articles/edit.php src/views/boutique/articles/create.php
 msgid "Prix Actuel"
-msgstr ""
+msgstr "السعر الحالي"
 
-#: src/views/boutique/achats/recu.php
-#: src/views/boutique/achats/index.php
+#: src/views/boutique/achats/recu.php src/views/boutique/achats/index.php
 msgid "Prix Unitaire"
-msgstr ""
+msgstr "سعر الوحدة"
 
 #: src/views/boutique/articles/index.php
 msgid "Produits en rupture"
-msgstr ""
+msgstr "منتجات غير متوفرة في المخزون"
 
 #: src/views/boutique/articles/index.php
 msgid "Produits en stock"
-msgstr ""
+msgstr "المنتجات في المخزون"
 
 #: src/views/classes/show.php
 msgid "Professeur Principal"
-msgstr ""
+msgstr "رئيس المعلمين"
 
 #: src/views/eleves/_form.php
 msgid "Profession de la Mère"
-msgstr ""
+msgstr "مهنة الأم"
 
 #: src/views/eleves/_form.php
 msgid "Profession du Père"
-msgstr ""
+msgstr "مهنة الأب"
 
 #: src/views/roles/index.php
 msgid "Protégé"
-msgstr ""
+msgstr "محمي"
 
 #: src/views/bulletins/blocs/_resume_moyennes.php
 msgid "Provisoire"
@@ -2860,30 +2673,26 @@ msgstr "مؤقت"
 
 #: src/views/users/profile.php
 msgid "Préférences & Signatures Numériques"
-msgstr ""
+msgstr "التفضيلات والتوقيعات الرقمية"
 
-#: src/views/setup/step1_multi.php
-#: src/views/setup/step1_single.php
-#: src/views/eleves/_form.php
-#: src/views/eleves/archives.php
+#: src/views/setup/step1_multi.php src/views/setup/step1_single.php
+#: src/views/eleves/_form.php src/views/eleves/archives.php
 #: src/views/users/_form.php
 msgid "Prénom"
 msgstr "الاسم"
 
 #: src/views/presences/gerer.php
 msgid "Présences enregistrées avec succès."
-msgstr ""
+msgstr "تم تسجيل الحضور بنجاح"
 
 #: src/views/presences/gerer.php
 msgid "Présent"
-msgstr ""
+msgstr "هنا"
 
-#: src/views/settings/index.php
-#: src/views/lycees/edit.php
-#: src/views/lycees/create.php
-#: src/views/setup/step1_single.php
+#: src/views/settings/index.php src/views/lycees/edit.php
+#: src/views/lycees/create.php src/views/setup/step1_single.php
 msgid "Public"
-msgstr ""
+msgstr "جمهور"
 
 #: src/views/bulletins/blocs/_resume_moyennes.php
 msgid "Publié"
@@ -2895,50 +2704,48 @@ msgstr "البيداغوجيا"
 
 #: src/views/evaluations/deblocage_index.php
 msgid "Période"
-msgstr ""
+msgstr "فترة"
 
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php src/views/paiements/journal.php
 msgid "Période du"
-msgstr ""
+msgstr "فترة"
 
 #: src/views/modele_carte/edit.php
 msgid "QR"
-msgstr ""
+msgstr "ريال قطري"
 
 #: src/views/modele_carte/edit.php
 msgid "QR Code"
-msgstr ""
+msgstr "رمز الاستجابة السريعة"
 
 #: src/views/cahier_texte/_form.php
 msgid "Qu'avez-vous enseigné aujourd'hui ?"
-msgstr ""
+msgstr "ماذا علمت اليوم؟"
 
-#: src/views/boutique/achats/recu.php
-#: src/views/boutique/achats/create.php
+#: src/views/boutique/achats/recu.php src/views/boutique/achats/create.php
 #: src/views/boutique/achats/index.php
 msgid "Quantité"
-msgstr ""
+msgstr "كمية"
 
 #: src/views/eleves/_form.php
 msgid "Quartier / Adresse"
-msgstr ""
+msgstr "الحي / العنوان"
 
 #: src/views/paiements/regler.php
 msgid "RESTANT"
-msgstr ""
+msgstr "متبقي"
 
 #: src/views/boutique/achats/recu.php
 msgid "REÇU"
-msgstr ""
+msgstr "تلقى"
 
 #: src/views/eleves/index.php
 msgid "Radier"
-msgstr ""
+msgstr "تشع"
 
 #: src/views/eleves/index.php
 msgid "Radier l'élève"
-msgstr ""
+msgstr "إزالة الطالب"
 
 #: src/views/bulletins/blocs/_resume_moyennes.php
 msgid "Rang"
@@ -2954,128 +2761,124 @@ msgstr "التقارير المالية"
 
 #: src/views/eleves/_form.php
 msgid "Recadrer la photo"
-msgstr ""
+msgstr "قص الصورة"
 
 #: src/views/home/index.php
 msgid "Recettes (F CFA)"
-msgstr ""
+msgstr "الإيرادات (F CFA)"
 
 #: src/views/paiements/restes.php
 msgid "Recherche des restes en cours..."
-msgstr ""
+msgstr "جاري البحث عن بقايا..."
 
 #: src/views/paiements/journal.php
 msgid "Recherche Élève (Nom, Prénom, Matricule, Reçu)"
-msgstr ""
+msgstr "بحث الطالب (الاسم الأخير، الاسم الأول، الرقم، الإيصال)"
 
 #: src/views/users/index.php
 msgid "Rechercher un membre du personnel (nom, fonction)..."
-msgstr ""
+msgstr "البحث عن موظف (الاسم، المنصب)..."
 
 #: src/views/boutique/shop/index.php
 msgid "Rechercher un produit..."
-msgstr ""
+msgstr "ابحث عن منتج..."
 
 #: src/views/eleves/index.php
 msgid "Rechercher un élève (nom, email, classe)..."
-msgstr ""
+msgstr "البحث عن طالب (الاسم، البريد الإلكتروني، الصف)..."
 
 #: src/views/tests_entree/create.php
 msgid "Record Entrance Test"
-msgstr ""
+msgstr "سجل اختبار القبول"
 
 #: src/views/tests_entree/create.php
 msgid "Record Result"
-msgstr ""
+msgstr "سجل النتيجة"
 
 #: src/views/modele_carte/edit.php
 msgid "Rectangle"
-msgstr ""
+msgstr "المستطيل"
 
 #: src/views/recus/inscription.php
 msgid "Reliquat sur inscription"
 msgstr "المتبقي من التسجيل"
 
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php src/views/paiements/journal.php
 msgid "Remboursement"
-msgstr ""
+msgstr "استرداد"
 
 #: src/views/modele_carte/edit.php
 msgid "Remplacez le fond blanc par une image personnalisée :"
-msgstr ""
+msgstr "استبدل الخلفية البيضاء بصورة مخصصة:"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Remplir et consulter le cahier de texte."
-msgstr ""
+msgstr "أكمل واستشر الكتاب النصي."
 
 #: src/views/bulletins/index.php
 msgid "Report Card Generation"
-msgstr ""
+msgstr "إنشاء بطاقة التقرير"
 
 #: src/views/modele_bulletin/edit.php
 msgid "Report Card Template Editor"
-msgstr ""
+msgstr "محرر قالب بطاقة التقرير"
 
 #: src/views/paiements/regler.php
 msgid "Reste"
-msgstr ""
+msgstr "يقضي"
 
 #: src/views/paiements/regler.php
 msgid "Reste d'inscription à payer :"
-msgstr ""
+msgstr "التسجيل المتبقي للدفع:"
 
 #: src/views/paiements/restes_table.php
 msgid "Reste inscription"
-msgstr ""
+msgstr "التسجيل المتبقي"
 
 #: src/views/paiements/restes_table.php
 msgid "Reste mensualité"
-msgstr ""
+msgstr "الدفعة الشهرية المتبقية"
 
-#: src/views/paiements/journal.php
-#: src/views/eleves/details.php
+#: src/views/paiements/journal.php src/views/eleves/details.php
 msgid "Reste à Payer"
-msgstr ""
+msgstr "يبقى للدفع"
 
 #: src/views/classes/show.php
 msgid "Retirer"
-msgstr ""
+msgstr "ينسحب"
 
 #: src/views/classes/show.php
 msgid "Retirer la matière"
-msgstr ""
+msgstr "إزالة المواد"
 
-#: src/views/boutique/achats/recu.php
-#: src/views/carte/generer.php
+#: src/views/boutique/achats/recu.php src/views/carte/generer.php
 #: src/views/carte/generer.php
 msgid "Retour"
 msgstr "عودة"
 
 #: src/views/boutique/achats/index.php
 msgid "Retour au dossier élève"
-msgstr ""
+msgstr "العودة إلى ملف الطالب"
 
 #: src/views/presences/gerer.php
 msgid "Retour au tableau de bord"
-msgstr ""
+msgstr "العودة إلى لوحة القيادة"
 
 #: src/views/eleves/archives.php
 msgid "Retour aux élèves actifs"
-msgstr ""
+msgstr "العودة إلى الطلاب النشطين"
 
-#: src/views/eleves/details.php
-#: src/views/users/view.php
+#: src/views/eleves/details.php src/views/users/view.php
 msgid "Retour à la liste"
-msgstr ""
+msgstr "العودة إلى القائمة"
 
 #: src/views/paiements/journal.php
 msgid "Reçu"
-msgstr ""
+msgstr "تلقى"
 
 #: src/views/paiements/journal.php
 msgid "Reçu N°"
-msgstr ""
+msgstr "رقم الإيصال"
 
 #: src/views/recus/inscription.php
 msgid "Reçu de Paiement"
@@ -3087,62 +2890,60 @@ msgstr "إيصال الرسوم الشهرية"
 
 #: src/views/boutique/achats/recu.php
 msgid "Reçu de Vente"
-msgstr ""
+msgstr "إيصال المبيعات"
 
 #: src/views/boutique/achats/recu.php
 msgid "Reçu de Vente Boutique"
-msgstr ""
+msgstr "إيصال مبيعات المتجر"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Reçus"
 msgstr "الإيصالات"
 
-#: src/controllers/RoleController.php
-#: src/controllers/RoleController.php
+#: src/controllers/RoleController.php src/controllers/RoleController.php
 msgid "Role ID is missing."
-msgstr ""
+msgstr "معرف الدور مفقود."
 
 #: src/controllers/RoleController.php
 msgid "Role created successfully."
-msgstr ""
+msgstr "تم إنشاء الدور بنجاح."
 
 #: src/controllers/RoleController.php
 msgid "Role deleted successfully."
-msgstr ""
+msgstr "تم حذف الدور بنجاح."
 
 #: src/controllers/RoleController.php
 msgid "Role not found."
-msgstr ""
+msgstr "لم يتم العثور على الدور."
 
 #: src/controllers/RoleController.php
 msgid "Role updated successfully."
-msgstr ""
+msgstr "تم تحديث الدور بنجاح."
 
-#: src/views/boutique/shop/index.php
-#: src/views/boutique/shop/index.php
+#: src/views/boutique/shop/index.php src/views/boutique/shop/index.php
 #: src/views/boutique/articles/index.php
 msgid "Rupture"
-msgstr ""
+msgstr "انفصل"
 
 #: src/views/paiements/regler.php
 msgid "Règlement"
-msgstr ""
+msgstr "أنظمة"
 
 #: src/views/paiements/journal.php
 msgid "Réf Origine"
-msgstr ""
+msgstr "المرجع الأصل"
 
 #: src/views/paiements/restes_table.php
 msgid "Régler"
-msgstr ""
+msgstr "تعيين"
 
 #: src/views/paiements/regler.php
 msgid "Régulariser la situation"
-msgstr ""
+msgstr "تنظيم الوضع"
 
 #: src/views/modele_carte/edit.php
 msgid "Réinitialiser au Modèle Pro"
-msgstr ""
+msgstr "إعادة التعيين إلى النموذج الاحترافي"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Réinscriptions"
@@ -3150,17 +2951,15 @@ msgstr "إعادة التسجيل"
 
 #: src/views/annees_academiques/index.php
 msgid "Réouvrir"
-msgstr ""
+msgstr "إعادة فتح"
 
-#: src/views/users/_form.php
-#: src/views/users/view.php
+#: src/views/users/_form.php src/views/users/view.php
 msgid "Rôle"
-msgstr ""
+msgstr "دور"
 
-#: src/views/roles/edit.php
-#: src/views/roles/create.php
+#: src/views/roles/edit.php src/views/roles/create.php
 msgid "Rôle Global"
-msgstr ""
+msgstr "الدور العالمي"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Rôles"
@@ -3168,23 +2967,23 @@ msgstr "الأدوار"
 
 #: src/views/paiements/regler.php
 msgid "SOLDÉ"
-msgstr ""
+msgstr "يدفع"
 
 #: src/views/home/index.php
 msgid "Saisir Notes"
-msgstr ""
+msgstr "أدخل الملاحظات"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Saisir et consulter les notes des élèves."
-msgstr ""
+msgstr "إدخال وعرض درجات الطلاب."
 
 #: src/controllers/HomeController.php
 msgid "Saisir les Notes"
-msgstr ""
+msgstr "إدخال الدرجات"
 
 #: src/views/paiements/journal.php
 msgid "Saisir nom, prénom, matricule, reçu..."
-msgstr ""
+msgstr "أدخل الاسم والاسم الأول والرقم والإيصال ..."
 
 #: src/views/layouts/sidebar_able.php
 msgid "Salaires"
@@ -3192,105 +2991,91 @@ msgstr "الرواتب"
 
 #: src/views/lycees/create.php
 msgid "Save"
-msgstr ""
+msgstr "يحفظ"
 
 #: src/views/modele_bulletin/edit.php
 msgid "Saving..."
-msgstr ""
+msgstr "توفير..."
 
-#: src/views/layouts/header_centered.php
-#: src/views/layouts/footer.php
+#: src/views/layouts/header_centered.php src/views/layouts/footer.php
 msgid "School Management"
-msgstr ""
+msgstr "إدارة المدرسة"
 
-#: src/views/matieres/_form.php
-#: src/views/classes/edit.php
-#: src/views/classes/create.php
-#: src/views/series/index.php
+#: src/views/matieres/_form.php src/views/classes/edit.php
+#: src/views/classes/create.php src/views/series/index.php
 #: src/views/series/index.php
 msgid "Scientifique"
-msgstr ""
+msgstr "عالم"
 
-#: src/views/tests_entree/create.php
-#: src/views/tests_entree/index.php
+#: src/views/tests_entree/create.php src/views/tests_entree/index.php
 msgid "Score"
-msgstr ""
+msgstr "نتيجة"
 
 #: src/views/auth/login.php
 msgid "Se connecter"
-msgstr ""
+msgstr "تسجيل الدخول"
 
 #: src/views/bulletins/index.php
 msgid "Select Class and Period"
-msgstr ""
+msgstr "حدد الفئة والفترة"
 
-#: src/views/settings/index.php
-#: src/views/lycees/edit.php
-#: src/views/lycees/create.php
-#: src/views/setup/step1_single.php
+#: src/views/settings/index.php src/views/lycees/edit.php
+#: src/views/lycees/create.php src/views/setup/step1_single.php
 msgid "Semi-public"
-msgstr ""
+msgstr "شبه عامة"
 
-#: src/views/eleves/details.php
-#: src/views/eleves/_form.php
-#: src/views/eleves/archives.php
-#: src/views/users/_form.php
+#: src/views/eleves/details.php src/views/eleves/_form.php
+#: src/views/eleves/archives.php src/views/users/_form.php
 #: src/views/users/view.php
 msgid "Sexe"
 msgstr "الجنس"
 
 #: src/views/bulletins/index.php
 msgid "Show Results"
-msgstr ""
+msgstr "عرض النتائج"
 
 #: src/views/users/profile.php
 msgid "Signature Numérique (PNG transparent)"
-msgstr ""
+msgstr "التوقيع الرقمي (PNG الشفاف)"
 
 #: src/views/users/profile.php
 msgid "Signature active"
-msgstr ""
+msgstr "التوقيع النشط"
 
 #: src/views/boutique/achats/recu.php
 msgid "Signature de l'élève"
-msgstr ""
+msgstr "توقيع الطالب"
 
 #: src/views/users/profile.php
 msgid "Signez ici"
-msgstr ""
+msgstr "وقع هنا"
 
 #: src/views/paiements/journal.php
 msgid "Solde Restant"
-msgstr ""
+msgstr "الرصيد المتبقي"
 
 #: src/views/users/profile.php
 msgid "Sombre"
-msgstr ""
+msgstr "مظلم"
 
-#: src/views/roles/edit.php
-#: src/views/roles/create.php
+#: src/views/roles/edit.php src/views/roles/create.php
 msgid "Spécifique à"
-msgstr ""
+msgstr "محددة ل"
 
-#: src/views/licences/edit.php
-#: src/views/licences/create.php
+#: src/views/licences/edit.php src/views/licences/create.php
 #: src/views/licences/index.php
 msgid "Start Date"
-msgstr ""
+msgstr "تاريخ البدء"
 
 #: src/views/licences/index.php
 msgid "Status"
-msgstr ""
+msgstr "حالة"
 
 #: src/views/annees_academiques/index.php
-#: src/views/bulletins/blocs/_resume_moyennes.php
-#: src/views/matieres/_form.php
-#: src/views/matieres/index.php
-#: src/views/classes/show.php
-#: src/views/presences/gerer.php
-#: src/views/paiements/regler.php
-#: src/views/eleves/archives.php
-#: src/views/evaluations/deblocage_index.php
+#: src/views/bulletins/blocs/_resume_moyennes.php src/views/matieres/_form.php
+#: src/views/matieres/index.php src/views/classes/show.php
+#: src/views/presences/gerer.php src/views/paiements/regler.php
+#: src/views/eleves/archives.php src/views/evaluations/deblocage_index.php
 #: src/views/users/index.php
 msgid "Statut"
 msgstr "الحالة"
@@ -3299,82 +3084,76 @@ msgstr "الحالة"
 msgid "Statut du bulletin"
 msgstr "حالة كشف النقاط"
 
-#: src/views/boutique/articles/edit.php
-#: src/views/boutique/articles/index.php
+#: src/views/boutique/articles/edit.php src/views/boutique/articles/index.php
 msgid "Stock"
-msgstr ""
+msgstr "مخزون"
 
 #: src/views/boutique/articles/create.php
 msgid "Stock Initial"
-msgstr ""
+msgstr "المخزون الأولي"
 
 #: src/views/boutique/shop/index.php
 msgid "Stock faible"
-msgstr ""
+msgstr "مخزون منخفض"
 
-#: src/views/boutique/shop/index.php
-#: src/views/boutique/shop/index.php
+#: src/views/boutique/shop/index.php src/views/boutique/shop/index.php
 msgid "Stock insuffisant"
-msgstr ""
+msgstr "مخزون غير كاف"
 
 #: src/views/tests_entree/index.php
 msgid "Student"
-msgstr ""
+msgstr "طالب"
 
 #: src/views/modele_bulletin/edit.php
 msgid "Student Information"
-msgstr ""
+msgstr "معلومات الطالب"
 
 #: src/views/bulletins/class_results.php
 msgid "Student Name"
-msgstr ""
+msgstr "اسم الطالب"
 
 #: src/views/bulletins/show.php
 msgid "Student Report Card"
-msgstr ""
+msgstr "بطاقة تقرير الطالب"
 
 #: src/views/modele_bulletin/edit.php
 msgid "Summary (Averages and Appreciations)"
-msgstr ""
+msgstr "ملخص (المتوسطات والتقديرات)"
 
-#: src/views/annees_academiques/index.php
-#: src/views/matieres/index.php
-#: src/views/cycles/index.php
-#: src/views/classes/index.php
-#: src/views/classes/index.php
-#: src/views/type_contrat/index.php
-#: src/views/users/index.php
-#: src/views/users/view.php
+#: src/views/annees_academiques/index.php src/views/matieres/index.php
+#: src/views/cycles/index.php src/views/classes/index.php
+#: src/views/classes/index.php src/views/type_contrat/index.php
+#: src/views/users/index.php src/views/users/view.php
 #: src/views/roles/index.php
 msgid "Supprimer"
 msgstr "حذف"
 
 #: src/views/series/index.php
 msgid "Supprimer cette série ?"
-msgstr ""
+msgstr "هل تريد حذف هذه السلسلة؟"
 
 #: src/views/evaluations/deblocage_form.php
 #: src/views/evaluations/parametres_form.php
 msgid "Sélectionner l'enseignant"
-msgstr ""
+msgstr "اختر المعلم"
 
 #: src/views/evaluations/deblocage_form.php
 #: src/views/evaluations/parametres_form.php
 msgid "Sélectionner la classe"
-msgstr ""
+msgstr "حدد الفصل"
 
 #: src/views/evaluations/deblocage_form.php
 #: src/views/evaluations/parametres_form.php
 msgid "Sélectionner la matière"
-msgstr ""
+msgstr "حدد المادة"
 
 #: src/views/mensualites/index.php
 msgid "Sélectionner une classe"
-msgstr ""
+msgstr "حدد فئة"
 
 #: src/views/paiements/restes.php
 msgid "Sélectionner une classe pour afficher les restes"
-msgstr ""
+msgstr "حدد فئة لعرض بقايا الطعام"
 
 #: src/views/layouts/header_able.php
 #: src/views/evaluations/parametres_index.php
@@ -3384,25 +3163,20 @@ msgstr "الفترة"
 #: src/views/evaluations/deblocage_form.php
 #: src/views/evaluations/parametres_form.php
 msgid "Séquence concernée"
-msgstr ""
+msgstr "التسلسل المعني"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Séquences"
 msgstr "الفترات"
 
-#: src/views/classes/show.php
-#: src/views/classes/edit.php
-#: src/views/classes/create.php
-#: src/views/classes/index.php
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
-#: src/views/paiements/restes.php
-#: src/views/eleves/assign_class.php
-#: src/views/eleves/index.php
-#: src/views/series/index.php
+#: src/views/classes/show.php src/views/classes/edit.php
+#: src/views/classes/create.php src/views/classes/index.php
+#: src/views/paiements/journal.php src/views/paiements/journal.php
+#: src/views/paiements/restes.php src/views/eleves/assign_class.php
+#: src/views/eleves/index.php src/views/series/index.php
 #: src/views/mensualites/index.php
 msgid "Série"
-msgstr ""
+msgstr "مسلسل"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Séries"
@@ -3410,33 +3184,21 @@ msgstr "الشعب"
 
 #: src/views/boutique/achats/recu.php
 msgid "TOTAL À PAYER"
-msgstr ""
+msgstr "إجمالي الدفع"
 
-#: src/views/boutique/achats/create.php
-#: src/views/boutique/achats/index.php
-#: src/views/boutique/shop/index.php
-#: src/views/boutique/articles/edit.php
+#: src/views/boutique/achats/create.php src/views/boutique/achats/index.php
+#: src/views/boutique/shop/index.php src/views/boutique/articles/edit.php
 #: src/views/boutique/articles/create.php
-#: src/views/boutique/articles/index.php
-#: src/views/param_general/edit.php
-#: src/views/home/index.php
-#: src/views/paiements/regler.php
-#: src/views/paiements/restes.php
-#: src/views/layouts/sidebar_able.php
-#: src/views/type_contrat/edit.php
-#: src/views/type_contrat/create.php
-#: src/views/type_contrat/index.php
-#: src/views/eleves/index.php
-#: src/views/param_lycee/edit.php
-#: src/views/series/index.php
-#: src/views/param_devoir/edit.php
-#: src/views/cahier_texte/edit.php
-#: src/views/cahier_texte/create.php
-#: src/views/cahier_texte/index.php
-#: src/views/param_composition/edit.php
-#: src/views/users/index.php
-#: src/views/users/view.php
-#: src/views/mensualites/index.php
+#: src/views/boutique/articles/index.php src/views/param_general/edit.php
+#: src/views/home/index.php src/views/paiements/regler.php
+#: src/views/paiements/restes.php src/views/layouts/sidebar_able.php
+#: src/views/type_contrat/edit.php src/views/type_contrat/create.php
+#: src/views/type_contrat/index.php src/views/eleves/index.php
+#: src/views/param_lycee/edit.php src/views/series/index.php
+#: src/views/param_devoir/edit.php src/views/cahier_texte/edit.php
+#: src/views/cahier_texte/create.php src/views/cahier_texte/index.php
+#: src/views/param_composition/edit.php src/views/users/index.php
+#: src/views/users/view.php src/views/mensualites/index.php
 msgid "Tableau de Bord"
 msgstr "لوحة القيادة"
 
@@ -3446,79 +3208,77 @@ msgstr "لوحة القيادة"
 #: src/views/evaluations/parametres_index.php
 #: src/views/evaluations/parametres_form.php
 msgid "Tableau de bord"
-msgstr ""
+msgstr "لوحة القيادة"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Tableau de bord comptable."
-msgstr ""
+msgstr "لوحة المحاسبة."
 
 #: src/views/paiements/journal.php
 msgid "Tableau de bord de classe"
-msgstr ""
+msgstr "لوحة تحكم الصف"
 
 #: src/views/modele_carte/edit.php
 msgid "Taille du texte (px)"
-msgstr ""
+msgstr "حجم النص (بكسل)"
 
-#: src/views/modele_carte/edit.php
-#: src/views/modele_carte/edit.php
+#: src/views/modele_carte/edit.php src/views/modele_carte/edit.php
 msgid "Tampon"
-msgstr ""
+msgstr "المخزن المؤقت"
 
-#: src/views/tests_entree/create.php
-#: src/views/tests_entree/index.php
+#: src/views/tests_entree/create.php src/views/tests_entree/index.php
 msgid "Target Class"
-msgstr ""
+msgstr "الفئة المستهدفة"
 
-#: src/views/series/index.php
-#: src/views/series/index.php
+#: src/views/series/index.php src/views/series/index.php
 msgid "Technique"
-msgstr ""
+msgstr "اِصطِلاحِيّ"
 
 #: src/views/modele_bulletin/edit.php
 msgid "Template Structure"
-msgstr ""
+msgstr "هيكل القالب"
 
 #: src/views/modele_carte/edit.php
 msgid "Template saved successfully!"
-msgstr ""
+msgstr "تم حفظ القالب بنجاح!"
 
-#: src/views/setup/step1_multi.php
-#: src/views/setup/step1_single.php
+#: src/views/setup/step1_multi.php src/views/setup/step1_single.php
 msgid "Terminer la configuration"
-msgstr ""
+msgstr "الإعداد الكامل"
 
-#: src/views/tests_entree/create.php
-#: src/views/tests_entree/index.php
+#: src/views/tests_entree/create.php src/views/tests_entree/index.php
 msgid "Test Date"
-msgstr ""
+msgstr "تاريخ الاختبار"
 
-#: src/views/modele_carte/edit.php
-#: src/views/modele_carte/edit.php
+#: src/views/modele_carte/edit.php src/views/modele_carte/edit.php
 msgid "Texte"
-msgstr ""
+msgstr "نص"
 
 #: src/views/modele_bulletin/edit.php
-msgid "The order you define here will be the display order on the final report card."
+msgid ""
+"The order you define here will be the display order on the final report "
+"card."
 msgstr ""
+"سيكون الترتيب الذي تحدده هنا هو ترتيب العرض على بطاقة التقرير النهائي."
 
 #: src/views/modele_bulletin/edit.php
 msgid "This is a structural preview of the block."
-msgstr ""
+msgstr "هذه معاينة هيكلية للكتلة."
 
 #: src/views/modele_bulletin/edit.php
-msgid "This template will apply to all report cards generated for this school."
+msgid ""
+"This template will apply to all report cards generated for this school."
 msgstr ""
+"سيتم تطبيق هذا القالب على جميع بطاقات التقارير التي تم إنشاؤها لهذه المدرسة."
 
 #: src/views/users/profile.php
 msgid "Thème d'affichage"
-msgstr ""
+msgstr "موضوع العرض"
 
-#: src/views/boutique/achats/recu.php
-#: src/views/boutique/achats/index.php
+#: src/views/boutique/achats/recu.php src/views/boutique/achats/index.php
 #: src/views/boutique/shop/index.php
 msgid "Total"
-msgstr ""
+msgstr "المجموع"
 
 #: src/views/bulletins/blocs/_tableau_notes.php
 msgid "Total (Note x Coef)"
@@ -3526,28 +3286,27 @@ msgstr "المجموع (الدرجة × المعامل)"
 
 #: src/views/paiements/journal.php
 msgid "Total Dû"
-msgstr ""
+msgstr "إجمالي المستحق"
 
 #: src/views/paiements/journal.php
 msgid "Total Encaissé"
-msgstr ""
+msgstr "إجمالي الأموال النقدية"
 
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php src/views/paiements/journal.php
 msgid "Total Payé"
-msgstr ""
+msgstr "إجمالي المبلغ المدفوع"
 
 #: src/views/paiements/regler.php
 msgid "Total général à payer :"
-msgstr ""
+msgstr "المجموع الكلي المستحق:"
 
 #: src/views/paiements/regler.php
 msgid "Total mensualités exigibles :"
-msgstr ""
+msgstr "إجمالي الدفعات الشهرية المستحقة:"
 
 #: src/views/paiements/restes_table.php
 msgid "Total reste"
-msgstr ""
+msgstr "مجموع ما تبقى"
 
 #: src/views/recus/mensualite.php
 msgid "Total versé"
@@ -3558,164 +3317,157 @@ msgid "Total versé lors de l'opération"
 msgstr "إجمالي المدفوع خلال العملية"
 
 #: src/views/bulletins/blocs/_tableau_notes.php
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php src/views/paiements/journal.php
 msgid "Totaux"
 msgstr "المجاميع"
 
-#: src/views/paiements/journal.php
-#: src/views/eleves/index.php
+#: src/views/paiements/journal.php src/views/eleves/index.php
 msgid "Tous les cycles"
-msgstr ""
+msgstr "جميع الدورات"
 
 #: src/views/cahier_texte/index.php
 msgid "Tous les enseignants"
-msgstr ""
+msgstr "جميع المعلمين"
 
 #: src/views/eleves/index.php
 msgid "Tous les lycées"
-msgstr ""
+msgstr "جميع المدارس الثانوية"
 
-#: src/views/paiements/journal.php
-#: src/views/eleves/index.php
-#: src/views/eleves/index.php
-#: src/views/eleves/index.php
+#: src/views/paiements/journal.php src/views/eleves/index.php
+#: src/views/eleves/index.php src/views/eleves/index.php
 msgid "Tous les niveaux"
-msgstr ""
+msgstr "جميع المستويات"
 
-#: src/views/paiements/journal.php
-#: src/views/eleves/index.php
-#: src/views/eleves/index.php
-#: src/views/eleves/index.php
+#: src/views/paiements/journal.php src/views/eleves/index.php
+#: src/views/eleves/index.php src/views/eleves/index.php
 msgid "Tous les numéros"
-msgstr ""
+msgstr "جميع الأرقام"
 
 #: src/views/boutique/shop/index.php
 msgid "Tous les stocks"
-msgstr ""
+msgstr "جميع الأسهم"
 
 #: src/views/evaluations/deblocage_index.php
 msgid "Tout l'établissement"
-msgstr ""
+msgstr "المؤسسة بأكملها"
 
 #: src/views/layouts/header_able.php
 msgid "Tout marquer comme lu"
-msgstr ""
+msgstr "وضع علامة على الكل كمقروءة"
 
-#: src/views/paiements/journal.php
-#: src/views/evaluations/parametres_index.php
+#: src/views/paiements/journal.php src/views/evaluations/parametres_index.php
 msgid "Toutes"
-msgstr ""
+msgstr "الجميع"
 
 #: src/views/notifications/index.php
 msgid "Toutes les Notifications"
-msgstr ""
+msgstr "جميع الإخطارات"
 
 #: src/views/boutique/shop/index.php
 msgid "Toutes les catégories"
-msgstr ""
+msgstr "جميع الفئات"
 
 #: src/views/cahier_texte/index.php
 msgid "Toutes les classes"
-msgstr ""
+msgstr "جميع الفصول"
 
 #: src/views/evaluations/deblocage_form.php
 #: src/views/evaluations/parametres_form.php
 msgid "Toutes les séquences"
-msgstr ""
+msgstr "جميع التسلسلات"
 
-#: src/views/paiements/journal.php
-#: src/views/eleves/index.php
+#: src/views/paiements/journal.php src/views/eleves/index.php
 #: src/views/eleves/index.php
 msgid "Toutes les séries"
-msgstr ""
+msgstr "كل سلسلة"
 
 #: src/views/cahier_texte/_form.php
 msgid "Travail à faire"
-msgstr ""
+msgstr "العمل الذي يتعين القيام به"
 
-#: src/views/matieres/_form.php
-#: src/views/matieres/index.php
-#: src/views/lycees/index.php
-#: src/views/evaluations/parametres_index.php
+#: src/views/matieres/_form.php src/views/matieres/index.php
+#: src/views/lycees/index.php src/views/evaluations/parametres_index.php
 msgid "Type"
-msgstr ""
+msgstr "عطوف"
 
 #: src/views/paiements/journal.php
 msgid "Type d'opération"
-msgstr ""
+msgstr "نوع العملية"
 
-#: src/views/users/_form.php
-#: src/views/users/view.php
+#: src/views/users/_form.php src/views/users/view.php
 msgid "Type de Contrat"
-msgstr ""
+msgstr "نوع العقد"
 
-#: src/views/settings/index.php
-#: src/views/setup/step1_single.php
+#: src/views/settings/index.php src/views/setup/step1_single.php
 msgid "Type de Lycée"
-msgstr ""
+msgstr "نوع المدرسة الثانوية"
 
-#: src/views/type_contrat/_form.php
-#: src/views/type_contrat/index.php
+#: src/views/type_contrat/_form.php src/views/type_contrat/index.php
 msgid "Type de Paiement"
-msgstr ""
+msgstr "نوع الدفع"
 
-#: src/views/type_contrat/edit.php
-#: src/views/type_contrat/create.php
+#: src/views/type_contrat/edit.php src/views/type_contrat/create.php
 #: src/views/type_contrat/index.php
 msgid "Types de Contrat"
-msgstr ""
+msgstr "أنواع العقود"
 
 #: src/views/boutique/achats/recu.php
 msgid "Tél"
-msgstr ""
+msgstr "هذه"
 
-#: src/views/eleves/_form.php
-#: src/views/users/_form.php
+#: src/views/eleves/_form.php src/views/users/_form.php
 #: src/views/users/view.php
 msgid "Téléphone"
 msgstr "الهاتف"
 
 #: src/views/eleves/_form.php
 msgid "Téléphone du Parent / Tuteur"
-msgstr ""
+msgstr "هاتف ولي الأمر/الوصي"
 
 #: src/views/users/profile.php
 msgid "Téléversez une image détourée (.png) de votre cachet officiel."
-msgstr ""
+msgstr "قم بتحميل صورة مقطوعة (.png) لختمك الرسمي."
 
 #: src/views/modele_bulletin/edit.php
 msgid "Unknown Block"
-msgstr ""
+msgstr "كتلة غير معروفة"
 
-#: src/views/licences/edit.php
-#: src/views/lycees/edit.php
+#: src/views/licences/edit.php src/views/lycees/edit.php
 msgid "Update"
-msgstr ""
+msgstr "تحديث"
 
 #: src/views/modele_bulletin/edit.php
-msgid "Use drag-and-drop to reorder the report card sections. The layout is saved automatically."
+msgid ""
+"Use drag-and-drop to reorder the report card sections. The layout is saved "
+"automatically."
 msgstr ""
+"استخدم السحب والإفلات لإعادة ترتيب أقسام بطاقة التقرير. يتم حفظ التخطيط "
+"تلقائيًا."
 
 #: src/views/settings/index.php
 msgid "Utilisez des retours à la ligne pour structurer l'en-tête."
-msgstr ""
+msgstr "استخدم الأسطر الجديدة لهيكلة الرأس."
 
 #: src/views/modele_carte/edit.php
-msgid "Utilisez les \"Theme Colors\" à gauche pour changer instantanément le style. Vous pouvez déplacer les éléments existants, mais nous recommandons de garder la structure professionnelle par défaut."
+msgid ""
+"Utilisez les \"Theme Colors\" à gauche pour changer instantanément le style."
+" Vous pouvez déplacer les éléments existants, mais nous recommandons de "
+"garder la structure professionnelle par défaut."
 msgstr ""
+"استخدم \"ألوان السمات\" الموجودة على اليسار لتغيير النمط على الفور. يمكنك "
+"نقل العناصر الموجودة، ولكننا نوصي بالحفاظ على البنية المهنية الافتراضية."
 
 #: src/views/boutique/shop/index.php
 msgid "Valider l'achat"
-msgstr ""
+msgstr "التحقق من صحة الشراء"
 
 #: src/views/paiements/regler.php
 msgid "Valider l'encaissement global"
-msgstr ""
+msgstr "التحقق من صحة الاستلام الشامل"
 
 #: src/views/eleves/_form.php
 msgid "Valider le recadrage"
-msgstr ""
+msgstr "التحقق من صحة الاقتصاص"
 
 #: src/views/bulletins/blocs/_resume_moyennes.php
 msgid "Validé"
@@ -3723,252 +3475,250 @@ msgstr "مصادق عليه"
 
 #: src/views/boutique/achats/recu.php
 msgid "Vendu par"
-msgstr ""
+msgstr "تباع من قبل"
 
 #: src/views/setup/step0_choice.php
 msgid "Veuillez choisir le mode d'installation."
-msgstr ""
+msgstr "الرجاء اختيار وضع التثبيت."
 
 #: src/views/paiements/restes.php
-msgid "Veuillez sélectionner un cycle, un niveau et une classe pour afficher la situation financière des élèves débiteurs (Point 2)."
+msgid ""
+"Veuillez sélectionner un cycle, un niveau et une classe pour afficher la "
+"situation financière des élèves débiteurs (Point 2)."
 msgstr ""
+"يرجى تحديد الدورة والمستوى والفئة لعرض الوضع المالي للطلاب المدينين (النقطة "
+"2)."
 
 #: src/views/mensualites/index.php
-msgid "Veuillez sélectionner un cycle, un niveau et une classe pour afficher le tableau de bord des paiements."
-msgstr ""
+msgid ""
+"Veuillez sélectionner un cycle, un niveau et une classe pour afficher le "
+"tableau de bord des paiements."
+msgstr "يرجى تحديد الدورة والمستوى والفئة لعرض لوحة التحكم في المدفوعات."
 
 #: src/views/bulletins/class_results.php
 msgid "View Report Card"
-msgstr ""
+msgstr "عرض بطاقة التقرير"
 
-#: src/views/classes/index.php
-#: src/views/users/index.php
+#: src/views/classes/index.php src/views/users/index.php
 msgid "Voir"
-msgstr ""
+msgstr "يرى"
 
 #: src/views/home/index.php
 msgid "Voir la liste"
-msgstr ""
+msgstr "انظر القائمة"
 
 #: src/views/notifications/index.php
 msgid "Voir les détails"
-msgstr ""
+msgstr "عرض التفاصيل"
 
 #: src/views/layouts/header_able.php
 msgid "Voir toutes les notifications"
-msgstr ""
+msgstr "رؤية جميع الإخطارات"
 
-#: src/views/boutique/shop/index.php
-#: src/views/boutique/shop/index.php
+#: src/views/boutique/shop/index.php src/views/boutique/shop/index.php
 msgid "Votre panier est vide"
-msgstr ""
+msgstr "سلتك فارغة"
 
 #: src/views/notifications/index.php
 msgid "Vous n'avez aucune notification."
-msgstr ""
+msgstr "ليس لديك أي إشعارات."
 
 #: src/views/classes/show.php
 msgid "Vous n'avez pas la permission d'attribuer des matières."
-msgstr ""
+msgstr "ليس لديك إذن لتعيين المواضيع."
 
 #: src/controllers/AnneeAcademiqueController.php
 msgid "Vous ne pouvez pas supprimer l'année académique active."
-msgstr ""
+msgstr "لا يمكنك حذف العام الدراسي النشط."
 
 #: src/views/paiements/journal.php
 msgid "Vue 1 : Journal Détaillé"
-msgstr ""
+msgstr "عرض 1: سجل مفصل"
 
 #: src/views/paiements/journal.php
 msgid "Vue 2 : Journal par Reçu"
-msgstr ""
+msgstr "عرض 2: سجل حسب الاستلام"
 
 #: src/views/paiements/journal.php
 msgid "Vue 3 : Synthèse par Classe"
-msgstr ""
+msgstr "عرض 3: ملخص حسب الفصل"
 
 #: src/views/paiements/journal.php
 msgid "Vue 4 : Synthèse par Élève"
-msgstr ""
+msgstr "عرض 4: ملخص من قبل الطالب"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Vérifier et contrôler la situation financière des élèves."
-msgstr ""
+msgstr "فحص ومراقبة الوضع المالي للطلاب."
 
 #: src/views/paiements/journal.php
 msgid "active"
-msgstr ""
+msgstr "نشيط"
 
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php src/views/paiements/journal.php
 msgid "au"
-msgstr ""
+msgstr "في"
 
 #: src/views/licences/index.php
 msgid "months"
-msgstr ""
+msgstr "شهور"
 
 #: src/views/paiements/regler.php
 msgid "À JOUR"
-msgstr ""
+msgstr "محدث"
 
 #: src/views/mensualites/class_dashboard.php
 msgid "À jour"
-msgstr ""
+msgstr "حتى الآن"
 
 #: src/views/type_contrat/_form.php
 msgid "À l'heure"
-msgstr ""
+msgstr "في الوقت المحدد"
 
 #: src/views/evaluations/deblocage_index.php
 msgid "À venir"
-msgstr ""
+msgstr "مستقبل"
 
 #: src/views/type_contrat/_form.php
 msgid "École"
-msgstr ""
+msgstr "مدرسة"
 
 #: src/views/paiements/journal.php
 msgid "Écritures de l'élève dans la période"
-msgstr ""
+msgstr "كتابات الطلاب في تلك الفترة"
 
 #: src/views/layouts/sidebar_able.php
 msgid "Éditeur de Bulletin"
 msgstr "محرر كشوف النقاط"
 
-#: src/controllers/HomeController.php
-#: src/views/layouts/sidebar_able.php
+#: src/controllers/HomeController.php src/views/layouts/sidebar_able.php
 msgid "Éditeur de Carte"
 msgstr "محرر البطاقات"
 
 #: src/views/annees_academiques/edit.php
 msgid "Édition de l'année: "
-msgstr ""
+msgstr "طبعة السنة:"
 
-#: src/views/boutique/achats/recu.php
-#: src/views/boutique/achats/create.php
-#: src/views/presences/gerer.php
-#: src/views/paiements/restes_table.php
-#: src/views/eleves/assign_class.php
-#: src/views/recus/inscription.php
-#: src/views/recus/mensualite.php
-#: src/views/mensualites/class_dashboard.php
+#: src/views/boutique/achats/recu.php src/views/boutique/achats/create.php
+#: src/views/presences/gerer.php src/views/paiements/restes_table.php
+#: src/views/eleves/assign_class.php src/views/recus/inscription.php
+#: src/views/recus/mensualite.php src/views/mensualites/class_dashboard.php
 msgid "Élève"
 msgstr "الطالب"
 
-#: src/views/paiements/journal.php
-#: src/views/paiements/journal.php
+#: src/views/paiements/journal.php src/views/paiements/journal.php
 #: src/views/paiements/journal.php
 msgid "Élève (Identifiant)"
-msgstr ""
+msgstr "الطالب (المعرف)"
 
-#: src/views/boutique/achats/create.php
-#: src/views/boutique/achats/index.php
-#: src/views/boutique/shop/index.php
-#: src/views/layouts/sidebar_able.php
+#: src/views/boutique/achats/create.php src/views/boutique/achats/index.php
+#: src/views/boutique/shop/index.php src/views/layouts/sidebar_able.php
 #: src/views/eleves/index.php
 msgid "Élèves"
 msgstr "الطلاب"
 
 #: src/views/home/index.php
 msgid "Élèves Actifs"
-msgstr ""
+msgstr "الطلاب النشطين"
 
 #: src/views/eleves/archives.php
 msgid "Élèves Archivés"
-msgstr ""
+msgstr "الطلاب المؤرشفون"
 
 #: src/views/cahier_texte/_form.php
 msgid "Élèves absents, incidents, etc."
-msgstr ""
+msgstr "غياب الطلاب والحوادث وما إلى ذلك."
 
 #: src/views/paiements/restes_table.php
 msgid "Élèves endettés de la classe"
-msgstr ""
+msgstr "الطلاب في الديون الصفية"
 
 #: src/views/modele_carte/edit.php
 msgid "Épaisseur bordure"
-msgstr ""
+msgstr "سمك الحدود"
 
 #: src/views/paiements/journal.php
 msgid "Établissement"
-msgstr ""
+msgstr "التأسيس"
 
 #: src/views/type_contrat/_form.php
 msgid "État"
-msgstr ""
+msgstr "ولاية"
 
 #: src/views/evaluations/deblocage_index.php
 msgid "Évaluations"
-msgstr ""
+msgstr "التقييمات"
 
-#: src/views/boutique/articles/index.php
-#: src/views/type_contrat/index.php
+#: src/views/boutique/articles/index.php src/views/type_contrat/index.php
 #: src/views/roles/index.php
 msgid "Êtes-vous sûr ?"
-msgstr ""
+msgstr "هل أنت متأكد؟"
 
 #: src/views/annees_academiques/index.php
 msgid "Êtes-vous sûr de vouloir clôturer cette année ?"
-msgstr ""
+msgstr "هل أنت متأكد أنك تريد الإغلاق هذا العام؟"
 
 #: src/views/eleves/index.php
-msgid "Êtes-vous sûr de vouloir radier cet élève ? Cette action est réversible."
-msgstr ""
+msgid ""
+"Êtes-vous sûr de vouloir radier cet élève ? Cette action est réversible."
+msgstr "هل أنت متأكد أنك تريد إزالة هذا الطالب؟ هذا الإجراء يمكن التراجع عنه."
 
 #: src/views/classes/show.php
 msgid "Êtes-vous sûr de vouloir retirer cette matière de la classe ?"
-msgstr ""
+msgstr "هل أنت متأكد أنك تريد إزالة هذا الموضوع من الصف؟"
 
 #: src/views/modele_carte/edit.php
-msgid "Êtes-vous sûr de vouloir réinitialiser la carte ? Vos personnalisations actuelles seront perdues et le modèle professionnel d'origine sera restauré."
+msgid ""
+"Êtes-vous sûr de vouloir réinitialiser la carte ? Vos personnalisations "
+"actuelles seront perdues et le modèle professionnel d'origine sera restauré."
 msgstr ""
+"هل أنت متأكد أنك تريد إعادة تعيين البطاقة؟ سيتم فقدان تخصيصاتك الحالية وسيتم"
+" استعادة القالب الاحترافي الأصلي."
 
 #: src/views/annees_academiques/index.php
 msgid "Êtes-vous sûr de vouloir réouvrir cette année ?"
-msgstr ""
+msgstr "هل أنت متأكد من أنك تريد إعادة فتحه هذا العام؟"
 
 #: src/views/cycles/index.php
 msgid "Êtes-vous sûr de vouloir supprimer ce cycle ?"
-msgstr ""
+msgstr "هل أنت متأكد أنك تريد حذف هذه الدورة؟"
 
 #: src/views/evaluations/deblocage_index.php
 msgid "Êtes-vous sûr de vouloir supprimer ce déblocage ?"
-msgstr ""
+msgstr "هل أنت متأكد أنك تريد إزالة هذا القفل؟"
 
-#: src/views/users/index.php
-#: src/views/users/view.php
+#: src/views/users/index.php src/views/users/view.php
 msgid "Êtes-vous sûr de vouloir supprimer ce membre ?"
-msgstr ""
+msgstr "هل أنت متأكد أنك تريد حذف هذا العضو؟"
 
 #: src/views/evaluations/parametres_index.php
 msgid "Êtes-vous sûr de vouloir supprimer ce paramètre ?"
-msgstr ""
+msgstr "هل أنت متأكد أنك تريد إزالة هذا الإعداد؟"
 
 #: src/views/annees_academiques/index.php
 msgid "Êtes-vous sûr de vouloir supprimer cette année ?"
-msgstr ""
+msgstr "هل أنت متأكد أنك تريد الحذف هذا العام؟"
 
 #: src/views/classes/index.php
 msgid "Êtes-vous sûr de vouloir supprimer cette classe ?"
-msgstr ""
+msgstr "هل أنت متأكد أنك تريد حذف هذا الفصل؟"
 
 #: src/views/cahier_texte/index.php
 msgid "Êtes-vous sûr de vouloir supprimer cette entrée ?"
-msgstr ""
+msgstr "هل أنت متأكد أنك تريد حذف هذا الإدخال؟"
 
 #: src/views/matieres/index.php
 msgid "Êtes-vous sûr de vouloir supprimer cette matière ?"
-msgstr ""
+msgstr "هل أنت متأكد أنك تريد حذف هذه المادة؟"
 
 #: src/views/classes/show.php
 msgid "élèves"
-msgstr ""
+msgstr "طلاب"
 
 #: src/views/mensualites/class_dashboard.php
 msgid "élèves actifs"
-msgstr ""
+msgstr "الطلاب النشطين"
 
 #: src/views/paiements/restes_table.php
 msgid "élèves débiteurs"
-msgstr ""
+msgstr "الطلاب المدينين"

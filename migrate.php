@@ -1,13 +1,25 @@
 <?php
 require_once __DIR__ . '/src/config/database.php';
 $db = Database::getInstance();
+
+function addColumnIfNeeded($db, $table, $column, $definition) {
+    try {
+        $stmt = $db->query("SHOW COLUMNS FROM `$table` LIKE '$column'");
+        if (!$stmt->fetch()) {
+            $db->exec("ALTER TABLE `$table` ADD COLUMN `$column` $definition");
+            echo "Added column $column to table $table\n";
+        }
+    } catch (Exception $e) {
+        echo "Error checking/adding column $column on $table: " . $e->getMessage() . "\n";
+    }
+}
+
 try {
     // Update param_lycee
-    $db->exec("ALTER TABLE param_lycee
-        ADD COLUMN IF NOT EXISTS header_primary TEXT,
-        ADD COLUMN IF NOT EXISTS header_secondary TEXT,
-        ADD COLUMN IF NOT EXISTS signature_directeur TEXT,
-        ADD COLUMN IF NOT EXISTS tampon_ecole TEXT;");
+    addColumnIfNeeded($db, 'param_lycee', 'header_primary', 'TEXT');
+    addColumnIfNeeded($db, 'param_lycee', 'header_secondary', 'TEXT');
+    addColumnIfNeeded($db, 'param_lycee', 'signature_directeur', 'TEXT');
+    addColumnIfNeeded($db, 'param_lycee', 'tampon_ecole', 'TEXT');
 
     // Rename modele_carte to carte_templates if it exists and carte_templates doesn't
     $stmt = $db->query("SHOW TABLES LIKE 'modele_carte'");
@@ -15,15 +27,26 @@ try {
         $stmt2 = $db->query("SHOW TABLES LIKE 'carte_templates'");
         if (!$stmt2->fetch()) {
             $db->exec("RENAME TABLE modele_carte TO carte_templates;");
-            $db->exec("ALTER TABLE carte_templates
-                ADD COLUMN IF NOT EXISTS orientation ENUM('landscape', 'portrait') DEFAULT 'landscape',
-                ADD COLUMN IF NOT EXISTS width_mm DECIMAL(5,2) DEFAULT 85.60,
-                ADD COLUMN IF NOT EXISTS height_mm DECIMAL(5,2) DEFAULT 53.98,
-                RENAME COLUMN font_settings TO styles,
-                ADD COLUMN IF NOT EXISTS config_visuelle JSON,
-                ADD COLUMN IF NOT EXISTS version VARCHAR(10) DEFAULT '2.1';");
-            echo "Table migration successful\n";
+            echo "Renamed table modele_carte to carte_templates\n";
         }
+    }
+
+    // Add columns to carte_templates if needed
+    addColumnIfNeeded($db, 'carte_templates', 'orientation', "ENUM('landscape', 'portrait') DEFAULT 'landscape'");
+    addColumnIfNeeded($db, 'carte_templates', 'width_mm', "DECIMAL(5,2) DEFAULT 85.60");
+    addColumnIfNeeded($db, 'carte_templates', 'height_mm', "DECIMAL(5,2) DEFAULT 53.98");
+    addColumnIfNeeded($db, 'carte_templates', 'config_visuelle', "JSON");
+    addColumnIfNeeded($db, 'carte_templates', 'version', "VARCHAR(10) DEFAULT '2.1'");
+
+    // Rename font_settings to styles if needed
+    try {
+        $stmt_col = $db->query("SHOW COLUMNS FROM carte_templates LIKE 'font_settings'");
+        if ($stmt_col->fetch()) {
+            $db->exec("ALTER TABLE carte_templates RENAME COLUMN font_settings TO styles;");
+            echo "Renamed font_settings to styles on carte_templates\n";
+        }
+    } catch (Exception $e) {
+        // Safe to ignore if already renamed or column doesn't exist
     }
 
     // Create carte_objects if it doesn't exist
@@ -42,22 +65,15 @@ try {
     );");
 
     // Update ENUM for eleves.statut and etudes.status
-    // This is a bit tricky with raw SQL but we try to be safe.
     $db->exec("ALTER TABLE eleves MODIFY COLUMN statut ENUM('en_attente', 'en_attente_paiement', 'actif', 'transféré', 'radié', 'diplômé', 'abandonné') NOT NULL DEFAULT 'en_attente'");
     $db->exec("ALTER TABLE etudes MODIFY COLUMN status ENUM('en_attente_paiement', 'active', 'inactive', 'suspended') DEFAULT 'en_attente_paiement'");
 
-    // Add recu_numero to inscriptions
-    $db->exec("ALTER TABLE inscriptions ADD COLUMN IF NOT EXISTS recu_numero VARCHAR(50);");
-
-    // Add reste_a_payer to mensualites
-    $db->exec("ALTER TABLE mensualites ADD COLUMN IF NOT EXISTS reste_a_payer DECIMAL(10, 2) DEFAULT 0.00;");
-
-    // Add statut to inscriptions & mensualite_details
-    $db->exec("ALTER TABLE inscriptions ADD COLUMN IF NOT EXISTS statut ENUM('en_attente', 'valide', 'annule', 'rembourse') NOT NULL DEFAULT 'valide';");
-    $db->exec("ALTER TABLE mensualite_details ADD COLUMN IF NOT EXISTS statut ENUM('en_attente', 'valide', 'annule', 'rembourse') NOT NULL DEFAULT 'valide';");
-
-    // Add cloturee to annees_academiques
-    $db->exec("ALTER TABLE annees_academiques ADD COLUMN IF NOT EXISTS cloturee TINYINT(1) NOT NULL DEFAULT 0;");
+    // Add columns to other tables
+    addColumnIfNeeded($db, 'inscriptions', 'recu_numero', 'VARCHAR(50)');
+    addColumnIfNeeded($db, 'mensualites', 'reste_a_payer', 'DECIMAL(10, 2) DEFAULT 0.00');
+    addColumnIfNeeded($db, 'inscriptions', 'statut', "ENUM('en_attente', 'valide', 'annule', 'rembourse') NOT NULL DEFAULT 'valide'");
+    addColumnIfNeeded($db, 'mensualite_details', 'statut', "ENUM('en_attente', 'valide', 'annule', 'rembourse') NOT NULL DEFAULT 'valide'");
+    addColumnIfNeeded($db, 'annees_academiques', 'cloturee', 'TINYINT(1) NOT NULL DEFAULT 0');
 
     // Create journal_comptable table
     $db->exec("CREATE TABLE IF NOT EXISTS journal_comptable (
@@ -102,16 +118,15 @@ try {
         FOREIGN KEY (`cree_par`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-    // Add identifiant_public to eleves table
-    $db->exec("ALTER TABLE eleves ADD COLUMN IF NOT EXISTS identifiant_public VARCHAR(50) DEFAULT NULL;");
+    // Add identifiant_public columns
+    addColumnIfNeeded($db, 'eleves', 'identifiant_public', 'VARCHAR(50) DEFAULT NULL');
     try {
         $db->exec("ALTER TABLE eleves ADD UNIQUE (identifiant_public);");
     } catch (Exception $e) {
         // Safe if unique key already exists
     }
 
-    // Add identifiant_public to utilisateurs table
-    $db->exec("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS identifiant_public VARCHAR(50) DEFAULT NULL;");
+    addColumnIfNeeded($db, 'utilisateurs', 'identifiant_public', 'VARCHAR(50) DEFAULT NULL');
     try {
         $db->exec("ALTER TABLE utilisateurs ADD UNIQUE (identifiant_public);");
     } catch (Exception $e) {
@@ -209,3 +224,4 @@ try {
 } catch (Exception $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";
 }
+?>

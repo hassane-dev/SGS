@@ -23,10 +23,10 @@ function run_test() {
         Role::save(['nom_role' => 'Test Lycee Manager']);
         $role_id = $db->lastInsertId();
 
-        $perm_id_stmt = $db->prepare("SELECT id_permission FROM permissions WHERE resource = 'system' AND action = 'view_all_lycees'");
+        $perm_id_stmt = $db->prepare("SELECT id_permission FROM permissions WHERE resource = 'lycee' AND action = 'view_all_lycees'");
         $perm_id_stmt->execute();
         $perm_id = $perm_id_stmt->fetchColumn();
-        if (!$perm_id) throw new Exception("Permission 'system_view_all_lycees' not found. Seeds might be outdated.");
+        if (!$perm_id) throw new Exception("Permission 'view_all_lycees' not found. Seeds might be outdated.");
 
         Role::setPermissions($role_id, [$perm_id]);
 

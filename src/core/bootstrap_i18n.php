@@ -63,6 +63,20 @@ if (isset($_GET['lang'])) {
     $normalized_lang = $lang_map[$requested_lang] ?? $lang_map[explode('_', $requested_lang)[0]] ?? $default_lang;
     if (isset($supported_languages[$normalized_lang])) {
         $_SESSION['lang'] = $normalized_lang;
+
+        // Persist preference for authenticated users
+        if (Auth::check()) {
+            $user_id = Auth::getUserId();
+            if ($user_id) {
+                require_once __DIR__ . '/../models/ParametreUtilisateur.php';
+                $user_settings = ParametreUtilisateur::findByUserId($user_id);
+                $user_settings->langue_preferee = $normalized_lang;
+                if (!$user_settings->lycee_id) {
+                    $user_settings->lycee_id = Auth::getLyceeId();
+                }
+                $user_settings->save();
+            }
+        }
     }
     // Redirect to the same page without the lang parameter to have a clean URL
     $redirect_url = strtok($_SERVER['REQUEST_URI'], '?');
@@ -90,6 +104,7 @@ $locale_dir = __DIR__ . '/../../locale';
 // Set language environment variables
 putenv('LC_ALL=' . $lang);
 putenv('LANG=' . $lang);
+putenv('LANGUAGE=' . $lang);
 
 if ($lang === 'ar') {
     setlocale(LC_ALL, 'ar_SA.utf8', 'ar_EG.utf8', 'ar_SA.UTF-8', 'ar_EG.UTF-8', 'ar.utf8', 'ar');
