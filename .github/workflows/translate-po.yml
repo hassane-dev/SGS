@@ -1,4 +1,4 @@
-                           - name: Traduire les PO
+      - name: Traduire les fichiers PO
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
@@ -203,4 +203,4 @@
 
           print("")
           print("Les fichiers PO ont été sauvegardés.")
-          PY           
+          PY
