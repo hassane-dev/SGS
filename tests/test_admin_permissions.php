@@ -10,7 +10,7 @@ require_once __DIR__ . '/../src/models/User.php';
 require_once __DIR__ . '/../src/models/Lycee.php';
 require_once __DIR__ . '/../src/models/Role.php';
 require_once __DIR__ . '/../src/models/AnneeAcademique.php';
-require_once __DIR__ . '/../src/models/ParametresGeneraux.php';
+require_once __DIR__ . '/../src/models/ParamGeneral.php';
 
 function run_test() {
     echo "Running test: test_admin_permissions...\n";
@@ -26,9 +26,9 @@ function run_test() {
         $db->exec("DELETE FROM role_permissions WHERE role_id > 8");
         $db->exec("DELETE FROM utilisateurs");
         $db->exec("DELETE FROM roles WHERE lycee_id IS NOT NULL");
-        $db->exec("DELETE FROM lycees");
+        $db->exec("DELETE FROM param_lycee");
         $db->exec("DELETE FROM annees_academiques");
-        $db->exec("DELETE FROM parametres_generaux");
+        $db->exec("DELETE FROM param_general");
 
 
         // 1. Create the Lycee
@@ -60,7 +60,7 @@ function run_test() {
         User::save([
             'nom' => 'Admin',
             'prenom' => 'Test',
-            'email' => 'admin@test.com',
+            'email' => 'unique_admin_test@test.com',
             'mot_de_passe' => 'password',
             'role_id' => $role_id,
             'lycee_id' => $lycee_id,
@@ -68,7 +68,7 @@ function run_test() {
         ]);
 
         // Retrieve the newly created admin user
-        $user = User::findByEmail('admin@test.com');
+        $user = User::findByEmail('unique_admin_test@test.com');
         if (!$user) {
             throw new Exception("Could not find the created admin user.");
         }

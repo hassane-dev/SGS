@@ -79,8 +79,23 @@ class SettingsController {
             ];
             $normalized = $lang_map[$lang] ?? $lang_map[explode('_', $lang)[0]] ?? 'fr_FR';
             $_SESSION['lang'] = $normalized;
+
+            // Persist preference for authenticated users
+            if (Auth::check()) {
+                $user_id = Auth::getUserId();
+                if ($user_id) {
+                    require_once __DIR__ . '/../models/ParametreUtilisateur.php';
+                    $user_settings = ParametreUtilisateur::findByUserId($user_id);
+                    $user_settings->langue_preferee = $normalized;
+                    if (!$user_settings->lycee_id) {
+                        $user_settings->lycee_id = Auth::getLyceeId();
+                    }
+                    $user_settings->save();
+                }
+            }
         }
-        header('Location: ' . $_SERVER['HTTP_REFERER']);
+        $redirect_url = $_SERVER['HTTP_REFERER'] ?? '/';
+        header('Location: ' . $redirect_url);
         exit();
     }
 

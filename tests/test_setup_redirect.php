@@ -16,9 +16,9 @@ function run_test() {
     // --- Test Case 1: No schools exist, /setup should be accessible ---
     echo "  Case 1: No schools in DB. Expect /setup to be allowed.\n";
 
-    // Clear the lycees table to simulate a fresh install
+    // Clear the param_lycee table to simulate a fresh install
     $db = Database::getInstance();
-    $db->exec("DELETE FROM lycees");
+    $db->exec("DELETE FROM param_lycee");
 
     // Simulate a request to /setup
     $_SERVER['REQUEST_URI'] = '/setup';
@@ -65,7 +65,7 @@ function run_test() {
     echo "All tests passed!\n";
 
     // Clean up
-    $db->exec("DELETE FROM lycees");
+    $db->exec("DELETE FROM param_lycee");
 }
 
 // Run the test

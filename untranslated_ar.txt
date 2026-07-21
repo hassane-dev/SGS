@@ -1,0 +1,757 @@
+-- Assigner --
+-- Aucun --
+-- Choisir un article --
+-- Choisir un cycle --
+-- Choisir un lycée --
+-- Choisir un niveau --
+-- Choisir une catégorie --
+-- Choisir une matière --
+-- Choisir une série --
+-- Choose a class --
+-- Choose a high school --
+-- Select a class --
+-- Select a period --
+-- Sélectionner --
+-- Sélectionner un cycle --
+-- Sélectionner un lycée --
+-- Sélectionner un niveau --
+-- Sélectionner un numéro --
+-- Sélectionner une année --
+-- Sélectionner une série --
+0.00
+1 year
+1. Ajustements Rapides
+2. Couleurs & Style Global
+3 months
+3. Personnaliser un Élément
+4. Fond de Carte & Image
+5. Outils Avancés
+6 months
+A communication error occurred.
+Absent
+Accorder le déblocage
+Accorder un Déblocage Exceptionnel
+Accordé par
+Accueil
+Accès Rapide
+Achats de
+Actif
+Action
+Actions
+Active
+Activer cette année
+Activer la biométrie
+Activer le mode multilingue
+Activer les notifications système par email/dashboard
+Add High School
+Add New High School
+Address
+Affiche la page d'accueil avec les statistiques principales.
+Afficher/Masquer le Motif
+Ajouter
+Ajouter la Matière
+Ajouter un Article
+Ajouter un Cycle
+Ajouter un membre
+Ajouter un nouveau Cycle
+Ajouter un nouveau membre du personnel
+Ajouter un nouveau rôle
+Ajouter un nouvel élève
+Ajouter un rôle
+Ajouter un type de contrat
+Ajouter un Élève
+Ajouter une Année Académique
+Ajouter une Série
+Ajouter une année
+Ajouter une entrée au cahier de texte
+Ajouter une nouvelle classe
+Ajustez votre modèle professionnel prêt à l'emploi.
+All rights reserved.
+Ancien Prix (Promo)
+Annulation
+Année Académique Active
+Année Académique Actuelle
+Année académique activée avec succès.
+Année académique créée avec succès.
+Année académique mise à jour avec succès.
+Année académique supprimée avec succès.
+Aperçu de la Carte
+Appliquer la confidentialité nationale
+Après le test d'entrée
+Archives
+Are you sure you want to delete this high school?
+Are you sure?
+Article
+Assigner la Classe
+Assigner une Classe à l'Élève
+Attendu
+Attention !
+Attribuer une Matière
+Au
+Aucun
+Aucun achat trouvé
+Aucun article trouvé
+Aucun cycle trouvé.
+Aucun lycée configuré
+Aucun membre du personnel trouvé.
+Aucun reçu enregistré pour les critères sélectionnés.
+Aucun rôle trouvé.
+Aucun type de contrat trouvé.
+Aucun élève actif ou en attente trouvé.
+Aucun élève actif trouvé dans cette classe.
+Aucun élève archivé trouvé.
+Aucun élève de cette classe ne présente actuellement un reste à payer.
+Aucun élève trouvé pour les critères sélectionnés.
+Aucune action disponible.
+Aucune année académique trouvée.
+Aucune année définie
+Aucune classe enregistrée ou correspondant aux critères.
+Aucune classe trouvée.
+Aucune entrée trouvée.
+Aucune matière trouvée.
+Aucune mensualité exigible pour le moment.
+Aucune nouvelle notification
+Aucune opération enregistrée dans le journal pour les critères sélectionnés.
+Aucune série trouvée.
+Aucune écriture trouvée pour cet élève dans cette période.
+Autre
+Avant l'inscription
+Back to Results
+Back to Selection
+Back to student file
+Bienvenue dans l'installation
+Bienvenue,
+Bilan Net
+Bloqué
+Boutique Scolaire
+CA du Jour (FCFA)
+CA du Mois (FCFA)
+Cachet Nominatif / Tampon officiel (PNG transparent)
+Cachet actif
+Cancel
+Catégorie
+Ce compte gérera toutes les écoles du système.
+Ceci est votre tableau de bord.
+Centrer le Logo
+Cette page liste les élèves qui ne sont plus actifs dans l'établissement (transférés, radiés, diplômés, etc.).
+Changer de date
+Changer mon mot de passe
+Chargement du tableau de bord...
+Chargement...
+Choisir un cycle
+Choisir un enseignant...
+Choisir un fichier
+Choisir un niveau
+Choisir une classe
+Choisir une classe...
+Choisir une matière...
+Choisir une série
+Choisissez une palette de couleurs pour votre établissement :
+Cible
+City
+Clair
+Class
+Class Results for:
+Classe et Matière
+Classe:
+Cliquez sur un élément de la carte pour modifier ses propriétés.
+Clôturer
+Clôturée
+Commentaire
+Commentaire / Instruction
+Compte Actif
+Compte Administrateur National
+Compte de l'Administrateur
+Configuration Multi-écoles
+Configuration de l'école
+Configuration de l'établissement
+Configuration de la période
+Configurer et consulter les emplois du temps.
+Configurer les différents types de frais scolaires.
+Configurer les paramètres globaux de l'établissement.
+Configurer les paramètres pour les compositions.
+Configurer les paramètres pour les devoirs.
+Configurer les paramètres spécifiques au lycée.
+Confirmer le nouveau mot de passe
+Connexion
+Conseil de Personnalisation :
+Consultation du Cahier de Texte
+Consulter l'historique des transactions.
+Consulter le dossier
+Consulter le journal comptable unique.
+Consulter les rapports financiers.
+Contact de l'élève (Optionnel)
+Contenu
+Contenu du cours
+Continuer
+Contrat Global (disponible pour tous les lycées)
+Couleur
+Cycle
+Cycle Concerné
+Cycle d'Études
+Date
+Date & Heure
+Date d'embauche
+Date d'expiration
+Date d'ouverture
+Date d'émission
+Date de Début
+Date de Fin
+Date de début
+Date de fermeture
+Date du cours
+Default roles cannot be deleted.
+Delete
+Description
+Devoirs, exercices, etc.
+Dissocier l'enseignant
+District
+Divers
+Dossier complet
+Dossier Élève
+Du
+Duration
+Duration (in months)
+Déblocages
+Définir une Période de Saisie
+Définir une période
+Détail du membre du personnel
+Détails
+Détails de l'Élève
+Détails de la Classe
+Détails de la matière
+Détails des mensualités exigibles
+Détails du Rôle
+Détails et matières
+EN RETARD
+Edit
+Edit High School
+Edit License
+Effacer
+Effacer le dessin
+Effectif
+Effectif actuel
+Email ou mot de passe incorrect.
+En retard
+En stock
+En-tête Administrative (Principale)
+En-tête Administrative (Secondaire / Arabe)
+Encaisser
+End Date
+Enregistrer l'Achat
+Enregistrer les Paramètres
+Enregistrer les Présences
+Enregistrer les paramètres
+Enregistrer ma Personnalisation
+Enregistrer un Achat
+Enseignant
+Entrance Test Management
+Entrées du Cahier de Texte
+Erreur lors de l'activation de l'année académique:
+Error:
+Ex: 1
+Ex: 2024-2025
+Ex: 3
+Ex: Correction d'erreur de saisie demandée par le proviseur
+Ex: Lycée
+Ex: Papeterie
+Ex: Période de saisie normale pour le premier semestre
+Ex: Uniforme scolaire
+Expiré
+Faible
+Failed to create role. Please try again.
+Failed to delete the role.
+Failed to update role. Please try again.
+Femme
+Fermeture
+Fiche
+Filtrer
+Filtrer par classe
+Filtrer par date
+Filtrer par enseignant
+Filtres
+Filtres de recherche
+Finalisation du règlement
+Fixe
+Fonction
+For student
+Format Standard CR80
+Format recommandé : 85.6 x 53.98mm
+Format recommandé : Portrait (3:4). La photo sera automatiquement redimensionnée.
+Forme
+Frais d'inscription
+Féminin
+General Average
+Generate License
+Generate New License
+Gestion
+Gestion de la Boutique
+Gestion des Années Académiques
+Gestion des Classes
+Gestion des Cycles
+Gestion des Déblocages
+Gestion des Déblocages des Notes
+Gestion des Matières
+Gestion des Mensualités
+Gestion des Présences
+Gestion des Périodes de Saisie
+Gestion des Périodes de Saisie des Notes
+Gestion des Restes / Dettes
+Gestion des Rôles
+Gestion des Séries
+Gestion des Types de Contrat
+Gestion des Élèves Actifs
+Gestion du personnel
+Global
+Global (Tout l'établissement)
+Grades Table
+Générer et consulter les bulletins de notes.
+Généré le
+Gérer Présences
+Gérer et imprimer les reçus.
+Gérer la Boutique
+Gérer la liste des matières enseignées.
+Gérer la paie des employés.
+Gérer la politique financière globale.
+Gérer les Années Académiques
+Gérer les Classes
+Gérer les Contrats
+Gérer les Cycles
+Gérer les Licences
+Gérer les Lycées
+Gérer les Matières
+Gérer les Rôles
+Gérer les Salaires
+Gérer les Utilisateurs
+Gérer les années
+Gérer les années académiques et définir l'année active.
+Gérer les articles et les achats de la boutique.
+Gérer les classes, les matières et les enseignants associés.
+Gérer les cycles d'enseignement (collège, lycée).
+Gérer les différents établissements scolaires.
+Gérer les dossiers des élèves, inscriptions et archives.
+Gérer les déblocages exceptionnels pour la saisie des notes.
+Gérer les impayés et restes à payer.
+Gérer les inscriptions des nouveaux élèves.
+Gérer les licences de l'application.
+Gérer les membres du personnel, leurs rôles et leurs accès.
+Gérer les paiements
+Gérer les paiements d'inscription.
+Gérer les paiements mensuels.
+Gérer les réinscriptions des élèves existants.
+Gérer les rôles et les permissions associées.
+Gérer les séquences et les périodes d'évaluation.
+Gérer les séries d'enseignement.
+Gérer les types de contrats du personnel.
+Gérer les Élèves
+Header (School Name, etc.)
+Heure de début
+Heure de fin
+High School
+High School Management
+High School Name
+High School Type
+Historique
+Historique des Achats
+Historique des Déblocages
+Historique des Inscriptions
+Historique des Paiements Mensuels
+Homme
+ID
+Identifiant Public
+Identifiant Public / Matricule
+Il y a %d élève(s) en attente de paiement initial.
+Image
+Image de l'Article
+Impossible de supprimer ce cycle car il est utilisé par une ou plusieurs classes.
+Imprimer
+Imprimer la carte
+Imprimer la liste
+Imprimer le reçu
+Imprimer les cartes de la classe
+Inactif
+Inactive
+Information
+Informations Personnelles
+Informations Professionnelles
+Informations des Parents / Tuteur
+Informations du Compte
+Informations sur l'école
+Inscription
+Installation Mono-école
+Installation Multi-écoles
+Inverser Photo / Infos
+Journal Comptable Unique
+Justifié
+L'année académique a été clôturée avec succès. Les opérations comptables sont désormais verrouillées.
+L'année académique a été réouverte. Les opérations comptables sont à nouveau autorisées.
+L'année académique demandée n'existe pas.
+La suppression a échoué. La matière est probablement utilisée dans une ou plusieurs classes ou par un enseignant.
+Laissez sur \"Global\" pour les rôles généraux (ex: Enseignant), ou assignez à une école pour un rôle local (ex: Administrateur local).
+Laissez vide pour conserver l'image actuelle.
+Laissez vide pour ne pas changer.
+Langue préférée
+Layout saved successfully!
+Le Caissier
+Le montant maximum autorisé est de
+Le nom des rôles par défaut ne peut pas être modifié.
+Les paiements seront affectés chronologiquement du mois le plus ancien au plus récent (Point 7).
+Les paramètres annuels ne peuvent pas être modifiés car aucune année académique n'est active ou vous n'avez pas les permissions.
+Libellé
+Libellé du contrat
+License Active
+License Management
+Liste des Articles
+Liste des Élèves
+Littéraire
+Logo
+Logo du Lycée
+Lycée
+Lycée Spécifique
+Lycée d'affectation
+Masculin
+Matière
+Matière:
+Matières et Enseignants
+Mensualité
+Mensualités
+Merci pour votre achat !
+Mes Classes et Matières
+Mettre à jour le mot de passe
+Mixte
+Modalité de Paiement des Frais de Scolarité
+Mode
+Mode de paiement
+Modifier Entrée
+Modifier Permissions
+Modifier l'Année Académique
+Modifier l'Article
+Modifier l'entrée du cahier de texte
+Modifier l'élève
+Modifier la Classe
+Modifier la Matière
+Modifier la Série
+Modifier le Cycle
+Modifier le Rôle
+Modifier le membre du personnel
+Modifier le type de contrat
+Modèle Prêt à l'Emploi
+Mois
+Mois/Séquence
+Mon Cahier de Texte
+Montant
+Montant Total
+Montant à verser pour l'inscription
+Montant à verser pour les mensualités
+Mot de passe
+Mot de passe actuel
+Motif
+Motif du déblocage
+Nature
+Nature de l'évaluation
+Nature de l'évaluation à débloquer
+Navigation
+New Test
+Niveau
+Niveau de Début
+Niveau de Fin
+Niveau de ciblage
+No entrance tests found for this student.
+No high schools found.
+No results found for this selection. Please ensure grades have been entered.
+Nom Complet
+Nom de l'Article
+Nom de la Mère
+Nom de la Série
+Nom de la classe
+Nom de la matière
+Nom du Cycle
+Nom du Lycée
+Nom du Père
+Nom du Rôle
+Nombre d'écritures
+Nombre de devoirs par trimestre
+Nombre de places
+Non assigné
+Notifications
+Nouveau Déblocage
+Nouveau mot de passe
+Nouveaux Paramètres
+Nouvel Achat
+Nouvelle Année Académique
+Nouvelle Classe
+Nouvelle Entrée
+Nouvelle Matière
+Numéro
+Numéro de classe
+Numéro de la Classe
+Numéro de référence / Reçu
+Numéro/Classe
+Obligatoire
+Observations
+Opacité
+Optionnel. Utile pour les lycées bilingues.
+Optionnelle
+Opérateur
+Opération
+Ou dessinez directement ci-dessous :
+Ouverture
+PROMO
+Paiement fractionné
+Panier de
+Par classe
+Par classe + matière
+Par enseignant (Spécifique)
+Par matière
+Params Éval.
+Paramètres de Blocage de Saisie
+Paramètres de Saisie
+Paramètres des évaluations
+Paramètres du Lycée
+Paramètres du déblocage
+Paramètres financiers
+Paramètres pour l'année
+Partiels
+Payer
+Payer Mensualité
+Payé
+Period
+Period:
+Permissions
+Personnalisation de la Carte Scolaire
+Personnaliser le modèle de la carte d'identité scolaire.
+Personnaliser le modèle du bulletin de notes.
+Personnalisez les couleurs et ajustez les positions selon vos besoins.
+Personnel Actif
+Phone
+Photo
+Photo de l'élève
+Police
+Portée
+Pour une administration nationale ou régionale.
+Pour une école privée ou parapublique.
+Prendre une photo
+Principale
+Print / PDF
+Prise en Charge
+Prise en Charge par
+Private
+Privé
+Prix
+Prix Actuel
+Prix Unitaire
+Produits en rupture
+Produits en stock
+Professeur Principal
+Profession de la Mère
+Profession du Père
+Protégé
+Préférences & Signatures Numériques
+Présences enregistrées avec succès.
+Présent
+Public
+Période
+Période du
+QR
+QR Code
+Qu'avez-vous enseigné aujourd'hui ?
+Quantité
+Quartier / Adresse
+RESTANT
+REÇU
+Radier
+Radier l'élève
+Recadrer la photo
+Recettes (F CFA)
+Recherche des restes en cours...
+Recherche Élève (Nom, Prénom, Matricule, Reçu)
+Rechercher un membre du personnel (nom, fonction)...
+Rechercher un produit...
+Rechercher un élève (nom, email, classe)...
+Record Entrance Test
+Record Result
+Rectangle
+Remboursement
+Remplacez le fond blanc par une image personnalisée :
+Remplir et consulter le cahier de texte.
+Report Card Generation
+Report Card Template Editor
+Reste
+Reste d'inscription à payer :
+Reste inscription
+Reste mensualité
+Reste à Payer
+Retirer
+Retirer la matière
+Retour au dossier élève
+Retour au tableau de bord
+Retour aux élèves actifs
+Retour à la liste
+Reçu
+Reçu N°
+Reçu de Vente
+Reçu de Vente Boutique
+Role ID is missing.
+Role created successfully.
+Role deleted successfully.
+Role not found.
+Role updated successfully.
+Rupture
+Règlement
+Réf Origine
+Régler
+Régulariser la situation
+Réinitialiser au Modèle Pro
+Réouvrir
+Rôle
+Rôle Global
+SOLDÉ
+Saisir Notes
+Saisir et consulter les notes des élèves.
+Saisir les Notes
+Saisir nom, prénom, matricule, reçu...
+Save
+Saving...
+School Management
+Scientifique
+Score
+Se connecter
+Select Class and Period
+Semi-public
+Show Results
+Signature Numérique (PNG transparent)
+Signature active
+Signature de l'élève
+Signez ici
+Solde Restant
+Sombre
+Spécifique à
+Start Date
+Status
+Stock
+Stock Initial
+Stock faible
+Stock insuffisant
+Student
+Student Information
+Student Name
+Student Report Card
+Summary (Averages and Appreciations)
+Supprimer cette série ?
+Sélectionner l'enseignant
+Sélectionner la classe
+Sélectionner la matière
+Sélectionner une classe
+Sélectionner une classe pour afficher les restes
+Séquence concernée
+Série
+TOTAL À PAYER
+Tableau de bord
+Tableau de bord comptable.
+Tableau de bord de classe
+Taille du texte (px)
+Tampon
+Target Class
+Technique
+Template Structure
+Template saved successfully!
+Terminer la configuration
+Test Date
+Texte
+The order you define here will be the display order on the final report card.
+This is a structural preview of the block.
+This template will apply to all report cards generated for this school.
+Thème d'affichage
+Total
+Total Dû
+Total Encaissé
+Total Payé
+Total général à payer :
+Total mensualités exigibles :
+Total reste
+Tous les cycles
+Tous les enseignants
+Tous les lycées
+Tous les niveaux
+Tous les numéros
+Tous les stocks
+Tout l'établissement
+Tout marquer comme lu
+Toutes
+Toutes les Notifications
+Toutes les catégories
+Toutes les classes
+Toutes les séquences
+Toutes les séries
+Travail à faire
+Type
+Type d'opération
+Type de Contrat
+Type de Lycée
+Type de Paiement
+Types de Contrat
+Tél
+Téléphone du Parent / Tuteur
+Téléversez une image détourée (.png) de votre cachet officiel.
+Unknown Block
+Update
+Use drag-and-drop to reorder the report card sections. The layout is saved automatically.
+Utilisez des retours à la ligne pour structurer l'en-tête.
+Utilisez les \"Theme Colors\" à gauche pour changer instantanément le style. Vous pouvez déplacer les éléments existants, mais nous recommandons de garder la structure professionnelle par défaut.
+Valider l'achat
+Valider l'encaissement global
+Valider le recadrage
+Vendu par
+Veuillez choisir le mode d'installation.
+Veuillez sélectionner un cycle, un niveau et une classe pour afficher la situation financière des élèves débiteurs (Point 2).
+Veuillez sélectionner un cycle, un niveau et une classe pour afficher le tableau de bord des paiements.
+View Report Card
+Voir
+Voir la liste
+Voir les détails
+Voir toutes les notifications
+Votre panier est vide
+Vous n'avez aucune notification.
+Vous n'avez pas la permission d'attribuer des matières.
+Vous ne pouvez pas supprimer l'année académique active.
+Vue 1 : Journal Détaillé
+Vue 2 : Journal par Reçu
+Vue 3 : Synthèse par Classe
+Vue 4 : Synthèse par Élève
+Vérifier et contrôler la situation financière des élèves.
+active
+au
+months
+À JOUR
+À jour
+À l'heure
+À venir
+École
+Écritures de l'élève dans la période
+Édition de l'année:
+Élève (Identifiant)
+Élèves Actifs
+Élèves Archivés
+Élèves absents, incidents, etc.
+Élèves endettés de la classe
+Épaisseur bordure
+Établissement
+État
+Évaluations
+Êtes-vous sûr ?
+Êtes-vous sûr de vouloir clôturer cette année ?
+Êtes-vous sûr de vouloir radier cet élève ? Cette action est réversible.
+Êtes-vous sûr de vouloir retirer cette matière de la classe ?
+Êtes-vous sûr de vouloir réinitialiser la carte ? Vos personnalisations actuelles seront perdues et le modèle professionnel d'origine sera restauré.
+Êtes-vous sûr de vouloir réouvrir cette année ?
+Êtes-vous sûr de vouloir supprimer ce cycle ?
+Êtes-vous sûr de vouloir supprimer ce déblocage ?
+Êtes-vous sûr de vouloir supprimer ce membre ?
+Êtes-vous sûr de vouloir supprimer ce paramètre ?
+Êtes-vous sûr de vouloir supprimer cette année ?
+Êtes-vous sûr de vouloir supprimer cette classe ?
+Êtes-vous sûr de vouloir supprimer cette entrée ?
+Êtes-vous sûr de vouloir supprimer cette matière ?
+élèves
+élèves actifs
+élèves débiteurs
