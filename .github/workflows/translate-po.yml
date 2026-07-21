@@ -1,31 +1,4 @@
-name: Translate PO files
-
-on:
-  workflow_dispatch:
-
-permissions:
-  contents: write
-  pull-requests: write
-
-jobs:
-  translate:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Récupérer le dépôt
-        uses: actions/checkout@v6
-
-      - name: Installer Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-
-      - name: Installer les dépendances
-        run: |
-          python -m pip install --upgrade pip
-          pip install google-genai polib
-
-      - name: Traduire les fichiers PO
+                           - name: Traduire les fichiers PO
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
@@ -40,11 +13,14 @@ jobs:
           ENGLISH_FILE = "locale/en_US/LC_MESSAGES/messages.po"
           ARABIC_FILE = "locale/ar/LC_MESSAGES/messages.po"
 
-          MODEL = "gemini-3.5-flash"
+          PRIMARY_MODEL = "gemini-3.5-flash"
+          FALLBACK_MODEL = "gemini-3.1-flash-lite"
 
           client = genai.Client(
               api_key=os.environ["GEMINI_API_KEY"]
           )
+
+          failed_translations = []
 
           def protect_placeholders(text):
               patterns = [
@@ -77,6 +53,17 @@ jobs:
 
               return text
 
+          def call_gemini(prompt, model):
+              response = client.models.generate_content(
+                  model=model,
+                  contents=prompt
+              )
+
+              if not response.text:
+                  raise RuntimeError("Réponse vide de Gemini")
+
+              return response.text.strip()
+
           def translate(text, target_language):
               protected_text, protected = protect_placeholders(text)
 
@@ -99,30 +86,38 @@ jobs:
           {protected_text}
           """
 
-              for attempt in range(3):
-                  try:
-                      response = client.models.generate_content(
-                          model=MODEL,
-                          contents=prompt
-                      )
+              models = [
+                  PRIMARY_MODEL,
+                  FALLBACK_MODEL
+              ]
 
-                      result = response.text.strip()
+              for model in models:
+                  for attempt in range(1, 4):
+                      try:
+                          print(
+                              f"Modèle {model} - "
+                              f"tentative {attempt}/3"
+                          )
 
-                      if result:
-                          return restore_placeholders(result, protected)
+                          result = call_gemini(
+                              prompt,
+                              model
+                          )
 
-                  except Exception as error:
-                      print(
-                          f"Erreur Gemini ({target_language}), "
-                          f"tentative {attempt + 1}/3: {error}"
-                      )
+                          return restore_placeholders(
+                              result,
+                              protected
+                          )
 
-                      if attempt < 2:
-                          time.sleep(20)
+                      except Exception as error:
+                          print(
+                              f"Erreur avec {model}: {error}"
+                          )
 
-              raise RuntimeError(
-                  f"Impossible de traduire : {text}"
-              )
+                          if attempt < 3:
+                              time.sleep(10)
+
+              return None
 
           source = polib.pofile(SOURCE_FILE)
           english = polib.pofile(ENGLISH_FILE)
@@ -154,41 +149,58 @@ jobs:
 
               if english_entry and not english_entry.msgstr:
                   print(f"EN: {msgid}")
-                  english_entry.msgstr = translate(
+
+                  translation = translate(
                       msgid,
                       "English"
                   )
 
+                  if translation:
+                      english_entry.msgstr = translation
+                      translated_count += 1
+                  else:
+                      failed_translations.append(
+                          f"EN | {msgid}"
+                      )
+
+                  english.save(ENGLISH_FILE)
+
               if arabic_entry and not arabic_entry.msgstr:
                   print(f"AR: {msgid}")
-                  arabic_entry.msgstr = translate(
+
+                  translation = translate(
                       msgid,
                       "Modern Standard Arabic"
                   )
 
-              translated_count += 1
+                  if translation:
+                      arabic_entry.msgstr = translation
+                      translated_count += 1
+                  else:
+                      failed_translations.append(
+                          f"AR | {msgid}"
+                      )
 
-          english.save(ENGLISH_FILE)
-          arabic.save(ARABIC_FILE)
+                  arabic.save(ARABIC_FILE)
+
+          print("")
+          print("===== RÉSUMÉ =====")
+          print(
+              f"Traductions réussies : {translated_count}"
+          )
 
           print(
-              f"Entrées examinées : {translated_count}"
+              f"Traductions échouées : "
+              f"{len(failed_translations)}"
           )
-          PY
 
-      - name: Créer une Pull Request
-        uses: peter-evans/create-pull-request@v8
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "🌍 Traduction automatique des fichiers PO"
-          title: "🌍 Traduction automatique : anglais et arabe"
-          body: |
-            Cette Pull Request contient des traductions générées automatiquement par Gemini.
+          if failed_translations:
+              print("")
+              print("===== ÉCHECS =====")
 
-            Fichiers concernés :
-            - locale/en_US/LC_MESSAGES/messages.po
-            - locale/ar/LC_MESSAGES/messages.po
+              for item in failed_translations:
+                  print(item)
 
-            Une vérification humaine est nécessaire avant fusion.
-          branch: translation/automatic-gemini
-          delete-branch: true
+          print("")
+          print("Les fichiers PO ont été sauvegardés.")
+          PY           
