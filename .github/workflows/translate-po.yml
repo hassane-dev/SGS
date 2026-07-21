@@ -1,0 +1,206 @@
+      - name: Traduire les fichiers PO
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          import time
+          import polib
+          from google import genai
+
+          SOURCE_FILE = "locale/fr_FR/LC_MESSAGES/messages.po"
+          ENGLISH_FILE = "locale/en_US/LC_MESSAGES/messages.po"
+          ARABIC_FILE = "locale/ar/LC_MESSAGES/messages.po"
+
+          PRIMARY_MODEL = "gemini-3.5-flash"
+          FALLBACK_MODEL = "gemini-3.1-flash-lite"
+
+          client = genai.Client(
+              api_key=os.environ["GEMINI_API_KEY"]
+          )
+
+          failed_translations = []
+
+          def protect_placeholders(text):
+              patterns = [
+                  r'%\d*\$?[sdif]',
+                  r'%[sdif]',
+                  r'\{\{.*?\}\}',
+                  r'\{[^{}]+\}',
+                  r':[A-Za-z_][A-Za-z0-9_]*',
+                  r'<[^>]+>',
+              ]
+
+              protected = []
+              counter = 0
+
+              def replace(match):
+                  nonlocal counter
+                  token = f"__PLACEHOLDER_{counter}__"
+                  protected.append((token, match.group(0)))
+                  counter += 1
+                  return token
+
+              for pattern in patterns:
+                  text = re.sub(pattern, replace, text)
+
+              return text, protected
+
+          def restore_placeholders(text, protected):
+              for token, original in protected:
+                  text = text.replace(token, original)
+
+              return text
+
+          def call_gemini(prompt, model):
+              response = client.models.generate_content(
+                  model=model,
+                  contents=prompt
+              )
+
+              if not response.text:
+                  raise RuntimeError("Réponse vide de Gemini")
+
+              return response.text.strip()
+
+          def translate(text, target_language):
+              protected_text, protected = protect_placeholders(text)
+
+              prompt = f"""
+          You are a professional software translator.
+
+          Translate the following French software string into {target_language}.
+
+          STRICT RULES:
+          - Return ONLY the translation.
+          - Do not add explanations.
+          - Do not add quotation marks.
+          - Preserve every placeholder exactly.
+          - Preserve HTML tags exactly.
+          - Preserve variables exactly.
+          - Do not translate technical variable names.
+          - Keep the meaning appropriate for a school management application.
+
+          French source:
+          {protected_text}
+          """
+
+              models = [
+                  PRIMARY_MODEL,
+                  FALLBACK_MODEL
+              ]
+
+              for model in models:
+                  for attempt in range(1, 4):
+                      try:
+                          print(
+                              f"Modèle {model} - "
+                              f"tentative {attempt}/3"
+                          )
+
+                          result = call_gemini(
+                              prompt,
+                              model
+                          )
+
+                          return restore_placeholders(
+                              result,
+                              protected
+                          )
+
+                      except Exception as error:
+                          print(
+                              f"Erreur avec {model}: {error}"
+                          )
+
+                          if attempt < 3:
+                              time.sleep(10)
+
+              return None
+
+          source = polib.pofile(SOURCE_FILE)
+          english = polib.pofile(ENGLISH_FILE)
+          arabic = polib.pofile(ARABIC_FILE)
+
+          english_entries = {
+              entry.msgid: entry
+              for entry in english
+              if entry.msgid
+          }
+
+          arabic_entries = {
+              entry.msgid: entry
+              for entry in arabic
+              if entry.msgid
+          }
+
+          translated_count = 0
+
+          for source_entry in source:
+
+              if not source_entry.msgid:
+                  continue
+
+              msgid = source_entry.msgid
+
+              english_entry = english_entries.get(msgid)
+              arabic_entry = arabic_entries.get(msgid)
+
+              if english_entry and not english_entry.msgstr:
+                  print(f"EN: {msgid}")
+
+                  translation = translate(
+                      msgid,
+                      "English"
+                  )
+
+                  if translation:
+                      english_entry.msgstr = translation
+                      translated_count += 1
+                  else:
+                      failed_translations.append(
+                          f"EN | {msgid}"
+                      )
+
+                  english.save(ENGLISH_FILE)
+
+              if arabic_entry and not arabic_entry.msgstr:
+                  print(f"AR: {msgid}")
+
+                  translation = translate(
+                      msgid,
+                      "Modern Standard Arabic"
+                  )
+
+                  if translation:
+                      arabic_entry.msgstr = translation
+                      translated_count += 1
+                  else:
+                      failed_translations.append(
+                          f"AR | {msgid}"
+                      )
+
+                  arabic.save(ARABIC_FILE)
+
+          print("")
+          print("===== RÉSUMÉ =====")
+          print(
+              f"Traductions réussies : {translated_count}"
+          )
+
+          print(
+              f"Traductions échouées : "
+              f"{len(failed_translations)}"
+          )
+
+          if failed_translations:
+              print("")
+              print("===== ÉCHECS =====")
+
+              for item in failed_translations:
+                  print(item)
+
+          print("")
+          print("Les fichiers PO ont été sauvegardés.")
+          PY
