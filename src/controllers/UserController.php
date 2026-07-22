@@ -407,5 +407,118 @@ class UserController {
             exit();
         }
     }
+
+    private function handleCroppedPhoto($base64_string) {
+        if (empty($base64_string)) {
+            return null;
+        }
+
+        // 1. Verify base64 prefix
+        if (!preg_match('/^data:image\/(\w+);base64,/', $base64_string, $typeMatches)) {
+            error_log("Invalid base64 image prefix.");
+            return null;
+        }
+
+        // 2. Decode the data
+        $imgData = substr($base64_string, strpos($base64_string, ',') + 1);
+        $imgData = base64_decode($imgData);
+        if ($imgData === false) {
+            error_log("Failed to decode base64 string.");
+            return null;
+        }
+
+        // 3. Size validation (5MB limit)
+        if (strlen($imgData) > 5000000) {
+            error_log("Decoded cropped photo exceeds 5MB size limit.");
+            return null;
+        }
+
+        // 4. Ensure target directory exists and is writable
+        $upload_path = UPLOAD_BASE_DIR . '/photos/';
+        if (!is_dir($upload_path)) {
+            if (!mkdir($upload_path, 0777, true)) {
+                error_log("Failed to create user photo upload directory: " . $upload_path);
+                return null;
+            }
+        }
+        @chmod($upload_path, 0777);
+
+        // 5. Generate a unique, safe filename
+        $filename = uniqid() . '.jpg';
+        $target_path = $upload_path . $filename;
+
+        // 6. Save file to disk
+        if (file_put_contents($target_path, $imgData)) {
+            // 7. Validate real MIME type
+            $fileInfo = finfo_open(FILEINFO_MIME_TYPE);
+            $detectedType = finfo_file($fileInfo, $target_path);
+            finfo_close($fileInfo);
+
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!in_array($detectedType, $allowedTypes)) {
+                error_log("Rejected file upload. Real MIME type is not allowed: " . $detectedType);
+                @unlink($target_path); // delete non-image file immediately
+                return null;
+            }
+
+            return UPLOAD_PUBLIC_PATH . '/photos/' . $filename;
+        } else {
+            error_log("Failed to write cropped photo data to disk: " . $target_path);
+        }
+
+        return null;
+    }
+
+    public function updatePhoto() {
+        // Ensure user is logged in
+        if (!Auth::check()) {
+            http_response_code(403);
+            View::render('errors/403');
+            exit();
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $user_id = Auth::get('id_user');
+            $user = User::findById($user_id);
+            if (!$user) {
+                $_SESSION['error_message'] = _('Utilisateur non trouvé.');
+                header('Location: /profile');
+                exit();
+            }
+
+            $data = Validator::sanitize($_POST);
+            $photoPath = null;
+
+            if (!empty($data['cropped_photo'])) {
+                $photoPath = $this->handleCroppedPhoto($data['cropped_photo']);
+            } elseif (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+                $photoPath = $this->handlePhotoUpload($_FILES['photo']);
+            }
+
+            if ($photoPath) {
+                // Delete old photo if exists
+                if (!empty($user['photo'])) {
+                    $oldPhotoPath = __DIR__ . '/../../public' . $user['photo'];
+                    if (file_exists($oldPhotoPath)) {
+                        @unlink($oldPhotoPath);
+                    }
+                }
+
+                // Update photo in DB
+                if (User::updatePhoto($user_id, $photoPath)) {
+                    $_SESSION['success_message'] = _('Photo de profil mise à jour avec succès.');
+                    // Update current user session photo
+                    $_SESSION['user']['photo'] = $photoPath;
+                } else {
+                    $_SESSION['error_message'] = _('Erreur lors de la mise à jour de la photo dans la base de données.');
+                }
+            } else {
+                $_SESSION['error_message'] = _('Erreur lors du téléchargement de l\'image ou format d\'image invalide.');
+            }
+
+            header('Location: /profile');
+            exit();
+        }
+    }
 }
 ?>
