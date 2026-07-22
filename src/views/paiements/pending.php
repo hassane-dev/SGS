@@ -8,12 +8,12 @@
                 <div class="row align-items-center">
                     <div class="col-md-12">
                         <div class="page-header-title">
-                            <h2 class="mb-0"><?= $title ?></h2>
+                            <h2 class="mb-0"><?= _($title) ?></h2>
                         </div>
                         <ul class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="/">Tableau de Bord</a></li>
-                            <li class="breadcrumb-item"><a href="/paiements">Finances</a></li>
-                            <li class="breadcrumb-item" aria-current="page"><?= $title ?></li>
+                            <li class="breadcrumb-item"><a href="/"><?= _('Tableau de Bord') ?></a></li>
+                            <li class="breadcrumb-item"><a href="/paiements"><?= _('Finances') ?></a></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= _($title) ?></li>
                         </ul>
                     </div>
                 </div>
@@ -47,19 +47,19 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5>File d'attente des validations financières</h5>
+                        <h5><?= _("File d'attente des validations financières") ?></h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>Élève</th>
-                                        <th>Classe</th>
-                                        <th>Statut</th>
-                                        <th class="text-end">Déjà Versé</th>
-                                        <th class="text-end text-danger">Reste à Payer</th>
-                                        <th class="text-center">Action</th>
+                                        <th><?= _('Élève') ?></th>
+                                        <th><?= _('Classe') ?></th>
+                                        <th><?= _('Statut') ?></th>
+                                        <th class="text-end"><?= _('Déjà Versé') ?></th>
+                                        <th class="text-end text-danger"><?= _('Reste à Payer') ?></th>
+                                        <th class="text-center"><?= _('Action') ?></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -72,7 +72,7 @@
                                                     </div>
                                                     <div class="flex-grow-1 ms-3">
                                                         <h6 class="mb-0"><?= htmlspecialchars($e['prenom'] . ' ' . $e['nom']) ?></h6>
-                                                        <p class="mb-0 text-muted small">Né(e) le <?= date('d/m/Y', strtotime($e['date_naissance'])) ?></p>
+                                                        <p class="mb-0 text-muted small"><?= _('Né(e) le ') ?><?= date('d/m/Y', strtotime($e['date_naissance'])) ?></p>
                                                     </div>
                                                 </div>
                                             </td>
@@ -83,15 +83,15 @@
                                             </td>
                                             <td>
                                                 <?php if ($e['etat_finance'] === 'Partiel'): ?>
-                                                    <span class="badge bg-light-warning text-warning">Paiement Partiel</span>
+                                                    <span class="badge bg-light-warning text-warning"><?= _('Paiement Partiel') ?></span>
                                                 <?php else: ?>
-                                                    <span class="badge bg-light-danger text-danger">En attente</span>
+                                                    <span class="badge bg-light-danger text-danger"><?= _('En attente') ?></span>
                                                 <?php endif; ?>
                                             </td>
                                             <td class="text-end"><?= number_format($e['verse'], 0, ',', ' ') ?> FCFA</td>
                                             <td class="text-end fw-bold text-danger"><?= number_format($e['reste'], 0, ',', ' ') ?> FCFA</td>
                                             <td class="text-center">
-                                                <a href="/paiements/show/<?= $e['id_eleve'] ?>" class="btn btn-icon btn-light-success" title="Procéder au paiement">
+                                                <a href="/paiements/show/<?= $e['id_eleve'] ?>" class="btn btn-icon btn-light-success" title="<?= _('Procéder au paiement') ?>">
                                                     <i class="ph-duotone ph-currency-circle-dollar"></i>
                                                 </a>
                                             </td>
@@ -99,7 +99,7 @@
                                     <?php endforeach; ?>
                                     <?php if (empty($eleves)): ?>
                                         <tr>
-                                            <td colspan="6" class="text-center py-4">Aucun élève en attente de validation financière.</td>
+                                            <td colspan="6" class="text-center py-4"><?= _('Aucun élève en attente de validation financière.') ?></td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>

@@ -11,11 +11,11 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                 <div class="row align-items-center">
                     <div class="col-md-12">
                         <div class="page-header-title">
-                            <h5 class="m-b-10">Gestion des Séquences</h5>
+                            <h5 class="m-b-10"><?= _('Gestion des Séquences') ?></h5>
                         </div>
                         <ul class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="/home">Tableau de Bord</a></li>
-                            <li class="breadcrumb-item" aria-current="page">Séquences Annuelles</li>
+                            <li class="breadcrumb-item"><a href="/home"><?= _('Tableau de Bord') ?></a></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= _('Séquences Annuelles') ?></li>
                         </ul>
                     </div>
                 </div>
@@ -29,10 +29,10 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5>Liste des Séquences pour l'année en cours</h5>
+                        <h5><?= _("Liste des Séquences pour l'année en cours") ?></h5>
                         <?php if (Auth::can('manage', 'sequence')): ?>
                             <a href="/sequences/create" class="btn btn-primary btn-sm">
-                                <i class="ti ti-plus"></i> Nouvelle Séquence
+                                <i class="ti ti-plus"></i> <?= _('Nouvelle Séquence') ?>
                             </a>
                         <?php endif; ?>
                     </div>
@@ -54,39 +54,39 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>Nom</th>
-                                        <th>Type</th>
-                                        <th>Date de Début</th>
-                                        <th>Date de Fin</th>
-                                        <th>Statut</th>
-                                        <th>Actions</th>
+                                        <th><?= _('Nom') ?></th>
+                                        <th><?= _('Type') ?></th>
+                                        <th><?= _('Date de Début') ?></th>
+                                        <th><?= _('Date de Fin') ?></th>
+                                        <th><?= _('Statut') ?></th>
+                                        <th><?= _('Actions') ?></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php if (empty($sequences)): ?>
                                         <tr>
-                                            <td colspan="6" class="text-center">Aucune séquence trouvée pour l'année académique en cours.</td>
+                                            <td colspan="6" class="text-center"><?= _("Aucune séquence trouvée pour l'année académique en cours.") ?></td>
                                         </tr>
                                     <?php else: ?>
                                         <?php foreach ($sequences as $sequence): ?>
                                             <tr>
                                                 <td><?= htmlspecialchars($sequence['nom']) ?></td>
-                                                <td><?= ucfirst(htmlspecialchars($sequence['type'] === 'trimestrielle' ? 'Trimestre' : 'Semestre')) ?></td>
+                                                <td><?= htmlspecialchars($sequence['type'] === 'trimestrielle' ? _('Trimestre') : _('Semestre')) ?></td>
                                                 <td><?= htmlspecialchars(date('d/m/Y', strtotime($sequence['date_debut']))) ?></td>
                                                 <td><?= htmlspecialchars(date('d/m/Y', strtotime($sequence['date_fin']))) ?></td>
                                                 <td>
                                                     <span class="badge bg-light-<?= $sequence['statut'] === 'ouverte' ? 'success' : 'danger' ?>">
-                                                        <?= ucfirst(htmlspecialchars($sequence['statut'])) ?>
+                                                        <?= htmlspecialchars($sequence['statut'] === 'ouverte' ? _('Ouverte') : _('Fermée')) ?>
                                                     </span>
                                                 </td>
                                                 <td>
                                                     <?php if (Auth::can('manage', 'sequence')): ?>
-                                                        <a href="/sequences/edit?id=<?= $sequence['id'] ?>" class="btn btn-sm btn-light-warning" title="Modifier">
+                                                        <a href="/sequences/edit?id=<?= $sequence['id'] ?>" class="btn btn-sm btn-light-warning" title="<?= _('Modifier') ?>">
                                                             <i class="ti ti-edit"></i>
                                                         </a>
-                                                        <form action="/sequences/destroy" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette séquence ?');">
+                                                        <form action="/sequences/destroy" method="POST" class="d-inline" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer cette séquence ?') ?>');">
                                                             <input type="hidden" name="id" value="<?= $sequence['id'] ?>">
-                                                            <button type="submit" class="btn btn-sm btn-light-danger" title="Supprimer">
+                                                            <button type="submit" class="btn btn-sm btn-light-danger" title="<?= _('Supprimer') ?>">
                                                                 <i class="ti ti-trash"></i>
                                                             </button>
                                                         </form>
