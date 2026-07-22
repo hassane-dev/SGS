@@ -418,5 +418,22 @@ class User {
             'id_user' => $user_id
         ]);
     }
+
+    /**
+     * Met à jour uniquement la photo d'un utilisateur.
+     *
+     * @param int $user_id L'ID de l'utilisateur.
+     * @param string|null $photo_path Le chemin de la photo de profil.
+     * @return bool
+     */
+    public static function updatePhoto($user_id, $photo_path) {
+        $db = Database::getInstance();
+        $sql = "UPDATE utilisateurs SET photo = :photo WHERE id_user = :id_user";
+        $stmt = $db->prepare($sql);
+        return $stmt->execute([
+            'photo' => $photo_path,
+            'id_user' => $user_id
+        ]);
+    }
 }
 ?>

@@ -26,49 +26,48 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5>Configuration des Devoirs pour l'Année en Cours</h5>
+                        <h5><?= _("Configuration des Devoirs pour l'Année en Cours") ?></h5>
                     </div>
                     <div class="card-body">
                         <?php if (isset($_GET['success'])): ?>
-                            <div class="alert alert-success">Les paramètres ont été mis à jour avec succès.</div>
+                            <div class="alert alert-success"><?= _('Les paramètres ont été mis à jour avec succès.') ?></div>
                         <?php elseif (isset($_GET['error'])): ?>
-                            <div class="alert alert-danger">Une erreur est survenue lors de la mise à jour.</div>
+                            <div class="alert alert-danger"><?= _('Une erreur est survenue lors de la mise à jour.') ?></div>
                         <?php endif; ?>
 
                         <div class="alert alert-info">
-                            Ces paramètres s'appliquent à toute l'école pour l'année académique active.
-                            Les champs de dates peuvent être laissés vides pour ne pas imposer de restriction globale.
+                            <?= _("Ces paramètres s'appliquent à toute l'école pour l'année académique active. Les champs de dates peuvent être laissés vides pour ne pas imposer de restriction globale.") ?>
                         </div>
 
                         <form action="/param-devoir/update" method="POST">
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label for="nombre_devoir_par_sequence" class="form-label">Nombre de devoirs autorisés par séquence</label>
+                                    <label for="nombre_devoir_par_sequence" class="form-label"><?= _('Nombre de devoirs autorisés par séquence') ?></label>
                                     <input type="number" id="nombre_devoir_par_sequence" name="nombre_devoir_par_sequence" class="form-control" value="<?= htmlspecialchars($params['nombre_devoir_par_sequence'] ?? '') ?>">
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="note_maximale" class="form-label">Note maximale pour un devoir</label>
+                                    <label for="note_maximale" class="form-label"><?= _('Note maximale pour un devoir') ?></label>
                                     <input type="number" step="0.25" id="note_maximale" name="note_maximale" class="form-control" value="<?= htmlspecialchars($params['note_maximale'] ?? '') ?>">
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="date_debut_insertion" class="form-label">Date d'ouverture globale de la saisie</label>
+                                    <label for="date_debut_insertion" class="form-label"><?= _("Date d'ouverture globale de la saisie") ?></label>
                                     <input type="datetime-local" id="date_debut_insertion" name="date_debut_insertion" class="form-control" value="<?= !empty($params['date_debut_insertion']) ? (new DateTime($params['date_debut_insertion']))->format('Y-m-d\TH:i') : '' ?>">
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="date_fin_insertion" class="form-label">Date de fermeture globale de la saisie</label>
+                                    <label for="date_fin_insertion" class="form-label"><?= _("Date de fermeture globale de la saisie") ?></label>
                                     <input type="datetime-local" id="date_fin_insertion" name="date_fin_insertion" class="form-control" value="<?= !empty($params['date_fin_insertion']) ? (new DateTime($params['date_fin_insertion']))->format('Y-m-d\TH:i') : '' ?>">
                                 </div>
                                 <div class="col-12">
                                     <div class="form-check">
                                         <input type="checkbox" id="deblocage_urgence" name="deblocage_urgence" class="form-check-input" value="1" <?= ($params['deblocage_urgence'] ?? 0) ? 'checked' : '' ?>>
-                                        <label for="deblocage_urgence" class="form-check-label">Débloquer la saisie en urgence</label>
-                                        <small class="form-text text-muted d-block">Cocher cette case ignore les dates de restriction pour tous.</small>
+                                        <label for="deblocage_urgence" class="form-check-label"><?= _('Débloquer la saisie en urgence') ?></label>
+                                        <small class="form-text text-muted d-block"><?= _('Cocher cette case ignore les dates de restriction pour tous.') ?></small>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="mt-4 d-flex justify-content-end">
-                                <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                                <button type="submit" class="btn btn-primary"><?= _('Enregistrer les modifications') ?></button>
                             </div>
                         </form>
                     </div>

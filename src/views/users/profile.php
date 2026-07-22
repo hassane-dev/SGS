@@ -1,6 +1,8 @@
 <?php require_once __DIR__ . '/../layouts/header_able.php'; ?>
 <?php require_once __DIR__ . '/../layouts/sidebar_able.php'; ?>
 
+<link rel="stylesheet" href="/assets/libs/cropper/cropper.min.css">
+
 <!-- [ Main Content ] start -->
 <div class="pc-container">
     <div class="pc-content">
@@ -23,9 +25,47 @@
             <div class="col-lg-4">
                 <div class="card">
                     <div class="card-body text-center">
-                        <img src="<?= htmlspecialchars($user['photo'] ?? '/assets/img/default-avatar.png') ?>" alt="Photo de profil" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                        <img src="<?= htmlspecialchars($user['photo'] ?? '/assets/img/default-avatar.png') ?>" alt="Photo de profil" class="img-fluid rounded-circle mb-3" id="current-profile-photo" style="width: 150px; height: 150px; object-fit: cover;">
                         <h4 class="mb-1"><?= htmlspecialchars($user['prenom'] . ' ' . $user['nom']) ?></h4>
                         <p class="text-muted mb-3"><?= htmlspecialchars($user['fonction'] ?? 'N/A') ?></p>
+
+                        <button type="button" class="btn btn-sm btn-outline-primary mb-3" id="btn-toggle-photo-edit">
+                            <i class="ph-duotone ph-pencil me-1"></i><?= _('Modifier la photo') ?>
+                        </button>
+
+                        <!-- Hidden edit section -->
+                        <div id="photo-edit-section" style="display: none;" class="text-start border-top pt-3 mt-2">
+                            <form action="/profile/update-photo" method="POST" enctype="multipart/form-data" id="photo-upload-form">
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center justify-content-center gap-3 mb-2">
+                                        <div id="photo-preview-container">
+                                            <img src="<?= htmlspecialchars($user['photo'] ?? '/assets/img/default-avatar.png') ?>" alt="Aperçu" class="img-thumbnail" id="photo-preview" style="width: 105px; height: 140px; object-fit: cover;">
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <button type="button" class="btn btn-sm btn-outline-primary mb-2 d-block w-100 text-start" id="btn-browse-photo">
+                                                <i class="ph-duotone ph-folder-open me-2"></i><?= _('Choisir un fichier') ?>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary mb-2 d-block w-100 text-start" id="btn-camera-photo">
+                                                <i class="ph-duotone ph-camera me-2"></i><?= _('Prendre une photo') ?>
+                                            </button>
+                                            <input type="file" id="input-photo" accept="image/*" class="d-none">
+                                            <input type="file" id="input-camera" accept="image/*" capture="camera" class="d-none">
+                                            <input type="hidden" name="cropped_photo" id="cropped_photo">
+                                        </div>
+                                    </div>
+                                    <small class="text-muted d-block text-center mb-3"><?= _('Format recommandé : Portrait (3:4).') ?></small>
+
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <button type="button" class="btn btn-sm btn-secondary w-100" id="btn-cancel-photo-edit"><?= _('Annuler') ?></button>
+                                        </div>
+                                        <div class="col-6">
+                                            <button type="submit" class="btn btn-sm btn-success w-100" id="btn-save-photo" disabled><?= _('Enregistrer') ?></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -231,6 +271,123 @@ document.addEventListener("DOMContentLoaded", function() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         document.getElementById('signature-base64').value = '';
     });
+});
+</script>
+
+<!-- Modal de Recadrage -->
+<div class="modal fade" id="cropperModal" tabindex="-1" aria-labelledby="cropperModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cropperModalLabel"><?= _('Recadrer la photo') ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="img-container">
+                    <img id="cropper-image" src="" style="max-width: 100%;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= _('Annuler') ?></button>
+                <button type="button" class="btn btn-primary" id="btn-crop-save"><?= _('Valider le recadrage') ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/assets/libs/cropper/cropper.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnTogglePhotoEdit = document.getElementById('btn-toggle-photo-edit');
+    const photoEditSection = document.getElementById('photo-edit-section');
+    const btnCancelPhotoEdit = document.getElementById('btn-cancel-photo-edit');
+    const btnSavePhoto = document.getElementById('btn-save-photo');
+
+    if (btnTogglePhotoEdit && photoEditSection) {
+        btnTogglePhotoEdit.addEventListener('click', function() {
+            photoEditSection.style.display = 'block';
+            btnTogglePhotoEdit.style.display = 'none';
+        });
+
+        btnCancelPhotoEdit.addEventListener('click', function() {
+            photoEditSection.style.display = 'none';
+            btnTogglePhotoEdit.style.display = 'inline-block';
+            // Reset preview
+            const originalPhoto = document.getElementById('current-profile-photo').src;
+            document.getElementById('photo-preview').src = originalPhoto;
+            document.getElementById('cropped_photo').value = '';
+            btnSavePhoto.disabled = true;
+        });
+    }
+
+    const inputPhoto = document.getElementById('input-photo');
+    const inputCamera = document.getElementById('input-camera');
+    const btnBrowse = document.getElementById('btn-browse-photo');
+    const btnCamera = document.getElementById('btn-camera-photo');
+    const photoPreview = document.getElementById('photo-preview');
+    const cropperModal = new bootstrap.Modal(document.getElementById('cropperModal'));
+    const cropperImage = document.getElementById('cropper-image');
+    const btnCropSave = document.getElementById('btn-crop-save');
+    const croppedPhotoInput = document.getElementById('cropped_photo');
+
+    let cropper;
+
+    if (btnBrowse && btnCamera) {
+        btnBrowse.addEventListener('click', () => inputPhoto.click());
+        btnCamera.addEventListener('click', () => inputCamera.click());
+
+        [inputPhoto, inputCamera].forEach(input => {
+            if (input) {
+                input.addEventListener('change', function(e) {
+                    const files = e.target.files;
+                    if (files && files.length > 0) {
+                        const file = files[0];
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            cropperImage.src = event.target.result;
+                            cropperModal.show();
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+        });
+
+        document.getElementById('cropperModal').addEventListener('shown.bs.modal', function() {
+            cropper = new Cropper(cropperImage, {
+                aspectRatio: 3 / 4,
+                viewMode: 1,
+                autoCropArea: 1,
+            });
+        });
+
+        document.getElementById('cropperModal').addEventListener('hidden.bs.modal', function() {
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+            // Reset inputs to allow selecting the same file again
+            if (inputPhoto) inputPhoto.value = '';
+            if (inputCamera) inputCamera.value = '';
+        });
+
+        btnCropSave.addEventListener('click', function() {
+            if (cropper) {
+                const canvas = cropper.getCroppedCanvas({
+                    width: 300,
+                    height: 400,
+                    imageSmoothingEnabled: true,
+                    imageSmoothingQuality: 'high',
+                });
+
+                const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                photoPreview.src = croppedDataUrl;
+                croppedPhotoInput.value = croppedDataUrl;
+                btnSavePhoto.disabled = false;
+                cropperModal.hide();
+            }
+        });
+    }
 });
 </script>
 

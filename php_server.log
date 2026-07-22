@@ -1,3 +1,10 @@
+<<<<<<< HEAD
+[Wed Jul 22 08:26:18 2026] PHP 8.3.6 Development Server (http://127.0.0.1:8000) started
+[Wed Jul 22 08:26:33 2026] 127.0.0.1:45912 Accepted
+[Wed Jul 22 08:26:33 2026] Error in Lycee::findAll: SQLSTATE[HY000] [2002] Connection refused
+[Wed Jul 22 08:26:33 2026] 127.0.0.1:45912 [302]: HEAD /login
+[Wed Jul 22 08:26:33 2026] 127.0.0.1:45912 Closing
+=======
 [Tue Jul 21 18:45:50 2026] PHP 8.3.6 Development Server (http://127.0.0.1:8000) started
 [Tue Jul 21 21:51:52 2026] 127.0.0.1:33148 Accepted
 [Tue Jul 21 21:51:52 2026] 127.0.0.1:33148 [200]: GET /login
@@ -600,3 +607,289 @@
 [Tue Jul 21 21:57:50 2026] 127.0.0.1:35952 Accepted
 [Tue Jul 21 21:57:50 2026] 127.0.0.1:35952 [200]: GET /assets/fonts/phosphor/duotone/Phosphor-Duotone.woff2
 [Tue Jul 21 21:57:50 2026] 127.0.0.1:35952 Closing
+[Tue Jul 21 23:05:36 2026] 127.0.0.1:37250 Accepted
+[Tue Jul 21 23:05:36 2026] 127.0.0.1:37250 [200]: GET /login
+[Tue Jul 21 23:05:36 2026] 127.0.0.1:37250 Closing
+[Tue Jul 21 23:05:36 2026] 127.0.0.1:37260 Accepted
+[Tue Jul 21 23:05:36 2026] 127.0.0.1:37270 Accepted
+[Tue Jul 21 23:05:36 2026] 127.0.0.1:37260 [200]: GET /assets/css/bootstrap.min.css
+[Tue Jul 21 23:05:36 2026] 127.0.0.1:37270 [200]: GET /assets/js/bootstrap.bundle.min.js
+[Tue Jul 21 23:05:36 2026] 127.0.0.1:37270 Closing
+[Tue Jul 21 23:05:36 2026] 127.0.0.1:37260 Closing
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37276 Accepted
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37276 [302]: POST /login
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37276 Closing
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37286 Accepted
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37286 [200]: GET /
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37286 Closing
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37294 Accepted
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37300 Accepted
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37304 Accepted
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37294 [200]: GET /assets/css/style.css
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37300 [200]: GET /assets/css/style-preset.css
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37308 Accepted
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37304 [200]: GET /assets/img/placeholder-photo.png
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37308 [200]: GET /assets/img/default-avatar.png
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37304 Closing
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37300 Closing
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37308 Closing
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37314 Accepted
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37330 Accepted
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37294 Closing
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37336 Accepted
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37352 Accepted
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37362 Accepted
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37376 Accepted
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37314 [200]: GET /assets/libs/jquery.min.js
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37336 [200]: GET /assets/js/plugins/simplebar.min.js
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37330 [200]: GET /assets/js/plugins/popper.min.js
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37352 [200]: GET /assets/js/plugins/bootstrap.min.js
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37314 Closing
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37362 [200]: GET /assets/js/fonts/custom-font.js
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37376 [200]: GET /assets/js/script.js
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37336 Closing
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37330 Closing
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37352 Closing
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37362 Closing
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37376 Closing
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37384 Accepted
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37392 Accepted
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37384 [200]: GET /assets/js/theme.js
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37384 Closing
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37392 [200]: GET /assets/js/plugins/feather.min.js
+[Tue Jul 21 23:05:37 2026] 127.0.0.1:37392 Closing
+[Tue Jul 21 23:05:38 2026] 127.0.0.1:37400 Accepted
+[Tue Jul 21 23:05:38 2026] 127.0.0.1:37400 [200]: GET /assets/fonts/phosphor/duotone/style.css
+[Tue Jul 21 23:05:38 2026] 127.0.0.1:37400 Closing
+[Tue Jul 21 23:05:38 2026] 127.0.0.1:37402 Accepted
+[Tue Jul 21 23:05:38 2026] 127.0.0.1:37402 [200]: GET /assets/fonts/phosphor/duotone/Phosphor-Duotone.woff2
+[Tue Jul 21 23:05:38 2026] 127.0.0.1:37402 Closing
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37414 Accepted
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37414 [302]: GET /settings/change-language?lang=en_US
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37414 Closing
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37428 Accepted
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37428 [302]: GET /settings/change-language
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37428 Closing
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37432 Accepted
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37432 [200]: GET /
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37432 Closing
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37438 Accepted
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37450 Accepted
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37458 Accepted
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37470 Accepted
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37438 [200]: GET /assets/css/style.css
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37450 [200]: GET /assets/css/style-preset.css
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37450 Closing
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37438 Closing
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37486 Accepted
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37502 Accepted
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37458 [200]: GET /assets/img/placeholder-photo.png
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37458 Closing
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37470 [200]: GET /assets/img/default-avatar.png
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37470 Closing
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37510 Accepted
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37526 Accepted
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37486 [200]: GET /assets/libs/jquery.min.js
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37486 Closing
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37502 [200]: GET /assets/js/plugins/popper.min.js
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37502 Closing
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37532 Accepted
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37510 [200]: GET /assets/js/plugins/simplebar.min.js
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37526 [200]: GET /assets/js/plugins/bootstrap.min.js
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37548 Accepted
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37532 [200]: GET /assets/js/fonts/custom-font.js
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37564 Accepted
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37548 [200]: GET /assets/js/script.js
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37568 Accepted
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37510 Closing
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37526 Closing
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37564 [200]: GET /assets/js/theme.js
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37532 Closing
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37568 [200]: GET /assets/js/plugins/feather.min.js
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37548 Closing
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37564 Closing
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37568 Closing
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37576 Accepted
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37576 [200]: GET /assets/fonts/phosphor/duotone/style.css
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37576 Closing
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37588 Accepted
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37588 [200]: GET /assets/fonts/phosphor/duotone/Phosphor-Duotone.woff2
+[Tue Jul 21 23:05:39 2026] 127.0.0.1:37588 Closing
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37596 Accepted
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37596 [302]: GET /settings/change-language?lang=ar
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37596 Closing
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37612 Accepted
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37612 [302]: GET /settings/change-language
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37612 Closing
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37622 Accepted
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37622 [200]: GET /
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37622 Closing
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37636 Accepted
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37644 Accepted
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37658 Accepted
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37666 Accepted
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37636 [200]: GET /assets/css/style.css
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37644 [200]: GET /assets/css/able-pro-rtl.css
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37658 [200]: GET /assets/css/style-preset.css
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37678 Accepted
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37666 [200]: GET /assets/img/placeholder-photo.png
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37678 [200]: GET /assets/img/default-avatar.png
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37644 Closing
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37666 Closing
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37658 Closing
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37678 Closing
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37636 Closing
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37682 Accepted
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37692 Accepted
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37696 Accepted
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37704 Accepted
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37706 Accepted
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37722 Accepted
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37682 [200]: GET /assets/libs/jquery.min.js
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37692 [200]: GET /assets/js/plugins/popper.min.js
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37696 [200]: GET /assets/js/plugins/simplebar.min.js
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37682 Closing
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37692 Closing
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37696 Closing
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37704 [200]: GET /assets/js/plugins/bootstrap.min.js
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37704 Closing
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37706 [200]: GET /assets/js/fonts/custom-font.js
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37722 [200]: GET /assets/js/script.js
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37706 Closing
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37722 Closing
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37724 Accepted
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37734 Accepted
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37724 [200]: GET /assets/js/theme.js
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37734 [200]: GET /assets/js/plugins/feather.min.js
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37724 Closing
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37734 Closing
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37744 Accepted
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37744 [200]: GET /assets/fonts/phosphor/duotone/style.css
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37744 Closing
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37750 Accepted
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37750 [200]: GET /assets/fonts/phosphor/duotone/Phosphor-Duotone.woff2
+[Tue Jul 21 23:05:40 2026] 127.0.0.1:37750 Closing
+[Tue Jul 21 23:05:41 2026] 127.0.0.1:37758 Accepted
+[Tue Jul 21 23:05:41 2026] 127.0.0.1:37758 [302]: GET /logout
+[Tue Jul 21 23:05:41 2026] 127.0.0.1:37758 Closing
+[Tue Jul 21 23:05:41 2026] 127.0.0.1:37770 Accepted
+[Tue Jul 21 23:05:41 2026] 127.0.0.1:37770 [200]: GET /login
+[Tue Jul 21 23:05:41 2026] 127.0.0.1:37770 Closing
+[Tue Jul 21 23:05:41 2026] 127.0.0.1:37778 Accepted
+[Tue Jul 21 23:05:41 2026] 127.0.0.1:37792 Accepted
+[Tue Jul 21 23:05:41 2026] 127.0.0.1:37778 [200]: GET /assets/css/bootstrap.min.css
+[Tue Jul 21 23:05:41 2026] 127.0.0.1:37778 Closing
+[Tue Jul 21 23:05:41 2026] 127.0.0.1:37792 [200]: GET /assets/js/bootstrap.bundle.min.js
+[Tue Jul 21 23:05:41 2026] 127.0.0.1:37792 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37806 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37806 [200]: GET /login
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37806 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37820 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37834 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37820 [200]: GET /assets/css/bootstrap.min.css
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37834 [200]: GET /assets/js/bootstrap.bundle.min.js
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37820 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37834 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37850 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37850 [302]: POST /login
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37850 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37858 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37858 [200]: GET /
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37858 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37870 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37876 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37890 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37904 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37912 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37870 [200]: GET /assets/css/style.css
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37876 [200]: GET /assets/css/style-preset.css
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37876 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37890 [200]: GET /assets/css/able-pro-rtl.css
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37870 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37890 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37918 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37904 [200]: GET /assets/img/placeholder-photo.png
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37912 [200]: GET /assets/img/default-avatar.png
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37904 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37912 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37932 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37940 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37942 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37918 [200]: GET /assets/libs/jquery.min.js
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37918 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37958 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37932 [200]: GET /assets/js/plugins/popper.min.js
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37940 [200]: GET /assets/js/plugins/simplebar.min.js
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37942 [200]: GET /assets/js/plugins/bootstrap.min.js
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37974 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37932 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37940 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37942 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37986 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37958 [200]: GET /assets/js/fonts/custom-font.js
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37974 [200]: GET /assets/js/script.js
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:38000 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37986 [200]: GET /assets/js/theme.js
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:38000 [200]: GET /assets/js/plugins/feather.min.js
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37958 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37974 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:37986 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:38000 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:38008 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:38008 [200]: GET /assets/fonts/phosphor/duotone/style.css
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:38008 Closing
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:38018 Accepted
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:38018 [200]: GET /assets/fonts/phosphor/duotone/Phosphor-Duotone.woff2
+[Tue Jul 21 23:05:42 2026] 127.0.0.1:38018 Closing
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38028 Accepted
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38028 [302]: GET /settings/change-language?lang=fr_FR
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38028 Closing
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38038 Accepted
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38038 [302]: GET /settings/change-language
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38038 Closing
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38046 Accepted
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38046 [200]: GET /
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38046 Closing
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38054 Accepted
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38062 Accepted
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38066 Accepted
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38074 Accepted
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38054 [200]: GET /assets/css/style.css
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38062 [200]: GET /assets/css/style-preset.css
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38062 Closing
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38054 Closing
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38082 Accepted
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38094 Accepted
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38066 [200]: GET /assets/img/placeholder-photo.png
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38074 [200]: GET /assets/img/default-avatar.png
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38066 Closing
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38074 Closing
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38096 Accepted
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38100 Accepted
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38082 [200]: GET /assets/libs/jquery.min.js
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38094 [200]: GET /assets/js/plugins/popper.min.js
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38082 Closing
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38094 Closing
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38104 Accepted
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38096 [200]: GET /assets/js/plugins/simplebar.min.js
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38100 [200]: GET /assets/js/plugins/bootstrap.min.js
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38096 Closing
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38100 Closing
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38120 Accepted
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38104 [200]: GET /assets/js/fonts/custom-font.js
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38104 Closing
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38134 Accepted
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38148 Accepted
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38120 [200]: GET /assets/js/script.js
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38120 Closing
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38134 [200]: GET /assets/js/theme.js
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38148 [200]: GET /assets/js/plugins/feather.min.js
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38134 Closing
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38148 Closing
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38164 Accepted
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38164 [200]: GET /assets/fonts/phosphor/duotone/style.css
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38164 Closing
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38168 Accepted
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38168 [200]: GET /assets/fonts/phosphor/duotone/Phosphor-Duotone.woff2
+[Tue Jul 21 23:05:43 2026] 127.0.0.1:38168 Closing
+>>>>>>> origin/main
