@@ -434,6 +434,8 @@ class UserController {
                 }
 
                 $user['photo'] = $photoPath;
+                // Unset 'mot_de_passe' to prevent User::save() from re-hashing the existing password hash
+                unset($user['mot_de_passe']);
                 try {
                     User::save($user);
                     $_SESSION['user']['photo'] = $photoPath;
