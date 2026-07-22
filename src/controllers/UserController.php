@@ -407,5 +407,92 @@ class UserController {
             exit();
         }
     }
+
+    public function updatePhoto() {
+        if (!Auth::check()) {
+            header('Location: /login');
+            exit();
+        }
+
+        $user_id = Auth::get('id_user');
+        $user = User::findById($user_id);
+        if (!$user) {
+            $_SESSION['error_message'] = _('Utilisateur non trouvé.');
+            header('Location: /profile');
+            exit();
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['cropped_photo'])) {
+            $photoPath = $this->handleCroppedPhoto($_POST['cropped_photo']);
+            if ($photoPath) {
+                // Delete old photo if exists and is not default
+                if (!empty($user['photo']) && $user['photo'] !== '/assets/img/default-avatar.png') {
+                    $oldPhotoPath = __DIR__ . '/../../public' . $user['photo'];
+                    if (file_exists($oldPhotoPath)) {
+                        @unlink($oldPhotoPath);
+                    }
+                }
+
+                $user['photo'] = $photoPath;
+                try {
+                    User::save($user);
+                    $_SESSION['user']['photo'] = $photoPath;
+                    $_SESSION['success_message'] = _('Photo de profil mise à jour avec succès.');
+                } catch (Exception $e) {
+                    $_SESSION['error_message'] = _('Erreur lors de la mise à jour de la photo: ') . $e->getMessage();
+                }
+            } else {
+                $_SESSION['error_message'] = _('Erreur lors du traitement de la photo de profil.');
+            }
+        } else {
+            $_SESSION['error_message'] = _('Aucune photo fournie.');
+        }
+
+        header('Location: /profile');
+        exit();
+    }
+
+    private function handleCroppedPhoto($base64_string) {
+        $upload_path = UPLOAD_BASE_DIR . '/photos/';
+        if (!is_dir($upload_path)) {
+            if (!mkdir($upload_path, 0777, true)) {
+                error_log("Failed to create user photo upload directory: " . $upload_path);
+                return null;
+            }
+        }
+        @chmod($upload_path, 0777);
+
+        try {
+            list($type, $data) = explode(';', $base64_string);
+            list(, $data) = explode(',', $data);
+            $data = base64_decode($data);
+
+            if (strlen($data) > 5000000) { // 5MB limit
+                error_log("Decoded cropped photo size exceeds 5MB.");
+                return null;
+            }
+
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->buffer($data);
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!in_array($mimeType, $allowedTypes)) {
+                error_log("Invalid decoded MIME type: " . $mimeType);
+                return null;
+            }
+
+            $filename = uniqid() . '.jpg';
+            $target_path = $upload_path . $filename;
+
+            if (file_put_contents($target_path, $data)) {
+                return UPLOAD_PUBLIC_PATH . '/photos/' . $filename;
+            } else {
+                error_log("Failed to save cropped user photo to: " . $target_path);
+            }
+        } catch (Exception $e) {
+            error_log("Error processing cropped user photo: " . $e->getMessage());
+        }
+
+        return null;
+    }
 }
 ?>

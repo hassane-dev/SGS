@@ -42,6 +42,7 @@ class Auth {
                 'role_name' => $role['nom_role'] ?? 'N/A',
                 'lycee_id' => $user->lycee_id,
                 'permissions' => $permissions,
+                'photo' => $user->photo,
             ];
             return true;
         }
