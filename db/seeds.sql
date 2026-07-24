@@ -129,7 +129,19 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (115, 'finance', 'view_control', 'Consulter le panneau de contrôle financier'),
 (120, 'paiement', 'cancel', 'Annuler un reçu de paiement'),
 (121, 'paiement', 'refund', 'Effectuer un remboursement élève'),
-(122, 'annee_academique', 'cloturer', 'Clôturer ou réouvrir une année académique');
+(122, 'annee_academique', 'cloturer', 'Clôturer ou réouvrir une année académique'),
+(130, 'comptes_financiers', 'view', 'Consulter la liste des comptes financiers et leurs soldes'),
+(131, 'comptes_financiers', 'create', 'Créer de nouveaux comptes financiers'),
+(132, 'comptes_financiers', 'edit', 'Modifier les propriétés d''un compte financier'),
+(133, 'comptes_financiers', 'manage', 'Suspendre ou réactiver un compte financier'),
+(134, 'sessions_caisse', 'create', 'Ouvrir une session de caisse physique journalière'),
+(135, 'sessions_caisse', 'edit', 'Fermer sa propre session de caisse'),
+(136, 'sessions_caisse', 'validate', 'Valider la clôture d''une session de caisse et régulariser les écarts'),
+(137, 'sessions_caisse', 'reopen', 'Réouvrir exceptionnellement une caisse fermée (Permission sensible d''audit)'),
+(138, 'mouvements_tresorerie', 'view', 'Consulter le grand livre de trésorerie'),
+(139, 'mouvements_tresorerie', 'create', 'Enregistrer un mouvement de trésorerie manuel'),
+(140, 'transferts', 'create', 'Initier une demande de virement inter-comptes'),
+(141, 'transferts', 'validate', 'Approuver et exécuter un transfert de fonds');
 
 -- --------------------------------------------------------
 -- Role-Permission Assignments
@@ -179,15 +191,21 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 
 -- Comptable (Accountant)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(7, 1), (7, 70), (7, 71), (7, 73), (7, 110), (7, 112), (7, 114), (7, 115);
+(7, 1), (7, 70), (7, 71), (7, 73), (7, 110), (7, 112), (7, 114), (7, 115),
+-- Trésorerie
+(7, 130), (7, 134), (7, 135), (7, 138), (7, 140);
 
 -- Chef comptable (Chief Accountant)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(9, 1), (9, 70), (9, 71), (9, 73), (9, 110), (9, 111), (9, 112), (9, 113), (9, 114), (9, 115), (9, 120), (9, 121), (9, 122);
+(9, 1), (9, 70), (9, 71), (9, 73), (9, 110), (9, 111), (9, 112), (9, 113), (9, 114), (9, 115), (9, 120), (9, 121), (9, 122),
+-- Trésorerie
+(9, 130), (9, 131), (9, 132), (9, 133), (9, 134), (9, 135), (9, 136), (9, 137), (9, 138), (9, 139), (9, 140), (9, 141);
 
 -- Caissier (Cashier)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(10, 1), (10, 70), (10, 73);
+(10, 1), (10, 70), (10, 73),
+-- Trésorerie
+(10, 130), (10, 134), (10, 135);
 
 -- Eleve (Student)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES

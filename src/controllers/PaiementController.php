@@ -1015,7 +1015,7 @@ class PaiementController {
 
                 // Add to Journal Comptable
                 require_once __DIR__ . '/../models/JournalComptable.php';
-                JournalComptable::log([
+                $journalId = JournalComptable::log([
                     'lycee_id' => $lyceeId,
                     'eleve_id' => $eleveId,
                     'user_id' => $userId,
@@ -1025,6 +1025,20 @@ class PaiementController {
                     'mode_paiement' => $modePaiement,
                     'recu_numero' => $reference,
                     'reference_origine' => 'inscriptions:' . (($inscription && !empty($inscription['id_inscription'])) ? $inscription['id_inscription'] : $insId)
+                ]);
+
+                // Register Movement in Treasury
+                require_once __DIR__ . '/../models/TreasuryService.php';
+                TreasuryService::registerMovement([
+                    'lycee_id' => $lyceeId,
+                    'source_type' => 'journal_comptable',
+                    'source_id' => $journalId,
+                    'evenement_type' => 'encaissement',
+                    'montant' => $montantInscription,
+                    'mode_paiement' => $modePaiement,
+                    'reference_transaction' => $reference,
+                    'motif' => 'Paiement Inscription ' . ($eleve['prenom'] . ' ' . $eleve['nom']),
+                    'user_id' => $userId
                 ]);
 
                 $paiementEffectue = true;
@@ -1072,6 +1086,7 @@ class PaiementController {
                         'reference_transaction' => $reference,
                         'recu_numero' => $reference
                     ]);
+                    $detailId = $db->lastInsertId();
 
                     // Add to Journal Comptable
                     require_once __DIR__ . '/../models/JournalComptable.php';
@@ -1085,6 +1100,20 @@ class PaiementController {
                         'mode_paiement' => $modePaiement,
                         'recu_numero' => $reference,
                         'reference_origine' => 'mensualites:' . $mensualiteId . ':' . $m_cap
+                    ]);
+
+                    // Register Movement in Treasury
+                    require_once __DIR__ . '/../models/TreasuryService.php';
+                    TreasuryService::registerMovement([
+                        'lycee_id' => $lyceeId,
+                        'source_type' => 'mensualite_detail',
+                        'source_id' => $detailId,
+                        'evenement_type' => 'encaissement',
+                        'montant' => $allocated,
+                        'mode_paiement' => $modePaiement,
+                        'reference_transaction' => $reference,
+                        'motif' => 'Paiement Mensualité ' . $m_cap . ' - ' . ($eleve['prenom'] . ' ' . $eleve['nom']),
+                        'user_id' => $userId
                     ]);
 
                     $paiementEffectue = true;
@@ -1130,6 +1159,7 @@ class PaiementController {
                             'reference_transaction' => $reference,
                             'recu_numero' => $reference
                         ]);
+                        $detailId = $db->lastInsertId();
 
                         // Add to Journal Comptable
                         require_once __DIR__ . '/../models/JournalComptable.php';
@@ -1143,6 +1173,20 @@ class PaiementController {
                             'mode_paiement' => $modePaiement,
                             'recu_numero' => $reference,
                             'reference_origine' => 'mensualites:' . $mensualiteId . ':' . $mois
+                        ]);
+
+                        // Register Movement in Treasury
+                        require_once __DIR__ . '/../models/TreasuryService.php';
+                        TreasuryService::registerMovement([
+                            'lycee_id' => $lyceeId,
+                            'source_type' => 'mensualite_detail',
+                            'source_id' => $detailId,
+                            'evenement_type' => 'encaissement',
+                            'montant' => $montant,
+                            'mode_paiement' => $modePaiement,
+                            'reference_transaction' => $reference,
+                            'motif' => 'Paiement Mensualité ' . $mois . ' - ' . ($eleve['prenom'] . ' ' . $eleve['nom']),
+                            'user_id' => $userId
                         ]);
 
                         $paiementEffectue = true;
@@ -1512,6 +1556,8 @@ class PaiementController {
             if ($inscription) {
                 $eleveId = $inscription['eleve_id'];
 
+                $montantAnnule = (float)$inscription['montant_verse'];
+
                 // Set statut to 'annule' and reverse financial remains
                 $stmt_up = $db->prepare("
                     UPDATE inscriptions
@@ -1528,11 +1574,32 @@ class PaiementController {
                     'user_id' => $userId,
                     'annee_academique_id' => $anneeActive['id'],
                     'operation' => 'annulation',
-                    'montant' => -((float)$inscription['montant_verse']),
+                    'montant' => -$montantAnnule,
                     'mode_paiement' => 'Espèces',
                     'recu_numero' => $recu_numero,
                     'reference_origine' => 'inscriptions:' . $inscription['id_inscription'] . ':annule'
                 ]);
+
+                // Find the original journal_comptable entry ID representing the payment
+                $stmt_orig_j = $db->prepare("SELECT id FROM journal_comptable WHERE operation = 'inscription' AND recu_numero = :recu LIMIT 1");
+                $stmt_orig_j->execute(['recu' => $recu_numero]);
+                $originalJournalId = $stmt_orig_j->fetchColumn();
+
+                if ($originalJournalId) {
+                    // Register Movement in Treasury
+                    require_once __DIR__ . '/../models/TreasuryService.php';
+                    TreasuryService::registerMovement([
+                        'lycee_id' => $inscription['lycee_id'],
+                        'source_type' => 'journal_comptable',
+                        'source_id' => $originalJournalId,
+                        'evenement_type' => 'annulation',
+                        'montant' => $montantAnnule,
+                        'mode_paiement' => 'Espèces',
+                        'reference_transaction' => $recu_numero,
+                        'motif' => 'Annulation Inscription - Reçu N° ' . $recu_numero,
+                        'user_id' => $userId
+                    ]);
+                }
 
                 $cancelledAny = true;
             }
@@ -1566,6 +1633,20 @@ class PaiementController {
                         'mode_paiement' => $d['mode_paiement'],
                         'recu_numero' => $recu_numero,
                         'reference_origine' => 'mensualite_details:' . $d['id'] . ':annule'
+                    ]);
+
+                    // Register Movement in Treasury (Linked directly to mensualite_details.id)
+                    require_once __DIR__ . '/../models/TreasuryService.php';
+                    TreasuryService::registerMovement([
+                        'lycee_id' => $d['lycee_id'],
+                        'source_type' => 'mensualite_detail',
+                        'source_id' => $d['id'],
+                        'evenement_type' => 'annulation',
+                        'montant' => (float)$d['montant'],
+                        'mode_paiement' => $d['mode_paiement'] ?? 'Espèces',
+                        'reference_transaction' => $recu_numero,
+                        'motif' => 'Annulation Mensualité - Reçu N° ' . $recu_numero,
+                        'user_id' => $userId
                     ]);
 
                     $cancelledAny = true;
@@ -1683,6 +1764,26 @@ class PaiementController {
                     'reference_origine' => 'inscriptions:' . $inscription['id_inscription'] . ':rembourse'
                 ]);
 
+                // Find the original journal_comptable entry ID representing the payment
+                $stmt_orig_j = $db->prepare("SELECT id FROM journal_comptable WHERE operation = 'inscription' AND eleve_id = :eleve_id AND annee_academique_id = :annee_id ORDER BY id DESC LIMIT 1");
+                $stmt_orig_j->execute(['eleve_id' => $eleveId, 'annee_id' => $anneeActive['id']]);
+                $originalJournalId = $stmt_orig_j->fetchColumn();
+
+                if ($originalJournalId) {
+                    // Register Movement in Treasury
+                    require_once __DIR__ . '/../models/TreasuryService.php';
+                    TreasuryService::registerMovement([
+                        'lycee_id' => $lyceeId,
+                        'source_type' => 'journal_comptable',
+                        'source_id' => $originalJournalId,
+                        'evenement_type' => 'remboursement',
+                        'montant' => $montant,
+                        'mode_paiement' => 'Espèces',
+                        'motif' => 'Remboursement Inscription - Élève ID: ' . $eleveId,
+                        'user_id' => $userId
+                    ]);
+                }
+
             } elseif ($type_frais === 'mensualite') {
                 if (empty($mois_ou_sequence)) {
                     throw new Exception("Veuillez sélectionner le mois concerné par le remboursement.");
@@ -1737,6 +1838,7 @@ class PaiementController {
                     'montant' => -$montant,
                     'motif' => 'Remboursement: ' . $motif
                 ]);
+                $refundDetailId = $db->lastInsertId();
 
                 // Log in Journal Comptable
                 require_once __DIR__ . '/../models/JournalComptable.php';
@@ -1750,6 +1852,19 @@ class PaiementController {
                     'mode_paiement' => 'Espèces',
                     'recu_numero' => null,
                     'reference_origine' => 'mensualites:' . $mensualite['id_mensualite'] . ':rembourse'
+                ]);
+
+                // Register Movement in Treasury
+                require_once __DIR__ . '/../models/TreasuryService.php';
+                TreasuryService::registerMovement([
+                    'lycee_id' => $lyceeId,
+                    'source_type' => 'mensualite_detail',
+                    'source_id' => $refundDetailId,
+                    'evenement_type' => 'remboursement',
+                    'montant' => $montant,
+                    'mode_paiement' => 'Espèces',
+                    'motif' => 'Remboursement Mensualité ' . $mois_ou_sequence . ' - Élève ID: ' . $eleveId,
+                    'user_id' => $userId
                 ]);
             } else {
                 throw new Exception("Type de frais invalide.");

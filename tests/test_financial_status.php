@@ -269,6 +269,102 @@ function setup_sqlite_db() {
         bulletin_impression VARCHAR(50) DEFAULT 'Interdite'
     )");
 
+    $pdo->exec("CREATE TABLE IF NOT EXISTS exercices_financiers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        lycee_id INTEGER,
+        libelle VARCHAR(100),
+        date_debut DATE,
+        date_fin DATE,
+        est_actif BOOLEAN,
+        cloture BOOLEAN,
+        type_exercice VARCHAR(50) DEFAULT 'normal'
+    )");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS comptes_financiers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        lycee_id INTEGER,
+        nom_compte VARCHAR(150),
+        type_compte VARCHAR(50),
+        solde_courant DECIMAL(15,2) DEFAULT 0.00,
+        devise VARCHAR(10) DEFAULT 'FCFA',
+        responsable_id INTEGER,
+        statut VARCHAR(50) DEFAULT 'actif'
+    )");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS sessions_caisse (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        lycee_id INTEGER,
+        user_id INTEGER,
+        compte_id INTEGER,
+        date_ouverture DATETIME,
+        date_fermeture DATETIME,
+        solde_ouverture DECIMAL(15,2) DEFAULT 0.00,
+        solde_theorique DECIMAL(15,2) DEFAULT 0.00,
+        solde_reel DECIMAL(15,2),
+        ecart DECIMAL(15,2) DEFAULT 0.00,
+        justificatif_ecart TEXT,
+        statut VARCHAR(50) DEFAULT 'ouverte',
+        valide_par INTEGER,
+        valide_le DATETIME,
+        is_active TINYINT GENERATED ALWAYS AS (
+            CASE WHEN statut IN ('ouverte', 'fermee_a_valider') THEN 1 ELSE NULL END
+        ) STORED
+    )");
+
+    $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS unique_active_session_per_account ON sessions_caisse (compte_id, is_active)");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS transferts_financiers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        lycee_id INTEGER,
+        compte_source_id INTEGER,
+        compte_destination_id INTEGER,
+        montant DECIMAL(15,2),
+        motif VARCHAR(255),
+        statut VARCHAR(50) DEFAULT 'demande',
+        demande_par INTEGER,
+        autorise_par INTEGER,
+        date_demande TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        date_execution DATETIME
+    )");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS mouvements_tresorerie (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        lycee_id INTEGER,
+        compte_id INTEGER,
+        session_caisse_id INTEGER,
+        exercice_financier_id INTEGER,
+        transfert_id INTEGER,
+        type_mouvement VARCHAR(50),
+        montant DECIMAL(15,2),
+        mode_paiement VARCHAR(50),
+        reference_transaction VARCHAR(150),
+        source_type VARCHAR(100),
+        source_id INTEGER,
+        evenement_type VARCHAR(50),
+        motif VARCHAR(255),
+        date_mouvement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        user_id INTEGER,
+        is_aggregate_data BOOLEAN DEFAULT 0,
+        date_reconstruite BOOLEAN DEFAULT 0,
+        is_historical_migration BOOLEAN DEFAULT 0,
+        mode_paiement_reconstruit BOOLEAN DEFAULT 0
+    )");
+
+    $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS unique_idempotence_flux ON mouvements_tresorerie (compte_id, source_type, source_id, evenement_type)");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS regularisations_ecarts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        lycee_id INTEGER,
+        session_caisse_id INTEGER,
+        montant DECIMAL(15,2),
+        type_ecart VARCHAR(50),
+        motif TEXT,
+        constate_par INTEGER,
+        approuve_par INTEGER,
+        date_constat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        reference_audit VARCHAR(100)
+    )");
+
     $pdo->exec("CREATE TABLE IF NOT EXISTS notifications (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
