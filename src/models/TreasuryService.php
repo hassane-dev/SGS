@@ -51,18 +51,28 @@ class TreasuryService {
             $typeCompte = 'caisse';
             if (in_array(strtolower($modePaiement), ['chèque', 'cheque', 'virement', 'banque'])) {
                 $typeCompte = 'banque';
-            } elseif (in_array(strtolower($modePaiement), ['mobile money', 'momo', 'orange', 'mtn'])) {
+            } elseif (in_array(strtolower($modePaiement), ['mobile money', 'momo', 'paiement mobile', 'mobile'])) {
                 $typeCompte = 'mobile_money';
             }
 
-            // Chercher si un compte de ce type existe déjà
-            $stmt = $db->prepare("
-                SELECT id FROM comptes_financiers
-                WHERE lycee_id = :lycee_id AND type_compte = :type_compte AND statut = 'actif'
-                LIMIT 1
-            ");
-            $stmt->execute(['lycee_id' => $lyceeId, 'type_compte' => $typeCompte]);
-            $compteId = $stmt->fetchColumn();
+            // Si espèces et qu'une session de caisse est active, on utilise prioritairement son compte
+            if ($typeCompte === 'caisse') {
+                $activeSession = SessionCaisse::findActiveByUser($data['user_id'] ?? Auth::getUserId(), $lyceeId);
+                if ($activeSession) {
+                    $compteId = $activeSession['compte_id'];
+                }
+            }
+
+            if (!$compteId) {
+                // Chercher si un compte de ce type existe déjà
+                $stmt = $db->prepare("
+                    SELECT id FROM comptes_financiers
+                    WHERE lycee_id = :lycee_id AND type_compte = :type_compte AND statut = 'actif'
+                    LIMIT 1
+                ");
+                $stmt->execute(['lycee_id' => $lyceeId, 'type_compte' => $typeCompte]);
+                $compteId = $stmt->fetchColumn();
+            }
 
             if (!$compteId) {
                 // Créer un compte par défaut de ce type
@@ -106,6 +116,9 @@ class TreasuryService {
         $compte = CompteFinancier::findById($compteId);
         if (!$compte) {
             throw new Exception("Compte financier introuvable.");
+        }
+        if ($compte['statut'] !== 'actif') {
+            throw new Exception("Ce compte financier est suspendu.");
         }
 
         // 6. Récupération de la session de caisse si applicable

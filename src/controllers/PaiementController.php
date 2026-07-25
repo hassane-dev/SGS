@@ -904,6 +904,15 @@ class PaiementController {
             $reference = $_POST['reference_transaction'] ?? Mensualite::generateReceiptNumber($lyceeId);
             $paiementEffectue = false;
 
+            // [Validation Session de Caisse] Obligatoire uniquement pour les règlements en Espèces
+            if (trim(strtolower($modePaiement)) === 'espèces' || trim(strtolower($modePaiement)) === 'especes') {
+                require_once __DIR__ . '/../models/SessionCaisse.php';
+                $activeSession = SessionCaisse::findActiveByUser($userId, $lyceeId);
+                if (!$activeSession) {
+                    throw new Exception(_("Veuillez ouvrir votre session de caisse journalière avant d'encaisser un paiement en espèces."));
+                }
+            }
+
             // 1. Traitement Inscription
             $montantInscription = (float) ($_POST['montant_inscription'] ?? 0);
             $montantMensualitesPool = (float) ($_POST['montant_mensualites'] ?? 0);
@@ -1248,6 +1257,9 @@ class PaiementController {
                                          " | Trace: " . substr($e->getTraceAsString(), 0, 500) . "...";
         }
 
+        if (PHP_SAPI === 'cli') {
+            return;
+        }
         header('Location: /paiements/show/' . $eleveId);
         exit();
     }
