@@ -250,5 +250,29 @@ class SessionCaisseController {
         }
         $this->redirect('/treasury/sessions');
     }
+
+    public function approve() {
+        $this->checkAccess('validate');
+        $lyceeId = Auth::getLyceeId();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['id'] ?? null;
+            $motif = trim($_POST['motif_validation'] ?? '');
+
+            if (!$id) {
+                $_SESSION['error_message'] = _("ID de la session manquant.");
+                $this->redirect('/treasury/sessions');
+            }
+
+            try {
+                SessionCaisse::approuver($id, Auth::getUserId(), $motif);
+                $_SESSION['success_message'] = _("La session de caisse a été approuvée et validée avec succès. Les régularisations d'écart nécessaires ont été comptabilisées.");
+            } catch (Exception $e) {
+                $_SESSION['error_message'] = $e->getMessage();
+            }
+            $this->redirect('/treasury/sessions/show/' . $id);
+        }
+        $this->redirect('/treasury/sessions');
+    }
 }
 ?>

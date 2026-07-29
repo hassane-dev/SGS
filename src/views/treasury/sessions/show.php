@@ -131,6 +131,33 @@
                                 });
                             </script>
                         <?php endif; ?>
+
+                        <!-- Validation Panel for Chef Comptable/Admin -->
+                        <?php if ($session['statut'] === 'fermee_a_valider' && Auth::can('validate', 'sessions_caisse')): ?>
+                            <hr>
+                            <?php if ($session['user_id'] == Auth::getUserId()): ?>
+                                <div class="alert alert-warning border border-warning small">
+                                    <i class="ph-duotone ph-warning-circle me-1"></i>
+                                    <?= _("Règle de séparation des tâches : vous ne pouvez pas approuver ou valider votre propre session de caisse.") ?>
+                                </div>
+                            <?php else: ?>
+                                <h5><?= _("Contrôle d'Audit de Caisse") ?></h5>
+                                <form action="/treasury/sessions/approve" method="POST">
+                                    <input type="hidden" name="id" value="<?= $session['id'] ?>">
+
+                                    <div class="mb-3">
+                                        <label for="motif_validation" class="form-label fw-bold"><?= _("Commentaire d'audit / Validation") ?></label>
+                                        <textarea class="form-control" id="motif_validation" name="motif_validation" rows="3" placeholder="<?= _("Saisissez vos remarques de contrôle...") ?>"></textarea>
+                                    </div>
+
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-success d-inline-flex align-items-center justify-content-center">
+                                            <i class="ph-duotone ph-check-circle me-2"></i><?= _("Approuver et valider") ?>
+                                        </button>
+                                    </div>
+                                </form>
+                            <?php endif; ?>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

@@ -193,14 +193,17 @@ class TreasuryService {
         if ($sessionCaisseId) {
             $session = SessionCaisse::findById($sessionCaisseId);
             if ($session) {
-                $theorique = (float)$session['solde_theorique'];
-                if ($typeMouvement === 'entree') {
-                    $theorique += $montant;
-                } else {
-                    $theorique -= $montant;
+                // On n'incrémente pas le solde théorique opérationnel de la session pour les corrections/régularisations d'écarts de clôture
+                if ($evenementType !== 'correction') {
+                    $theorique = (float)$session['solde_theorique'];
+                    if ($typeMouvement === 'entree') {
+                        $theorique += $montant;
+                    } else {
+                        $theorique -= $montant;
+                    }
+                    $stmt_session = $db->prepare("UPDATE sessions_caisse SET solde_theorique = :theo WHERE id = :id");
+                    $stmt_session->execute(['theo' => $theorique, 'id' => $sessionCaisseId]);
                 }
-                $stmt_session = $db->prepare("UPDATE sessions_caisse SET solde_theorique = :theo WHERE id = :id");
-                $stmt_session->execute(['theo' => $theorique, 'id' => $sessionCaisseId]);
             }
         }
 
