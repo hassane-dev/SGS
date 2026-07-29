@@ -454,6 +454,13 @@ if ($case === 'SETUP') {
     $pdo->prepare("INSERT INTO utilisateurs (id_user, nom, prenom, email, role_id, lycee_id, actif, identifiant_public) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
         ->execute([1, 'Directeur', 'Admin', 'admin@lycee.com', 1, $lyceeId, 1, '0001ADM']);
 
+    // Seed cash account and active cash session to support cash payment workflow
+    $pdo->prepare("INSERT INTO comptes_financiers (id, lycee_id, nom_compte, type_compte, solde_courant, statut) VALUES (?, ?, ?, ?, ?, ?)")
+        ->execute([1, $lyceeId, 'Caisse Principale', 'caisse', 0.00, 'actif']);
+
+    $pdo->prepare("INSERT INTO sessions_caisse (id, lycee_id, user_id, compte_id, date_ouverture, statut, solde_ouverture, solde_theorique) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+        ->execute([1, $lyceeId, 1, 1, '2024-09-01 08:00:00', 'ouverte', 0.00, 0.00]);
+
     echo "SETUP_SUCCESS\n";
     exit(0);
 }
