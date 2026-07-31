@@ -180,6 +180,16 @@ $router->register('/inscriptions', 'EleveController', 'create');
 $router->register('/reinscriptions', 'EleveController', 'archives');
 $router->register('/reinscription', 'EleveController', 'archives');
 
+// Gestion des Dépenses (Phase 3)
+$router->register('/depenses', 'DepenseController', 'index');
+$router->register('/depenses/create', 'DepenseController', 'create');
+$router->register('/depenses/store', 'DepenseController', 'store');
+$router->register('/depenses/validate/{id}', 'DepenseController', 'validate');
+$router->register('/depenses/vote/{id}', 'DepenseController', 'vote');
+$router->register('/depenses/pay/{id}', 'DepenseController', 'pay');
+$router->register('/depenses/process-payment/{id}', 'DepenseController', 'processPayment');
+$router->register('/depenses/cancel/{id}', 'DepenseController', 'cancel');
+
 // Frais (Fee management)
 $router->register('/frais', 'FraisController', 'index');
 $router->register('/frais/create', 'FraisController', 'create');

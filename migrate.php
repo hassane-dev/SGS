@@ -376,6 +376,36 @@ try {
         ]);
     }
 
+    // --- PHASE 3 EXPENSE MANAGEMENT ---
+    require_once __DIR__ . '/db/migrations/20240115_01_create_referentiels_depenses.php';
+    require_once __DIR__ . '/db/migrations/20240115_02_create_depenses_principale.php';
+    require_once __DIR__ . '/db/migrations/20240115_03_create_historiques_et_logs_depenses.php';
+
+    migrate_01($db);
+    migrate_02($db);
+    migrate_03($db);
+
+    // Seed permissions for Phase 3
+    $phase3_perms = [
+        ['depense', 'create', 'Créer une demande d\'engagement de dépense (brouillon)'],
+        ['depense', 'update', 'Modifier une demande de dépense non approuvée'],
+        ['depense', 'validate', 'Voter pour ou approuver une demande de dépense'],
+        ['depense', 'reject', 'Rejeter une demande de dépense'],
+        ['depense', 'pay', 'Exécuter le règlement financier d\'une dépense approuvée'],
+        ['depense', 'cancel', 'Annuler une dépense payée avec contre-passation'],
+        ['depense', 'view', 'Consulter la liste et l\'historique d\'audit des dépenses'],
+        ['depense', 'export', 'Exporter le registre des dépenses'],
+        ['depense', 'manage', 'Gérer les catégories, centres de coûts et bénéficiaires de dépenses']
+    ];
+
+    foreach ($phase3_perms as $perm) {
+        $stmt_ins_perm->execute([
+            'resource' => $perm[0],
+            'action' => $perm[1],
+            'description' => $perm[2]
+        ]);
+    }
+
     echo "Migration successful\n";
 } catch (Exception $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";
