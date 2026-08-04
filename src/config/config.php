@@ -9,7 +9,7 @@
 define('DB_HOST', '127.0.0.1');       // Database host (e.g., 'localhost' or '127.0.0.1')
 define('DB_NAME', 'gestion_lycee');  // Database name
 define('DB_USER', 'root');           // Database username
-define('DB_PASS', 'password');       // Database password
+define('DB_PASS', '');       // Database password
 define('DB_CHARSET', 'utf8mb4');     // Character set
 
 // --- Application Settings ---
