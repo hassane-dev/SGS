@@ -432,6 +432,41 @@ try {
         ]);
     }
 
+    // --- MAP PHASE 3 & 4 PERMISSIONS TO ROLES ---
+    // Assign Phase 3 permissions to Super Admins (1, 2), Admin Local (3), Chef Comptable (9)
+    $db->exec("
+        INSERT IGNORE INTO role_permissions (role_id, permission_id)
+        SELECT r.id_role, p.id_permission
+        FROM roles r, permissions p
+        WHERE r.id_role IN (1, 2, 3, 9)
+        AND p.resource = 'depense'
+    ");
+
+    // Assign view, export, and pay of depenses to Comptable (7)
+    $db->exec("
+        INSERT IGNORE INTO role_permissions (role_id, permission_id)
+        SELECT 7, p.id_permission
+        FROM permissions p
+        WHERE p.resource = 'depense' AND p.action IN ('view', 'export', 'pay')
+    ");
+
+    // Assign Phase 4 permissions to Super Admins (1, 2), Admin Local (3), Chef Comptable (9)
+    $db->exec("
+        INSERT IGNORE INTO role_permissions (role_id, permission_id)
+        SELECT r.id_role, p.id_permission
+        FROM roles r, permissions p
+        WHERE r.id_role IN (1, 2, 3, 9)
+        AND p.resource = 'budget'
+    ");
+
+    // Assign view and report of budgets to Comptable (7)
+    $db->exec("
+        INSERT IGNORE INTO role_permissions (role_id, permission_id)
+        SELECT 7, p.id_permission
+        FROM permissions p
+        WHERE p.resource = 'budget' AND p.action IN ('view', 'report')
+    ");
+
     echo "Migration successful\n";
 } catch (Exception $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";
