@@ -190,6 +190,13 @@ $router->register('/depenses/pay/{id}', 'DepenseController', 'pay');
 $router->register('/depenses/process-payment/{id}', 'DepenseController', 'processPayment');
 $router->register('/depenses/cancel/{id}', 'DepenseController', 'cancel');
 
+// Gestion de la Trésorerie (Phase 2.1 & 2.2)
+$router->register('/treasury/sessions', 'SessionCaisseController', 'index');
+$router->register('/treasury/sessions/open', 'SessionCaisseController', 'open');
+$router->register('/treasury/sessions/show/{id}', 'SessionCaisseController', 'show');
+$router->register('/treasury/sessions/close', 'SessionCaisseController', 'close');
+$router->register('/treasury/sessions/approve', 'SessionCaisseController', 'approve');
+
 // Frais (Fee management)
 $router->register('/frais', 'FraisController', 'index');
 $router->register('/frais/create', 'FraisController', 'create');
