@@ -187,6 +187,13 @@ $navItems = [
         'condition' => Auth::can('view', 'depense') || Auth::can('create', 'depense'),
     ],
     [
+        'url' => '/budgets',
+        'icon' => 'ph-duotone ph-coins',
+        'text' => _('Pilotage Budgétaire'),
+        'title' => _('Piloter, ajuster et contrôler les budgets annuels.'),
+        'condition' => Auth::can('view', 'budget'),
+    ],
+    [
         'url' => '/settings/politique-financiere',
         'icon' => 'ph-duotone ph-shield-check',
         'text' => _('Politique financière'),

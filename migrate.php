@@ -406,6 +406,32 @@ try {
         ]);
     }
 
+    // --- PHASE 4 BUDGET MANAGEMENT ---
+    require_once __DIR__ . '/db/migrations/20240115_04_create_budget_tables.php';
+    migrate_04($db);
+
+    // Seed permissions for Phase 4
+    $phase4_perms = [
+        ['budget', 'view', 'Consulter la liste des budgets et lignes budgétaires'],
+        ['budget', 'create', 'Configurer un nouveau budget annuel pour l\'établissement'],
+        ['budget', 'update', 'Modifier ou ajouter des lignes de budget'],
+        ['budget', 'delete', 'Supprimer un budget non approuvé'],
+        ['budget', 'activate', 'Valider et activer officiellement un budget annuel'],
+        ['budget', 'close', 'Clôturer un exercice budgétaire'],
+        ['budget', 'adjust', 'Ajouter une allocation supplémentaire d\'urgence sur une ligne'],
+        ['budget', 'transfer', 'Effectuer un virement de crédits entre deux lignes budgétaires'],
+        ['budget', 'report', 'Consulter la synthèse visuelle et graphiques d\'exécution'],
+        ['budget', 'override', 'Autoriser le dépassement budgétaire exceptionnel']
+    ];
+
+    foreach ($phase4_perms as $perm) {
+        $stmt_ins_perm->execute([
+            'resource' => $perm[0],
+            'action' => $perm[1],
+            'description' => $perm[2]
+        ]);
+    }
+
     echo "Migration successful\n";
 } catch (Exception $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";

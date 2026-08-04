@@ -1,5 +1,5 @@
 <?php
-// tests/test_phase_3.php
+// tests/test_phase_4.php
 
 define('TEST_MODE', true);
 error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
@@ -26,9 +26,21 @@ require_once __DIR__ . '/../src/controllers/SessionCaisseController.php';
 require_once __DIR__ . '/../src/controllers/PaiementController.php';
 require_once __DIR__ . '/../src/controllers/DepenseController.php';
 
+// Load Phase 4 classes
+require_once __DIR__ . '/../src/models/Budget.php';
+require_once __DIR__ . '/../src/models/BudgetLigne.php';
+require_once __DIR__ . '/../src/models/BudgetAjustement.php';
+require_once __DIR__ . '/../src/models/BudgetEngagement.php';
+require_once __DIR__ . '/../src/models/BudgetHistorique.php';
+require_once __DIR__ . '/../src/services/BudgetService.php';
+require_once __DIR__ . '/../src/services/BudgetWorkflowService.php';
+require_once __DIR__ . '/../src/services/BudgetControlService.php';
+require_once __DIR__ . '/../src/services/BudgetAdjustmentService.php';
+require_once __DIR__ . '/../src/services/BudgetReportingService.php';
+
 @session_start();
 
-$dbFile = '/tmp/test_phase_3.sqlite';
+$dbFile = '/tmp/test_phase_4.sqlite';
 
 function assert_test($condition, $message) {
     if ($condition) {
@@ -299,33 +311,156 @@ function setup_db() {
 }
 
 echo "=========================================================================\n";
-echo "📊 PROTOCOLE DE VALIDATION DE LA PHASE 3 (GESTION DES DÉPENSES)\n";
+echo "📊 PROTOCOLE DE VALIDATION DE LA PHASE 4 (PILOTAGE BUDGÉTAIRE)\n";
 echo "=========================================================================\n";
 
 $pdo = setup_db();
 
-// Load & Run all tests
-require_once __DIR__ . '/unit/DepenseModelTest.php';
-require_once __DIR__ . '/unit/DepensePieceTest.php';
-require_once __DIR__ . '/unit/DepenseWorkflowTransitionsTest.php';
-require_once __DIR__ . '/integration/DepenseWorkflowServiceTest.php';
-require_once __DIR__ . '/integration/DepenseIdempotencyTest.php';
-require_once __DIR__ . '/integration/DepenseConcurrencyTest.php';
-require_once __DIR__ . '/integration/DepenseMultiLyceeTest.php';
-
 try {
-    test_depense_model($pdo);
-    test_depense_piece_validation();
-    test_workflow_transitions($pdo);
-    test_workflow_service_integration($pdo);
-    test_depense_idempotency($pdo);
-    test_depense_concurrency($pdo);
-    test_depense_multi_lycee_isolation($pdo);
+    // Inject mock user details & global roles
+    $_SESSION['user'] = [
+        'id_user' => 1,
+        'lycee_id' => 1,
+        'permissions' => [
+            'budget' => ['view', 'create', 'update', 'activate', 'close', 'adjust', 'transfer', 'report', 'override'],
+            'depense' => ['create', 'validate', 'reject', 'pay', 'cancel', 'view']
+        ]
+    ];
 
-    echo "\n🏆 TOUS LES TESTS DE LA PHASE 3 ONT RÉUSSI AVEC SUCCÈS !\n";
+    // Seed basic reference data
+    $pdo->exec("INSERT INTO param_lycee (id, nom_lycee, type_lycee) VALUES (1, 'Lycee Facil', 'public')");
+    $pdo->exec("INSERT INTO annees_academiques (id, libelle, date_debut, date_fin, est_active, cloturee) VALUES (1, '2024-2025', '2024-01-01', '2024-12-31', 1, 0)");
+    $pdo->exec("INSERT INTO exercices_financiers (id, lycee_id, libelle, date_debut, date_fin, est_actif, cloture) VALUES (1, 1, 'Exercice 2024', '2024-01-01', '2024-12-31', 1, 0)");
+    $pdo->exec("INSERT INTO depense_categories (id, lycee_id, nom_categorie, modifiable, statut) VALUES (1, 1, 'Fournitures de Bureau', 1, 'actif')");
+    $pdo->exec("INSERT INTO depense_beneficiaires (id, lycee_id, nom_beneficiaire, type, statut) VALUES (1, 1, 'Librairie Centrale', 'externe', 'actif')");
+    $pdo->exec("INSERT INTO comptes_financiers (id, lycee_id, nom_compte, type_compte, solde_courant, statut) VALUES (1, 1, 'Caisse Centrale', 'caisse', 150000.00, 'actif')");
+
+    echo "\n--- [SCÉNARIO 1 : CRÉATION DU BUDGET & LIGNES] ---\n";
+    $budgetId = Budget::create([
+        'lycee_id' => 1,
+        'exercice_financier_id' => 1,
+        'libelle' => 'Budget Annuel 2024',
+        'cree_par' => 1
+    ]);
+    assert_test($budgetId > 0, "Le budget brouillon a été créé avec ID: $budgetId");
+
+    $ligneId = BudgetService::createBudgetLine([
+        'budget_id' => $budgetId,
+        'categorie_id' => 1,
+        'centre_cout_id' => null,
+        'allocation_initiale' => 10000.00
+    ]);
+    assert_test($ligneId > 0, "Ligne budgétaire de 10 000 FCFA créée avec succès.");
+
+    // Check availability
+    $avail = BudgetControlService::checkAvailability($ligneId, 4000);
+    assert_test($avail['disponible'] === false, "CheckAvailability doit retourner false car le budget n'est pas encore actif (statut actuel: brouillon).");
+
+    echo "\n--- [SCÉNARIO 2 : WORKFLOW BUDGETAIRE (ACTIVATION)] ---\n";
+    BudgetWorkflowService::submit($budgetId, 1);
+    $b = Budget::findById($budgetId);
+    assert_test($b['statut'] === 'soumis', "Le budget est à l'état 'soumis'.");
+
+    BudgetWorkflowService::validateBudget($budgetId, 1);
+    BudgetWorkflowService::activate($budgetId, 1);
+    $b = Budget::findById($budgetId);
+    assert_test($b['statut'] === 'actif', "Le budget est officiellement actif !");
+
+    $avail = BudgetControlService::checkAvailability($ligneId, 4000);
+    assert_test($avail['disponible'] === true, "La disponibilité est valide après activation.");
+    assert_test($avail['solde_restant'] === 6000.00, "Le solde restant calculé après vérification est de 6000 FCFA.");
+
+    echo "\n--- [SCÉNARIO 3 : INTÉGRATION WORKFLOW DÉPENSES (NOMINAL)] ---\n";
+    // Create draft expense
+    $depenseId = Depense::create([
+        'lycee_id' => 1,
+        'numero_piece' => 'DEP-001',
+        'categorie_id' => 1,
+        'centre_cout_id' => null,
+        'beneficiaire_id' => 1,
+        'montant' => 3000.00,
+        'motif' => 'Achat ramettes de papier',
+        'cree_par' => 1,
+        'exercice_financier_id' => 1
+    ]);
+
+    // Submit draft: reserves credits
+    DepenseWorkflowService::submitForApproval($depenseId, 1);
+    $line = BudgetLigne::findById($ligneId);
+    assert_test((float)$line['montant_engage'] === 3000.00, "Le montant engagé de la ligne budgétaire est bien de 3000 FCFA.");
+
+    $eng = BudgetEngagement::findByDepense($depenseId);
+    assert_test($eng['statut'] === 'reserve', "L'engagement budgétaire est créé à l'état 'reserve'.");
+
+    // Approve: promotes engagement to 'engage'
+    DepenseWorkflowService::approve($depenseId, 1);
+    $eng = BudgetEngagement::findByDepense($depenseId);
+    assert_test($eng['statut'] === 'engage', "L'engagement budgétaire est promu à l'état 'engage'.");
+
+    // Pay: consumes engagement
+    DepenseWorkflowService::pay($depenseId, 1, 1);
+    $eng = BudgetEngagement::findByDepense($depenseId);
+    assert_test($eng['statut'] === 'consomme', "L'engagement budgétaire est consommé à l'état 'consomme'.");
+
+    $line = BudgetLigne::findById($ligneId);
+    assert_test((float)$line['montant_engage'] === 0.00, "Le montant engagé redevient 0 FCFA.");
+    assert_test((float)$line['montant_consomme'] === 3000.00, "Le montant consommé est mis à jour à 3000 FCFA.");
+
+    // Cancel (contre-passation): restores budget consumption to 'annule'
+    DepenseWorkflowService::cancel($depenseId, 1, "Erreur d'achat");
+    $eng = BudgetEngagement::findByDepense($depenseId);
+    assert_test($eng['statut'] === 'annule', "L'engagement budgétaire est restauré à l'état 'annule'.");
+
+    $line = BudgetLigne::findById($ligneId);
+    assert_test((float)$line['montant_consomme'] === 0.00, "Le montant consommé redevient 0 FCFA après contre-passation.");
+
+    echo "\n--- [SCÉNARIO 4 : BLOCAGE DE DÉPASSEMENT STRICT & EXCEPTIONNEL] ---\n";
+    // Create expense of 15 000 FCFA (Limit: 10 000 FCFA)
+    $depenseExceedId = Depense::create([
+        'lycee_id' => 1,
+        'numero_piece' => 'DEP-002',
+        'categorie_id' => 1,
+        'centre_cout_id' => null,
+        'beneficiaire_id' => 1,
+        'montant' => 15000.00,
+        'motif' => 'Achat d\'un vidéoprojecteur',
+        'cree_par' => 1,
+        'exercice_financier_id' => 1
+    ]);
+
+    // Test without override permission first
+    $_SESSION['user']['permissions']['budget'] = ['view', 'create', 'update', 'activate']; // remove override
+    try {
+        DepenseWorkflowService::submitForApproval($depenseExceedId, 1);
+        assert_test(false, "Aurait dû bloquer la soumission pour dépassement budgétaire.");
+    } catch (Exception $e) {
+        assert_test(strpos($e->getMessage(), "Blocage budgétaire") !== false, "Blocage strict de dépassement budgétaire confirmé !");
+    }
+
+    // Restore override and test exceptional override
+    $_SESSION['user']['permissions']['budget'][] = 'override';
+    DepenseWorkflowService::submitForApproval($depenseExceedId, 1);
+    $engExceed = BudgetEngagement::findByDepense($depenseExceedId);
+    assert_test($engExceed['statut'] === 'reserve', "L'engagement exceptionnel a été forcé avec succès.");
+
+    echo "\n--- [SCÉNARIO 5 : AJUSTEMENTS ET DOTATIONS DE CRÉDITS] ---\n";
+    // Restore all budget permissions for Scenario 5
+    $_SESSION['user']['permissions']['budget'] = ['view', 'create', 'update', 'activate', 'close', 'adjust', 'transfer', 'report', 'override'];
+    // Add additional emergency dotation of 10 000 FCFA to the line
+    BudgetAdjustmentService::allocateExtra($ligneId, 10000.00, 1, "Urgence projecteur");
+    $line = BudgetLigne::findById($ligneId);
+    assert_test((float)$line['montant_ajustements'] === 10000.00, "La dotation d'urgence a été créditée de 10 000 FCFA.");
+
+    // Verify reconstruction
+    BudgetService::rebuildBudget($budgetId);
+    $line = BudgetLigne::findById($ligneId);
+    assert_test((float)$line['montant_ajustements'] === 10000.00, "La cohérence des ajustements est préservée après reconstruction.");
+
+    echo "\n🏆 TOUS LES SCÉNARIOS DE LA PHASE 4 ONT ÉTÉ VALIDÉS AVEC SUCCÈS !\n";
     echo "=========================================================================\n";
+
 } catch (Exception $e) {
-    echo "\n❌ UN TEST A ÉCHOUÉ : " . $e->getMessage() . "\n";
+    echo "\n❌ UN SCÉNARIO A ÉCHOUÉ : " . $e->getMessage() . "\n";
     echo "FILE: " . $e->getFile() . " on line " . $e->getLine() . "\n";
     echo $e->getTraceAsString() . "\n";
     echo "=========================================================================\n";

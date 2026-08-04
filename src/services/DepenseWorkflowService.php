@@ -17,7 +17,54 @@ class DepenseWorkflowService {
      */
     public static function submitForApproval($depenseId, $userId) {
         self::checkPermission('create', 'depense');
-        return self::transitionState($depenseId, 'en_attente_approbation', $userId, "Soumission pour approbation");
+
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT * FROM depenses WHERE id = :id");
+        $stmt->execute(['id' => $depenseId]);
+        $depense = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$depense) {
+            throw new Exception("Dépense introuvable.");
+        }
+
+        require_once __DIR__ . '/BudgetControlService.php';
+        require_once __DIR__ . '/BudgetService.php';
+
+        $auth = BudgetControlService::authorizeSpending(
+            $depense['lycee_id'],
+            $depense['exercice_financier_id'],
+            $depense['categorie_id'],
+            $depense['centre_cout_id'],
+            $depense['montant'],
+            $userId
+        );
+
+        if (!$auth['authorized']) {
+            throw new Exception("Blocage budgétaire : " . $auth['message']);
+        }
+
+        $inTransaction = $db->inTransaction();
+        if (!$inTransaction) {
+            $db->beginTransaction();
+        }
+
+        try {
+            if (!empty($auth['ligne_id'])) {
+                BudgetService::reserve($depenseId, (float)$depense['montant'], $auth['ligne_id']);
+            }
+
+            $res = self::transitionState($depenseId, 'en_attente_approbation', $userId, "Soumission pour approbation");
+
+            if (!$inTransaction) {
+                $db->commit();
+            }
+            return $res;
+        } catch (Exception $e) {
+            if (!$inTransaction) {
+                $db->rollBack();
+            }
+            throw $e;
+        }
     }
 
     /**
@@ -52,7 +99,27 @@ class DepenseWorkflowService {
             throw new Exception("Transition de statut non autorisée : cette dépense est déjà rejetée.");
         }
 
-        return self::transitionState($depenseId, 'approuve', $userId, $motif);
+        $inTransaction = $db->inTransaction();
+        if (!$inTransaction) {
+            $db->beginTransaction();
+        }
+
+        try {
+            require_once __DIR__ . '/BudgetService.php';
+            BudgetService::engage($depenseId);
+
+            $res = self::transitionState($depenseId, 'approuve', $userId, $motif);
+
+            if (!$inTransaction) {
+                $db->commit();
+            }
+            return $res;
+        } catch (Exception $e) {
+            if (!$inTransaction) {
+                $db->rollBack();
+            }
+            throw $e;
+        }
     }
 
     /**
@@ -85,7 +152,27 @@ class DepenseWorkflowService {
             throw new Exception("Transition de statut non autorisée : double rejet interdit.");
         }
 
-        return self::transitionState($depenseId, 'rejete', $userId, $motif);
+        $inTransaction = $db->inTransaction();
+        if (!$inTransaction) {
+            $db->beginTransaction();
+        }
+
+        try {
+            require_once __DIR__ . '/BudgetService.php';
+            BudgetService::release($depenseId);
+
+            $res = self::transitionState($depenseId, 'rejete', $userId, $motif);
+
+            if (!$inTransaction) {
+                $db->commit();
+            }
+            return $res;
+        } catch (Exception $e) {
+            if (!$inTransaction) {
+                $db->rollBack();
+            }
+            throw $e;
+        }
     }
 
     /**
@@ -165,6 +252,10 @@ class DepenseWorkflowService {
                 'motif' => "Règlement dépense - Pièce " . $depense['numero_piece'] . " : " . $depense['motif'],
                 'user_id' => $userId
             ]);
+
+            // Consume budget
+            require_once __DIR__ . '/BudgetService.php';
+            BudgetService::consume($depenseId);
 
             // 2. Update depense state, compte_id and mouvement_tresorerie_id
             Depense::updatePaymentDetails($depenseId, $compteId, $mouvementId, 'paye', self::$authorizedToken);
@@ -260,6 +351,10 @@ class DepenseWorkflowService {
                 'motif' => "CONTRE-PASSATION - Annulation Pièce " . $depense['numero_piece'] . " : " . $motif,
                 'user_id' => $userId
             ]);
+
+            // Restore budget consumption
+            require_once __DIR__ . '/BudgetService.php';
+            BudgetService::restore($depenseId);
 
             // Update depense state
             Depense::updateStatus($depenseId, 'annule', self::$authorizedToken);

@@ -190,6 +190,21 @@ $router->register('/depenses/pay/{id}', 'DepenseController', 'pay');
 $router->register('/depenses/process-payment/{id}', 'DepenseController', 'processPayment');
 $router->register('/depenses/cancel/{id}', 'DepenseController', 'cancel');
 
+// Gestion Budgétaire (Phase 4)
+$router->register('/budgets', 'BudgetController', 'index');
+$router->register('/budgets/create', 'BudgetController', 'create');
+$router->register('/budgets/store', 'BudgetController', 'store');
+$router->register('/budgets/show/{id}', 'BudgetController', 'show');
+$router->register('/budgets/lines/store', 'BudgetController', 'storeLine');
+$router->register('/budgets/lines/delete', 'BudgetController', 'deleteLine');
+$router->register('/budgets/submit/{id}', 'BudgetController', 'submit');
+$router->register('/budgets/approve/{id}', 'BudgetController', 'approve');
+$router->register('/budgets/close/{id}', 'BudgetController', 'close');
+$router->register('/budgets/adjustment', 'BudgetController', 'adjustment');
+$router->register('/budgets/adjustment/store', 'BudgetController', 'processAdjustment');
+$router->register('/budgets/rebuild/{id}', 'BudgetController', 'rebuild');
+$router->register('/budgets/report/{id}', 'BudgetController', 'report');
+
 // Gestion de la Trésorerie (Phase 2.1 & 2.2)
 $router->register('/treasury/sessions', 'SessionCaisseController', 'index');
 $router->register('/treasury/sessions/open', 'SessionCaisseController', 'open');
