@@ -93,7 +93,7 @@ $navItems = [
         'condition' => Auth::get('role_name') === 'enseignant' || Auth::can('view_all', 'cahier_texte'),
     ],
     [
-        'url' => '/notes',
+        'url' => '/evaluations/select_class',
         'icon' => 'ph-duotone ph-graduation-cap',
         'text' => _('Notes'),
         'title' => _('Saisir et consulter les notes des élèves.'),
@@ -163,7 +163,7 @@ $navItems = [
     [
         'label' => _('Comptabilité'),
         'is_caption' => true,
-        'condition' => Auth::can('manage', 'paiement') || Auth::can('manage', 'salaire'),
+        'condition' => Auth::can('manage', 'paiement') || Auth::can('manage', 'salaire') || Auth::can('view', 'depense') || Auth::can('create', 'depense') || Auth::can('create', 'sessions_caisse') || Auth::can('edit', 'sessions_caisse') || Auth::can('validate', 'sessions_caisse'),
     ],
     [
         'url' => '/paiements',
@@ -171,6 +171,20 @@ $navItems = [
         'text' => _('Tableau de bord'),
         'title' => _('Tableau de bord comptable.'),
         'condition' => Auth::can('view', 'paiement'),
+    ],
+    [
+        'url' => '/treasury/sessions',
+        'icon' => 'ph-duotone ph-safe',
+        'text' => _('Sessions de caisse'),
+        'title' => _('Gérer et clôturer les sessions de caisse journalières.'),
+        'condition' => Auth::can('create', 'sessions_caisse') || Auth::can('edit', 'sessions_caisse') || Auth::can('validate', 'sessions_caisse'),
+    ],
+    [
+        'url' => '/depenses',
+        'icon' => 'ph-duotone ph-hand-coins',
+        'text' => _('Gestion des dépenses'),
+        'title' => _('Consulter et enregistrer les dépenses de l\'établissement.'),
+        'condition' => Auth::can('view', 'depense') || Auth::can('create', 'depense'),
     ],
     [
         'url' => '/settings/politique-financiere',
