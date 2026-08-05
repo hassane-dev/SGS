@@ -357,14 +357,21 @@ try {
         ['comptes_financiers', 'create', 'Créer de nouveaux comptes financiers'],
         ['comptes_financiers', 'edit', 'Modifier les propriétés d\'un compte financier'],
         ['comptes_financiers', 'manage', 'Suspendre ou réactiver un compte financier'],
+        ['sessions_caisse', 'view', 'Consulter la liste et le détail des sessions de caisse'],
         ['sessions_caisse', 'create', 'Ouvrir une session de caisse physique journalière'],
         ['sessions_caisse', 'edit', 'Fermer sa propre session de caisse'],
+        ['sessions_caisse', 'modify', 'Modifier une session de caisse'],
         ['sessions_caisse', 'validate', 'Valider la clôture d\'une session de caisse et régulariser les écarts'],
         ['sessions_caisse', 'reopen', 'Réouvrir exceptionnellement une caisse fermée (Permission sensible d\'audit)'],
         ['mouvements_tresorerie', 'view', 'Consulter le grand livre de trésorerie'],
         ['mouvements_tresorerie', 'create', 'Enregistrer un mouvement de trésorerie manuel'],
         ['transferts', 'create', 'Initier une demande de virement inter-comptes'],
-        ['transferts', 'validate', 'Approuver et exécuter un transfert de fonds']
+        ['transferts', 'validate', 'Approuver et exécuter un transfert de fonds'],
+        ['finance', 'view_policy', 'Consulter la politique financière du lycée'],
+        ['finance', 'edit_policy', 'Modifier la politique financière du lycée'],
+        ['finance', 'view_control', 'Consulter le panneau de contrôle financier'],
+        ['finance', 'view_reports', 'Consulter les rapports financiers'],
+        ['journal', 'view', 'Consulter le journal comptable unique']
     ];
 
     $stmt_ins_perm = $db->prepare("INSERT INTO permissions (resource, action, description) VALUES (:resource, :action, :description) ON DUPLICATE KEY UPDATE description=VALUES(description)");
@@ -465,6 +472,30 @@ try {
         SELECT 7, p.id_permission
         FROM permissions p
         WHERE p.resource = 'budget' AND p.action IN ('view', 'report')
+    ");
+
+    // Map Phase 1 & 2 (comptes_financiers, sessions_caisse, finance, journal) permissions
+    // 1. All permissions to Super Admins (1, 2), Local Admin (3), Chef Comptable (9)
+    $db->exec("
+        INSERT IGNORE INTO role_permissions (role_id, permission_id)
+        SELECT r.id_role, p.id_permission
+        FROM roles r, permissions p
+        WHERE r.id_role IN (1, 2, 3, 9)
+        AND p.resource IN ('comptes_financiers', 'sessions_caisse', 'finance', 'journal')
+    ");
+
+    // 2. Specific permissions to Comptable (7) and Caissier (10)
+    $db->exec("
+        INSERT IGNORE INTO role_permissions (role_id, permission_id)
+        SELECT r.id_role, p.id_permission
+        FROM roles r, permissions p
+        WHERE r.id_role IN (7, 10)
+        AND (
+            (p.resource = 'comptes_financiers' AND p.action = 'view') OR
+            (p.resource = 'sessions_caisse' AND p.action IN ('view', 'create', 'edit')) OR
+            (p.resource = 'finance' AND p.action IN ('view_policy', 'view_control', 'view_reports')) OR
+            (p.resource = 'journal' AND p.action = 'view')
+        )
     ");
 
     echo "Migration successful\n";
