@@ -141,7 +141,33 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (138, 'mouvements_tresorerie', 'view', 'Consulter le grand livre de trésorerie'),
 (139, 'mouvements_tresorerie', 'create', 'Enregistrer un mouvement de trésorerie manuel'),
 (140, 'transferts', 'create', 'Initier une demande de virement inter-comptes'),
-(141, 'transferts', 'validate', 'Approuver et exécuter un transfert de fonds');
+(141, 'transferts', 'validate', 'Approuver et exécuter un transfert de fonds'),
+(142, 'sessions_caisse', 'view', 'Consulter la liste et le détail des sessions de caisse'),
+(143, 'sessions_caisse', 'modify', 'Modifier une session de caisse'),
+(144, 'finance', 'view_policy', 'Consulter la politique financière du lycée'),
+(145, 'finance', 'edit_policy', 'Modifier la politique financière du lycée'),
+(146, 'finance', 'view_control', 'Consulter le panneau de contrôle financier'),
+(147, 'finance', 'view_reports', 'Consulter les rapports financiers'),
+(148, 'journal', 'view', 'Consulter le journal comptable unique'),
+(150, 'depense', 'create', 'Créer une demande d''engagement de dépense (brouillon)'),
+(151, 'depense', 'update', 'Modifier une demande de dépense non approuvée'),
+(152, 'depense', 'validate', 'Voter pour ou approuver une demande de dépense'),
+(153, 'depense', 'reject', 'Rejeter une demande de dépense'),
+(154, 'depense', 'pay', 'Exécuter le règlement financier d''une dépense approuvée'),
+(155, 'depense', 'cancel', 'Annuler une dépense payée avec contre-passation'),
+(156, 'depense', 'view', 'Consulter la liste et l''historique d''audit des dépenses'),
+(157, 'depense', 'export', 'Exporter le registre des dépenses'),
+(158, 'depense', 'manage', 'Gérer les catégories, centres de coûts et bénéficiaires de dépenses'),
+(160, 'budget', 'view', 'Consulter la liste des budgets et lignes budgétaires'),
+(161, 'budget', 'create', 'Configurer un nouveau budget annuel pour l''établissement'),
+(162, 'budget', 'update', 'Modifier ou ajouter des lignes de budget'),
+(163, 'budget', 'delete', 'Supprimer un budget non approuvé'),
+(164, 'budget', 'activate', 'Valider et activer officiellement un budget annuel'),
+(165, 'budget', 'close', 'Clôturer un exercice budgétaire'),
+(166, 'budget', 'adjust', 'Ajouter une allocation supplémentaire d''urgence sur une ligne'),
+(167, 'budget', 'transfer', 'Effectuer un virement de crédits entre deux lignes budgétaires'),
+(168, 'budget', 'report', 'Consulter la synthèse visuelle et graphiques d''exécution'),
+(169, 'budget', 'override', 'Autoriser le dépassement budgétaire exceptionnel');
 
 -- --------------------------------------------------------
 -- Role-Permission Assignments
@@ -175,7 +201,13 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Boutique
 (3, 95),
 -- Test Entree
-(3, 96);
+(3, 96),
+-- Phase 1 & 2 integration
+(3, 142), (3, 143), (3, 144), (3, 145), (3, 146), (3, 147), (3, 148),
+-- Phase 3 (Dépenses)
+(3, 150), (3, 151), (3, 152), (3, 153), (3, 154), (3, 155), (3, 156), (3, 157), (3, 158),
+-- Phase 4 (Budgets)
+(3, 160), (3, 161), (3, 162), (3, 163), (3, 164), (3, 165), (3, 166), (3, 167), (3, 168), (3, 169);
 
 -- Censeur (Academic Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
@@ -193,19 +225,33 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (7, 1), (7, 70), (7, 71), (7, 73), (7, 110), (7, 112), (7, 114), (7, 115),
 -- Trésorerie
-(7, 130), (7, 134), (7, 135), (7, 138), (7, 140);
+(7, 130), (7, 134), (7, 135), (7, 138), (7, 140),
+-- Phase 1 & 2 integration
+(7, 142), (7, 143), (7, 144), (7, 146), (7, 147), (7, 148),
+-- Phase 3 (Dépenses)
+(7, 154), (7, 156), (7, 157),
+-- Phase 4 (Budgets)
+(7, 160), (7, 168);
 
 -- Chef comptable (Chief Accountant)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (9, 1), (9, 70), (9, 71), (9, 73), (9, 110), (9, 111), (9, 112), (9, 113), (9, 114), (9, 115), (9, 120), (9, 121), (9, 122),
 -- Trésorerie
-(9, 130), (9, 131), (9, 132), (9, 133), (9, 134), (9, 135), (9, 136), (9, 137), (9, 138), (9, 139), (9, 140), (9, 141);
+(9, 130), (9, 131), (9, 132), (9, 133), (9, 134), (9, 135), (9, 136), (9, 137), (9, 138), (9, 139), (9, 140), (9, 141),
+-- Phase 1 & 2 integration
+(9, 142), (9, 143), (9, 144), (9, 145), (9, 146), (9, 147), (9, 148),
+-- Phase 3 (Dépenses)
+(9, 150), (9, 151), (9, 152), (9, 153), (9, 154), (9, 155), (9, 156), (9, 157), (9, 158),
+-- Phase 4 (Budgets)
+(9, 160), (9, 161), (9, 162), (9, 163), (9, 164), (9, 165), (9, 166), (9, 167), (9, 168), (9, 169);
 
 -- Caissier (Cashier)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (10, 1), (10, 70), (10, 73),
 -- Trésorerie
-(10, 130), (10, 134), (10, 135);
+(10, 130), (10, 134), (10, 135),
+-- Phase 1 & 2 integration
+(10, 142), (10, 143), (10, 144), (10, 146), (10, 147), (10, 148);
 
 -- Eleve (Student)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
