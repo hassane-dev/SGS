@@ -27,23 +27,38 @@ if (empty($lycees)) {
     }
 }
 
-// --- Auto-seed the database if needed ---
-// This runs only if the setup is complete but the default data is missing.
+// --- Auto-seed and Auto-migrate the database if needed ---
+// This ensures that new tables, columns, and permissions from Phases 1-4 are always automatically applied.
 require_once __DIR__ . '/../src/config/database.php';
 require_once __DIR__ . '/../src/models/Role.php';
 try {
+    $db = Database::getInstance();
     $roles = Role::findAll();
     if (empty($roles)) {
         // The roles table is empty, so we need to seed the database.
-        $db = Database::getInstance();
         $sql = file_get_contents(__DIR__ . '/../db/seeds.sql');
         if ($sql) {
             $db->exec($sql);
         }
     }
+
+    // Proactive check: if permissions for budget/depense are missing, execute migrate.php
+    $stmt_chk = $db->query("SELECT COUNT(*) FROM permissions WHERE resource = 'budget'");
+    $has_budget_perm = (int)$stmt_chk->fetchColumn() > 0;
+    if (!$has_budget_perm) {
+        ob_start();
+        require_once __DIR__ . '/../migrate.php';
+        ob_end_clean();
+    }
 } catch (Exception $e) {
-    // If tables don't exist yet (e.g., before setup), this will fail.
-    // We can safely ignore this error here.
+    // If tables don't exist yet (e.g., before setup) or error occurs, run migrate.php defensively
+    try {
+        ob_start();
+        require_once __DIR__ . '/../migrate.php';
+        ob_end_clean();
+    } catch (Exception $ex) {
+        // Safe to ignore if setup is not fully complete yet
+    }
 }
 
 
