@@ -189,6 +189,21 @@ $router->register('/depenses/vote/{id}', 'DepenseController', 'vote');
 $router->register('/depenses/pay/{id}', 'DepenseController', 'pay');
 $router->register('/depenses/process-payment/{id}', 'DepenseController', 'processPayment');
 $router->register('/depenses/cancel/{id}', 'DepenseController', 'cancel');
+$router->register('/depenses/validation', 'DepenseController', 'validation');
+$router->register('/depenses/payments', 'DepenseController', 'payments');
+$router->register('/depenses/history', 'DepenseController', 'history');
+$router->register('/depenses/categories', 'DepenseController', 'categories');
+$router->register('/depenses/categories/store', 'DepenseController', 'storeCategory');
+$router->register('/depenses/categories/update', 'DepenseController', 'updateCategory');
+$router->register('/depenses/categories/delete', 'DepenseController', 'deleteCategory');
+$router->register('/depenses/centres-couts', 'DepenseController', 'centresCouts');
+$router->register('/depenses/centres-couts/store', 'DepenseController', 'storeCentreCout');
+$router->register('/depenses/centres-couts/update', 'DepenseController', 'updateCentreCout');
+$router->register('/depenses/centres-couts/delete', 'DepenseController', 'deleteCentreCout');
+$router->register('/depenses/beneficiaires', 'DepenseController', 'beneficiaires');
+$router->register('/depenses/beneficiaires/store', 'DepenseController', 'storeBeneficiaire');
+$router->register('/depenses/beneficiaires/update', 'DepenseController', 'updateBeneficiaire');
+$router->register('/depenses/beneficiaires/delete', 'DepenseController', 'deleteBeneficiaire');
 
 // Gestion Budgétaire (Phase 4)
 $router->register('/budgets', 'BudgetController', 'index');
@@ -204,6 +219,8 @@ $router->register('/budgets/adjustment', 'BudgetController', 'adjustment');
 $router->register('/budgets/adjustment/store', 'BudgetController', 'processAdjustment');
 $router->register('/budgets/rebuild/{id}', 'BudgetController', 'rebuild');
 $router->register('/budgets/report/{id}', 'BudgetController', 'report');
+$router->register('/budgets/report', 'BudgetController', 'reportGlobal');
+$router->register('/budgets/engagements', 'BudgetController', 'engagements');
 
 // Gestion de la Trésorerie (Phase 2.1 & 2.2)
 $router->register('/treasury/sessions', 'SessionCaisseController', 'index');
@@ -223,8 +240,11 @@ $router->register('/comptes-financiers/destroy/{id}', 'CompteFinancierController
 // Politique Financière, Contrôle, Journal & Rapports (Phase 1 Integration)
 $router->register('/finance/policy/edit', 'FinancePolicyController', 'edit');
 $router->register('/finance/policy/update', 'FinancePolicyController', 'update');
+$router->register('/finance/policy', 'FinancePolicyController', 'edit');
 $router->register('/finance/control', 'ControleFinancierController', 'index');
 $router->register('/journal', 'JournalComptableController', 'index');
+$router->register('/grand-livre', 'JournalComptableController', 'grandLivre');
+$router->register('/balance', 'JournalComptableController', 'balance');
 $router->register('/reports/financial', 'RapportFinancierController', 'index');
 
 // Frais (Fee management)

@@ -105,18 +105,66 @@ class Auth {
      */
     public static function can(string $action, string $resource): bool {
         self::startSession();
-        $permissions = self::get('permissions');
+
+        // Dynamic permission refreshing to keep sessions in sync with base updates real-time
+        $role_id = self::get('role_id');
+        if ($role_id) {
+            try {
+                $permissions = Role::getPermissions($role_id);
+                $_SESSION['user']['permissions'] = $permissions;
+            } catch (Exception $e) {
+                $permissions = self::get('permissions');
+            }
+        } else {
+            $permissions = self::get('permissions');
+        }
 
         if (!is_array($permissions)) {
+            $result = false;
+            self::logDebug($action, $resource, $result, "No permissions loaded", $role_id);
             return false;
         }
 
-        // Check for wildcard permission, e.g., 'manage_all'
-        if (isset($permissions[$resource]) && in_array('*', $permissions[$resource])) {
-            return true;
+        if (isset($permissions[$resource])) {
+            // Wildcard '*' resolves all actions on the resource
+            if (in_array('*', $permissions[$resource])) {
+                $result = true;
+                self::logDebug($action, $resource, $result, "Wildcard '*' matched", $role_id);
+                return true;
+            }
+
+            // Direct action match
+            if (in_array($action, $permissions[$resource])) {
+                $result = true;
+                self::logDebug($action, $resource, $result, "Direct action match", $role_id);
+                return true;
+            }
+
+            // Hierarchy: 'manage' englobes standard CRUD 'view', 'create', 'edit', 'delete'
+            $standard_crud = ['view', 'create', 'edit', 'delete', 'view_all', 'view_one'];
+            if (in_array($action, $standard_crud) && in_array('manage', $permissions[$resource])) {
+                $result = true;
+                self::logDebug($action, $resource, $result, "Hierarchy 'manage' matched", $role_id);
+                return true;
+            }
         }
 
-        return isset($permissions[$resource]) && in_array($action, $permissions[$resource]);
+        $result = false;
+        self::logDebug($action, $resource, $result, "No matching permission found", $role_id);
+        return false;
+    }
+
+    /**
+     * Temporary instrumentation debug logger
+     */
+    private static function logDebug(string $action, string $resource, bool $result, string $reason, ?int $role_id) {
+        if (defined('APP_ENV') && APP_ENV === 'development') {
+            $res_str = $result ? 'ALLOWED' : 'DENIED';
+            error_log(sprintf(
+                "[RBAC DEBUG] Action: %s | Resource: %s | Result: %s | Reason: %s | Role ID: %s",
+                $action, $resource, $res_str, $reason, ($role_id ?? 'N/A')
+            ));
+        }
     }
 
     public static function getLyceeId() {

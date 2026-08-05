@@ -354,5 +354,212 @@ class DepenseController {
             $this->handleException($e);
         }
     }
+
+    public function validation() {
+        if (!$this->checkAccess('view')) return;
+        $lyceeId = Auth::getLyceeId();
+
+        $filters = ['statut' => 'en_attente_approbation'];
+        $depenses = Depense::findByLycee($lyceeId, $filters, 100, 0);
+
+        require_once __DIR__ . '/../views/depenses/validation.php';
+    }
+
+    public function payments() {
+        if (!$this->checkAccess('view')) return;
+        $lyceeId = Auth::getLyceeId();
+
+        $filters = ['statut' => 'approuve'];
+        $depenses = Depense::findByLycee($lyceeId, $filters, 100, 0);
+
+        require_once __DIR__ . '/../views/depenses/payments.php';
+    }
+
+    public function history() {
+        if (!$this->checkAccess('view')) return;
+        $lyceeId = Auth::getLyceeId();
+
+        $depenses = Depense::findByLycee($lyceeId, [], 100, 0);
+        // filter on paid / cancelled / rejected
+        $depenses = array_filter($depenses, function($d) {
+            return in_array($d['statut'], ['paye', 'annule', 'rejete']);
+        });
+
+        require_once __DIR__ . '/../views/depenses/history.php';
+    }
+
+    public function categories() {
+        if (!$this->checkAccess('manage')) return;
+        $lyceeId = Auth::getLyceeId();
+        $categories = DepenseCategorie::findByLycee($lyceeId);
+
+        require_once __DIR__ . '/../views/depenses/categories.php';
+    }
+
+    public function storeCategory() {
+        if (!$this->checkAccess('manage')) return;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                $lyceeId = Auth::getLyceeId();
+                $data = Validator::sanitize($_POST);
+                $data['lycee_id'] = $lyceeId;
+
+                DepenseCategorie::create($data);
+                $_SESSION['success_message'] = _("Catégorie de dépense créée avec succès.");
+            } catch (Exception $e) {
+                $_SESSION['error_message'] = $e->getMessage();
+            }
+        }
+        header('Location: /depenses/categories');
+        exit();
+    }
+
+    public function updateCategory() {
+        if (!$this->checkAccess('manage')) return;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                $id = $_POST['id'] ?? null;
+                $data = Validator::sanitize($_POST);
+
+                DepenseCategorie::update($id, $data);
+                $_SESSION['success_message'] = _("Catégorie mise à jour.");
+            } catch (Exception $e) {
+                $_SESSION['error_message'] = $e->getMessage();
+            }
+        }
+        header('Location: /depenses/categories');
+        exit();
+    }
+
+    public function deleteCategory() {
+        if (!$this->checkAccess('manage')) return;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                $id = $_POST['id'] ?? null;
+                DepenseCategorie::delete($id);
+                $_SESSION['success_message'] = _("Catégorie supprimée ou désactivée.");
+            } catch (Exception $e) {
+                $_SESSION['error_message'] = $e->getMessage();
+            }
+        }
+        header('Location: /depenses/categories');
+        exit();
+    }
+
+    public function centresCouts() {
+        if (!$this->checkAccess('manage')) return;
+        $lyceeId = Auth::getLyceeId();
+        $centres = DepenseCentreCout::findByLycee($lyceeId);
+
+        require_once __DIR__ . '/../views/depenses/centres_couts.php';
+    }
+
+    public function storeCentreCout() {
+        if (!$this->checkAccess('manage')) return;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                $lyceeId = Auth::getLyceeId();
+                $data = Validator::sanitize($_POST);
+                $data['lycee_id'] = $lyceeId;
+
+                DepenseCentreCout::create($data);
+                $_SESSION['success_message'] = _("Centre de coût créé avec succès.");
+            } catch (Exception $e) {
+                $_SESSION['error_message'] = $e->getMessage();
+            }
+        }
+        header('Location: /depenses/centres-couts');
+        exit();
+    }
+
+    public function updateCentreCout() {
+        if (!$this->checkAccess('manage')) return;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                $id = $_POST['id'] ?? null;
+                $data = Validator::sanitize($_POST);
+
+                DepenseCentreCout::update($id, $data);
+                $_SESSION['success_message'] = _("Centre de coût mis à jour.");
+            } catch (Exception $e) {
+                $_SESSION['error_message'] = $e->getMessage();
+            }
+        }
+        header('Location: /depenses/centres-couts');
+        exit();
+    }
+
+    public function deleteCentreCout() {
+        if (!$this->checkAccess('manage')) return;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                $id = $_POST['id'] ?? null;
+                DepenseCentreCout::delete($id);
+                $_SESSION['success_message'] = _("Centre de coût supprimé ou désactivé.");
+            } catch (Exception $e) {
+                $_SESSION['error_message'] = $e->getMessage();
+            }
+        }
+        header('Location: /depenses/centres-couts');
+        exit();
+    }
+
+    public function beneficiaires() {
+        if (!$this->checkAccess('manage')) return;
+        $lyceeId = Auth::getLyceeId();
+        $beneficiaires = DepenseBeneficiaire::findByLycee($lyceeId);
+
+        require_once __DIR__ . '/../views/depenses/beneficiaires.php';
+    }
+
+    public function storeBeneficiaire() {
+        if (!$this->checkAccess('manage')) return;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                $lyceeId = Auth::getLyceeId();
+                $data = Validator::sanitize($_POST);
+                $data['lycee_id'] = $lyceeId;
+
+                DepenseBeneficiaire::create($data);
+                $_SESSION['success_message'] = _("Bénéficiaire créé avec succès.");
+            } catch (Exception $e) {
+                $_SESSION['error_message'] = $e->getMessage();
+            }
+        }
+        header('Location: /depenses/beneficiaires');
+        exit();
+    }
+
+    public function updateBeneficiaire() {
+        if (!$this->checkAccess('manage')) return;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                $id = $_POST['id'] ?? null;
+                $data = Validator::sanitize($_POST);
+
+                DepenseBeneficiaire::update($id, $data);
+                $_SESSION['success_message'] = _("Bénéficiaire mis à jour.");
+            } catch (Exception $e) {
+                $_SESSION['error_message'] = $e->getMessage();
+            }
+        }
+        header('Location: /depenses/beneficiaires');
+        exit();
+    }
+
+    public function deleteBeneficiaire() {
+        if (!$this->checkAccess('manage')) return;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                $id = $_POST['id'] ?? null;
+                DepenseBeneficiaire::delete($id);
+                $_SESSION['success_message'] = _("Bénéficiaire supprimé ou désactivé.");
+            } catch (Exception $e) {
+                $_SESSION['error_message'] = $e->getMessage();
+            }
+        }
+        header('Location: /depenses/beneficiaires');
+        exit();
+    }
 }
 ?>

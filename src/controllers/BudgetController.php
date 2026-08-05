@@ -315,5 +315,48 @@ class BudgetController {
 
         require_once __DIR__ . '/../views/budgets/report.php';
     }
+
+    public function reportGlobal() {
+        if (!$this->checkAccess('report')) return;
+
+        $lyceeId = Auth::getLyceeId();
+        $db = Database::getInstance();
+
+        // Find first budget for high school
+        $stmt = $db->prepare("SELECT id FROM budgets WHERE lycee_id = :lycee_id ORDER BY id DESC LIMIT 1");
+        $stmt->execute(['lycee_id' => $lyceeId]);
+        $budgetId = $stmt->fetchColumn();
+
+        if (!$budgetId) {
+            $_SESSION['error_message'] = _("Aucun budget n'est configuré pour cet établissement.");
+            header('Location: /budgets');
+            if (!defined('TEST_MODE')) exit();
+            return;
+        }
+
+        $this->report($budgetId);
+    }
+
+    public function engagements() {
+        if (!$this->checkAccess('view')) return;
+
+        $lyceeId = Auth::getLyceeId();
+        $db = Database::getInstance();
+
+        $stmt = $db->prepare("
+            SELECT e.*, d.objet as depense_objet, d.montant as depense_montant,
+                   c.nom_categorie
+            FROM budget_engagements e
+            JOIN depenses d ON e.depense_id = d.id
+            JOIN budget_lignes l ON e.budget_ligne_id = l.id
+            JOIN depense_categories c ON l.categorie_id = c.id
+            WHERE d.lycee_id = :lycee_id
+            ORDER BY e.date_engagement DESC
+        ");
+        $stmt->execute(['lycee_id' => $lyceeId]);
+        $engagements = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        require_once __DIR__ . '/../views/budgets/engagements.php';
+    }
 }
 ?>
