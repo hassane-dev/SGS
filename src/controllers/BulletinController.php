@@ -92,6 +92,11 @@ class BulletinController {
         ]);
     }
 
+    public function show() {
+        // Alias redirecting to standard student bulletin view
+        $this->showStudentBulletin();
+    }
+
     public function saveAppreciation() {
         $this->checkAccess('bulletin:validate'); // A more specific permission for this action
 

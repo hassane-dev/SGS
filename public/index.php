@@ -212,6 +212,21 @@ $router->register('/treasury/sessions/show/{id}', 'SessionCaisseController', 'sh
 $router->register('/treasury/sessions/close', 'SessionCaisseController', 'close');
 $router->register('/treasury/sessions/approve', 'SessionCaisseController', 'approve');
 
+// Comptes Financiers (Phase 1)
+$router->register('/comptes-financiers', 'CompteFinancierController', 'index');
+$router->register('/comptes-financiers/create', 'CompteFinancierController', 'create');
+$router->register('/comptes-financiers/store', 'CompteFinancierController', 'store');
+$router->register('/comptes-financiers/edit/{id}', 'CompteFinancierController', 'edit');
+$router->register('/comptes-financiers/update', 'CompteFinancierController', 'update');
+$router->register('/comptes-financiers/destroy/{id}', 'CompteFinancierController', 'destroy');
+
+// Politique Financière, Contrôle, Journal & Rapports (Phase 1 Integration)
+$router->register('/finance/policy/edit', 'FinancePolicyController', 'edit');
+$router->register('/finance/policy/update', 'FinancePolicyController', 'update');
+$router->register('/finance/control', 'ControleFinancierController', 'index');
+$router->register('/journal', 'JournalComptableController', 'index');
+$router->register('/reports/financial', 'RapportFinancierController', 'index');
+
 // Frais (Fee management)
 $router->register('/frais', 'FraisController', 'index');
 $router->register('/frais/create', 'FraisController', 'create');
