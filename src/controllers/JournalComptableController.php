@@ -10,7 +10,7 @@ require_once __DIR__ . '/../core/View.php';
 
 class JournalComptableController {
 
-    private function checkAccess($action = 'view', $resource = 'paiement') {
+    private function checkAccess($action = 'view', $resource = 'journal') {
         if (!Auth::can($action, $resource)) {
             if (PHP_SAPI === 'cli') {
                 throw new Exception("FORBIDDEN");
@@ -169,6 +169,51 @@ class JournalComptableController {
             'selected_year_id' => $annee_academique_id,
             'selected_lycee_id' => $lycee_id,
             'lycees' => $lycees
+        ]);
+    }
+
+    public function grandLivre() {
+        $this->checkAccess('view');
+        $lycee_id = Auth::getLyceeId();
+        $db = Database::getInstance();
+
+        $stmt = $db->prepare("
+            SELECT m.*, c.nom_compte, u.nom as user_nom, u.prenom as user_prenom
+            FROM mouvements_tresorerie m
+            JOIN comptes_financiers c ON m.compte_id = c.id
+            LEFT JOIN utilisateurs u ON m.user_id = u.id_user
+            WHERE m.lycee_id = :lycee_id
+            ORDER BY m.date_mouvement DESC
+        ");
+        $stmt->execute(['lycee_id' => $lycee_id]);
+        $movements = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        View::render('comptabilite/journal/grand_livre', [
+            'title' => _("Grand Livre Comptable"),
+            'movements' => $movements
+        ]);
+    }
+
+    public function balance() {
+        $this->checkAccess('view');
+        $lycee_id = Auth::getLyceeId();
+        $db = Database::getInstance();
+
+        $stmt = $db->prepare("
+            SELECT c.id, c.nom_compte, c.type_compte, c.solde_courant, c.devise,
+                   COALESCE(SUM(CASE WHEN m.type_mouvement = 'entree' THEN m.montant ELSE 0 END), 0) as total_debit,
+                   COALESCE(SUM(CASE WHEN m.type_mouvement = 'sortie' THEN m.montant ELSE 0 END), 0) as total_credit
+            FROM comptes_financiers c
+            LEFT JOIN mouvements_tresorerie m ON c.id = m.compte_id
+            WHERE c.lycee_id = :lycee_id
+            GROUP BY c.id
+        ");
+        $stmt->execute(['lycee_id' => $lycee_id]);
+        $balances = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        View::render('comptabilite/journal/balance', [
+            'title' => _("Balance Générale des Comptes"),
+            'balances' => $balances
         ]);
     }
 }

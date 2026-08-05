@@ -8,7 +8,7 @@ require_once __DIR__ . '/../core/View.php';
 
 class ControleFinancierController {
 
-    private function checkAccess($action = 'view', $resource = 'paiement') {
+    private function checkAccess($action = 'view_control', $resource = 'finance') {
         if (!Auth::can($action, $resource)) {
             if (PHP_SAPI === 'cli') {
                 throw new Exception("FORBIDDEN");

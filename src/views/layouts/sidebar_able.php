@@ -144,7 +144,7 @@ $navItems = [
         'icon' => 'ph-duotone ph-arrows-clockwise',
         'text' => _('Cycles'),
         'title' => _('Gérer les cycles d\'enseignement (collège, lycée).'),
-        'condition' => false, // No direct permission, maybe for super admin only later
+        'condition' => false,
     ],
     [
         'url' => '/contrats',
@@ -168,114 +168,80 @@ $navItems = [
     [
         'url' => '/paiements',
         'icon' => 'ph-duotone ph-chart-pie',
-        'text' => _('Tableau de bord financier'),
-        'title' => _('Tableau de bord comptable et financier.'),
+        'text' => _('Tableau de bord'),
+        'title' => _('Tableau de bord financier.'),
         'condition' => Auth::can('view', 'paiement'),
     ],
     [
         'url' => '/treasury/sessions',
         'icon' => 'ph-duotone ph-safe',
         'text' => _('Sessions de caisse'),
-        'title' => _('Gérer et clôturer les sessions de caisse journalières.'),
+        'title' => _('Gérer les sessions de caisse journalières.'),
         'condition' => Auth::can('view', 'sessions_caisse') || Auth::can('create', 'sessions_caisse') || Auth::can('edit', 'sessions_caisse') || Auth::can('validate', 'sessions_caisse'),
     ],
     [
-        'url' => '/comptes-financiers',
-        'icon' => 'ph-duotone ph-wallet',
-        'text' => _('Comptes financiers'),
-        'title' => _('Consulter et gérer les comptes financiers de l\'établissement.'),
-        'condition' => Auth::can('view', 'comptes_financiers'),
-    ],
-    [
-        'url' => '/finance/policy/edit',
+        'url' => '/finance/policy',
         'icon' => 'ph-duotone ph-shield-check',
         'text' => _('Politique financière'),
-        'title' => _('Gérer la politique financière globale.'),
-        'condition' => Auth::can('edit', 'param_lycee') || Auth::can('view_policy', 'finance'),
+        'title' => _('Gérer la politique financière globale du lycée.'),
+        'condition' => Auth::can('view_policy', 'finance') || Auth::can('edit_policy', 'finance') || Auth::can('edit', 'param_lycee'),
     ],
     [
         'url' => '/finance/control',
         'icon' => 'ph-duotone ph-info',
         'text' => _('Contrôle financier'),
         'title' => _('Vérifier et contrôler la situation financière des élèves.'),
-        'condition' => Auth::can('view', 'paiement') || Auth::can('view_control', 'finance'),
+        'condition' => Auth::can('view_control', 'finance') || Auth::can('view', 'paiement'),
     ],
     [
-        'url' => '/depenses',
-        'icon' => 'ph-duotone ph-hand-coins',
-        'text' => _('Dépenses'),
-        'title' => _('Consulter et enregistrer les dépenses de l\'établissement.'),
-        'condition' => Auth::can('view', 'depense') || Auth::can('create', 'depense'),
-    ],
-    [
-        'url' => '/budgets',
-        'icon' => 'ph-duotone ph-coins',
         'text' => _('Budgets'),
-        'title' => _('Piloter, ajuster et contrôler les budgets annuels.'),
-        'condition' => Auth::can('view', 'budget'),
+        'icon' => 'ph-duotone ph-coins',
+        'is_dropdown' => true,
+        'condition' => Auth::can('view', 'budget') || Auth::can('report', 'budget') || Auth::can('adjust', 'budget'),
+        'submenu' => [
+            ['url' => '/budgets', 'text' => _('Budgets'), 'condition' => Auth::can('view', 'budget')],
+            ['url' => '/budgets/report', 'text' => _('Exécution budgétaire'), 'condition' => Auth::can('report', 'budget')],
+            ['url' => '/budgets/adjustment', 'text' => _('Ajustements de crédits'), 'condition' => Auth::can('adjust', 'budget')],
+            ['url' => '/budgets/engagements', 'text' => _('Engagements budgétaires'), 'condition' => Auth::can('view', 'budget')],
+            ['url' => '/budgets/report', 'text' => _('Rapports budgétaires'), 'condition' => Auth::can('report', 'budget')],
+        ]
     ],
     [
-        'url' => '/budgets',
+        'text' => _('Dépenses'),
+        'icon' => 'ph-duotone ph-hand-coins',
+        'is_dropdown' => true,
+        'condition' => Auth::can('view', 'depense') || Auth::can('create', 'depense'),
+        'submenu' => [
+            ['url' => '/depenses', 'text' => _('Demandes de dépenses'), 'condition' => Auth::can('view', 'depense')],
+            ['url' => '/depenses/validation', 'text' => _('Validation'), 'condition' => Auth::can('validate', 'depense')],
+            ['url' => '/depenses/payments', 'text' => _('Paiements'), 'condition' => Auth::can('pay', 'depense')],
+            ['url' => '/depenses/history', 'text' => _('Historique'), 'condition' => Auth::can('view', 'depense')],
+        ]
+    ],
+    [
+        'text' => _('Recettes'),
         'icon' => 'ph-duotone ph-trend-up',
-        'text' => _('Exécution budgétaire'),
-        'title' => _('Consulter le taux d\'exécution du budget.'),
-        'condition' => Auth::can('view', 'budget'),
+        'is_dropdown' => true,
+        'condition' => Auth::can('view', 'paiement') || Auth::can('manage', 'paiement'),
+        'submenu' => [
+            ['url' => '/paiements/pending', 'text' => _('Paiement inscription'), 'condition' => Auth::can('manage', 'paiement')],
+            ['url' => '/mensualites', 'text' => _('Gestion mensualités'), 'condition' => Auth::can('manage', 'paiement')],
+            ['url' => '/paiements/restes', 'text' => _('Gestion des restes'), 'condition' => Auth::can('manage', 'paiement')],
+            ['url' => '/paiements/historique', 'text' => _('Historique paiements'), 'condition' => Auth::can('view', 'paiement')],
+            ['url' => '/paiements/recus', 'text' => _('Reçus'), 'condition' => Auth::can('view', 'paiement')],
+        ]
     ],
     [
-        'url' => '/budgets/adjustment',
-        'icon' => 'ph-duotone ph-git-transfer',
-        'text' => _('Ajustements budgétaires'),
-        'title' => _('Gérer les ajustements et dotations budgétaires.'),
-        'condition' => Auth::can('adjust', 'budget'),
-    ],
-    [
-        'url' => '/journal',
+        'text' => _('Comptabilité générale'),
         'icon' => 'ph-duotone ph-book-open',
-        'text' => _('Journal comptable'),
-        'title' => _('Consulter le journal comptable unique.'),
-        'condition' => Auth::can('view', 'paiement') || Auth::can('view', 'journal'),
-    ],
-    [
-        'url' => '/reports/financial',
-        'icon' => 'ph-duotone ph-file-text',
-        'text' => _('Rapports financiers'),
-        'title' => _('Consulter les rapports financiers.'),
-        'condition' => Auth::can('view', 'paiement') || Auth::can('manage', 'paiement') || Auth::can('view_reports', 'finance'),
-    ],
-    [
-        'url' => '/paiements/pending',
-        'icon' => 'ph-duotone ph-user-plus',
-        'text' => _('Paiement inscription'),
-        'title' => _('Gérer les paiements d\'inscription.'),
-        'condition' => Auth::can('manage', 'paiement'),
-    ],
-    [
-        'url' => '/mensualites',
-        'icon' => 'ph-duotone ph-calendar-check',
-        'text' => _('Gestion mensualités'),
-        'title' => _('Gérer les paiements mensuels.'),
-        'condition' => Auth::can('manage', 'paiement'),
-    ],
-    [
-        'url' => '/paiements/restes',
-        'icon' => 'ph-duotone ph-warning-circle',
-        'text' => _('Gestion des restes'),
-        'title' => _('Gérer les impayés et restes à payer.'),
-        'condition' => Auth::can('manage', 'paiement'),
-    ],
-    [
-        'url' => '/paiements/historique',
-        'icon' => 'ph-duotone ph-clock-counter-clockwise',
-        'text' => _('Historique paiements'),
-        'title' => _('Consulter l\'historique des transactions.'),
-        'condition' => Auth::can('view', 'paiement'),
-    ],
-    [
-        'url' => '/paiements/recus',
-        'icon' => 'ph-duotone ph-receipt',
-        'text' => _('Reçus'),
-        'title' => _('Gérer et imprimer les reçus.'),
-        'condition' => Auth::can('view', 'paiement'),
+        'is_dropdown' => true,
+        'condition' => Auth::can('view', 'journal') || Auth::can('view_reports', 'finance') || Auth::can('view', 'comptes_financiers'),
+        'submenu' => [
+            ['url' => '/journal', 'text' => _('Journal comptable'), 'condition' => Auth::can('view', 'journal')],
+            ['url' => '/grand-livre', 'text' => _('Grand Livre'), 'condition' => Auth::can('view', 'journal')],
+            ['url' => '/balance', 'text' => _('Balance'), 'condition' => Auth::can('view', 'journal')],
+            ['url' => '/reports/financial', 'text' => _('Rapports financiers'), 'condition' => Auth::can('view_reports', 'finance')],
+        ]
     ],
     [
         'url' => '/salaires',
@@ -285,11 +251,23 @@ $navItems = [
         'condition' => Auth::can('manage', 'salaire'),
     ],
     [
-        'url' => '/frais',
-        'icon' => 'ph-duotone ph-money',
-        'text' => _('Configuration Frais'),
-        'title' => _('Configurer les différents types de frais scolaires.'),
-        'condition' => Auth::can('manage', 'frais'),
+        'text' => _('Configuration'),
+        'icon' => 'ph-duotone ph-gear',
+        'is_dropdown' => true,
+        'condition' => Auth::can('manage', 'frais') || Auth::can('manage', 'depense'),
+        'submenu' => [
+            ['url' => '/frais', 'text' => _('Configuration Frais'), 'condition' => Auth::can('manage', 'frais')],
+            ['url' => '/depenses/categories', 'text' => _('Catégories de dépenses'), 'condition' => Auth::can('manage', 'depense')],
+            ['url' => '/depenses/centres-couts', 'text' => _('Centres de coûts'), 'condition' => Auth::can('manage', 'depense')],
+            ['url' => '/depenses/beneficiaires', 'text' => _('Bénéficiaires'), 'condition' => Auth::can('manage', 'depense')],
+        ]
+    ],
+    [
+        'url' => '/comptes-financiers',
+        'icon' => 'ph-duotone ph-wallet',
+        'text' => _('Comptes financiers'),
+        'title' => _('Consulter et gérer les comptes financiers.'),
+        'condition' => Auth::can('view', 'comptes_financiers'),
     ],
     [
         'url' => '/boutique/articles',
@@ -359,7 +337,7 @@ $navItems = [
     <div class="navbar-content">
       <ul class="pc-navbar">
         <?php
-        $active_url = $_SERVER['REQUEST_URI'];
+        $active_url = strtok($_SERVER['REQUEST_URI'], '?');
         foreach ($navItems as $item):
             // Check if the item should be displayed
             if (isset($item['condition']) && !$item['condition']) {
@@ -371,9 +349,45 @@ $navItems = [
             <li class="pc-item pc-caption">
               <label><?= $item['label'] ?></label>
             </li>
+        <?php elseif (isset($item['is_dropdown']) && $item['is_dropdown']): ?>
+            <?php
+            // Filter submenu items by permission
+            $sub_items = [];
+            foreach ($item['submenu'] as $sub) {
+                if (!isset($sub['condition']) || $sub['condition']) {
+                    $sub_items[] = $sub;
+                }
+            }
+            if (empty($sub_items)) {
+                continue;
+            }
+            // Check if active
+            $is_active = false;
+            foreach ($sub_items as $sub) {
+                if ($active_url == $sub['url']) {
+                    $is_active = true;
+                }
+            }
+            ?>
+            <li class="pc-item pc-hasmenu <?= $is_active ? 'pc-trigger active' : '' ?>">
+              <a href="#!" class="pc-link">
+                <span class="pc-micon">
+                  <i class="<?= $item['icon'] ?>"></i>
+                </span>
+                <span class="pc-mtext"><?= $item['text'] ?></span>
+                <span class="pc-arrow"><i class="ti ti-chevron-right"></i></span>
+              </a>
+              <ul class="pc-submenu" style="<?= $is_active ? 'display: block;' : 'display: none;' ?>">
+                <?php foreach ($sub_items as $sub): ?>
+                  <li class="pc-item <?= ($active_url == $sub['url']) ? 'active' : '' ?>">
+                    <a class="pc-link" href="<?= $sub['url'] ?>"><?= $sub['text'] ?></a>
+                  </li>
+                <?php endforeach; ?>
+              </ul>
+            </li>
         <?php else: ?>
             <li class="pc-item <?= ($active_url == $item['url']) ? 'active' : '' ?>">
-              <a href="<?= $item['url'] ?>" class="pc-link" title="<?= $item['title'] ?>">
+              <a href="<?= $item['url'] ?>" class="pc-link" title="<?= $item['title'] ?? '' ?>">
                 <span class="pc-micon">
                   <i class="<?= $item['icon'] ?>"></i>
                 </span>

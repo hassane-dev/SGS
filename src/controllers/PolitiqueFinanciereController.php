@@ -10,8 +10,8 @@ require_once __DIR__ . '/../core/Validator.php';
 
 class PolitiqueFinanciereController {
 
-    private function checkAccess() {
-        if (!Auth::can('edit', 'param_lycee')) {
+    private function checkAccess($action = 'view_policy') {
+        if (!Auth::can($action, 'finance') && !Auth::can('edit_policy', 'finance') && !Auth::can('edit', 'param_lycee')) {
             http_response_code(403);
             View::render('errors/403');
             exit();
@@ -19,7 +19,7 @@ class PolitiqueFinanciereController {
     }
 
     public function edit() {
-        $this->checkAccess();
+        $this->checkAccess('view_policy');
         $lycee_id = Auth::getLyceeId();
 
         $policy = PolitiqueFinanciere::findOrCreate($lycee_id);
@@ -31,7 +31,7 @@ class PolitiqueFinanciereController {
     }
 
     public function update() {
-        $this->checkAccess();
+        $this->checkAccess('edit_policy');
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: /settings/politique-financiere');
             exit();
