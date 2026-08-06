@@ -371,11 +371,11 @@ $navItems = [
             ?>
             <li class="pc-item pc-hasmenu <?= $is_active ? 'pc-trigger active' : '' ?>">
               <a href="#!" class="pc-link">
-                <span class="pc-micon">
-                  <i class="<?= $item['icon'] ?>"></i>
+                <span class="pc-micon" style="pointer-events: none;">
+                  <i class="<?= $item['icon'] ?>" style="pointer-events: none;"></i>
                 </span>
-                <span class="pc-mtext"><?= $item['text'] ?></span>
-                <span class="pc-arrow"><i class="ti ti-chevron-right"></i></span>
+                <span class="pc-mtext" style="pointer-events: none;"><?= $item['text'] ?></span>
+                <span class="pc-arrow" style="pointer-events: none;"><i class="ti ti-chevron-right" style="pointer-events: none;"></i></span>
               </a>
               <ul class="pc-submenu" style="<?= $is_active ? 'display: block;' : 'display: none;' ?>">
                 <?php foreach ($sub_items as $sub): ?>
