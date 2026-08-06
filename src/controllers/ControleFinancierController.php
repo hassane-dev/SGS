@@ -28,7 +28,7 @@ class ControleFinancierController {
     }
 
     public function index() {
-        $this->checkAccess('view');
+        $this->checkAccess('view_control');
         $lycee_id = Auth::getLyceeId();
         $activeYear = AnneeAcademique::findActive();
 
