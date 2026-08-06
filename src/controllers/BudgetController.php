@@ -344,7 +344,7 @@ class BudgetController {
         $db = Database::getInstance();
 
         $stmt = $db->prepare("
-            SELECT e.*, d.objet as depense_objet, d.montant as depense_montant,
+            SELECT e.*, d.motif as depense_objet, d.montant as depense_montant,
                    c.nom_categorie
             FROM budget_engagements e
             JOIN depenses d ON e.depense_id = d.id
