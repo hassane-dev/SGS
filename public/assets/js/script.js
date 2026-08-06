@@ -33,39 +33,62 @@ function menu_click() {
   var pc_link_click = document.querySelectorAll('.pc-navbar > li:not(.pc-caption).pc-hasmenu');
   for (var i = 0; i < pc_link_click.length; i++) {
     pc_link_click[i].addEventListener('click', function (event) {
-      // Prevent parent elements from triggering their events
-      event.stopPropagation();
-      var targetElement = event.target;
-      if (targetElement.tagName == 'SPAN') {
-        targetElement = targetElement.parentNode;
+      // Find the closest .pc-link inside this li
+      var linkElement = event.target.closest('a.pc-link');
+      if (!linkElement) {
+        return;
       }
-      // Toggle submenu visibility (active remove who has menu link not clicked and it's submenu also hide)
-      if (targetElement.parentNode.classList.contains('pc-trigger')) {
-        targetElement.parentNode.classList.remove('pc-trigger');
-        slideUp(targetElement.parentNode.children[1], 200);
+
+      // If the clicked link is inside a submenu, let it navigate normally and do not collapse/expand the parent
+      if (linkElement.closest('.pc-submenu')) {
+        return;
+      }
+
+      // Prevent default click behavior on parent dropdown toggle
+      event.preventDefault();
+      event.stopPropagation();
+
+      var parentLi = linkElement.closest('li.pc-hasmenu');
+      if (!parentLi) {
+        return;
+      }
+
+      var submenu = parentLi.querySelector('.pc-submenu');
+      if (!submenu) {
+        return;
+      }
+
+      // Toggle submenu visibility
+      if (parentLi.classList.contains('pc-trigger')) {
+        parentLi.classList.remove('pc-trigger');
+        slideUp(submenu, 200);
         window.setTimeout(() => {
-          targetElement.parentNode.children[1].removeAttribute('style');
-          targetElement.parentNode.children[1].style.display = 'none';
+          submenu.removeAttribute('style');
+          submenu.style.display = 'none';
         }, 200);
       } else {
         // Close other open submenus
-        var tc = document.querySelectorAll('li.pc-trigger');
+        var tc = document.querySelectorAll('.pc-navbar > li.pc-trigger');
         for (var t = 0; t < tc.length; t++) {
           var c = tc[t];
-          c.classList.remove('pc-trigger');
-          slideUp(c.children[1], 200);
-          window.setTimeout(() => {
-            c.children[1].removeAttribute('style');
-            c.children[1].style.display = 'none';
-          }, 200);
+          if (c !== parentLi) {
+            c.classList.remove('pc-trigger');
+            var otherSubmenu = c.querySelector('.pc-submenu');
+            if (otherSubmenu) {
+              slideUp(otherSubmenu, 200);
+              window.setTimeout(((sub) => {
+                return () => {
+                  sub.removeAttribute('style');
+                  sub.style.display = 'none';
+                };
+              })(otherSubmenu), 200);
+            }
+          }
         }
 
-        // Open clicked submenu (for active menu link)
-        targetElement.parentNode.classList.add('pc-trigger');
-        var submenu_list = targetElement.children[1];
-        if (submenu_list) {
-          slideDown(targetElement.parentNode.children[1], 200);
-        }
+        // Open clicked submenu
+        parentLi.classList.add('pc-trigger');
+        slideDown(submenu, 200);
       }
     });
   }
