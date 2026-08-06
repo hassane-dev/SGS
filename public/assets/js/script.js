@@ -17,11 +17,11 @@ var flg = '0';
 
 // Function to handle menu click events (collpase menus and it's submenu also collapse)
 function menu_click() {
-  // Remove click event listeners from navigation menu items
-  var elem = document.querySelectorAll('.pc-navbar li');
-  for (var j = 0; j < elem.length; j++) {
-    elem[j].removeEventListener('click', function () {});
+  // Prevent duplicate initialization
+  if (window.menuClickInitialized) {
+    return;
   }
+  window.menuClickInitialized = true;
 
   // Hide submenu items (when menu link not active then submenu hide)
   var elem = document.querySelectorAll('.pc-navbar li:not(.pc-trigger) .pc-submenu');
