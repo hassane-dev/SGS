@@ -29,13 +29,18 @@ class Database {
         try {
             $this->conn = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
-            // In a real application, you would log this error and show a generic message.
-            // For development, it's okay to show the error.
-            if (APP_ENV === 'development') {
-                throw new PDOException($e->getMessage(), (int)$e->getCode());
-            } else {
-                // On production, don't reveal sensitive error details.
-                die('Could not connect to the database. Please try again later.');
+            // Fallback to SQLite database file if MySQL fails
+            try {
+                $this->conn = new PDO('sqlite:' . __DIR__ . '/../../database.sqlite', null, null, [
+                    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                ]);
+            } catch (Exception $ex) {
+                if (APP_ENV === 'development') {
+                    throw new PDOException($e->getMessage(), (int)$e->getCode());
+                } else {
+                    die('Could not connect to the database. Please try again later.');
+                }
             }
         }
     }
