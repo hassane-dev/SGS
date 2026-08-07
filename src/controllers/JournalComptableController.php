@@ -173,47 +173,55 @@ class JournalComptableController {
     }
 
     public function grandLivre() {
-        $this->checkAccess('view');
+        $this->checkAccess('view', 'grand_livre');
         $lycee_id = Auth::getLyceeId();
         $db = Database::getInstance();
 
-        $stmt = $db->prepare("
-            SELECT m.*, c.nom_compte, u.nom as user_nom, u.prenom as user_prenom
-            FROM mouvements_tresorerie m
-            JOIN comptes_financiers c ON m.compte_id = c.id
-            LEFT JOIN utilisateurs u ON m.user_id = u.id_user
-            WHERE m.lycee_id = :lycee_id
-            ORDER BY m.date_mouvement DESC
-        ");
-        $stmt->execute(['lycee_id' => $lycee_id]);
-        $movements = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        require_once __DIR__ . '/../services/GrandLivreService.php';
+
+        // Fetch list of all accounts for the selector
+        $stmt_c = $db->query("SELECT id, numero, libelle FROM comptes_comptables WHERE actif = 1 ORDER BY numero ASC");
+        $comptes = $stmt_c->fetchAll(PDO::FETCH_ASSOC);
+
+        $selected_compte_id = $_GET['compte_id'] ?? (!empty($comptes) ? $comptes[0]['id'] : null);
+        $date_debut = $_GET['date_debut'] ?? null;
+        $date_fin = $_GET['date_fin'] ?? null;
+
+        $account_details = null;
+        if ($selected_compte_id) {
+            $account_details = GrandLivreService::getAccountDetails($selected_compte_id, $date_debut, $date_fin);
+        }
 
         View::render('comptabilite/journal/grand_livre', [
-            'title' => _("Grand Livre Comptable"),
-            'movements' => $movements
+            'title' => _("Grand Livre Général"),
+            'comptes' => $comptes,
+            'selected_compte_id' => $selected_compte_id,
+            'account_details' => $account_details,
+            'filters' => [
+                'date_debut' => $date_debut,
+                'date_fin' => $date_fin
+            ]
         ]);
     }
 
     public function balance() {
-        $this->checkAccess('view');
+        $this->checkAccess('view', 'balance');
         $lycee_id = Auth::getLyceeId();
-        $db = Database::getInstance();
 
-        $stmt = $db->prepare("
-            SELECT c.id, c.nom_compte, c.type_compte, c.solde_courant, c.devise,
-                   COALESCE(SUM(CASE WHEN m.type_mouvement = 'entree' THEN m.montant ELSE 0 END), 0) as total_debit,
-                   COALESCE(SUM(CASE WHEN m.type_mouvement = 'sortie' THEN m.montant ELSE 0 END), 0) as total_credit
-            FROM comptes_financiers c
-            LEFT JOIN mouvements_tresorerie m ON c.id = m.compte_id
-            WHERE c.lycee_id = :lycee_id
-            GROUP BY c.id
-        ");
-        $stmt->execute(['lycee_id' => $lycee_id]);
-        $balances = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        require_once __DIR__ . '/../services/BalanceService.php';
+
+        $date_debut = $_GET['date_debut'] ?? null;
+        $date_fin = $_GET['date_fin'] ?? null;
+
+        $balance_data = BalanceService::getBalanceData($lycee_id, $date_debut, $date_fin);
 
         View::render('comptabilite/journal/balance', [
             'title' => _("Balance Générale des Comptes"),
-            'balances' => $balances
+            'balance_data' => $balance_data,
+            'filters' => [
+                'date_debut' => $date_debut,
+                'date_fin' => $date_fin
+            ]
         ]);
     }
 }
