@@ -1050,6 +1050,19 @@ class PaiementController {
                     'user_id' => $userId
                 ]);
 
+                // Generer Ecriture Comptable Automatique en Partie Double
+                require_once __DIR__ . '/../services/ComptabiliteService.php';
+                ComptabiliteService::genererEcritureAutomatique(
+                    'inscription',
+                    $montantInscription,
+                    $lyceeId,
+                    $reference,
+                    $userId,
+                    'inscriptions',
+                    ($inscription && !empty($inscription['id_inscription'])) ? $inscription['id_inscription'] : $insId,
+                    date('Y-m-d')
+                );
+
                 $paiementEffectue = true;
             }
 
@@ -1125,6 +1138,19 @@ class PaiementController {
                         'user_id' => $userId
                     ]);
 
+                    // Generer Ecriture Comptable Automatique
+                    require_once __DIR__ . '/../services/ComptabiliteService.php';
+                    ComptabiliteService::genererEcritureAutomatique(
+                        'mensualite',
+                        $allocated,
+                        $lyceeId,
+                        $reference,
+                        $userId,
+                        'mensualite_details',
+                        $detailId,
+                        date('Y-m-d')
+                    );
+
                     $paiementEffectue = true;
                 }
 
@@ -1198,6 +1224,19 @@ class PaiementController {
                             'user_id' => $userId
                         ]);
 
+                        // Generer Ecriture Comptable Automatique
+                        require_once __DIR__ . '/../services/ComptabiliteService.php';
+                        ComptabiliteService::genererEcritureAutomatique(
+                            'mensualite',
+                            $montant,
+                            $lyceeId,
+                            $reference,
+                            $userId,
+                            'mensualite_details',
+                            $detailId,
+                            date('Y-m-d')
+                        );
+
                         $paiementEffectue = true;
                     }
                 }
@@ -1255,6 +1294,9 @@ class PaiementController {
             $_SESSION['error_message'] = "Erreur lors de l'encaissement : " . $e->getMessage() .
                                          " | Fichier: " . $e->getFile() . " (Ligne " . $e->getLine() . ")" .
                                          " | Trace: " . substr($e->getTraceAsString(), 0, 500) . "...";
+            if (PHP_SAPI === 'cli') {
+                echo "  [CONTROLLER ERROR] " . $_SESSION['error_message'] . "\n";
+            }
         }
 
         if (PHP_SAPI === 'cli') {
@@ -1613,6 +1655,15 @@ class PaiementController {
                     ]);
                 }
 
+                // Contrepassation comptable de la pièce
+                require_once __DIR__ . '/../services/ComptabiliteService.php';
+                $stmt_pc = $db->prepare("SELECT id FROM pieces_comptables WHERE source_table = 'inscriptions' AND source_id = :id AND statut = 'valide'");
+                $stmt_pc->execute(['id' => $inscription['id_inscription']]);
+                $pc_id = $stmt_pc->fetchColumn();
+                if ($pc_id) {
+                    ComptabiliteService::contrepasserPiece($pc_id, $userId, "Annulation reçu: " . $motif);
+                }
+
                 $cancelledAny = true;
             }
 
@@ -1628,6 +1679,7 @@ class PaiementController {
 
             if (!empty($details)) {
                 require_once __DIR__ . '/../models/JournalComptable.php';
+                require_once __DIR__ . '/../services/ComptabiliteService.php';
                 foreach ($details as $d) {
                     $eleveId = $d['eleve_id'];
 
@@ -1660,6 +1712,14 @@ class PaiementController {
                         'motif' => 'Annulation Mensualité - Reçu N° ' . $recu_numero,
                         'user_id' => $userId
                     ]);
+
+                    // Contrepassation comptable de la pièce
+                    $stmt_pc = $db->prepare("SELECT id FROM pieces_comptables WHERE source_table = 'mensualite_details' AND source_id = :id AND statut = 'valide'");
+                    $stmt_pc->execute(['id' => $d['id']]);
+                    $pc_id = $stmt_pc->fetchColumn();
+                    if ($pc_id) {
+                        ComptabiliteService::contrepasserPiece($pc_id, $userId, "Annulation reçu: " . $motif);
+                    }
 
                     $cancelledAny = true;
                 }
