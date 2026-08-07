@@ -45,6 +45,11 @@ class SetupController {
             $this->setupSingleSchool($data);
         }
 
+        if (!empty($_SESSION['error_message'])) {
+            header('Location: /setup');
+            exit();
+        }
+
         header('Location: /login');
         exit();
     }
@@ -88,7 +93,12 @@ class SetupController {
 
             // 2. Seed the database with default roles and permissions
             $seed_sql = file_get_contents(__DIR__ . '/../../db/seeds.sql');
-            if ($seed_sql) $db->exec($seed_sql);
+            if ($seed_sql) {
+                if ($db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+                    $seed_sql = preg_replace('/ON DUPLICATE KEY UPDATE[^;]+;/i', ';', $seed_sql);
+                }
+                $db->exec($seed_sql);
+            }
 
             // 3. Create a specific admin role for this Lycee
             Role::save([
