@@ -38,6 +38,9 @@ try {
         $db = Database::getInstance();
         $sql = file_get_contents(__DIR__ . '/../db/seeds.sql');
         if ($sql) {
+            if ($db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+                $sql = preg_replace('/ON DUPLICATE KEY UPDATE[^;]+;/i', ';', $sql);
+            }
             $db->exec($sql);
         }
     }

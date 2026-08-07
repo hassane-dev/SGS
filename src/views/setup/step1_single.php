@@ -2,6 +2,12 @@
 <div class="col-md-8 col-lg-6">
     <div class="card shadow-sm">
         <div class="card-body p-5">
+            <?php if (!empty($_SESSION['error_message'])): ?>
+                <div class="alert alert-danger mb-4" role="alert">
+                    <?= htmlspecialchars($_SESSION['error_message']) ?>
+                    <?php unset($_SESSION['error_message']); ?>
+                </div>
+            <?php endif; ?>
             <h1 class="h2 fw-bold mb-4"><?= _('Configuration de l\'école') ?></h1>
             <form action="/setup/finish" method="POST">
                 <input type="hidden" name="install_mode" value="single">

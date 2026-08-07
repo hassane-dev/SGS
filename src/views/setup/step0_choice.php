@@ -2,6 +2,12 @@
 <div class="col-md-8 col-lg-6">
     <div class="card shadow-sm">
         <div class="card-body p-5 text-center">
+            <?php if (!empty($_SESSION['error_message'])): ?>
+                <div class="alert alert-danger text-start mb-4" role="alert">
+                    <?= htmlspecialchars($_SESSION['error_message']) ?>
+                    <?php unset($_SESSION['error_message']); ?>
+                </div>
+            <?php endif; ?>
             <h1 class="h2 fw-bold mb-3"><?= _('Bienvenue dans l\'installation') ?></h1>
             <p class="text-muted mb-4"><?= _('Veuillez choisir le mode d\'installation.') ?></p>
             <form action="/setup/choice" method="POST">

@@ -2,10 +2,31 @@
 require_once __DIR__ . '/src/config/database.php';
 $db = Database::getInstance();
 
+$isSqlite = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
+
 function addColumnIfNeeded($db, $table, $column, $definition) {
     try {
-        $stmt = $db->query("SHOW COLUMNS FROM `$table` LIKE '$column'");
-        if (!$stmt->fetch()) {
+        $isSqlite = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
+        $columnExists = false;
+
+        if ($isSqlite) {
+            $stmt = $db->prepare("PRAGMA table_info(`$table`)");
+            $stmt->execute();
+            $cols = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($cols as $col) {
+                if ($col['name'] === $column) {
+                    $columnExists = true;
+                    break;
+                }
+            }
+        } else {
+            $stmt = $db->query("SHOW COLUMNS FROM `$table` LIKE '$column'");
+            if ($stmt->fetch()) {
+                $columnExists = true;
+            }
+        }
+
+        if (!$columnExists) {
             $db->exec("ALTER TABLE `$table` ADD COLUMN `$column` $definition");
             echo "Added column $column to table $table\n";
         }
@@ -21,12 +42,25 @@ try {
     addColumnIfNeeded($db, 'param_lycee', 'signature_directeur', 'TEXT');
     addColumnIfNeeded($db, 'param_lycee', 'tampon_ecole', 'TEXT');
 
+    $tableExists = function($db, $table) use ($isSqlite) {
+        if ($isSqlite) {
+            $stmt = $db->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=:name");
+            $stmt->execute(['name' => $table]);
+            return (bool)$stmt->fetch();
+        } else {
+            $stmt = $db->query("SHOW TABLES LIKE '$table'");
+            return (bool)$stmt->fetch();
+        }
+    };
+
     // Rename modele_carte to carte_templates if it exists and carte_templates doesn't
-    $stmt = $db->query("SHOW TABLES LIKE 'modele_carte'");
-    if ($stmt->fetch()) {
-        $stmt2 = $db->query("SHOW TABLES LIKE 'carte_templates'");
-        if (!$stmt2->fetch()) {
-            $db->exec("RENAME TABLE modele_carte TO carte_templates;");
+    if ($tableExists($db, 'modele_carte')) {
+        if (!$tableExists($db, 'carte_templates')) {
+            if ($isSqlite) {
+                $db->exec("ALTER TABLE modele_carte RENAME TO carte_templates;");
+            } else {
+                $db->exec("RENAME TABLE modele_carte TO carte_templates;");
+            }
             echo "Renamed table modele_carte to carte_templates\n";
         }
     }
@@ -40,8 +74,25 @@ try {
 
     // Rename font_settings to styles if needed
     try {
-        $stmt_col = $db->query("SHOW COLUMNS FROM carte_templates LIKE 'font_settings'");
-        if ($stmt_col->fetch()) {
+        $font_settings_exists = false;
+        if ($isSqlite) {
+            $stmt = $db->prepare("PRAGMA table_info(carte_templates)");
+            $stmt->execute();
+            $cols = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($cols as $col) {
+                if ($col['name'] === 'font_settings') {
+                    $font_settings_exists = true;
+                    break;
+                }
+            }
+        } else {
+            $stmt = $db->query("SHOW COLUMNS FROM carte_templates LIKE 'font_settings'");
+            if ($stmt->fetch()) {
+                $font_settings_exists = true;
+            }
+        }
+
+        if ($font_settings_exists) {
             $db->exec("ALTER TABLE carte_templates RENAME COLUMN font_settings TO styles;");
             echo "Renamed font_settings to styles on carte_templates\n";
         }
@@ -49,24 +100,55 @@ try {
         // Safe to ignore if already renamed or column doesn't exist
     }
 
-    // Create carte_objects if it doesn't exist
-    $db->exec("CREATE TABLE IF NOT EXISTS carte_objects (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        template_id INT NOT NULL,
-        type_objet VARCHAR(50) NOT NULL,
-        pos_x INT,
-        pos_y INT,
-        width INT,
-        height INT,
-        z_index INT DEFAULT 0,
-        styles JSON,
-        placeholder VARCHAR(100),
-        FOREIGN KEY (template_id) REFERENCES carte_templates(id) ON DELETE CASCADE
-    );");
+    // Create Table Helper Function to avoid syntax crashes on SQLite
+    $createTable = function($db, $tableName, $mysqlSql, $sqliteSql) use ($isSqlite, $tableExists) {
+        if ($tableExists($db, $tableName)) {
+            return;
+        }
+        if ($isSqlite) {
+            $db->exec($sqliteSql);
+        } else {
+            $db->exec($mysqlSql);
+        }
+        echo "Table '$tableName' created.\n";
+    };
 
-    // Update ENUM for eleves.statut and etudes.status
-    $db->exec("ALTER TABLE eleves MODIFY COLUMN statut ENUM('en_attente', 'en_attente_paiement', 'actif', 'transféré', 'radié', 'diplômé', 'abandonné') NOT NULL DEFAULT 'en_attente'");
-    $db->exec("ALTER TABLE etudes MODIFY COLUMN status ENUM('en_attente_paiement', 'active', 'inactive', 'suspended') DEFAULT 'en_attente_paiement'");
+    // Create carte_objects if it doesn't exist
+    $createTable($db, 'carte_objects', "
+        CREATE TABLE IF NOT EXISTS carte_objects (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            template_id INT NOT NULL,
+            type_objet VARCHAR(50) NOT NULL,
+            pos_x INT,
+            pos_y INT,
+            width INT,
+            height INT,
+            z_index INT DEFAULT 0,
+            styles JSON,
+            placeholder VARCHAR(100),
+            FOREIGN KEY (template_id) REFERENCES carte_templates(id) ON DELETE CASCADE
+        );
+    ", "
+        CREATE TABLE carte_objects (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            template_id INTEGER NOT NULL,
+            type_objet VARCHAR(50) NOT NULL,
+            pos_x INTEGER,
+            pos_y INTEGER,
+            width INTEGER,
+            height INTEGER,
+            z_index INTEGER DEFAULT 0,
+            styles TEXT,
+            placeholder VARCHAR(100),
+            FOREIGN KEY (template_id) REFERENCES carte_templates(id) ON DELETE CASCADE
+        );
+    ");
+
+    if (!$isSqlite) {
+        // Update ENUM for eleves.statut and etudes.status (Skip on SQLite)
+        $db->exec("ALTER TABLE eleves MODIFY COLUMN statut ENUM('en_attente', 'en_attente_paiement', 'actif', 'transféré', 'radié', 'diplômé', 'abandonné') NOT NULL DEFAULT 'en_attente'");
+        $db->exec("ALTER TABLE etudes MODIFY COLUMN status ENUM('en_attente_paiement', 'active', 'inactive', 'suspended') DEFAULT 'en_attente_paiement'");
+    }
 
     // Add columns to other tables
     addColumnIfNeeded($db, 'inscriptions', 'recu_numero', 'VARCHAR(50)');
@@ -76,47 +158,92 @@ try {
     addColumnIfNeeded($db, 'annees_academiques', 'cloturee', 'TINYINT(1) NOT NULL DEFAULT 0');
 
     // Create journal_comptable table
-    $db->exec("CREATE TABLE IF NOT EXISTS journal_comptable (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        lycee_id INT NOT NULL,
-        eleve_id INT DEFAULT NULL,
-        user_id INT NOT NULL,
-        annee_academique_id INT NOT NULL,
-        operation VARCHAR(100) NOT NULL,
-        montant DECIMAL(10, 2) NOT NULL,
-        mode_paiement VARCHAR(50) DEFAULT NULL,
-        recu_numero VARCHAR(50) DEFAULT NULL,
-        reference_origine VARCHAR(100) DEFAULT NULL,
-        date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (eleve_id) REFERENCES eleves(id_eleve) ON DELETE CASCADE,
-        FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE CASCADE,
-        FOREIGN KEY (annee_academique_id) REFERENCES annees_academiques(id) ON DELETE CASCADE,
-        FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    $createTable($db, 'journal_comptable', "
+        CREATE TABLE IF NOT EXISTS journal_comptable (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NOT NULL,
+            eleve_id INT DEFAULT NULL,
+            user_id INT NOT NULL,
+            annee_academique_id INT NOT NULL,
+            operation VARCHAR(100) NOT NULL,
+            montant DECIMAL(10, 2) NOT NULL,
+            mode_paiement VARCHAR(50) DEFAULT NULL,
+            recu_numero VARCHAR(50) DEFAULT NULL,
+            reference_origine VARCHAR(100) DEFAULT NULL,
+            date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (eleve_id) REFERENCES eleves(id_eleve) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE CASCADE,
+            FOREIGN KEY (annee_academique_id) REFERENCES annees_academiques(id) ON DELETE CASCADE,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ", "
+        CREATE TABLE journal_comptable (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            lycee_id INTEGER NOT NULL,
+            eleve_id INTEGER DEFAULT NULL,
+            user_id INTEGER NOT NULL,
+            annee_academique_id INTEGER NOT NULL,
+            operation VARCHAR(100) NOT NULL,
+            montant DECIMAL(10, 2) NOT NULL,
+            mode_paiement VARCHAR(50) DEFAULT NULL,
+            recu_numero VARCHAR(50) DEFAULT NULL,
+            reference_origine VARCHAR(100) DEFAULT NULL,
+            date_creation DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (eleve_id) REFERENCES eleves(id_eleve) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE CASCADE,
+            FOREIGN KEY (annee_academique_id) REFERENCES annees_academiques(id) ON DELETE CASCADE,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE
+        );
+    ");
 
     // Create deblocages_notes table
-    $db->exec("CREATE TABLE IF NOT EXISTS `deblocages_notes` (
-        `id` INT AUTO_INCREMENT PRIMARY KEY,
-        `lycee_id` INT NOT NULL,
-        `annee_academique_id` INT NOT NULL,
-        `type` ENUM('global', 'classe', 'matiere', 'classe_matiere', 'enseignant') NOT NULL,
-        `classe_id` INT DEFAULT NULL,
-        `matiere_id` INT DEFAULT NULL,
-        `enseignant_id` INT DEFAULT NULL,
-        `sequence_id` INT DEFAULT NULL,
-        `date_debut` DATETIME NOT NULL,
-        `date_fin` DATETIME NOT NULL,
-        `motif` TEXT,
-        `cree_par` INT,
-        `cree_le` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
-        FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
-        FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
-        FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
-        FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
-        FOREIGN KEY (`sequence_id`) REFERENCES `sequences`(`id`) ON DELETE CASCADE,
-        FOREIGN KEY (`cree_par`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    $createTable($db, 'deblocages_notes', "
+        CREATE TABLE IF NOT EXISTS `deblocages_notes` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `lycee_id` INT NOT NULL,
+            `annee_academique_id` INT NOT NULL,
+            `type` ENUM('global', 'classe', 'matiere', 'classe_matiere', 'enseignant') NOT NULL,
+            `classe_id` INT DEFAULT NULL,
+            `matiere_id` INT DEFAULT NULL,
+            `enseignant_id` INT DEFAULT NULL,
+            `sequence_id` INT DEFAULT NULL,
+            `date_debut` DATETIME NOT NULL,
+            `date_fin` DATETIME NOT NULL,
+            `motif` TEXT,
+            `cree_par` INT,
+            `cree_le` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
+            FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
+            FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
+            FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
+            FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
+            FOREIGN KEY (`sequence_id`) REFERENCES `sequences`(`id`) ON DELETE CASCADE,
+            FOREIGN KEY (`cree_par`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ", "
+        CREATE TABLE deblocages_notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            lycee_id INTEGER NOT NULL,
+            annee_academique_id INTEGER NOT NULL,
+            type VARCHAR(50) NOT NULL,
+            classe_id INTEGER DEFAULT NULL,
+            matiere_id INTEGER DEFAULT NULL,
+            enseignant_id INTEGER DEFAULT NULL,
+            sequence_id INTEGER DEFAULT NULL,
+            date_debut DATETIME NOT NULL,
+            date_fin DATETIME NOT NULL,
+            motif TEXT,
+            cree_par INTEGER,
+            cree_le TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (annee_academique_id) REFERENCES annees_academiques(id) ON DELETE CASCADE,
+            FOREIGN KEY (classe_id) REFERENCES classes(id_classe) ON DELETE CASCADE,
+            FOREIGN KEY (matiere_id) REFERENCES matieres(id_matiere) ON DELETE CASCADE,
+            FOREIGN KEY (enseignant_id) REFERENCES utilisateurs(id_user) ON DELETE CASCADE,
+            FOREIGN KEY (sequence_id) REFERENCES sequences(id) ON DELETE CASCADE,
+            FOREIGN KEY (cree_par) REFERENCES utilisateurs(id_user) ON DELETE SET NULL
+        );
+    ");
 
     // Add identifiant_public columns
     addColumnIfNeeded($db, 'eleves', 'identifiant_public', 'VARCHAR(50) DEFAULT NULL');
@@ -206,150 +333,282 @@ try {
     }
 
     // Create parametres_utilisateurs table
-    $db->exec("CREATE TABLE IF NOT EXISTS parametres_utilisateurs (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL UNIQUE,
-        lycee_id INT DEFAULT NULL,
-        signature TEXT DEFAULT NULL,
-        cachet TEXT DEFAULT NULL,
-        langue_preferee VARCHAR(10) DEFAULT 'fr_FR',
-        theme_prefere VARCHAR(50) DEFAULT 'light',
-        notifications_actives TINYINT(1) DEFAULT 1,
-        date_modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE CASCADE,
-        FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE SET NULL
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    $createTable($db, 'parametres_utilisateurs', "
+        CREATE TABLE IF NOT EXISTS parametres_utilisateurs (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL UNIQUE,
+            lycee_id INT DEFAULT NULL,
+            signature TEXT DEFAULT NULL,
+            cachet TEXT DEFAULT NULL,
+            langue_preferee VARCHAR(10) DEFAULT 'fr_FR',
+            theme_prefere VARCHAR(50) DEFAULT 'light',
+            notifications_actives TINYINT(1) DEFAULT 1,
+            date_modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE CASCADE,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ", "
+        CREATE TABLE parametres_utilisateurs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL UNIQUE,
+            lycee_id INTEGER,
+            signature TEXT,
+            cachet TEXT,
+            langue_preferee VARCHAR(10) DEFAULT 'fr_FR',
+            theme_prefere VARCHAR(50) DEFAULT 'light',
+            notifications_actives BOOLEAN DEFAULT 1,
+            date_modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE CASCADE,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE SET NULL
+        );
+    ");
 
     // --- PHASE 1 FINANCIAL TABLES ---
 
     // Create exercices_financiers table
-    $db->exec("CREATE TABLE IF NOT EXISTS exercices_financiers (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        lycee_id INT NOT NULL,
-        libelle VARCHAR(100) NOT NULL,
-        date_debut DATE NOT NULL,
-        date_fin DATE NOT NULL,
-        est_actif BOOLEAN NOT NULL DEFAULT FALSE,
-        cloture BOOLEAN NOT NULL DEFAULT FALSE,
-        type_exercice ENUM('normal', 'historique_transition') NOT NULL DEFAULT 'normal',
-        FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
-        CONSTRAINT chk_dates_exercice CHECK (date_fin >= date_debut)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    $createTable($db, 'exercices_financiers', "
+        CREATE TABLE IF NOT EXISTS exercices_financiers (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NOT NULL,
+            libelle VARCHAR(100) NOT NULL,
+            date_debut DATE NOT NULL,
+            date_fin DATE NOT NULL,
+            est_actif BOOLEAN NOT NULL DEFAULT FALSE,
+            cloture BOOLEAN NOT NULL DEFAULT FALSE,
+            type_exercice ENUM('normal', 'historique_transition') NOT NULL DEFAULT 'normal',
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            CONSTRAINT chk_dates_exercice CHECK (date_fin >= date_debut)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ", "
+        CREATE TABLE exercices_financiers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            lycee_id INTEGER NOT NULL,
+            libelle VARCHAR(100) NOT NULL,
+            date_debut DATE NOT NULL,
+            date_fin DATE NOT NULL,
+            est_actif BOOLEAN NOT NULL DEFAULT FALSE,
+            cloture BOOLEAN NOT NULL DEFAULT FALSE,
+            type_exercice VARCHAR(50) NOT NULL DEFAULT 'normal',
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            CONSTRAINT chk_dates_exercice CHECK (date_fin >= date_debut)
+        );
+    ");
 
     // Create comptes_financiers table
-    $db->exec("CREATE TABLE IF NOT EXISTS comptes_financiers (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        lycee_id INT NOT NULL,
-        nom_compte VARCHAR(150) NOT NULL,
-        type_compte ENUM('caisse', 'banque', 'mobile_money', 'autre') NOT NULL,
-        solde_courant DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
-        devise VARCHAR(10) NOT NULL DEFAULT 'FCFA',
-        responsable_id INT DEFAULT NULL,
-        statut ENUM('actif', 'suspendu') NOT NULL DEFAULT 'actif',
-        cree_le TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
-        FOREIGN KEY (responsable_id) REFERENCES utilisateurs(id_user) ON DELETE SET NULL
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    $createTable($db, 'comptes_financiers', "
+        CREATE TABLE IF NOT EXISTS comptes_financiers (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NOT NULL,
+            nom_compte VARCHAR(150) NOT NULL,
+            type_compte ENUM('caisse', 'banque', 'mobile_money', 'autre') NOT NULL,
+            solde_courant DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+            devise VARCHAR(10) NOT NULL DEFAULT 'FCFA',
+            responsable_id INT DEFAULT NULL,
+            statut ENUM('actif', 'suspendu') NOT NULL DEFAULT 'actif',
+            cree_le TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (responsable_id) REFERENCES utilisateurs(id_user) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ", "
+        CREATE TABLE comptes_financiers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            lycee_id INTEGER NOT NULL,
+            nom_compte VARCHAR(150) NOT NULL,
+            type_compte VARCHAR(50) NOT NULL,
+            solde_courant DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+            devise VARCHAR(10) NOT NULL DEFAULT 'FCFA',
+            responsable_id INTEGER,
+            statut VARCHAR(50) NOT NULL DEFAULT 'actif',
+            cree_le TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (responsable_id) REFERENCES utilisateurs(id_user) ON DELETE SET NULL
+        );
+    ");
 
     // Create sessions_caisse table with the stored generated column for active session uniqueness
-    $db->exec("CREATE TABLE IF NOT EXISTS sessions_caisse (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        lycee_id INT NOT NULL,
-        user_id INT NOT NULL,
-        compte_id INT NOT NULL,
-        date_ouverture DATETIME NOT NULL,
-        date_fermeture DATETIME DEFAULT NULL,
-        solde_ouverture DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
-        solde_theorique DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
-        solde_reel DECIMAL(15, 2) DEFAULT NULL,
-        ecart DECIMAL(15, 2) DEFAULT 0.00,
-        justificatif_ecart TEXT DEFAULT NULL,
-        statut ENUM('ouverte', 'fermee_a_valider', 'fermee_validee') NOT NULL DEFAULT 'ouverte',
-        valide_par INT DEFAULT NULL,
-        valide_le DATETIME DEFAULT NULL,
-        is_active TINYINT GENERATED ALWAYS AS (
-            CASE WHEN statut IN ('ouverte', 'fermee_a_valider') THEN 1 ELSE NULL END
-        ) STORED,
-        FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
-        FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
-        FOREIGN KEY (compte_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
-        FOREIGN KEY (valide_par) REFERENCES utilisateurs(id_user) ON DELETE SET NULL,
-        UNIQUE KEY unique_active_session_per_account (compte_id, is_active)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    $createTable($db, 'sessions_caisse', "
+        CREATE TABLE IF NOT EXISTS sessions_caisse (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NOT NULL,
+            user_id INT NOT NULL,
+            compte_id INT NOT NULL,
+            date_ouverture DATETIME NOT NULL,
+            date_fermeture DATETIME DEFAULT NULL,
+            solde_ouverture DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+            solde_theorique DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+            solde_reel DECIMAL(15, 2) DEFAULT NULL,
+            ecart DECIMAL(15, 2) DEFAULT 0.00,
+            justificatif_ecart TEXT DEFAULT NULL,
+            statut ENUM('ouverte', 'fermee_a_valider', 'fermee_validee') NOT NULL DEFAULT 'ouverte',
+            valide_par INT DEFAULT NULL,
+            valide_le DATETIME DEFAULT NULL,
+            is_active TINYINT GENERATED ALWAYS AS (
+                CASE WHEN statut IN ('ouverte', 'fermee_a_valider') THEN 1 ELSE NULL END
+            ) STORED,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+            FOREIGN KEY (compte_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
+            FOREIGN KEY (valide_par) REFERENCES utilisateurs(id_user) ON DELETE SET NULL,
+            UNIQUE KEY unique_active_session_per_account (compte_id, is_active)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ", "
+        CREATE TABLE sessions_caisse (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            lycee_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            compte_id INTEGER NOT NULL,
+            date_ouverture DATETIME NOT NULL,
+            date_fermeture DATETIME,
+            solde_ouverture DECIMAL(15,2) DEFAULT 0.00,
+            solde_theorique DECIMAL(15,2) DEFAULT 0.00,
+            solde_reel DECIMAL(15,2),
+            ecart DECIMAL(15,2) DEFAULT 0.00,
+            justificatif_ecart TEXT,
+            statut VARCHAR(50) DEFAULT 'ouverte',
+            valide_par INTEGER,
+            valide_le DATETIME,
+            is_active TINYINT GENERATED ALWAYS AS (
+                CASE WHEN statut IN ('ouverte', 'fermee_a_valider') THEN 1 ELSE NULL END
+            ) STORED,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+            FOREIGN KEY (compte_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
+            FOREIGN KEY (valide_par) REFERENCES utilisateurs(id_user) ON DELETE SET NULL,
+            UNIQUE (compte_id, is_active)
+        );
+    ");
 
     // Create transferts_financiers table
-    $db->exec("CREATE TABLE IF NOT EXISTS transferts_financiers (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        lycee_id INT NOT NULL,
-        compte_source_id INT NOT NULL,
-        compte_destination_id INT NOT NULL,
-        montant DECIMAL(15, 2) NOT NULL,
-        motif VARCHAR(255) NOT NULL,
-        statut ENUM('demande', 'autorise', 'complete', 'rejete') NOT NULL DEFAULT 'demande',
-        demande_par INT NOT NULL,
-        autorise_par INT DEFAULT NULL,
-        date_demande TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        date_execution DATETIME DEFAULT NULL,
-        FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
-        FOREIGN KEY (compte_source_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
-        FOREIGN KEY (compte_destination_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
-        FOREIGN KEY (demande_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
-        FOREIGN KEY (autorise_par) REFERENCES utilisateurs(id_user) ON DELETE SET NULL,
-        CONSTRAINT chk_montant_transfert CHECK (montant > 0.00),
-        CONSTRAINT chk_different_accounts CHECK (compte_source_id <> compte_destination_id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    $createTable($db, 'transferts_financiers', "
+        CREATE TABLE IF NOT EXISTS transferts_financiers (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NOT NULL,
+            compte_source_id INT NOT NULL,
+            compte_destination_id INT NOT NULL,
+            montant DECIMAL(15, 2) NOT NULL,
+            motif VARCHAR(255) NOT NULL,
+            statut ENUM('demande', 'autorise', 'complete', 'rejete') NOT NULL DEFAULT 'demande',
+            demande_par INT NOT NULL,
+            autorise_par INT DEFAULT NULL,
+            date_demande TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            date_execution DATETIME DEFAULT NULL,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (compte_source_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
+            FOREIGN KEY (compte_destination_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
+            FOREIGN KEY (demande_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+            FOREIGN KEY (autorise_par) REFERENCES utilisateurs(id_user) ON DELETE SET NULL,
+            CONSTRAINT chk_montant_transfert CHECK (montant > 0.00),
+            CONSTRAINT chk_different_accounts CHECK (compte_source_id <> compte_destination_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ", "
+        CREATE TABLE transferts_financiers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            lycee_id INTEGER NOT NULL,
+            compte_source_id INTEGER NOT NULL,
+            compte_destination_id INTEGER NOT NULL,
+            montant DECIMAL(15,2),
+            motif VARCHAR(255),
+            statut VARCHAR(50) DEFAULT 'demande',
+            demande_par INTEGER,
+            autorise_par INTEGER,
+            date_demande TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            date_execution DATETIME
+        );
+    ");
 
     // Create mouvements_tresorerie table with the composite unique index
-    $db->exec("CREATE TABLE IF NOT EXISTS mouvements_tresorerie (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        lycee_id INT NOT NULL,
-        compte_id INT NOT NULL,
-        session_caisse_id INT DEFAULT NULL,
-        exercice_financier_id INT NOT NULL,
-        transfert_id INT DEFAULT NULL,
-        type_mouvement ENUM('entree', 'sortie') NOT NULL,
-        montant DECIMAL(15, 2) NOT NULL,
-        mode_paiement VARCHAR(50) NOT NULL,
-        reference_transaction VARCHAR(150) DEFAULT NULL,
-        source_type VARCHAR(100) NOT NULL,
-        source_id INT NOT NULL,
-        evenement_type ENUM('encaissement', 'annulation', 'remboursement', 'correction') NOT NULL,
-        motif VARCHAR(255) NOT NULL,
-        date_mouvement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        user_id INT NOT NULL,
-        is_aggregate_data BOOLEAN NOT NULL DEFAULT FALSE,
-        date_reconstruite BOOLEAN NOT NULL DEFAULT FALSE,
-        is_historical_migration BOOLEAN NOT NULL DEFAULT FALSE,
-        mode_paiement_reconstruit BOOLEAN NOT NULL DEFAULT FALSE,
-        FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
-        FOREIGN KEY (compte_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
-        FOREIGN KEY (session_caisse_id) REFERENCES sessions_caisse(id) ON DELETE SET NULL,
-        FOREIGN KEY (exercice_financier_id) REFERENCES exercices_financiers(id) ON DELETE RESTRICT,
-        FOREIGN KEY (transfert_id) REFERENCES transferts_financiers(id) ON DELETE SET NULL,
-        FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
-        UNIQUE KEY unique_idempotence_flux (compte_id, source_type, source_id, evenement_type),
-        CONSTRAINT chk_montant_positif CHECK (montant > 0.00)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    $createTable($db, 'mouvements_tresorerie', "
+        CREATE TABLE IF NOT EXISTS mouvements_tresorerie (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NOT NULL,
+            compte_id INT NOT NULL,
+            session_caisse_id INT DEFAULT NULL,
+            exercice_financier_id INT NOT NULL,
+            transfert_id INT DEFAULT NULL,
+            type_mouvement ENUM('entree', 'sortie') NOT NULL,
+            montant DECIMAL(15, 2) NOT NULL,
+            mode_paiement VARCHAR(50) NOT NULL,
+            reference_transaction VARCHAR(150) DEFAULT NULL,
+            source_type VARCHAR(100) NOT NULL,
+            source_id INT NOT NULL,
+            evenement_type ENUM('encaissement', 'annulation', 'remboursement', 'correction') NOT NULL,
+            motif VARCHAR(255) NOT NULL,
+            date_mouvement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            user_id INT NOT NULL,
+            is_aggregate_data BOOLEAN NOT NULL DEFAULT FALSE,
+            date_reconstruite BOOLEAN NOT NULL DEFAULT FALSE,
+            is_historical_migration BOOLEAN NOT NULL DEFAULT FALSE,
+            mode_paiement_reconstruit BOOLEAN NOT NULL DEFAULT FALSE,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (compte_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
+            FOREIGN KEY (session_caisse_id) REFERENCES sessions_caisse(id) ON DELETE SET NULL,
+            FOREIGN KEY (exercice_financier_id) REFERENCES exercices_financiers(id) ON DELETE RESTRICT,
+            FOREIGN KEY (transfert_id) REFERENCES transferts_financiers(id) ON DELETE SET NULL,
+            FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+            UNIQUE KEY unique_idempotence_flux (compte_id, source_type, source_id, evenement_type),
+            CONSTRAINT chk_montant_positif CHECK (montant > 0.00)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ", "
+        CREATE TABLE mouvements_tresorerie (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            lycee_id INTEGER NOT NULL,
+            compte_id INTEGER NOT NULL,
+            session_caisse_id INTEGER,
+            exercice_financier_id INTEGER,
+            transfert_id INTEGER,
+            type_mouvement VARCHAR(50),
+            montant DECIMAL(15,2),
+            mode_paiement VARCHAR(50),
+            reference_transaction VARCHAR(150),
+            source_type VARCHAR(100),
+            source_id INTEGER,
+            evenement_type VARCHAR(50),
+            motif VARCHAR(255),
+            date_mouvement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            user_id INTEGER,
+            is_aggregate_data BOOLEAN DEFAULT 0,
+            date_reconstruite BOOLEAN DEFAULT 0,
+            is_historical_migration BOOLEAN DEFAULT 0,
+            mode_paiement_reconstruit BOOLEAN DEFAULT 0,
+            UNIQUE (compte_id, source_type, source_id, evenement_type)
+        );
+    ");
 
     // Create regularisations_ecarts table
-    $db->exec("CREATE TABLE IF NOT EXISTS regularisations_ecarts (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        lycee_id INT NOT NULL,
-        session_caisse_id INT NOT NULL,
-        montant DECIMAL(15, 2) NOT NULL,
-        type_ecart ENUM('negatif', 'positif') NOT NULL,
-        motif TEXT NOT NULL,
-        constate_par INT NOT NULL,
-        approuve_par INT NOT NULL,
-        date_constat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        reference_audit VARCHAR(100) NOT NULL,
-        FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
-        FOREIGN KEY (session_caisse_id) REFERENCES sessions_caisse(id) ON DELETE RESTRICT,
-        FOREIGN KEY (constate_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
-        FOREIGN KEY (approuve_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
-        UNIQUE KEY unique_audit_ref (reference_audit),
-        CONSTRAINT chk_montant_ecart CHECK (montant > 0.00)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    $createTable($db, 'regularisations_ecarts', "
+        CREATE TABLE IF NOT EXISTS regularisations_ecarts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NOT NULL,
+            session_caisse_id INT NOT NULL,
+            montant DECIMAL(15, 2) NOT NULL,
+            type_ecart ENUM('negatif', 'positif') NOT NULL,
+            motif TEXT NOT NULL,
+            constate_par INT NOT NULL,
+            approuve_par INT NOT NULL,
+            date_constat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            reference_audit VARCHAR(100) NOT NULL,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (session_caisse_id) REFERENCES sessions_caisse(id) ON DELETE RESTRICT,
+            FOREIGN KEY (constate_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+            FOREIGN KEY (approuve_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+            UNIQUE KEY unique_audit_ref (reference_audit),
+            CONSTRAINT chk_montant_ecart CHECK (montant > 0.00)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ", "
+        CREATE TABLE regularisations_ecarts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            lycee_id INTEGER NOT NULL,
+            session_caisse_id INTEGER NOT NULL,
+            montant DECIMAL(15,2),
+            type_ecart VARCHAR(50),
+            motif TEXT,
+            constate_par INTEGER,
+            approuve_par INTEGER,
+            date_constat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            reference_audit VARCHAR(100),
+            UNIQUE (reference_audit)
+        );
+    ");
 
     // Seed permissions into the database dynamically
     $new_perms = [
@@ -374,7 +633,12 @@ try {
         ['journal', 'view', 'Consulter le journal comptable unique']
     ];
 
-    $stmt_ins_perm = $db->prepare("INSERT INTO permissions (resource, action, description) VALUES (:resource, :action, :description) ON DUPLICATE KEY UPDATE description=VALUES(description)");
+    if ($isSqlite) {
+        $stmt_ins_perm = $db->prepare("INSERT INTO permissions (resource, action, description) VALUES (:resource, :action, :description) ON CONFLICT(resource, action) DO UPDATE SET description=excluded.description");
+    } else {
+        $stmt_ins_perm = $db->prepare("INSERT INTO permissions (resource, action, description) VALUES (:resource, :action, :description) ON DUPLICATE KEY UPDATE description=VALUES(description)");
+    }
+
     foreach ($new_perms as $perm) {
         $stmt_ins_perm->execute([
             'resource' => $perm[0],
@@ -439,10 +703,12 @@ try {
         ]);
     }
 
+    $insert_ignore_keyword = $isSqlite ? 'INSERT OR IGNORE' : 'INSERT IGNORE';
+
     // --- MAP PHASE 3 & 4 PERMISSIONS TO ROLES ---
     // Assign Phase 3 permissions to Super Admins (1, 2), Admin Local (3), Chef Comptable (9)
     $db->exec("
-        INSERT IGNORE INTO role_permissions (role_id, permission_id)
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
         SELECT r.id_role, p.id_permission
         FROM roles r, permissions p
         WHERE r.id_role IN (1, 2, 3, 9)
@@ -451,7 +717,7 @@ try {
 
     // Assign view, export, and pay of depenses to Comptable (7)
     $db->exec("
-        INSERT IGNORE INTO role_permissions (role_id, permission_id)
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
         SELECT 7, p.id_permission
         FROM permissions p
         WHERE p.resource = 'depense' AND p.action IN ('view', 'export', 'pay')
@@ -459,7 +725,7 @@ try {
 
     // Assign Phase 4 permissions to Super Admins (1, 2), Admin Local (3), Chef Comptable (9)
     $db->exec("
-        INSERT IGNORE INTO role_permissions (role_id, permission_id)
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
         SELECT r.id_role, p.id_permission
         FROM roles r, permissions p
         WHERE r.id_role IN (1, 2, 3, 9)
@@ -468,7 +734,7 @@ try {
 
     // Assign view and report of budgets to Comptable (7)
     $db->exec("
-        INSERT IGNORE INTO role_permissions (role_id, permission_id)
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
         SELECT 7, p.id_permission
         FROM permissions p
         WHERE p.resource = 'budget' AND p.action IN ('view', 'report')
@@ -477,7 +743,7 @@ try {
     // Map Phase 1 & 2 (comptes_financiers, sessions_caisse, finance, journal) permissions
     // 1. All permissions to Super Admins (1, 2), Local Admin (3), Chef Comptable (9)
     $db->exec("
-        INSERT IGNORE INTO role_permissions (role_id, permission_id)
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
         SELECT r.id_role, p.id_permission
         FROM roles r, permissions p
         WHERE r.id_role IN (1, 2, 3, 9)
@@ -486,7 +752,7 @@ try {
 
     // 2. Specific permissions to Comptable (7) and Caissier (10)
     $db->exec("
-        INSERT IGNORE INTO role_permissions (role_id, permission_id)
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
         SELECT r.id_role, p.id_permission
         FROM roles r, permissions p
         WHERE r.id_role IN (7, 10)
