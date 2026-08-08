@@ -94,7 +94,7 @@
                                 <div class="mb-3">
                                     <label class="form-label fw-bold"><?= _('Montant à verser pour l\'inscription') ?></label>
                                     <div class="input-group">
-                                        <input type="number" id="montant_inscription" name="montant_inscription" class="form-control form-control-lg fw-bold text-primary" placeholder="0" max="<?= $financialStatus['reste_inscription'] ?>" value="<?= $financialStatus['reste_inscription'] ?>">
+                                        <input type="number" id="montant_inscription" name="montant_inscription" class="form-control form-control-lg fw-bold text-primary" placeholder="0" max="<?= $financialStatus['reste_inscription'] ?>" value="">
                                         <span class="input-group-text bg-white">FCFA</span>
                                     </div>
                                     <div class="form-text text-muted"><?= _('Le montant maximum autorisé est de ') ?><?= number_format($financialStatus['reste_inscription'], 0, ',', ' ') ?> FCFA</div>
@@ -161,7 +161,7 @@
                                 <div class="mb-3">
                                     <label class="form-label fw-bold"><?= _('Montant à verser pour les mensualités') ?></label>
                                     <div class="input-group mb-2">
-                                        <input type="number" id="montant_mensualites" name="montant_mensualites" class="form-control form-control-lg fw-bold text-primary" placeholder="0" max="<?= $financialStatus['reste_mensualite'] ?>" value="<?= $financialStatus['reste_mensualite'] ?>">
+                                        <input type="number" id="montant_mensualites" name="montant_mensualites" class="form-control form-control-lg fw-bold text-primary" placeholder="0" max="<?= $financialStatus['reste_mensualite'] ?>" value="">
                                         <span class="input-group-text bg-white">FCFA</span>
                                     </div>
                                     <div class="form-text text-muted">
@@ -242,6 +242,22 @@ document.addEventListener('DOMContentLoaded', function() {
     if (inputMensualites) inputMensualites.addEventListener('input', calculateTotal);
 
     calculateTotal();
+
+    // Double click / Double submission prevention
+    const paymentForm = document.querySelector('form[action^="/paiements/process-payment/"]');
+    if (paymentForm) {
+        paymentForm.addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                if (submitBtn.disabled) {
+                    e.preventDefault();
+                    return false;
+                }
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span><?= _("Validation en cours...") ?>';
+            }
+        });
+    }
 });
 </script>
 

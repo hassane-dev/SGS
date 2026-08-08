@@ -23,6 +23,7 @@ require_once __DIR__ . '/../src/models/EtatFinancierEleve.php';
 require_once __DIR__ . '/../src/models/PolitiqueFinanciere.php';
 require_once __DIR__ . '/../src/controllers/SessionCaisseController.php';
 require_once __DIR__ . '/../src/controllers/PaiementController.php';
+require_once __DIR__ . '/../src/services/ComptabiliteService.php';
 
 @session_start();
 
@@ -313,6 +314,10 @@ function setup_db() {
         statut VARCHAR(50) DEFAULT 'ouverte'
     )");
 
+    // Load Phase 5 Accounting tables
+    require_once __DIR__ . '/../db/migrations/20240115_05_create_comptabilite_generale.php';
+    migrate_05($pdo);
+
     Database::setInstance($pdo);
     return $pdo;
 }
@@ -330,6 +335,11 @@ function mock_auth_can($action, $resource) {
 
 // Setup
 $pdo = setup_db();
+
+// Seed Phase 5 default records
+ComptabiliteService::seedDefaultChartOfAccounts();
+ComptabiliteService::seedDefaultJournalsForLycee(1);
+ComptabiliteService::seedDefaultSchemas();
 
 // Seed baseline
 $pdo->exec("INSERT INTO param_lycee (id, nom_lycee, type_lycee) VALUES (1, 'Lycée de Test', 'prive')");
