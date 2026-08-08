@@ -630,7 +630,11 @@ try {
         ['finance', 'edit_policy', 'Modifier la politique financière du lycée'],
         ['finance', 'view_control', 'Consulter le panneau de contrôle financier'],
         ['finance', 'view_reports', 'Consulter les rapports financiers'],
-        ['journal', 'view', 'Consulter le journal comptable unique']
+        ['journal', 'view', 'Consulter le journal comptable unique'],
+        ['grand_livre', 'view', 'Consulter le grand livre comptable'],
+        ['grand_livre', 'export', 'Exporter le grand livre comptable'],
+        ['balance', 'view', 'Consulter la balance générale des comptes'],
+        ['balance', 'export', 'Exporter la balance générale des comptes']
     ];
 
     if ($isSqlite) {
@@ -703,6 +707,18 @@ try {
         ]);
     }
 
+    // --- PHASE 5 COMPTABILITE GENERALE ---
+    require_once __DIR__ . '/db/migrations/20240115_05_create_comptabilite_generale.php';
+    migrate_05($db);
+
+    require_once __DIR__ . '/src/services/ComptabiliteService.php';
+    ComptabiliteService::seedDefaultChartOfAccounts();
+    ComptabiliteService::seedDefaultSchemas();
+    $stmt_lycees = $db->query("SELECT id FROM param_lycee");
+    while ($row_lycee = $stmt_lycees->fetch(PDO::FETCH_ASSOC)) {
+        ComptabiliteService::seedDefaultJournalsForLycee($row_lycee['id']);
+    }
+
     $insert_ignore_keyword = $isSqlite ? 'INSERT OR IGNORE' : 'INSERT IGNORE';
 
     // --- MAP PHASE 3 & 4 PERMISSIONS TO ROLES ---
@@ -747,7 +763,7 @@ try {
         SELECT r.id_role, p.id_permission
         FROM roles r, permissions p
         WHERE r.id_role IN (1, 2, 3, 9)
-        AND p.resource IN ('comptes_financiers', 'sessions_caisse', 'finance', 'journal')
+        AND p.resource IN ('comptes_financiers', 'sessions_caisse', 'finance', 'journal', 'grand_livre', 'balance')
     ");
 
     // 2. Specific permissions to Comptable (7) and Caissier (10)
@@ -760,7 +776,8 @@ try {
             (p.resource = 'comptes_financiers' AND p.action = 'view') OR
             (p.resource = 'sessions_caisse' AND p.action IN ('view', 'create', 'edit')) OR
             (p.resource = 'finance' AND p.action IN ('view_policy', 'view_control', 'view_reports')) OR
-            (p.resource = 'journal' AND p.action = 'view')
+            (p.resource = 'journal' AND p.action = 'view') OR
+            (p.resource IN ('grand_livre', 'balance') AND p.action = 'view')
         )
     ");
 
