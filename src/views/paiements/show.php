@@ -559,6 +559,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialisation
     updateAll();
 
+    // Double click / Double submission prevention
+    const paymentForm = document.querySelector('form[action^="/paiements/process-payment/"]');
+    if (paymentForm) {
+        paymentForm.addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                if (submitBtn.disabled) {
+                    e.preventDefault();
+                    return false;
+                }
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span><?= _("Validation en cours...") ?>';
+            }
+        });
+    }
+
     // Trigger Remboursement Modal
     const btnRefund = document.getElementById('btn-trigger-rembourser');
     if (btnRefund) {
