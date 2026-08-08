@@ -873,6 +873,15 @@ class PaiementController {
         $db->beginTransaction();
 
         try {
+            // [Concurrency Control: Dynamic write lock on the student row to serialize concurrent requests]
+            $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
+            $lockSql = "SELECT id_eleve FROM eleves WHERE id_eleve = :eleve_id";
+            if ($driver !== 'sqlite') {
+                $lockSql .= " FOR UPDATE";
+            }
+            $stmtLock = $db->prepare($lockSql);
+            $stmtLock->execute(['eleve_id' => $eleveId]);
+
             $anneeActive = AnneeAcademique::findActive();
             if (!$anneeActive) throw new Exception("Aucune année académique active.");
 

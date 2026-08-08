@@ -23,6 +23,7 @@ require_once __DIR__ . '/../src/models/EtatFinancierEleve.php';
 require_once __DIR__ . '/../src/models/PolitiqueFinanciere.php';
 require_once __DIR__ . '/../src/controllers/SessionCaisseController.php';
 require_once __DIR__ . '/../src/controllers/PaiementController.php';
+require_once __DIR__ . '/../src/services/ComptabiliteService.php';
 
 @session_start();
 
@@ -313,6 +314,9 @@ function setup_db() {
         statut VARCHAR(50) DEFAULT 'ouverte'
     )");
 
+    require_once __DIR__ . '/../db/migrations/20240115_05_create_comptabilite_generale.php';
+    migrate_05($pdo);
+
     Database::setInstance($pdo);
     return $pdo;
 }
@@ -331,6 +335,11 @@ function mock_auth_can($action, $resource) {
 // Setup
 $pdo = setup_db();
 
+// Seed Phase 5
+ComptabiliteService::seedDefaultChartOfAccounts();
+ComptabiliteService::seedDefaultJournalsForLycee(1);
+ComptabiliteService::seedDefaultSchemas();
+
 // Seed baseline
 $pdo->exec("INSERT INTO param_lycee (id, nom_lycee, type_lycee) VALUES (1, 'Lycée de Test', 'prive')");
 $pdo->exec("INSERT INTO param_general (id, lycee_id, modalite_paiement) VALUES (1, 1, 'Espèces, Chèque')");
@@ -339,7 +348,7 @@ $pdo->exec("INSERT INTO cycles (id_cycle, nom_cycle) VALUES (1, 'CEG')");
 $pdo->exec("INSERT INTO classes (id_classe, niveau, serie, numero, cycle_id, lycee_id) VALUES (1, '6ème', '', 1, 1, 1)");
 $pdo->exec("INSERT INTO eleves (id_eleve, lycee_id, nom, prenom, statut, identifiant_public) VALUES (1, 1, 'Dupont', 'Jean', 'en_attente_paiement', '15072026-0001E')");
 $pdo->exec("INSERT INTO etudes (id_etude, eleve_id, classe_id, lycee_id, annee_academique_id, status, is_active) VALUES (1, 1, 1, 1, 1, 'en_attente_paiement', 0)");
-$pdo->exec("INSERT INTO exercices_financiers (id, lycee_id, libelle, date_debut, date_fin, est_actif) VALUES (1, 1, 'Exercice 2026', '2026-01-01', '2026-12-31', 1)");
+$pdo->exec("INSERT INTO exercices_financiers (id, lycee_id, libelle, date_debut, date_fin, est_actif, cloture) VALUES (1, 1, 'Exercice 2026', '2026-01-01', '2026-12-31', 1, 0)");
 
 // Add pupil 4 for Test 12
 $pdo->exec("INSERT INTO eleves (id_eleve, lycee_id, nom, prenom, statut, identifiant_public) VALUES (4, 1, 'Koffi', 'Awa', 'en_attente_paiement', '15072026-0004E')");
