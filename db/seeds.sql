@@ -144,9 +144,6 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (141, 'transferts', 'validate', 'Approuver et exécuter un transfert de fonds'),
 (142, 'sessions_caisse', 'view', 'Consulter la liste et le détail des sessions de caisse'),
 (143, 'sessions_caisse', 'modify', 'Modifier une session de caisse'),
-(144, 'finance', 'view_policy', 'Consulter la politique financière du lycée'),
-(145, 'finance', 'edit_policy', 'Modifier la politique financière du lycée'),
-(146, 'finance', 'view_control', 'Consulter le panneau de contrôle financier'),
 (147, 'finance', 'view_reports', 'Consulter les rapports financiers'),
 (148, 'journal', 'view', 'Consulter le journal comptable unique'),
 (150, 'depense', 'create', 'Créer une demande d''engagement de dépense (brouillon)'),
@@ -203,7 +200,7 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Test Entree
 (3, 96),
 -- Phase 1 & 2 integration
-(3, 142), (3, 143), (3, 144), (3, 145), (3, 146), (3, 147), (3, 148),
+(3, 110), (3, 111), (3, 115), (3, 142), (3, 143), (3, 147), (3, 148),
 -- Phase 3 (Dépenses)
 (3, 150), (3, 151), (3, 152), (3, 153), (3, 154), (3, 155), (3, 156), (3, 157), (3, 158),
 -- Phase 4 (Budgets)
@@ -227,7 +224,7 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Trésorerie
 (7, 130), (7, 134), (7, 135), (7, 138), (7, 140),
 -- Phase 1 & 2 integration
-(7, 142), (7, 143), (7, 144), (7, 146), (7, 147), (7, 148),
+(7, 142), (7, 143), (7, 147), (7, 148),
 -- Phase 3 (Dépenses)
 (7, 154), (7, 156), (7, 157),
 -- Phase 4 (Budgets)
@@ -239,7 +236,7 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Trésorerie
 (9, 130), (9, 131), (9, 132), (9, 133), (9, 134), (9, 135), (9, 136), (9, 137), (9, 138), (9, 139), (9, 140), (9, 141),
 -- Phase 1 & 2 integration
-(9, 142), (9, 143), (9, 144), (9, 145), (9, 146), (9, 147), (9, 148),
+(9, 142), (9, 143), (9, 147), (9, 148),
 -- Phase 3 (Dépenses)
 (9, 150), (9, 151), (9, 152), (9, 153), (9, 154), (9, 155), (9, 156), (9, 157), (9, 158),
 -- Phase 4 (Budgets)
@@ -251,7 +248,7 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Trésorerie
 (10, 130), (10, 134), (10, 135),
 -- Phase 1 & 2 integration
-(10, 142), (10, 143), (10, 144), (10, 146), (10, 147), (10, 148);
+(10, 110), (10, 115), (10, 142), (10, 143), (10, 147), (10, 148);
 
 -- Eleve (Student)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
