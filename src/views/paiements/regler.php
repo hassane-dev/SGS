@@ -71,7 +71,7 @@
             </div>
 
             <!-- Form -->
-            <form action="/paiements/process-payment/<?= $eleve['id_eleve'] ?>" method="POST" class="col-12 row">
+            <form id="reglerPaymentForm" action="/paiements/process-payment/<?= $eleve['id_eleve'] ?>" method="POST" class="col-12 row">
                 <!-- Section Dettes & Détails (Gauche) -->
                 <div class="col-lg-7">
                     <!-- Reste d'Inscription -->
@@ -208,7 +208,7 @@
                             </div>
 
                             <?php if ($isComptable): ?>
-                                <button type="submit" class="btn btn-light text-primary w-100 fw-bold py-3">
+                                <button type="submit" id="submitReglerBtn" class="btn btn-light text-primary w-100 fw-bold py-3">
                                     <i class="ph-duotone ph-check-circle me-2"></i><?= _('Valider l\'encaissement global') ?>
                                 </button>
                             <?php endif; ?>
@@ -242,6 +242,20 @@ document.addEventListener('DOMContentLoaded', function() {
     if (inputMensualites) inputMensualites.addEventListener('input', calculateTotal);
 
     calculateTotal();
+
+    // Double click prevention
+    const reglerPaymentForm = document.getElementById('reglerPaymentForm');
+    if (reglerPaymentForm) {
+        reglerPaymentForm.addEventListener('submit', function() {
+            const submitBtn = document.getElementById('submitReglerBtn');
+            if (submitBtn) {
+                setTimeout(function() {
+                    submitBtn.disabled = true;
+                }, 0);
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + "<?= htmlspecialchars(_('Traitement en cours...')) ?>";
+            }
+        });
+    }
 });
 </script>
 
