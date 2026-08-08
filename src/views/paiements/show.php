@@ -95,7 +95,7 @@
                 </div>
 
                 <!-- Section Paiement Unifié -->
-                <form action="/paiements/process-payment/<?= $eleve['id_eleve'] ?>" method="POST" class="row">
+                <form id="paymentForm" action="/paiements/process-payment/<?= $eleve['id_eleve'] ?>" method="POST" class="row">
                 <!-- Section Frais d'Inscription (Gauche) -->
                 <div class="col-lg-5 col-md-12">
                         <div class="card">
@@ -329,7 +329,7 @@
                                 <div class="col-lg-4 p-4 d-flex align-items-center justify-content-center">
                                     <?php if ($isComptable): ?>
                                     <div class="d-grid w-100">
-                                        <button type="submit" class="btn btn-light btn-lg fw-bold text-primary">
+                                        <button type="submit" id="submitPaymentBtn" class="btn btn-light btn-lg fw-bold text-primary">
                                             <i class="ph-duotone ph-check-circle me-2"></i>Valider l'encaissement global
                                         </button>
                                     </div>
@@ -577,6 +577,21 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 monthGroup.style.display = 'none';
                 document.getElementById('refund_mois_ou_sequence').required = false;
+            }
+        });
+    }
+
+    // Double click prevention for payment form
+    const paymentForm = document.getElementById('paymentForm');
+    if (paymentForm) {
+        paymentForm.addEventListener('submit', function() {
+            const submitBtn = document.getElementById('submitPaymentBtn');
+            if (submitBtn) {
+                // Use setTimeout to ensure the form submission is not blocked by some browser policies on disabled elements
+                setTimeout(function() {
+                    submitBtn.disabled = true;
+                }, 0);
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + "<?= htmlspecialchars(_('Traitement en cours...')) ?>";
             }
         });
     }

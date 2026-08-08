@@ -20,7 +20,7 @@
             </div>
         </div>
 
-        <form action="/paiements/process-payment/<?= $eleve['id_eleve'] ?>" method="POST">
+        <form id="payMensualiteForm" action="/paiements/process-payment/<?= $eleve['id_eleve'] ?>" method="POST">
             <div class="row">
                 <div class="col-lg-8">
                     <div class="card">
@@ -87,7 +87,7 @@
                                 <label class="form-label text-white">Référence</label>
                                 <input type="text" name="reference_transaction" class="form-control border-0 shadow-none" value="<?= $nextRecu ?>">
                             </div>
-                            <button type="submit" class="btn btn-light text-primary w-100 fw-bold py-3">
+                            <button type="submit" id="submitPayBtn" class="btn btn-light text-primary w-100 fw-bold py-3">
                                 <i class="ph-duotone ph-check-circle me-2"></i>Valider l'encaissement
                             </button>
                         </div>
@@ -97,5 +97,22 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const payForm = document.getElementById('payMensualiteForm');
+    if (payForm) {
+        payForm.addEventListener('submit', function() {
+            const submitBtn = document.getElementById('submitPayBtn');
+            if (submitBtn) {
+                setTimeout(function() {
+                    submitBtn.disabled = true;
+                }, 0);
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + "<?= htmlspecialchars(_('Traitement en cours...')) ?>";
+            }
+        });
+    }
+});
+</script>
 
 <?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>
