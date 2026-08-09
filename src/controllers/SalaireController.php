@@ -39,11 +39,88 @@ class SalaireController {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
-            $data['lycee_id'] = Auth::get('lycee_id'); // Assuming only local admins do this
-            Salaire::create($data);
+            $lyceeId = Auth::get('lycee_id') ?? Auth::getLyceeId();
+            $data['lycee_id'] = $lyceeId;
+
+            $data['periode_mois'] = (int)($data['mois'] ?? date('m'));
+            $data['periode_annee'] = (int)($data['annee'] ?? date('Y'));
+            $data['montant'] = (float)($data['montant_net'] ?? 0);
+            $data['mode_paiement'] = $data['mode_paiement'] ?? 'Espèces';
+            $data['etat_paiement'] = 'paye';
+
+            require_once __DIR__ . '/../models/AnneeAcademique.php';
+            $activeYear = AnneeAcademique::findActive();
+            $data['annee_id'] = $activeYear ? $activeYear['id'] : null;
+
+            $db = Database::getInstance();
+            $db->beginTransaction();
+
+            try {
+                // Save salary payment (fix undefined method create() crash)
+                Salaire::save($data);
+                $salaireId = $db->lastInsertId();
+
+                // Hook to TreasuryService (Phase 1)
+                require_once __DIR__ . '/../models/TreasuryService.php';
+
+                // Resolve payment account type
+                $typeCompte = 'caisse';
+                if (in_array(strtolower($data['mode_paiement']), ['chèque', 'cheque', 'virement', 'banque'])) {
+                    $typeCompte = 'banque';
+                } elseif (in_array(strtolower($data['mode_paiement']), ['mobile money', 'momo', 'paiement mobile', 'mobile'])) {
+                    $typeCompte = 'mobile_money';
+                }
+
+                // Check active cash session if paid in cash
+                $compteId = null;
+                if ($typeCompte === 'caisse') {
+                    require_once __DIR__ . '/../models/SessionCaisse.php';
+                    $activeSession = SessionCaisse::findActiveByUser(Auth::getUserId(), $lyceeId);
+                    if (!$activeSession) {
+                        throw new Exception(_("Veuillez ouvrir votre session de caisse journalière avant d'effectuer un paiement de salaire en espèces."));
+                    }
+                    $compteId = $activeSession['compte_id'];
+                }
+
+                // Register outflow movement
+                $mvtId = TreasuryService::registerMovement([
+                    'lycee_id' => $lyceeId,
+                    'compte_id' => $compteId,
+                    'type_mouvement' => 'sortie',
+                    'montant' => $data['montant'],
+                    'mode_paiement' => $data['mode_paiement'],
+                    'reference_transaction' => 'SAL-' . $data['periode_mois'] . '-' . $data['periode_annee'] . '-' . $salaireId,
+                    'source_type' => 'salaires',
+                    'source_id' => $salaireId,
+                    'evenement_type' => 'encaissement',
+                    'motif' => "Paiement de salaire - Mois " . $data['periode_mois'] . "/" . $data['periode_annee'],
+                    'user_id' => Auth::getUserId()
+                ]);
+
+                // Hook to ComptabiliteService (Phase 5)
+                require_once __DIR__ . '/../services/ComptabiliteService.php';
+                ComptabiliteService::genererEcritureAutomatique(
+                    'salaire',
+                    $data['montant'],
+                    $lyceeId,
+                    $data['periode_mois'] . '-' . $data['periode_annee'],
+                    Auth::getUserId(),
+                    'salaires',
+                    $salaireId,
+                    $data['date_paiement'] ?? date('Y-m-d')
+                );
+
+                $db->commit();
+                $_SESSION['success_message'] = _("Paiement de salaire enregistré et comptabilisé avec succès.");
+            } catch (Exception $e) {
+                if ($db->inTransaction()) {
+                    $db->rollBack();
+                }
+                $_SESSION['error_message'] = $e->getmessage();
+            }
         }
         header('Location: /salaires');
-        exit();
+        if (!defined('TEST_MODE')) exit(); return;
     }
 
     public function genererFiche() {
