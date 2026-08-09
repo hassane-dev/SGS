@@ -905,11 +905,26 @@ class PaiementController {
             $paiementEffectue = false;
 
             // [Validation Session de Caisse] Obligatoire uniquement pour les règlements en Espèces
-            if (trim(strtolower($modePaiement)) === 'espèces' || trim(strtolower($modePaiement)) === 'especes') {
+            $modeClean = str_replace(['é', 'è', 'ê', 'ë'], 'e', mb_strtolower(trim($modePaiement), 'UTF-8'));
+            if (in_array($modeClean, ['especes'])) {
                 require_once __DIR__ . '/../models/SessionCaisse.php';
                 $activeSession = SessionCaisse::findActiveByUser($userId, $lyceeId);
                 if (!$activeSession) {
                     throw new Exception(_("Veuillez ouvrir votre session de caisse journalière avant d'encaisser un paiement en espèces."));
+                }
+
+                // Symmetric row locking to prevent concurrent closures or payments
+                $driverName = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
+                $lockSql = "SELECT statut FROM sessions_caisse WHERE id = :id";
+                if ($driverName !== 'sqlite') {
+                    $lockSql .= " FOR UPDATE";
+                }
+                $lockStmt = $db->prepare($lockSql);
+                $lockStmt->execute(['id' => $activeSession['id']]);
+                $sessionStatut = $lockStmt->fetchColumn();
+
+                if ($sessionStatut !== 'ouverte') {
+                    throw new Exception(_("La session de caisse journalière n'est plus ouverte. Impossible d'enregistrer le paiement."));
                 }
             }
 
@@ -1291,9 +1306,15 @@ class PaiementController {
 
         } catch (Throwable $e) {
             if (isset($db) && $db->inTransaction()) $db->rollBack();
-            $_SESSION['error_message'] = "Erreur lors de l'encaissement : " . $e->getMessage() .
-                                         " | Fichier: " . $e->getFile() . " (Ligne " . $e->getLine() . ")" .
-                                         " | Trace: " . substr($e->getTraceAsString(), 0, 500) . "...";
+
+            $message = $e->getMessage();
+            if (strpos($message, 'UNIQUE') !== false || strpos($message, '1062') !== false) {
+                $_SESSION['error_message'] = _("Erreur d'idempotence : Ce paiement a déjà été enregistré et comptabilisé.");
+            } else {
+                $_SESSION['error_message'] = "Erreur lors de l'encaissement : " . $message .
+                                             " | Fichier: " . $e->getFile() . " (Ligne " . $e->getLine() . ")" .
+                                             " | Trace: " . substr($e->getTraceAsString(), 0, 500) . "...";
+            }
             if (PHP_SAPI === 'cli') {
                 echo "  [CONTROLLER ERROR] " . $_SESSION['error_message'] . "\n";
             }

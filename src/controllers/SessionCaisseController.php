@@ -180,44 +180,49 @@ class SessionCaisseController {
             $soldeReel = (float)($_POST['solde_reel'] ?? 0);
             $justificatif = trim($_POST['justificatif'] ?? '');
 
-            $session = SessionCaisse::findById($id);
-            if (!$session || $session['lycee_id'] != $lyceeId) {
-                $_SESSION['error_message'] = _("Session de caisse introuvable.");
-                $this->redirect('/treasury/sessions');
-            }
-
-            if ($session['statut'] !== 'ouverte') {
-                $_SESSION['error_message'] = _("Cette session de caisse n'est plus ouverte.");
-                $this->redirect('/treasury/sessions/show/' . $id);
-            }
-
-            if ($session['user_id'] != Auth::getUserId()) {
-                $_SESSION['error_message'] = _("Vous ne pouvez pas clôturer la session de caisse d'un autre caissier.");
-                $this->redirect('/treasury/sessions/show/' . $id);
-            }
-
-            // Calculate dynamic balance to get theoretical balance
             $db = Database::getInstance();
-            $stmt = $db->prepare("
-                SELECT
-                    SUM(CASE WHEN type_mouvement = 'entree' THEN montant ELSE 0 END) as entrees,
-                    SUM(CASE WHEN type_mouvement = 'sortie' THEN montant ELSE 0 END) as sorties
-                FROM mouvements_tresorerie
-                WHERE session_caisse_id = :session_id
-            ");
-            $stmt->execute(['session_id' => $id]);
-            $soldeData = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            $theo = (float)$session['solde_ouverture'] + (float)$soldeData['entrees'] - (float)$soldeData['sorties'];
-            $ecart = $soldeReel - $theo;
-
-            if ($ecart !== 0.00 && empty($justificatif)) {
-                $_SESSION['error_message'] = _("Un motif de justification est obligatoire en cas d'écart de caisse.");
-                $this->redirect('/treasury/sessions/show/' . $id);
-            }
+            $db->beginTransaction();
 
             try {
-                $db->beginTransaction();
+                // Symmetric row locking to prevent concurrent closures or payments
+                $driverName = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
+                $lockSql = "SELECT * FROM sessions_caisse WHERE id = :id";
+                if ($driverName !== 'sqlite') {
+                    $lockSql .= " FOR UPDATE";
+                }
+                $lockStmt = $db->prepare($lockSql);
+                $lockStmt->execute(['id' => $id]);
+                $session = $lockStmt->fetch(PDO::FETCH_ASSOC);
+
+                if (!$session || $session['lycee_id'] != $lyceeId) {
+                    throw new Exception(_("Session de caisse introuvable."));
+                }
+
+                if ($session['statut'] !== 'ouverte') {
+                    throw new Exception(_("Cette session de caisse n'est plus ouverte."));
+                }
+
+                if ($session['user_id'] != Auth::getUserId()) {
+                    throw new Exception(_("Vous ne pouvez pas clôturer la session de caisse d'un autre caissier."));
+                }
+
+                // Calculate dynamic balance to get theoretical balance inside the transaction
+                $stmt = $db->prepare("
+                    SELECT
+                        SUM(CASE WHEN type_mouvement = 'entree' THEN montant ELSE 0 END) as entrees,
+                        SUM(CASE WHEN type_mouvement = 'sortie' THEN montant ELSE 0 END) as sorties
+                    FROM mouvements_tresorerie
+                    WHERE session_caisse_id = :session_id
+                ");
+                $stmt->execute(['session_id' => $id]);
+                $soldeData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                $theo = (float)$session['solde_ouverture'] + (float)$soldeData['entrees'] - (float)$soldeData['sorties'];
+                $ecart = $soldeReel - $theo;
+
+                if ($ecart !== 0.00 && empty($justificatif)) {
+                    throw new Exception(_("Un motif de justification est obligatoire en cas d'écart de caisse."));
+                }
 
                 $stmt_close = $db->prepare("
                     UPDATE sessions_caisse SET
@@ -243,7 +248,7 @@ class SessionCaisseController {
                 $_SESSION['success_message'] = _("Demande de clôture de caisse soumise avec succès.");
                 $this->redirect('/treasury/sessions');
             } catch (Exception $e) {
-                if (isset($db) && $db->inTransaction()) $db->rollBack();
+                if ($db->inTransaction()) $db->rollBack();
                 $_SESSION['error_message'] = $e->getMessage();
                 $this->redirect('/treasury/sessions/show/' . $id);
             }

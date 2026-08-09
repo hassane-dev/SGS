@@ -123,7 +123,9 @@ class TreasuryService {
 
         // 6. Récupération de la session de caisse si applicable
         $sessionCaisseId = $data['session_caisse_id'] ?? null;
-        if (!$sessionCaisseId && $compte['type_compte'] === 'caisse' && $modePaiement === 'Espèces') {
+        $modeClean = str_replace(['é', 'è', 'ê', 'ë'], 'e', mb_strtolower(trim($modePaiement), 'UTF-8'));
+        $isEspeces = in_array($modeClean, ['especes']);
+        if (!$sessionCaisseId && $compte['type_compte'] === 'caisse' && $isEspeces) {
             $activeSession = SessionCaisse::findActiveByCompte($compteId);
             // S'il n'y a pas de session active en mode interactif, on n'impose pas le blocage en migration historique
             if (!$activeSession && empty($data['is_historical_migration'])) {
