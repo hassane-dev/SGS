@@ -401,7 +401,9 @@ try {
             'balance' => ['view', 'export'],
             'tresorerie_reports' => ['view'],
             'finance_reports' => ['view'],
-            'depense' => ['create', 'validate', 'pay', 'cancel', 'view']
+            'depense' => ['create', 'validate', 'pay', 'cancel', 'view'],
+            'salaire' => ['manage'],
+            'lycee' => ['view_all_lycees']
         ]
     ];
 
@@ -575,6 +577,81 @@ try {
     $balance_duration = $time_balance_end - $time_balance_start;
     assert_test($balance_duration < 0.2, "Balance générale de charge extraite en " . round($balance_duration, 4) . " secondes.");
     assert_test((float)$large_balance['totaux']['final_debit'] === 1050000.00, "Solde final cumulé de charge exact (1 050 000 FCFA).");
+
+    echo "\n--- [TEST 7 : INTÉGRATIONS DE BOUT EN BOUT : ÉCARTS, DÉPENSES & SALAIRES EN DIRECT] ---\n";
+
+    require_once __DIR__ . '/../src/controllers/SalaireController.php';
+
+    // 1. Creation and payment of a salary
+    $_POST = [
+        'personnel_id' => 1,
+        'mois' => 9,
+        'annee' => 2024,
+        'date_paiement' => '2024-09-15',
+        'montant_net' => 45000.00,
+        'mode_paiement' => 'Espèces'
+    ];
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+
+    // Clear previous error and success messages
+    unset($_SESSION['error_message']);
+    unset($_SESSION['success_message']);
+
+    $salaryController = new SalaireController();
+    try {
+        $salaryController->store();
+    } catch (Exception $e) {
+        // Redirect or error caught in test mode is clean
+    }
+
+    // Verify treasury movement for salary
+    $stmt_m_sal = $pdo->prepare("SELECT COUNT(*) FROM mouvements_tresorerie WHERE source_type = 'salaires'");
+    $stmt_m_sal->execute();
+    assert_test((int)$stmt_m_sal->fetchColumn() === 1, "Mouvement de trésorerie de salaire créé en direct.");
+
+    // Verify general ledger piece for salary
+    $stmt_pc_sal = $pdo->prepare("SELECT COUNT(*) FROM pieces_comptables WHERE source_table = 'salaires'");
+    $stmt_pc_sal->execute();
+    assert_test((int)$stmt_pc_sal->fetchColumn() === 1, "Écriture comptable en partie double pour salaire générée en temps réel.");
+
+    // 2. Payment of a depense and automatic ledger posting
+    $pdo->exec("INSERT INTO depenses (id, lycee_id, exercice_financier_id, categorie_id, beneficiaire_id, montant, numero_piece, motif, statut, cree_par) VALUES (15, 1, 1, 1, 1, 1500.00, 'DEP-015', 'Achat de rames', 'approuve', 1)");
+
+    unset($_SESSION['error_message']);
+    unset($_SESSION['success_message']);
+
+    DepenseWorkflowService::pay(15, 1, 1, "Achat réglé");
+
+    // Verify general ledger piece for expense payment
+    $stmt_pc_dep = $pdo->prepare("SELECT COUNT(*) FROM pieces_comptables WHERE source_table = 'depenses' AND source_id = 15");
+    $stmt_pc_dep->execute();
+    assert_test((int)$stmt_pc_dep->fetchColumn() === 1, "Écriture comptable pour paiement de dépense générée en direct.");
+
+    // 3. Cancellation of the depense and automatic accounting counterpass
+    unset($_SESSION['error_message']);
+    unset($_SESSION['success_message']);
+
+    DepenseWorkflowService::cancel(15, 1, "Annulation rames");
+
+    // Verify the piece status is updated to contrepasse
+    $stmt_pc_status = $pdo->prepare("SELECT statut FROM pieces_comptables WHERE source_table = 'depenses' AND source_id = 15");
+    $stmt_pc_status->execute();
+    assert_test($stmt_pc_status->fetchColumn() === 'contrepasse', "Pièce comptable d'origine de dépense contrepassée lors de l'annulation.");
+
+    // Verify that a counter-piece is generated
+    $stmt_pc_count = $pdo->prepare("SELECT COUNT(*) FROM pieces_comptables WHERE source_table = 'pieces_comptables'");
+    $stmt_pc_count->execute();
+    assert_test((int)$stmt_pc_count->fetchColumn() > 0, "Pièce inverse de contrepassation générée avec succès.");
+
+    // 4. Cash session validation with positive discrepancy (écart positif)
+    $pdo->exec("INSERT INTO sessions_caisse (id, lycee_id, user_id, compte_id, date_ouverture, solde_ouverture, solde_theorique, solde_reel, ecart, statut) VALUES (55, 1, 2, 1, '2024-09-02 08:00:00', 10000.00, 10000.00, 10500.00, 500.00, 'fermee_a_valider')");
+
+    SessionCaisse::approuver(55, 1, "Validation avec écart de 500");
+
+    // Verify general ledger piece for the approved discrepancy
+    $stmt_pc_ecart = $pdo->prepare("SELECT COUNT(*) FROM pieces_comptables WHERE source_table = 'regularisations_ecarts'");
+    $stmt_pc_ecart->execute();
+    assert_test((int)$stmt_pc_ecart->fetchColumn() === 1, "Écriture comptable de régularisation d'écart de caisse générée automatiquement lors de l'approbation.");
 
     echo "\n🏆 TOUS LES SCÉNARIOS DE TEST DE LA PHASE 5 ONT RÉUSSI AVEC SUCCÈS ! (ZÉRO DÉFAUT)\n";
     echo "=========================================================================\n";

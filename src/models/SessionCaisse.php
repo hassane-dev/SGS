@@ -167,9 +167,22 @@ class SessionCaisse {
                     'motif' => "Régularisation d'écart de caisse (Session N°" . $session['id'] . ")",
                     'user_id' => $valide_par
                 ]);
+
+                // 3. Generate General Ledger double entry in General Accounting (Phase 5)
+                require_once __DIR__ . '/../services/ComptabiliteService.php';
+                ComptabiliteService::genererEcritureAutomatique(
+                    $ecart > 0 ? 'ecart_positif' : 'ecart_negatif',
+                    $montant_ecart,
+                    $session['lycee_id'],
+                    (string)$session['id'],
+                    $valide_par,
+                    'regularisations_ecarts',
+                    $regularisationId,
+                    date('Y-m-d')
+                );
             }
 
-            // 3. Update sessions_caisse state
+            // 4. Update sessions_caisse state
             $stmt_up = $db->prepare("
                 UPDATE sessions_caisse SET
                     statut = 'fermee_validee',
