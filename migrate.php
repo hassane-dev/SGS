@@ -781,6 +781,28 @@ try {
         )
     ");
 
+    // --- PHASE 6 REMISE AU COFFRE ---
+    addColumnIfNeeded($db, 'comptes_financiers', 'est_coffre', 'TINYINT DEFAULT 0');
+    addColumnIfNeeded($db, 'comptes_financiers', 'compte_comptable_numero', 'VARCHAR(20) DEFAULT NULL');
+    addColumnIfNeeded($db, 'sessions_caisse', 'montant_remis', 'DECIMAL(15,2) DEFAULT NULL');
+    addColumnIfNeeded($db, 'sessions_caisse', 'fonds_caisse_conserve', 'DECIMAL(15,2) DEFAULT NULL');
+
+    // Idempotent Index Creation
+    try {
+        if ($isSqlite) {
+            $db->exec("CREATE INDEX IF NOT EXISTS idx_comptes_coffre ON comptes_financiers (lycee_id, est_coffre);");
+        } else {
+            // Check if index already exists for MySQL
+            $idx_stmt = $db->query("SHOW INDEX FROM comptes_financiers WHERE Key_name = 'idx_comptes_coffre'");
+            if (!$idx_stmt->fetch()) {
+                $db->exec("ALTER TABLE comptes_financiers ADD INDEX idx_comptes_coffre (lycee_id, est_coffre);");
+            }
+        }
+        echo "Index idx_comptes_coffre checked/created.\n";
+    } catch (Exception $e) {
+        echo "Error checking/creating index: " . $e->getMessage() . "\n";
+    }
+
     echo "Migration successful\n";
 } catch (Exception $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";

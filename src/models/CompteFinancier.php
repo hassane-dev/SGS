@@ -22,11 +22,32 @@ class CompteFinancier {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public static function create($data) {
+    public static function findCoffreByLycee($lyceeId) {
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            INSERT INTO comptes_financiers (lycee_id, nom_compte, type_compte, solde_courant, devise, responsable_id)
-            VALUES (:lycee_id, :nom_compte, :type_compte, :solde_courant, :devise, :responsable_id)
+            SELECT id FROM comptes_financiers
+            WHERE lycee_id = :lycee_id AND est_coffre = 1 AND statut = 'actif'
+            LIMIT 1
+        ");
+        $stmt->execute(['lycee_id' => $lyceeId]);
+        return $stmt->fetchColumn() ?: null;
+    }
+
+    public static function create($data) {
+        $db = Database::getInstance();
+
+        // Strict Uniqueness check of Coffre Principal per lycée
+        $estCoffre = !empty($data['est_coffre']) ? 1 : 0;
+        if ($estCoffre === 1) {
+            $existingCoffre = self::findCoffreByLycee($data['lycee_id']);
+            if ($existingCoffre !== null) {
+                throw new Exception("Un seul Coffre Principal est autorisé par établissement.");
+            }
+        }
+
+        $stmt = $db->prepare("
+            INSERT INTO comptes_financiers (lycee_id, nom_compte, type_compte, solde_courant, devise, responsable_id, est_coffre, compte_comptable_numero)
+            VALUES (:lycee_id, :nom_compte, :type_compte, :solde_courant, :devise, :responsable_id, :est_coffre, :compte_comptable_numero)
         ");
         $stmt->execute([
             'lycee_id' => $data['lycee_id'],
@@ -34,7 +55,9 @@ class CompteFinancier {
             'type_compte' => $data['type_compte'],
             'solde_courant' => $data['solde_courant'] ?? 0.00,
             'devise' => $data['devise'] ?? 'FCFA',
-            'responsable_id' => $data['responsable_id'] ?? null
+            'responsable_id' => $data['responsable_id'] ?? null,
+            'est_coffre' => $estCoffre,
+            'compte_comptable_numero' => !empty($data['compte_comptable_numero']) ? trim($data['compte_comptable_numero']) : null
         ]);
         return $db->lastInsertId();
     }

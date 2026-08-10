@@ -93,12 +93,32 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
                                 </div>
                             </div>
 
-                            <div class="mb-3 col-md-6">
-                                <label for="statut" class="form-label font-weight-bold"><?= _("Statut du Compte") ?></label>
-                                <select class="form-select" id="statut" name="statut" required>
-                                    <option value="actif" <?= $compte['statut'] === 'actif' ? 'selected' : '' ?>><?= _("Actif") ?></option>
-                                    <option value="suspendu" <?= $compte['statut'] === 'suspendu' ? 'selected' : '' ?>><?= _("Suspendu") ?></option>
-                                </select>
+                            <div class="row">
+                                <div class="mb-3 col-md-6">
+                                    <label for="statut" class="form-label font-weight-bold"><?= _("Statut du Compte") ?></label>
+                                    <select class="form-select" id="statut" name="statut" required>
+                                        <option value="actif" <?= $compte['statut'] === 'actif' ? 'selected' : '' ?>><?= _("Actif") ?></option>
+                                        <option value="suspendu" <?= $compte['statut'] === 'suspendu' ? 'selected' : '' ?>><?= _("Suspendu") ?></option>
+                                    </select>
+                                </div>
+
+                                <!-- Compte Comptable Général (OHADA) -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="compte_comptable_numero" class="form-label font-weight-bold"><?= _("Compte Comptable Général (OHADA) *") ?></label>
+                                    <input type="text" class="form-control" id="compte_comptable_numero" name="compte_comptable_numero" value="<?= htmlspecialchars($compte['compte_comptable_numero'] ?? '') ?>" placeholder="Ex: 571200" required>
+                                    <div class="form-text text-muted"><?= _("Compte de classe 5 (ex: 571100 pour Coffre, 571200 pour Caisse).") ?></div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <!-- Coffre Principal unique -->
+                                <div class="col-md-12 mb-3">
+                                    <div class="form-check form-switch mt-2">
+                                        <input class="form-check-input" type="checkbox" id="est_coffre" name="est_coffre" value="1" <?= !empty($compte['est_coffre']) ? 'checked' : '' ?>>
+                                        <label class="form-check-label fw-bold" for="est_coffre"><?= _("Marquer comme le Coffre Principal unique") ?></label>
+                                        <div class="form-text text-muted"><?= _("Le coffre fort récepteur de toutes les remises de caisse de l'établissement.") ?></div>
+                                    </div>
+                                </div>
                             </div>
 
                             <hr>

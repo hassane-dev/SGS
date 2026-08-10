@@ -184,7 +184,9 @@ function setup_db() {
         solde_courant DECIMAL(15, 2) DEFAULT 0.00,
         devise VARCHAR(10) DEFAULT 'FCFA',
         responsable_id INTEGER,
-        statut VARCHAR(50) DEFAULT 'actif'
+        statut VARCHAR(50) DEFAULT 'actif',
+        est_coffre TINYINT DEFAULT 0,
+        compte_comptable_numero VARCHAR(20) DEFAULT NULL
     )");
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS sessions_caisse (
@@ -203,6 +205,8 @@ function setup_db() {
         valide_par INTEGER,
         valide_le DATETIME,
         is_active TINYINT DEFAULT NULL,
+        montant_remis DECIMAL(15,2) DEFAULT NULL,
+        fonds_caisse_conserve DECIMAL(15,2) DEFAULT NULL,
         UNIQUE (compte_id, is_active)
     )");
 
@@ -414,7 +418,10 @@ try {
     $pdo->exec("INSERT INTO exercices_financiers (id, lycee_id, libelle, date_debut, date_fin, est_actif, cloture) VALUES (1, 1, 'Exercice 2024', '2024-01-01', '2024-12-31', 1, 0)");
     $pdo->exec("INSERT INTO depense_categories (id, lycee_id, nom_categorie, modifiable, statut) VALUES (1, 1, 'Fournitures de bureau', 1, 'actif')");
     $pdo->exec("INSERT INTO depense_beneficiaires (id, lycee_id, nom_beneficiaire, type, statut) VALUES (1, 1, 'Librairie Centrale', 'externe', 'actif')");
-    $pdo->exec("INSERT INTO comptes_financiers (id, lycee_id, nom_compte, type_compte, solde_courant, statut) VALUES (1, 1, 'Caisse Centrale', 'caisse', 100000.00, 'actif')");
+    $pdo->exec("INSERT INTO comptes_financiers (id, lycee_id, nom_compte, type_compte, solde_courant, statut, est_coffre, compte_comptable_numero) VALUES (1, 1, 'Caisse Centrale', 'caisse', 100000.00, 'actif', 0, '571000')");
+
+    // Seed Coffre Principal and link to general ledger account for validation test
+    $pdo->exec("INSERT INTO comptes_financiers (id, lycee_id, nom_compte, type_compte, solde_courant, statut, est_coffre, compte_comptable_numero) VALUES (4, 1, 'Coffre Fort Central', 'caisse', 500000.00, 'actif', 1, '571000')");
     $pdo->exec("INSERT INTO cycles (id_cycle, nom_cycle) VALUES (1, 'CEG')");
     $pdo->exec("INSERT INTO classes (id_classe, niveau, serie, numero, cycle_id, lycee_id) VALUES (1, '6ème', '', 1, 1, 1)");
     $pdo->exec("INSERT INTO frais (id_frais, lycee_id, frais_inscription, frais_mensuel, annee_academique_id, cycle) VALUES (1, 1, 50000.00, 10000.00, 1, 'CEG')");
