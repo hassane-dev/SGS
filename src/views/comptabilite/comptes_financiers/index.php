@@ -80,7 +80,10 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
                                             <tr>
                                                 <td>
                                                     <strong><?= htmlspecialchars($c['nom_compte']) ?></strong>
-                                                    <span class="d-block text-muted small">ID: #<?= $c['id'] ?></span>
+                                                    <?php if (!empty($c['est_coffre'])): ?>
+                                                        <span class="badge bg-light-danger ms-2"><i class="ph-duotone ph-shield-check me-1"></i><?= _('Coffre Principal') ?></span>
+                                                    <?php endif; ?>
+                                                    <span class="d-block text-muted small">ID: #<?= $c['id'] ?> | <?= _("Compte Général :") ?> <code><?= htmlspecialchars($c['compte_comptable_numero'] ?: _("Non configuré")) ?></code></span>
                                                 </td>
                                                 <td>
                                                     <?php if ($c['type_compte'] === 'caisse'): ?>

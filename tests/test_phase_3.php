@@ -170,7 +170,9 @@ function setup_db() {
         solde_courant DECIMAL(15, 2) DEFAULT 0.00,
         devise VARCHAR(10) DEFAULT 'FCFA',
         responsable_id INTEGER,
-        statut VARCHAR(50) DEFAULT 'actif'
+        statut VARCHAR(50) DEFAULT 'actif',
+        est_coffre TINYINT DEFAULT 0,
+        compte_comptable_numero VARCHAR(20) DEFAULT NULL
     )");
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS sessions_caisse (
@@ -187,7 +189,9 @@ function setup_db() {
         justificatif_ecart TEXT,
         statut VARCHAR(50) DEFAULT 'ouverte',
         valide_par INTEGER,
-        valide_le DATETIME
+        valide_le DATETIME,
+        montant_remis DECIMAL(15,2) DEFAULT NULL,
+        fonds_caisse_conserve DECIMAL(15,2) DEFAULT NULL
     )");
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS transferts_financiers (

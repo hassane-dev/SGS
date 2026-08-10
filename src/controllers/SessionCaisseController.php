@@ -100,8 +100,7 @@ class SessionCaisseController {
                 SessionCaisse::ouvrir([
                     'lycee_id' => $lyceeId,
                     'user_id' => Auth::getUserId(),
-                    'compte_id' => $compteId,
-                    'solde_ouverture' => (float)$compte['solde_courant']
+                    'compte_id' => $compteId
                 ]);
 
                 $db->commit();
@@ -160,6 +159,10 @@ class SessionCaisseController {
 
         $soldeTheorique = (float)$session['solde_ouverture'] + $totalEntrees - $totalSorties;
 
+        // Fetch destination coffre details for validation overview
+        $coffreId = CompteFinancier::findCoffreByLycee($session['lycee_id']);
+        $coffreCompte = $coffreId ? CompteFinancier::findById($coffreId) : null;
+
         View::render('treasury/sessions/show', [
             'session' => $session,
             'compte' => $compte,
@@ -167,6 +170,7 @@ class SessionCaisseController {
             'totalEntrees' => $totalEntrees,
             'totalSorties' => $totalSorties,
             'soldeTheorique' => $soldeTheorique,
+            'coffreCompte' => $coffreCompte,
             'title' => _("Détail de la Session")
         ]);
     }
@@ -178,6 +182,8 @@ class SessionCaisseController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = $_POST['id'] ?? null;
             $soldeReel = (float)($_POST['solde_reel'] ?? 0);
+            $montantRemis = isset($_POST['montant_remis']) ? (float)$_POST['montant_remis'] : null;
+            $fondsCaisseConserve = isset($_POST['fonds_caisse_conserve']) ? (float)$_POST['fonds_caisse_conserve'] : null;
             $justificatif = trim($_POST['justificatif'] ?? '');
 
             $db = Database::getInstance();
@@ -206,6 +212,19 @@ class SessionCaisseController {
                     throw new Exception(_("Vous ne pouvez pas clôturer la session de caisse d'un autre caissier."));
                 }
 
+                // If values were supplied, enforce strict server-side validation
+                if ($montantRemis !== null && $fondsCaisseConserve !== null) {
+                    if ($soldeReel < 0 || $montantRemis < 0 || $fondsCaisseConserve < 0) {
+                        throw new Exception(_("Les montants déclarés de clôture ne peuvent pas être négatifs."));
+                    }
+                    if (abs($soldeReel - ($montantRemis + $fondsCaisseConserve)) > 0.01) {
+                        throw new Exception(_("Incohérence physique détectée : le solde réel doit correspondre exactement à la somme du montant remis et du fonds conservé."));
+                    }
+                } else {
+                    $montantRemis = $soldeReel;
+                    $fondsCaisseConserve = 0.00;
+                }
+
                 // Calculate dynamic balance to get theoretical balance inside the transaction
                 $stmt = $db->prepare("
                     SELECT
@@ -231,6 +250,8 @@ class SessionCaisseController {
                         solde_reel = :solde_reel,
                         ecart = :ecart,
                         justificatif_ecart = :justificatif,
+                        montant_remis = :montant_remis,
+                        fonds_caisse_conserve = :fonds_caisse_conserve,
                         statut = 'fermee_a_valider'
                     WHERE id = :id
                 ");
@@ -241,6 +262,8 @@ class SessionCaisseController {
                     'solde_reel' => $soldeReel,
                     'ecart' => $ecart,
                     'justificatif' => $justificatif,
+                    'montant_remis' => $montantRemis,
+                    'fonds_caisse_conserve' => $fondsCaisseConserve,
                     'id' => $id
                 ]);
 

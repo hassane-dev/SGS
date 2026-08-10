@@ -125,7 +125,8 @@ class ComptabiliteService {
             ['depense', '620000', '571000', 'Règlement de dépense - Pièce {ref}', 'JD'],
             ['salaire', '661000', '571000', 'Paiement salaire - Mois {ref}', 'JS'],
             ['ecart_positif', '571000', '771000', 'Régularisation écart caisse positif - Session {ref}', 'JO'],
-            ['ecart_negatif', '671000', '571000', 'Régularisation écart caisse négatif - Session {ref}', 'JO']
+            ['ecart_negatif', '671000', '571000', 'Régularisation écart caisse négatif - Session {ref}', 'JO'],
+            ['remise_coffre', '571100', '571200', 'Remise de fonds au Coffre Principal - Session N°{ref}', 'JO']
         ];
 
         $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
@@ -536,10 +537,13 @@ class ComptabiliteService {
         // 3. Format dynamic label
         $libelle = str_replace('{ref}', $reference, $schema['libelle_modele']);
 
-        // 4. Construct Debit & Credit lines
+        // 4. Construct Debit & Credit lines (Allowing dynamic overrides for dynamic account routing)
+        $debit_num = $extras['compte_debit_numero'] ?? $schema['compte_debit_numero'];
+        $credit_num = $extras['compte_credit_numero'] ?? $schema['compte_credit_numero'];
+
         $lignes = [
             [
-                'compte_numero' => $schema['compte_debit_numero'],
+                'compte_numero' => $debit_num,
                 'debit' => $montant,
                 'credit' => 0.00,
                 'libelle_ligne' => $libelle,
@@ -548,7 +552,7 @@ class ComptabiliteService {
                 'activite_id' => $extras['activite_id'] ?? null
             ],
             [
-                'compte_numero' => $schema['compte_credit_numero'],
+                'compte_numero' => $credit_num,
                 'debit' => 0.00,
                 'credit' => $montant,
                 'libelle_ligne' => $libelle,

@@ -93,6 +93,24 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
                                 </div>
                             </div>
 
+                            <div class="row">
+                                <!-- Compte Comptable Général (OHADA) -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="compte_comptable_numero" class="form-label font-weight-bold"><?= _("Compte Comptable Général (OHADA) *") ?></label>
+                                    <input type="text" class="form-control" id="compte_comptable_numero" name="compte_comptable_numero" placeholder="Ex: 571200" required>
+                                    <div class="form-text text-muted"><?= _("Compte comptable lié de classe 5 (ex: 571100 pour Coffre, 571200 pour Caisse A).") ?></div>
+                                </div>
+
+                                <!-- Coffre Principal unique -->
+                                <div class="col-md-6 mb-3 d-flex align-items-center">
+                                    <div class="form-check form-switch mt-3">
+                                        <input class="form-check-input" type="checkbox" id="est_coffre" name="est_coffre" value="1">
+                                        <label class="form-check-label fw-bold" for="est_coffre"><?= _("Marquer comme le Coffre Principal unique") ?></label>
+                                        <div class="form-text text-muted"><?= _("Le coffre fort récepteur de toutes les remises de caisse de l'établissement.") ?></div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <hr>
 
                             <!-- Buttons -->

@@ -94,7 +94,9 @@ class CompteFinancierController {
                     'type_compte' => $type,
                     'solde_courant' => $solde,
                     'devise' => $devise,
-                    'responsable_id' => $responsableId
+                    'responsable_id' => $responsableId,
+                    'est_coffre' => !empty($data['est_coffre']) ? 1 : 0,
+                    'compte_comptable_numero' => !empty($data['compte_comptable_numero']) ? trim($data['compte_comptable_numero']) : null
                 ]);
 
                 $_SESSION['success_message'] = _("Compte financier créé avec succès.");
@@ -163,6 +165,8 @@ class CompteFinancierController {
             $devise = trim($data['devise'] ?? 'FCFA');
             $responsableId = !empty($data['responsable_id']) ? (int)$data['responsable_id'] : null;
             $statut = trim($data['statut'] ?? 'actif');
+            $estCoffre = !empty($data['est_coffre']) ? 1 : 0;
+            $compteComptableNumero = !empty($data['compte_comptable_numero']) ? trim($data['compte_comptable_numero']) : null;
 
             if (empty($nom) || empty($type)) {
                 $_SESSION['error_message'] = _("Le nom du compte et le type sont obligatoires.");
@@ -170,10 +174,18 @@ class CompteFinancierController {
             }
 
             try {
+                // Strict Uniqueness check of Coffre Principal per lycée on update
+                if ($estCoffre === 1) {
+                    $existingCoffre = CompteFinancier::findCoffreByLycee($lyceeId);
+                    if ($existingCoffre !== null && $existingCoffre != $id) {
+                        throw new Exception(_("Un seul Coffre Principal est autorisé par établissement."));
+                    }
+                }
+
                 $db = Database::getInstance();
                 $stmt = $db->prepare("
                     UPDATE comptes_financiers
-                    SET nom_compte = :nom, type_compte = :type, devise = :devise, responsable_id = :responsable_id, statut = :statut
+                    SET nom_compte = :nom, type_compte = :type, devise = :devise, responsable_id = :responsable_id, statut = :statut, est_coffre = :est_coffre, compte_comptable_numero = :compte_comptable_numero
                     WHERE id = :id AND lycee_id = :lycee_id
                 ");
                 $stmt->execute([
@@ -182,6 +194,8 @@ class CompteFinancierController {
                     'devise' => $devise,
                     'responsable_id' => $responsableId,
                     'statut' => $statut,
+                    'est_coffre' => $estCoffre,
+                    'compte_comptable_numero' => $compteComptableNumero,
                     'id' => $id,
                     'lycee_id' => $lyceeId
                 ]);

@@ -74,6 +74,16 @@
                                 <span class="text-muted d-block small"><?= _("Montant Réel Déclaré") ?></span>
                                 <strong class="fs-4 text-dark"><?= number_format($session['solde_reel'], 2, ',', ' ') ?> FCFA</strong>
                             </div>
+                            <?php if ($session['montant_remis'] !== null): ?>
+                                <div class="mb-3 border-bottom pb-2">
+                                    <span class="text-muted d-block small"><?= _("Montant Remis au Coffre") ?></span>
+                                    <strong class="fs-5 text-dark"><?= number_format($session['montant_remis'], 2, ',', ' ') ?> FCFA</strong>
+                                </div>
+                                <div class="mb-3 border-bottom pb-2">
+                                    <span class="text-muted d-block small"><?= _("Fonds de Caisse Conservé") ?></span>
+                                    <strong class="fs-5 text-dark"><?= number_format($session['fonds_caisse_conserve'], 2, ',', ' ') ?> FCFA</strong>
+                                </div>
+                            <?php endif; ?>
                             <div class="mb-3 border-bottom pb-2">
                                 <span class="text-muted d-block small"><?= _("Écart constaté") ?></span>
                                 <strong class="fs-4 <?= $session['ecart'] < 0 ? 'text-danger' : ($session['ecart'] > 0 ? 'text-warning' : 'text-success') ?>">
@@ -91,35 +101,81 @@
                         <!-- Close Form for Caissier -->
                         <?php if ($session['statut'] === 'ouverte' && $session['user_id'] == Auth::getUserId()): ?>
                             <hr>
-                            <form action="/treasury/sessions/close" method="POST">
+                            <form action="/treasury/sessions/close" method="POST" id="close_session_form">
                                 <input type="hidden" name="id" value="<?= $session['id'] ?>">
 
                                 <div class="mb-3">
-                                    <label for="solde_reel" class="form-label fw-bold"><?= _("Argent Réel Compté (Espèces)") ?> <span class="text-danger">*</span></label>
+                                    <label for="solde_reel" class="form-label fw-bold"><?= _("Argent Réel Compté (Espèces) *") ?></label>
                                     <div class="input-group">
                                         <input type="number" step="0.01" class="form-control" id="solde_reel" name="solde_reel" required placeholder="0.00">
                                         <span class="input-group-text">FCFA</span>
                                     </div>
+                                    <div class="form-text text-muted small"><?= _("Totalité de l'argent physiquement présent dans le tiroir-caisse.") ?></div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="montant_remis" class="form-label fw-bold"><?= _("Montant à remettre au Coffre *") ?></label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control" id="montant_remis" name="montant_remis" required placeholder="0.00">
+                                        <span class="input-group-text">FCFA</span>
+                                    </div>
+                                    <div class="form-text text-muted small"><?= _("La somme physique qui sera transférée au Coffre Fort.") ?></div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="fonds_caisse_conserve" class="form-label fw-bold"><?= _("Fonds de Caisse à conserver") ?></label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control" id="fonds_caisse_conserve" name="fonds_caisse_conserve" value="0.00">
+                                        <span class="input-group-text">FCFA</span>
+                                    </div>
+                                    <div class="form-text text-muted small"><?= _("Fonds de roulement conservé dans le tiroir (0 par défaut).") ?></div>
+                                </div>
+
+                                <div id="invariance_error" class="alert alert-danger d-none small">
+                                    <i class="ph-duotone ph-warning-circle me-1"></i>
+                                    <?= _("Erreur : L'argent réel compté doit correspondre exactement à la somme du montant remis et du fonds conservé.") ?>
                                 </div>
 
                                 <div class="mb-3 d-none" id="motif_ecart_block">
-                                    <label for="justificatif" class="form-label fw-bold text-danger"><?= _("Justifier l'écart de caisse") ?> <span class="text-danger">*</span></label>
+                                    <label for="justificatif" class="form-label fw-bold text-danger"><?= _("Justifier l'écart de caisse *") ?></label>
                                     <textarea class="form-control border-danger" id="justificatif" name="justificatif" rows="3" placeholder="<?= _("Saisissez le motif de la différence...") ?>"></textarea>
                                 </div>
 
                                 <div class="d-grid">
-                                    <button type="submit" class="btn btn-danger d-inline-flex align-items-center justify-content-center">
+                                    <button type="submit" class="btn btn-danger d-inline-flex align-items-center justify-content-center" id="btn_submit_close">
                                         <i class="ph-duotone ph-lock me-2"></i><?= _("Soumettre pour clôture") ?>
                                     </button>
                                 </div>
                             </form>
 
                             <script>
+                                function validateInvariance() {
+                                    const soldeReel = parseFloat(document.getElementById('solde_reel').value) || 0;
+                                    const montantRemis = parseFloat(document.getElementById('montant_remis').value) || 0;
+                                    const fondsConserve = parseFloat(document.getElementById('fonds_caisse_conserve').value) || 0;
+                                    const errBlock = document.getElementById('invariance_error');
+                                    const submitBtn = document.getElementById('btn_submit_close');
+
+                                    if (Math.abs(soldeReel - (montantRemis + fondsConserve)) > 0.01) {
+                                        errBlock.classList.remove('d-none');
+                                        submitBtn.disabled = true;
+                                        return false;
+                                    } else {
+                                        errBlock.classList.add('d-none');
+                                        submitBtn.disabled = false;
+                                        return true;
+                                    }
+                                }
+
                                 document.getElementById('solde_reel').addEventListener('input', function() {
                                     const theorique = <?= $soldeTheorique ?>;
                                     const reel = parseFloat(this.value) || 0;
                                     const block = document.getElementById('motif_ecart_block');
                                     const textarea = document.getElementById('justificatif');
+
+                                    // Auto-fill montant_remis as the default rule
+                                    document.getElementById('montant_remis').value = this.value;
+                                    document.getElementById('fonds_caisse_conserve').value = "0.00";
 
                                     if (Math.abs(reel - theorique) > 0.01) {
                                         block.classList.remove('d-none');
@@ -127,6 +183,17 @@
                                     } else {
                                         block.classList.add('d-none');
                                         textarea.removeAttribute('required');
+                                    }
+                                    validateInvariance();
+                                });
+
+                                document.getElementById('montant_remis').addEventListener('input', validateInvariance);
+                                document.getElementById('fonds_caisse_conserve').addEventListener('input', validateInvariance);
+
+                                document.getElementById('close_session_form').addEventListener('submit', function(e) {
+                                    if (!validateInvariance()) {
+                                        e.preventDefault();
+                                        alert("<?= _("Incohérence physique détectée : le solde réel compté doit être égal au montant remis + le fonds de caisse conservé.") ?>");
                                     }
                                 });
                             </script>
@@ -142,6 +209,20 @@
                                 </div>
                             <?php else: ?>
                                 <h5><?= _("Contrôle d'Audit de Caisse") ?></h5>
+
+                                <div class="bg-light p-3 rounded mb-3 small">
+                                    <p class="mb-1"><strong><?= _("Déclaration de Remise au Coffre :") ?></strong></p>
+                                    <ul class="mb-0">
+                                        <li><?= _("Montant physique à verser :") ?> <strong><?= number_format($session['montant_remis'] ?? 0, 2, ',', ' ') ?> FCFA</strong></li>
+                                        <li><?= _("Fonds conservé par le caissier :") ?> <strong><?= number_format($session['fonds_caisse_conserve'] ?? 0, 2, ',', ' ') ?> FCFA</strong></li>
+                                        <li><?= _("Établissement destinataire :") ?> <strong><?= htmlspecialchars($coffreCompte ? $coffreCompte['nom_compte'] : _("Aucun Coffre Principal configuré !")) ?></strong></li>
+                                        <?php if ($coffreCompte): ?>
+                                            <li><?= _("Compte comptable Coffre :") ?> <code><?= htmlspecialchars($coffreCompte['compte_comptable_numero'] ?: _("Non configuré")) ?></code></li>
+                                            <li><?= _("Compte comptable Caisse :") ?> <code><?= htmlspecialchars($compte['compte_comptable_numero'] ?: _("Non configuré")) ?></code></li>
+                                        <?php endif; ?>
+                                    </ul>
+                                </div>
+
                                 <form action="/treasury/sessions/approve" method="POST">
                                     <input type="hidden" name="id" value="<?= $session['id'] ?>">
 
@@ -151,8 +232,8 @@
                                     </div>
 
                                     <div class="d-grid">
-                                        <button type="submit" class="btn btn-success d-inline-flex align-items-center justify-content-center">
-                                            <i class="ph-duotone ph-check-circle me-2"></i><?= _("Approuver et valider") ?>
+                                        <button type="submit" class="btn btn-success d-inline-flex align-items-center justify-content-center" <?= !$coffreCompte ? 'disabled' : '' ?>>
+                                            <i class="ph-duotone ph-check-circle me-2"></i><?= _("Approuver la clôture et réceptionner les fonds") ?>
                                         </button>
                                     </div>
                                 </form>
