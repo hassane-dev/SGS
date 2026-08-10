@@ -145,14 +145,26 @@ function migrate_05($db) {
     $db->exec($sql_schemas);
     echo "Migration 05: Table schemas_comptables OK.\n";
 
-    // Add Performance Indexes
+    // Add Performance Indexes Idempotently
     if (!$isSqlite) {
-        $db->exec("ALTER TABLE pieces_comptables ADD INDEX idx_pieces_date (date_piece);");
-        $db->exec("ALTER TABLE pieces_comptables ADD INDEX idx_pieces_journal (journal_id);");
-        $db->exec("ALTER TABLE pieces_comptables ADD INDEX idx_pieces_lycee (lycee_id);");
-        $db->exec("ALTER TABLE pieces_comptables ADD INDEX idx_pieces_source (source_table, source_id);");
-        $db->exec("ALTER TABLE ecritures_comptables ADD INDEX idx_ecritures_compte (compte_comptable_id);");
-        $db->exec("ALTER TABLE ecritures_comptables ADD INDEX idx_ecritures_exercice (exercice_comptable_id);");
-        echo "Migration 05: Performance indexes added successfully.\n";
+        $addIndexIfNeeded = function($db, $table, $indexName, $columnsSql) {
+            try {
+                $stmt = $db->query("SHOW INDEX FROM `$table` WHERE Key_name = '$indexName'");
+                if (!$stmt->fetch()) {
+                    $db->exec("ALTER TABLE `$table` ADD INDEX `$indexName` ($columnsSql);");
+                    echo "Added index $indexName to table $table\n";
+                }
+            } catch (Exception $e) {
+                echo "Error checking/creating index $indexName on $table: " . $e->getMessage() . "\n";
+            }
+        };
+
+        $addIndexIfNeeded($db, 'pieces_comptables', 'idx_pieces_date', 'date_piece');
+        $addIndexIfNeeded($db, 'pieces_comptables', 'idx_pieces_journal', 'journal_id');
+        $addIndexIfNeeded($db, 'pieces_comptables', 'idx_pieces_lycee', 'lycee_id');
+        $addIndexIfNeeded($db, 'pieces_comptables', 'idx_pieces_source', 'source_table, source_id');
+        $addIndexIfNeeded($db, 'ecritures_comptables', 'idx_ecritures_compte', 'compte_comptable_id');
+        $addIndexIfNeeded($db, 'ecritures_comptables', 'idx_ecritures_exercice', 'exercice_comptable_id');
+        echo "Migration 05: Performance indexes checked/added successfully.\n";
     }
 }
