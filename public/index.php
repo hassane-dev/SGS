@@ -240,6 +240,27 @@ $router->register('/comptes-financiers/edit/{id}', 'CompteFinancierController', 
 $router->register('/comptes-financiers/update', 'CompteFinancierController', 'update');
 $router->register('/comptes-financiers/destroy/{id}', 'CompteFinancierController', 'destroy');
 
+// Gestion des Achats & Fournisseurs (Phase 7)
+$router->register('/achats/fournisseurs', 'AchatController', 'listFournisseurs');
+$router->register('/achats/fournisseurs/create', 'AchatController', 'createFournisseur');
+$router->register('/achats/fournisseurs/show', 'AchatController', 'showFournisseur');
+$router->register('/achats/categories', 'AchatController', 'listCategories');
+$router->register('/achats/categories/create', 'AchatController', 'createCategory');
+$router->register('/achats/articles', 'AchatController', 'listArticles');
+$router->register('/achats/articles/create', 'AchatController', 'createArticle');
+$router->register('/achats/demandes', 'AchatController', 'listDemandes');
+$router->register('/achats/demandes/create', 'AchatController', 'createDemande');
+$router->register('/achats/demandes/approve', 'AchatController', 'approveDemande');
+$router->register('/achats/commandes', 'AchatController', 'listCommandes');
+$router->register('/achats/commandes/create', 'AchatController', 'createCommande');
+$router->register('/achats/commandes/show', 'AchatController', 'showCommande');
+$router->register('/achats/receptions', 'AchatController', 'listReceptions');
+$router->register('/achats/receptions/create', 'AchatController', 'createReception');
+$router->register('/achats/factures', 'AchatController', 'listFactures');
+$router->register('/achats/factures/rapprochement', 'AchatController', 'matchFacture');
+$router->register('/achats/factures/pay', 'AchatController', 'payFacture');
+$router->register('/achats/avoirs/create', 'AchatController', 'createAvoir');
+
 // Politique Financière, Contrôle, Journal & Rapports (Phase 1 Integration)
 $router->register('/finance/policy/edit', 'FinancePolicyController', 'edit');
 $router->register('/finance/policy/update', 'FinancePolicyController', 'update');

@@ -29,7 +29,25 @@ function run_test() {
         $perm_id_stmt = $db->prepare("SELECT id_permission FROM permissions WHERE resource = 'user' AND action = 'view_all'");
         $perm_id_stmt->execute();
         $perm_id = $perm_id_stmt->fetchColumn();
-        if (!$perm_id) throw new Exception("Permission 'user_view_all' not found. Seeds might be outdated.");
+        if (!$perm_id) {
+            $db->exec("DELETE FROM role_permissions");
+            $db->exec("DELETE FROM permissions");
+            $db->exec("DELETE FROM roles");
+            $db->exec("DELETE FROM cycles");
+            $db->exec("DELETE FROM type_contrat");
+
+            $seed_sql = file_get_contents(__DIR__ . '/../db/seeds.sql');
+            if ($seed_sql) {
+                if ($db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+                    $seed_sql = preg_replace('/ON DUPLICATE KEY UPDATE[^;]+;/i', ';', $seed_sql);
+                    $seed_sql = str_replace("\\'", "''", $seed_sql);
+                }
+                $db->exec($seed_sql);
+            }
+            $perm_id_stmt->execute();
+            $perm_id = $perm_id_stmt->fetchColumn();
+            if (!$perm_id) throw new Exception("Permission 'user_view_all' not found. Seeds might be outdated.");
+        }
 
         Role::setPermissions($role_id, [$perm_id]);
 

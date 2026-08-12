@@ -81,7 +81,8 @@ class ComptabiliteService {
             ['JR', 'Journal des Recettes de scolarité', 'ventes', 3],
             ['JD', 'Journal des Dépenses', 'achats', 4],
             ['JS', 'Journal des Salaires', 'generaux', 5],
-            ['JO', 'Journal des Opérations Diverses (OD)', 'generaux', 6]
+            ['JO', 'Journal des Opérations Diverses (OD)', 'generaux', 6],
+            ['JA', 'Journal d\'Achats', 'achats', 7]
         ];
 
         $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);

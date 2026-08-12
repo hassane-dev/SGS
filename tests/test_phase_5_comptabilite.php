@@ -386,7 +386,7 @@ try {
 
     $stmt_j = $pdo->query("SELECT COUNT(*) FROM journaux_comptables WHERE lycee_id = 1");
     $journals_count = (int)$stmt_j->fetchColumn();
-    assert_test($journals_count === 6, "6 Journaux comptables auxiliaires initialisés (JC, JB, JR, JD, JS, JO).");
+    assert_test($journals_count === 7, "7 Journaux comptables auxiliaires initialisés (JC, JB, JR, JD, JS, JO, JA).");
 
     // Inject mock user details & global roles
     $_SESSION['user'] = [
