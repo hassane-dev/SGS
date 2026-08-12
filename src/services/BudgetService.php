@@ -27,9 +27,9 @@ class BudgetService {
     }
 
     /**
-     * Reserve a budget amount for a given expense
+     * Reserve a budget amount for a given expense or a polymorphic source
      */
-    public static function reserve($depenseId, $amount, $ligneId) {
+    public static function reserve($depenseId, $amount, $ligneId, $sourceType = null, $sourceId = null) {
         $db = Database::getInstance();
         $inTransaction = $db->inTransaction();
         if (!$inTransaction) {
@@ -56,16 +56,19 @@ class BudgetService {
                 'depense_id' => $depenseId,
                 'budget_ligne_id' => $ligneId,
                 'montant' => $amount,
-                'statut' => 'reserve'
+                'statut' => 'reserve',
+                'source_type' => $sourceType,
+                'source_id' => $sourceId
             ]);
 
             // Recompute / Update Ligne Balances
             self::recomputeLigneBalances($ligneId);
 
+            $label = $depenseId ? "dépense ID: $depenseId" : "source $sourceType ID: $sourceId";
             BudgetHistorique::log(
                 $db->query("SELECT lycee_id FROM budgets WHERE id = " . $ligne['budget_id'])->fetchColumn(),
                 'BudgetExceeded', // Just general event or BudgetReserved
-                "Réservation budgétaire de $amount pour la dépense ID: $depenseId sur la ligne ID: $ligneId.",
+                "Réservation budgétaire de $amount pour $label sur la ligne ID: $ligneId.",
                 $_SESSION['user']['id_user'] ?? 1
             );
 
@@ -84,7 +87,7 @@ class BudgetService {
     /**
      * Confirm/Promote the reservation to 'engage' state on approval
      */
-    public static function engage($depenseId) {
+    public static function engage($depenseId, $sourceType = null, $sourceId = null) {
         $db = Database::getInstance();
         $inTransaction = $db->inTransaction();
         if (!$inTransaction) {
@@ -92,7 +95,12 @@ class BudgetService {
         }
 
         try {
-            $engagement = BudgetEngagement::findByDepense($depenseId);
+            if ($sourceType !== null && $sourceId !== null) {
+                $engagement = BudgetEngagement::findBySource($sourceType, $sourceId);
+            } else {
+                $engagement = BudgetEngagement::findByDepense($depenseId);
+            }
+
             if (!$engagement) {
                 // If budget checking is bypassed/not set, just succeed silently
                 if (!$inTransaction) { $db->commit(); }
@@ -121,7 +129,7 @@ class BudgetService {
     /**
      * Consume the budget when an expense is paid
      */
-    public static function consume($depenseId) {
+    public static function consume($depenseId, $sourceType = null, $sourceId = null) {
         $db = Database::getInstance();
         $inTransaction = $db->inTransaction();
         if (!$inTransaction) {
@@ -129,7 +137,12 @@ class BudgetService {
         }
 
         try {
-            $engagement = BudgetEngagement::findByDepense($depenseId);
+            if ($sourceType !== null && $sourceId !== null) {
+                $engagement = BudgetEngagement::findBySource($sourceType, $sourceId);
+            } else {
+                $engagement = BudgetEngagement::findByDepense($depenseId);
+            }
+
             if (!$engagement) {
                 if (!$inTransaction) { $db->commit(); }
                 return true;
@@ -157,7 +170,7 @@ class BudgetService {
     /**
      * Release the budget reservation/engagement when an expense is rejected
      */
-    public static function release($depenseId) {
+    public static function release($depenseId, $sourceType = null, $sourceId = null) {
         $db = Database::getInstance();
         $inTransaction = $db->inTransaction();
         if (!$inTransaction) {
@@ -165,7 +178,12 @@ class BudgetService {
         }
 
         try {
-            $engagement = BudgetEngagement::findByDepense($depenseId);
+            if ($sourceType !== null && $sourceId !== null) {
+                $engagement = BudgetEngagement::findBySource($sourceType, $sourceId);
+            } else {
+                $engagement = BudgetEngagement::findByDepense($depenseId);
+            }
+
             if (!$engagement) {
                 if (!$inTransaction) { $db->commit(); }
                 return true;
@@ -193,7 +211,7 @@ class BudgetService {
     /**
      * Restore/revert consumption when a paid expense is cancelled (against-passation)
      */
-    public static function restore($depenseId) {
+    public static function restore($depenseId, $sourceType = null, $sourceId = null) {
         $db = Database::getInstance();
         $inTransaction = $db->inTransaction();
         if (!$inTransaction) {
@@ -201,7 +219,12 @@ class BudgetService {
         }
 
         try {
-            $engagement = BudgetEngagement::findByDepense($depenseId);
+            if ($sourceType !== null && $sourceId !== null) {
+                $engagement = BudgetEngagement::findBySource($sourceType, $sourceId);
+            } else {
+                $engagement = BudgetEngagement::findByDepense($depenseId);
+            }
+
             if (!$engagement) {
                 if (!$inTransaction) { $db->commit(); }
                 return true;
