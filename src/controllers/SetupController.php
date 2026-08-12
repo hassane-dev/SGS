@@ -96,6 +96,7 @@ class SetupController {
             if ($seed_sql) {
                 if ($db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
                     $seed_sql = preg_replace('/ON DUPLICATE KEY UPDATE[^;]+;/i', ';', $seed_sql);
+                    $seed_sql = str_replace("\\'", "''", $seed_sql);
                 }
                 $db->exec($seed_sql);
             }
