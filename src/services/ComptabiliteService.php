@@ -126,7 +126,7 @@ class ComptabiliteService {
             ['salaire', '661000', '571000', 'Paiement salaire - Mois {ref}', 'JS'],
             ['ecart_positif', '571000', '771000', 'Régularisation écart caisse positif - Session {ref}', 'JO'],
             ['ecart_negatif', '671000', '571000', 'Régularisation écart caisse négatif - Session {ref}', 'JO'],
-            ['remise_coffre', '', '', 'Remise de fonds au Coffre Principal - Session N°{ref}', 'JO']
+            ['remise_coffre', '571100', '571200', 'Remise de fonds au Coffre Principal - Session N°{ref}', 'JO']
         ];
 
         $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
