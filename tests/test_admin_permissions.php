@@ -23,28 +23,20 @@ function run_test() {
 
     try {
         // Clean up previous test data
-        $db->exec("DELETE FROM role_permissions");
-        $db->exec("DELETE FROM permissions");
-        $db->exec("DELETE FROM roles");
-        $db->exec("DELETE FROM cycles");
-        $db->exec("DELETE FROM type_contrat");
+        $db->exec("DELETE FROM role_permissions WHERE role_id > 8");
         $db->exec("DELETE FROM utilisateurs");
+        $db->exec("DELETE FROM roles WHERE lycee_id IS NOT NULL");
         $db->exec("DELETE FROM param_lycee");
         $db->exec("DELETE FROM annees_academiques");
         $db->exec("DELETE FROM param_general");
+
 
         // 1. Create the Lycee
         $lycee_id = Lycee::save(['nom_lycee' => 'Test Lycee', 'type_lycee' => 'prive']);
 
         // 2. Seed the database (we assume this is already done, but we need the roles)
         $seed_sql = file_get_contents(__DIR__ . '/../db/seeds.sql');
-        if ($seed_sql) {
-            if ($db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
-                $seed_sql = preg_replace('/ON DUPLICATE KEY UPDATE[^;]+;/i', ';', $seed_sql);
-                $seed_sql = str_replace("\\'", "''", $seed_sql);
-            }
-            $db->exec($seed_sql);
-        }
+        if ($seed_sql) $db->exec($seed_sql);
 
         // 3. Create a specific admin role for this Lycee
         Role::save(['nom_role' => 'Admin - Test Lycee', 'lycee_id' => $lycee_id]);
