@@ -44,7 +44,7 @@ function migrate_07($db) {
             telephone VARCHAR(50) NULL,
             email VARCHAR(255) NULL,
             contact_nom VARCHAR(150) NULL,
-            compte_comptable_tiers VARCHAR(20) NOT NULL DEFAULT '401100',
+            compte_comptable_tiers VARCHAR(20) DEFAULT NULL,
             actif TINYINT(1) DEFAULT 1,
             cree_par INT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -63,7 +63,7 @@ function migrate_07($db) {
             telephone VARCHAR(50) NULL,
             email VARCHAR(255) NULL,
             contact_nom VARCHAR(150) NULL,
-            compte_comptable_tiers VARCHAR(20) NOT NULL DEFAULT '401100',
+            compte_comptable_tiers VARCHAR(20) DEFAULT NULL,
             actif TINYINT(1) DEFAULT 1,
             cree_par INTEGER,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -528,46 +528,42 @@ function migrate_07($db) {
         ]);
     }
 
-    // Map Phase 7 permissions to roles dynamically based on current configuration
+    // Map Phase 7 permissions to roles dynamically based on role name (RBAC Compliance)
     $insert_ignore_keyword = $isSqlite ? 'INSERT OR IGNORE' : 'INSERT IGNORE';
 
-    // Map permissions to Super Admin (1, 2)
+    // Map permissions to Super Admin
     $db->exec("
         {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
         SELECT r.id_role, p.id_permission
         FROM roles r, permissions p
-        WHERE r.id_role IN (1, 2)
+        WHERE r.nom_role IN ('super_admin_createur', 'super_admin_national')
         AND p.resource IN ('fournisseur', 'achat_categorie', 'achat_article', 'achat_demande', 'achat_commande', 'achat_reception', 'achat_facture', 'achat_avoir')
     ");
 
-    // Map permissions to Local Admin (3)
+    // Map permissions to Local Admin
     $db->exec("
         {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
         SELECT r.id_role, p.id_permission
         FROM roles r, permissions p
-        WHERE r.id_role = 3
-        AND (
-            p.resource IN ('fournisseur', 'achat_categorie', 'achat_article', 'achat_demande', 'achat_commande', 'achat_reception', 'achat_facture', 'achat_avoir')
-        )
+        WHERE r.nom_role = 'admin_local'
+        AND p.resource IN ('fournisseur', 'achat_categorie', 'achat_article', 'achat_demande', 'achat_commande', 'achat_reception', 'achat_facture', 'achat_avoir')
     ");
 
-    // Map permissions to Chef Comptable (9)
+    // Map permissions to Chef Comptable
     $db->exec("
         {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
         SELECT r.id_role, p.id_permission
         FROM roles r, permissions p
-        WHERE r.id_role = 9
-        AND (
-            p.resource IN ('fournisseur', 'achat_categorie', 'achat_article', 'achat_demande', 'achat_commande', 'achat_reception', 'achat_facture', 'achat_avoir')
-        )
+        WHERE r.nom_role = 'chef_comptable'
+        AND p.resource IN ('fournisseur', 'achat_categorie', 'achat_article', 'achat_demande', 'achat_commande', 'achat_reception', 'achat_facture', 'achat_avoir')
     ");
 
-    // Map permissions to Comptable (7)
+    // Map permissions to Comptable
     $db->exec("
         {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
         SELECT r.id_role, p.id_permission
         FROM roles r, permissions p
-        WHERE r.id_role = 7
+        WHERE r.nom_role = 'comptable'
         AND (
             (p.resource = 'fournisseur' AND p.action = 'view') OR
             (p.resource = 'achat_article' AND p.action = 'view') OR
@@ -579,12 +575,12 @@ function migrate_07($db) {
         )
     ");
 
-    // Map permissions to Caissier (10)
+    // Map permissions to Caissier
     $db->exec("
         {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
         SELECT r.id_role, p.id_permission
         FROM roles r, permissions p
-        WHERE r.id_role = 10
+        WHERE r.nom_role = 'caissier'
         AND (
             (p.resource = 'fournisseur' AND p.action = 'view') OR
             (p.resource = 'achat_facture' AND p.action IN ('view', 'pay'))
@@ -627,3 +623,14 @@ function migrate_07($db) {
         echo "Error seeding schemas_comptables for Phase 7: " . $e->getMessage() . "\n";
     }
 }
+
+// Invoquer directement si executé à part
+if (basename(__FILE__) === basename($_SERVER['SCRIPT_FILENAME'])) {
+    require_once __DIR__ . '/../../src/config/database.php';
+    try {
+        migrate_07(Database::getInstance());
+    } catch (Exception $e) {
+        echo "Error: " . $e->getMessage() . "\n";
+    }
+}
+?>
