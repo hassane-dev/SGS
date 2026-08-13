@@ -374,6 +374,13 @@ $navItems = [
         'condition' => Auth::can('view_reports', 'finance'),
     ],
     [
+        'url' => '/reporting',
+        'icon' => 'ph-duotone ph-chart-line-up',
+        'text' => _('Reporting Décisionnel'),
+        'title' => _('Cockpit décisionnel de pilotage stratégique et prévisions.'),
+        'condition' => Auth::can('view', 'reporting'),
+    ],
+    [
         'url' => '/salaires',
         'icon' => 'ph-duotone ph-wallet',
         'text' => _('Salaires'),
