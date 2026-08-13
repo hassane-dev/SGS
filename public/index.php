@@ -244,10 +244,17 @@ $router->register('/comptes-financiers/destroy/{id}', 'CompteFinancierController
 $router->register('/achats/fournisseurs', 'AchatController', 'listFournisseurs');
 $router->register('/achats/fournisseurs/create', 'AchatController', 'createFournisseur');
 $router->register('/achats/fournisseurs/show', 'AchatController', 'showFournisseur');
+$router->register('/achats/fournisseurs/edit', 'AchatController', 'editFournisseur');
+$router->register('/achats/fournisseurs/toggle', 'AchatController', 'toggleFournisseur');
+$router->register('/achats/fournisseurs/delete', 'AchatController', 'deleteFournisseur');
 $router->register('/achats/categories', 'AchatController', 'listCategories');
 $router->register('/achats/categories/create', 'AchatController', 'createCategory');
+$router->register('/achats/categories/edit', 'AchatController', 'editCategory');
+$router->register('/achats/categories/delete', 'AchatController', 'deleteCategory');
 $router->register('/achats/articles', 'AchatController', 'listArticles');
 $router->register('/achats/articles/create', 'AchatController', 'createArticle');
+$router->register('/achats/articles/edit', 'AchatController', 'editArticle');
+$router->register('/achats/articles/delete', 'AchatController', 'deleteArticle');
 $router->register('/achats/demandes', 'AchatController', 'listDemandes');
 $router->register('/achats/demandes/create', 'AchatController', 'createDemande');
 $router->register('/achats/demandes/approve', 'AchatController', 'approveDemande');
@@ -256,6 +263,7 @@ $router->register('/achats/commandes/create', 'AchatController', 'createCommande
 $router->register('/achats/commandes/show', 'AchatController', 'showCommande');
 $router->register('/achats/receptions', 'AchatController', 'listReceptions');
 $router->register('/achats/receptions/create', 'AchatController', 'createReception');
+$router->register('/achats/receptions/show', 'AchatController', 'showReception');
 $router->register('/achats/factures', 'AchatController', 'listFactures');
 $router->register('/achats/factures/rapprochement', 'AchatController', 'matchFacture');
 $router->register('/achats/factures/pay', 'AchatController', 'payFacture');

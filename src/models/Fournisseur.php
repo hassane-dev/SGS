@@ -112,5 +112,42 @@ class Fournisseur {
         $stmt = $db->prepare("DELETE FROM fournisseurs WHERE id = :id");
         return $stmt->execute(['id' => $id]);
     }
+
+    public static function getMetrics($id) {
+        $db = Database::getInstance();
+
+        // Total Invoiced
+        $stmt_inv = $db->prepare("SELECT SUM(montant_ttc) FROM achat_factures WHERE fournisseur_id = :id");
+        $stmt_inv->execute(['id' => $id]);
+        $totalInvoiced = (float)$stmt_inv->fetchColumn();
+
+        // Total Paid
+        $stmt_paid = $db->prepare("
+            SELECT SUM(r.montant_alloue)
+            FROM achat_facture_reglements r
+            INNER JOIN achat_factures f ON r.facture_id = f.id
+            WHERE f.fournisseur_id = :id
+        ");
+        $stmt_paid->execute(['id' => $id]);
+        $totalPaid = (float)$stmt_paid->fetchColumn();
+
+        // Total Avoirs
+        $stmt_av = $db->prepare("
+            SELECT SUM(montant_ttc)
+            FROM achat_avoirs_fournisseurs
+            WHERE fournisseur_id = :id AND statut = 'valide'
+        ");
+        $stmt_av->execute(['id' => $id]);
+        $totalAvoirs = (float)$stmt_av->fetchColumn();
+
+        $reste = max(0.00, round($totalInvoiced - ($totalPaid + $totalAvoirs), 2));
+
+        return [
+            'total_facture' => $totalInvoiced,
+            'total_paye' => $totalPaid,
+            'total_avoir' => $totalAvoirs,
+            'reste_a_payer' => $reste
+        ];
+    }
 }
 ?>
