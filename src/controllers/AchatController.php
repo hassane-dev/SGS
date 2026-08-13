@@ -106,10 +106,92 @@ class AchatController {
 
         $this->enforceLyceeScope($fournisseur);
 
+        // Fetch supplier metrics
+        $metrics = Fournisseur::getMetrics($id);
+
+        // Fetch orders and invoices for this supplier
+        $db = Database::getInstance();
+        $stmt_orders = $db->prepare("SELECT * FROM achat_commandes WHERE fournisseur_id = :id ORDER BY date_commande DESC");
+        $stmt_orders->execute(['id' => $id]);
+        $orders = $stmt_orders->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmt_invoices = $db->prepare("SELECT * FROM achat_factures WHERE fournisseur_id = :id ORDER BY date_facture DESC");
+        $stmt_invoices->execute(['id' => $id]);
+        $invoices = $stmt_invoices->fetchAll(PDO::FETCH_ASSOC);
+
         View::render('achats/fournisseurs/show', [
             'fournisseur' => $fournisseur,
+            'metrics' => $metrics,
+            'orders' => $orders,
+            'invoices' => $invoices,
             'title' => _("Fiche Fournisseur")
         ]);
+    }
+
+    public function editFournisseur() {
+        $this->checkAccess('manage', 'fournisseur');
+        $id = $_GET['id'] ?? null;
+        $fournisseur = Fournisseur::findById($id);
+
+        $this->enforceLyceeScope($fournisseur);
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                Fournisseur::update($id, [
+                    'raison_sociale' => trim($_POST['raison_sociale'] ?? ''),
+                    'nif' => trim($_POST['nif'] ?? null),
+                    'rccm' => trim($_POST['rccm'] ?? null),
+                    'adresse' => trim($_POST['adresse'] ?? null),
+                    'telephone' => trim($_POST['telephone'] ?? null),
+                    'email' => trim($_POST['email'] ?? null),
+                    'contact_nom' => trim($_POST['contact_nom'] ?? null),
+                    'compte_comptable_tiers' => !empty($_POST['compte_comptable_tiers']) ? trim($_POST['compte_comptable_tiers']) : null,
+                    'actif' => isset($_POST['actif']) ? 1 : 0
+                ]);
+                $_SESSION['success_message'] = _("Fournisseur mis à jour avec succès.");
+                $this->redirect('/achats/fournisseurs');
+            } catch (Exception $e) {
+                $_SESSION['error_message'] = $e->getMessage();
+            }
+        }
+
+        View::render('achats/fournisseurs/edit', [
+            'fournisseur' => $fournisseur,
+            'title' => _("Modifier le Fournisseur")
+        ]);
+    }
+
+    public function toggleFournisseur() {
+        $this->checkAccess('manage', 'fournisseur');
+        $id = $_GET['id'] ?? null;
+        $fournisseur = Fournisseur::findById($id);
+
+        $this->enforceLyceeScope($fournisseur);
+
+        try {
+            $newActif = $fournisseur['actif'] ? 0 : 1;
+            Fournisseur::update($id, ['actif' => $newActif]);
+            $_SESSION['success_message'] = $newActif ? _("Fournisseur activé avec succès.") : _("Fournisseur désactivé avec succès.");
+        } catch (Exception $e) {
+            $_SESSION['error_message'] = $e->getMessage();
+        }
+        $this->redirect('/achats/fournisseurs');
+    }
+
+    public function deleteFournisseur() {
+        $this->checkAccess('manage', 'fournisseur');
+        $id = $_GET['id'] ?? null;
+        $fournisseur = Fournisseur::findById($id);
+
+        $this->enforceLyceeScope($fournisseur);
+
+        try {
+            Fournisseur::delete($id);
+            $_SESSION['success_message'] = _("Fournisseur supprimé ou désactivé avec succès.");
+        } catch (Exception $e) {
+            $_SESSION['error_message'] = $e->getMessage();
+        }
+        $this->redirect('/achats/fournisseurs');
     }
 
     // --- CATEGORIES ---
@@ -144,6 +226,49 @@ class AchatController {
         View::render('achats/categories/create', [
             'title' => _("Créer une Catégorie")
         ]);
+    }
+
+    public function editCategory() {
+        $this->checkAccess('manage', 'achat_categorie');
+        $id = $_GET['id'] ?? null;
+        $category = AchatCategorie::findById($id);
+
+        if (!$category) {
+            $_SESSION['error_message'] = _("Catégorie introuvable.");
+            $this->redirect('/achats/categories');
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                AchatCategorie::update($id, [
+                    'libelle' => trim($_POST['libelle'] ?? ''),
+                    'compte_comptable_charge' => trim($_POST['compte_comptable_charge'] ?? ''),
+                    'actif' => isset($_POST['actif']) ? 1 : 0
+                ]);
+                $_SESSION['success_message'] = _("Catégorie mise à jour avec succès.");
+                $this->redirect('/achats/categories');
+            } catch (Exception $e) {
+                $_SESSION['error_message'] = $e->getMessage();
+            }
+        }
+
+        View::render('achats/categories/edit', [
+            'category' => $category,
+            'title' => _("Modifier la Catégorie")
+        ]);
+    }
+
+    public function deleteCategory() {
+        $this->checkAccess('manage', 'achat_categorie');
+        $id = $_GET['id'] ?? null;
+
+        try {
+            AchatCategorie::delete($id);
+            $_SESSION['success_message'] = _("Catégorie supprimée ou désactivée avec succès.");
+        } catch (Exception $e) {
+            $_SESSION['error_message'] = $e->getMessage();
+        }
+        $this->redirect('/achats/categories');
     }
 
     // --- ARTICLES ---
@@ -184,6 +309,54 @@ class AchatController {
             'categories' => $categories,
             'title' => _("Ajouter un Article")
         ]);
+    }
+
+    public function editArticle() {
+        $this->checkAccess('manage', 'achat_article');
+        $id = $_GET['id'] ?? null;
+        $article = AchatArticle::findById($id);
+
+        if (!$article) {
+            $_SESSION['error_message'] = _("Article introuvable.");
+            $this->redirect('/achats/articles');
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                AchatArticle::update($id, [
+                    'categorie_id' => $_POST['categorie_id'],
+                    'libelle' => trim($_POST['libelle'] ?? ''),
+                    'unite_mesure' => trim($_POST['unite_mesure'] ?? ''),
+                    'prix_unitaire_estime' => (float)$_POST['prix_unitaire_estime'],
+                    'is_service' => isset($_POST['is_service']) ? 1 : 0,
+                    'actif' => isset($_POST['actif']) ? 1 : 0
+                ]);
+                $_SESSION['success_message'] = _("Article mis à jour avec succès.");
+                $this->redirect('/achats/articles');
+            } catch (Exception $e) {
+                $_SESSION['error_message'] = $e->getMessage();
+            }
+        }
+
+        $categories = AchatCategorie::findActive();
+        View::render('achats/articles/edit', [
+            'article' => $article,
+            'categories' => $categories,
+            'title' => _("Modifier l'Article")
+        ]);
+    }
+
+    public function deleteArticle() {
+        $this->checkAccess('manage', 'achat_article');
+        $id = $_GET['id'] ?? null;
+
+        try {
+            AchatArticle::delete($id);
+            $_SESSION['success_message'] = _("Article supprimé ou désactivé avec succès.");
+        } catch (Exception $e) {
+            $_SESSION['error_message'] = $e->getMessage();
+        }
+        $this->redirect('/achats/articles');
     }
 
     // --- DEMANDES D'ACHATS ---
@@ -393,6 +566,24 @@ class AchatController {
             'commande' => $commande,
             'lignes' => $lignes,
             'title' => _("Réceptionner la Commande")
+        ]);
+    }
+
+    public function showReception() {
+        $this->checkAccess('view', 'achat_reception');
+        $id = $_GET['id'] ?? null;
+        $reception = AchatReception::findById($id);
+
+        $this->enforceLyceeScope($reception);
+
+        $commande = AchatCommande::findById($reception['commande_id']);
+        $lignes = AchatReceptionLigne::findByReception($id);
+
+        View::render('achats/receptions/show', [
+            'reception' => $reception,
+            'commande' => $commande,
+            'lignes' => $lignes,
+            'title' => _("Bon de Réception")
         ]);
     }
 
