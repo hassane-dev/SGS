@@ -807,6 +807,60 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_07_create_achats_et_fournisseurs.php';
     migrate_07($db);
 
+    // --- PHASE 9 REPORTING DÉCISIONNEL ---
+    require_once __DIR__ . '/db/migrations/20240115_09_create_reporting_decisionnel.php';
+    migrate_09($db);
+
+    // Seed permissions for Phase 9
+    $phase9_perms = [
+        ['reporting', 'view', 'Consulter le tableau de bord décisionnel général'],
+        ['reporting', 'dashboard', 'Accéder au cockpit principal de décision'],
+        ['reporting', 'kpis', 'Consulter le catalogue détaillé des KPI et drill-down'],
+        ['reporting', 'analyse', 'Accéder aux analyses d\'évolution temporelle'],
+        ['reporting', 'comparaison', 'Accéder aux analyses comparatives multi-établissements'],
+        ['reporting', 'previsions', 'Consulter les projections de flux et prévisions financières'],
+        ['reporting', 'export', 'Exporter les données de reporting au format CSV/PDF'],
+        ['reporting', 'threshold_manage', 'Paramétrer les seuils d\'alertes des KPI'],
+        ['reporting', 'forecast_manage', 'Gérer les configurations et hypothèses de prévisions'],
+        ['reporting', 'snapshot_manage', 'Gérer manuellement la génération de snapshots analytiques'],
+        ['reporting', 'view_all_lycees', 'Permission spéciale d\'audit et d\'analyse transversale multi-établissements']
+    ];
+
+    foreach ($phase9_perms as $perm) {
+        $stmt_ins_perm->execute([
+            'resource' => $perm[0],
+            'action' => $perm[1],
+            'description' => $perm[2]
+        ]);
+    }
+
+    // Assign all Phase 9 permissions to Super Admins (1, 2), Admin Local (3), and Chef Comptable (9)
+    $db->exec("
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
+        SELECT r.id_role, p.id_permission
+        FROM roles r, permissions p
+        WHERE r.id_role IN (1, 2, 3, 9)
+        AND p.resource = 'reporting'
+    ");
+
+    // Assign viewing/export permissions to standard Comptable (7)
+    $db->exec("
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
+        SELECT 7, p.id_permission
+        FROM permissions p
+        WHERE p.resource = 'reporting' AND p.action IN ('view', 'dashboard', 'kpis', 'analyse', 'comparaison', 'previsions', 'export')
+    ");
+
+    // Explicitly restrict 'reporting.view_all_lycees' to global Super Admins (1, 2)
+    // First clear it from roles 3, 7, 9 just in case to avoid security leaks
+    $db->exec("
+        DELETE FROM role_permissions
+        WHERE role_id IN (3, 7, 9, 10)
+        AND permission_id IN (
+            SELECT id_permission FROM permissions WHERE resource = 'reporting' AND action = 'view_all_lycees'
+        )
+    ");
+
     echo "Migration successful\n";
 } catch (Exception $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";

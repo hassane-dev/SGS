@@ -279,6 +279,16 @@ $router->register('/grand-livre', 'JournalComptableController', 'grandLivre');
 $router->register('/balance', 'JournalComptableController', 'balance');
 $router->register('/reports/financial', 'RapportFinancierController', 'index');
 
+// Phase 9 - Reporting Décisionnel SGS
+$router->register('/reporting', 'ReportingController', 'dashboard');
+$router->register('/reporting/kpis', 'ReportingController', 'kpis');
+$router->register('/reporting/comparaison', 'ReportingController', 'comparaison');
+$router->register('/reporting/analyse', 'ReportingController', 'analyse');
+$router->register('/reporting/previsions', 'ReportingController', 'previsions');
+$router->register('/reporting/export', 'ReportingController', 'export');
+$router->register('/reporting/threshold/save', 'ReportingController', 'save_threshold');
+$router->register('/reporting/snapshot/save', 'ReportingController', 'generate_snapshot_manually');
+
 // Frais (Fee management)
 $router->register('/frais', 'FraisController', 'index');
 $router->register('/frais/create', 'FraisController', 'create');
