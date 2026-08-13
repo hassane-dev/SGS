@@ -803,6 +803,10 @@ try {
         echo "Error checking/creating index: " . $e->getMessage() . "\n";
     }
 
+    // --- PHASE 7 ACHATS ET FOURNISSEURS ---
+    require_once __DIR__ . '/db/migrations/20240115_07_create_achats_et_fournisseurs.php';
+    migrate_07($db);
+
     echo "Migration successful\n";
 } catch (Exception $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";

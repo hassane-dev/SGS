@@ -83,7 +83,7 @@ class AchatController {
                     'telephone' => trim($_POST['telephone'] ?? null),
                     'email' => trim($_POST['email'] ?? null),
                     'contact_nom' => trim($_POST['contact_nom'] ?? null),
-                    'compte_comptable_tiers' => trim($_POST['compte_comptable_tiers'] ?? '401100'),
+                    'compte_comptable_tiers' => !empty($_POST['compte_comptable_tiers']) ? trim($_POST['compte_comptable_tiers']) : null,
                     'actif' => 1,
                     'cree_par' => Auth::getUserId()
                 ]);
