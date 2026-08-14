@@ -42,6 +42,10 @@ try {
     addColumnIfNeeded($db, 'param_lycee', 'signature_directeur', 'TEXT');
     addColumnIfNeeded($db, 'param_lycee', 'tampon_ecole', 'TEXT');
 
+    // Update cycles and utilisateurs for Phase 10
+    addColumnIfNeeded($db, 'cycles', 'lycee_id', 'INT DEFAULT NULL');
+    addColumnIfNeeded($db, 'utilisateurs', 'auth_version', 'INT DEFAULT 1');
+
     $tableExists = function($db, $table) use ($isSqlite) {
         if ($isSqlite) {
             $stmt = $db->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=:name");
@@ -810,6 +814,10 @@ try {
     // --- PHASE 9 REPORTING DÉCISIONNEL ---
     require_once __DIR__ . '/db/migrations/20240115_09_create_reporting_decisionnel.php';
     migrate_09($db);
+
+    // --- PHASE 10 ISOLATION PAR CYCLE & SCOPES ---
+    require_once __DIR__ . '/db/migrations/20240115_10_create_personnel_cycles.php';
+    migrate_10($db);
 
     // Seed permissions for Phase 9
     $phase9_perms = [

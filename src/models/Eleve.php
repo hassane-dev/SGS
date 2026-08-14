@@ -28,8 +28,21 @@ class Eleve {
         }
 
         if (!empty($filters['cycle_id'])) {
+            if (Auth::check()) {
+                Auth::assertAccessToObject($filters['lycee_id'] ?? null, $filters['cycle_id']);
+            }
             $sql .= " AND c.cycle_id = :cycle_id";
             $params['cycle_id'] = $filters['cycle_id'];
+        } else {
+            // Apply automatic scope filtering for restricted users (Deny by default)
+            if (Auth::check() && !Auth::can('view_all_lycees', 'lycee') && !Auth::can('view_all_cycles', 'cycle')) {
+                $allowed_cycles = Auth::getAuthorizedCycleIds();
+                if (empty($allowed_cycles)) {
+                    $sql .= " AND 1 = 0";
+                } else {
+                    $sql .= " AND c.cycle_id IN (" . implode(',', array_map('intval', $allowed_cycles)) . ")";
+                }
+            }
         }
 
         if (!empty($filters['niveau'])) {
@@ -56,7 +69,14 @@ class Eleve {
 
     public static function findById($id) {
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT *, identifiant_public AS matricule FROM eleves WHERE id_eleve = :id");
+        $stmt = $db->prepare("
+            SELECT e.*, e.identifiant_public AS matricule, c.cycle_id
+            FROM eleves e
+            LEFT JOIN etudes et ON e.id_eleve = et.eleve_id
+                AND et.annee_academique_id = (SELECT id FROM annees_academiques WHERE est_active = 1 LIMIT 1)
+            LEFT JOIN classes c ON et.classe_id = c.id_classe
+            WHERE e.id_eleve = :id
+        ");
         $stmt->execute(['id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }

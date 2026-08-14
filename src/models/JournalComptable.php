@@ -40,6 +40,10 @@ class JournalComptable {
      * @return array
      */
     public static function findAll($lycee_id, $filters = []) {
+        if (is_array($lycee_id)) {
+            $filters = $lycee_id;
+            $lycee_id = $filters['lycee_id'] ?? Auth::getLyceeId();
+        }
         $db = Database::getInstance();
 
         $sql = "
@@ -63,8 +67,21 @@ class JournalComptable {
             $params['annee_academique_id'] = $filters['annee_academique_id'];
         }
         if (!empty($filters['cycle_id'])) {
+            if (Auth::check()) {
+                Auth::assertAccessToObject($lycee_id, $filters['cycle_id']);
+            }
             $sql .= " AND c.cycle_id = :cycle_id";
             $params['cycle_id'] = $filters['cycle_id'];
+        } else {
+            // Apply automatic scope filtering for restricted users (Deny by default)
+            if (Auth::check() && !Auth::can('view_all_lycees', 'lycee') && !Auth::can('view_all_cycles', 'cycle')) {
+                $allowed_cycles = Auth::getAuthorizedCycleIds();
+                if (empty($allowed_cycles)) {
+                    $sql .= " AND 1 = 0";
+                } else {
+                    $sql .= " AND c.cycle_id IN (" . implode(',', array_map('intval', $allowed_cycles)) . ")";
+                }
+            }
         }
         if (!empty($filters['niveau'])) {
             $sql .= " AND c.niveau = :niveau";

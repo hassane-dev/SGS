@@ -176,5 +176,15 @@ class Auth {
         self::startSession();
         return $_SESSION['user']['id'] ?? null;
     }
+
+    public static function getAuthorizedCycleIds() {
+        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+        return AuthorizationScopeService::getAuthorizedCycleIds();
+    }
+
+    public static function assertAccessToObject($resource_lycee_id, $resource_cycle_id = null) {
+        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+        AuthorizationScopeService::assertAccessToObject($resource_lycee_id, $resource_cycle_id);
+    }
 }
 ?>
