@@ -34,12 +34,12 @@ class PersonnelContractService {
             JOIN type_contrat tc ON pch.type_contrat_id = tc.id_contrat
             WHERE pch.personnel_id = :personnel_id
               AND pch.statut_contrat = 'actif'
-              AND pch.date_debut <= :today
-              AND (pch.date_fin IS NULL OR pch.date_fin >= :today)
+              AND pch.date_debut <= :today_start
+              AND (pch.date_fin IS NULL OR pch.date_fin >= :today_end)
             ORDER BY pch.date_debut DESC
             LIMIT 1
         ");
-        $stmt->execute(['personnel_id' => $personnel_id, 'today' => $today]);
+        $stmt->execute(['personnel_id' => $personnel_id, 'today_start' => $today, 'today_end' => $today]);
         $res = $stmt->fetch(PDO::FETCH_ASSOC);
         return $res ?: null;
     }
