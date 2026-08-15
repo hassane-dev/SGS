@@ -819,6 +819,60 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_10_create_personnel_cycles.php';
     migrate_10($db);
 
+    // --- PHASE DRH - DIRECTION DES RESSOURCES HUMAINES ---
+    require_once __DIR__ . '/db/migrations/20240115_11_create_drh_module.php';
+    migrate_11($db);
+
+    // Seed permissions for DRH
+    $drh_perms = [
+        ['drh', 'view_all', 'Consulter le registre général du personnel RH'],
+        ['drh', 'view_one', 'Consulter la fiche 360° d\'un membre du personnel'],
+        ['drh', 'create', 'Créer un nouveau membre du personnel'],
+        ['drh', 'edit', 'Modifier les informations du personnel'],
+        ['drh', 'delete', 'Archiver ou réactiver un compte personnel'],
+        ['drh', 'manage_affectations', 'Gérer les affectations par lycée et par cycle'],
+        ['drh', 'manage_contrats', 'Gérer les contrats et éléments contractuels de rémunération'],
+        ['drh', 'manage_statut', 'Gérer les statuts RH (congés, suspensions, départs)'],
+        ['drh', 'manage_documents', 'Téléverser et gérer les pièces jointes du personnel'],
+        ['drh', 'view_sensitive', 'Consulter les données RH confidentielles (CNSS, contrats, salaires)'],
+        ['drh', 'export', 'Exporter le registre et les rapports du personnel'],
+        ['drh', 'view_history', 'Consulter l\'historique d\'audit des mouvements RH']
+    ];
+
+    foreach ($drh_perms as $perm) {
+        $stmt_ins_perm->execute([
+            'resource' => $perm[0],
+            'action' => $perm[1],
+            'description' => $perm[2]
+        ]);
+    }
+
+    // Assign all DRH permissions to Super Admins (1, 2) and Admin Local (3)
+    $db->exec("
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
+        SELECT r.id_role, p.id_permission
+        FROM roles r, permissions p
+        WHERE r.id_role IN (1, 2, 3)
+        AND p.resource = 'drh'
+    ");
+
+    // Assign view_all, view_one to Censeur (4), Chef Comptable (9)
+    $db->exec("
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
+        SELECT r.id_role, p.id_permission
+        FROM roles r, permissions p
+        WHERE r.id_role IN (4, 9)
+        AND p.resource = 'drh' AND p.action IN ('view_all', 'view_one', 'view_history')
+    ");
+
+    // Assign view_sensitive, manage_contrats to Chef Comptable (9)
+    $db->exec("
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
+        SELECT 9, p.id_permission
+        FROM permissions p
+        WHERE p.resource = 'drh' AND p.action IN ('view_sensitive', 'manage_contrats')
+    ");
+
     // Seed permissions for Phase 9
     $phase9_perms = [
         ['reporting', 'view', 'Consulter le tableau de bord décisionnel général'],

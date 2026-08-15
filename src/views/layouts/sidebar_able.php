@@ -13,6 +13,25 @@ $navItems = [
         'condition' => Auth::check(),
     ],
     [
+        'label' => _('Ressources Humaines'),
+        'is_caption' => true,
+        'condition' => Auth::can('view_all', 'drh') || Auth::can('create', 'drh'),
+    ],
+    [
+        'url' => '/drh/dashboard',
+        'icon' => 'ph-duotone ph-chart-pie-slice',
+        'text' => _('Cockpit DRH'),
+        'title' => _('Affiche le tableau de bord des ressources humaines.'),
+        'condition' => Auth::can('view_all', 'drh'),
+    ],
+    [
+        'url' => '/drh',
+        'icon' => 'ph-duotone ph-users-three',
+        'text' => _('Annuaire DRH'),
+        'title' => _('Gérer l\'annuaire centralisé 360° du personnel.'),
+        'condition' => Auth::can('view_all', 'drh'),
+    ],
+    [
         'label' => _('Gestion'),
         'is_caption' => true,
         'condition' => Auth::can('manage', 'user') || Auth::can('view', 'class') || Auth::can('view_all', 'role') || Auth::can('manage', 'inscription'),
@@ -20,8 +39,8 @@ $navItems = [
     [
         'url' => '/users',
         'icon' => 'ph-duotone ph-users',
-        'text' => _('Personnel'),
-        'title' => _('Gérer les membres du personnel, leurs rôles et leurs accès.'),
+        'text' => _('Comptes Utilisateurs'),
+        'title' => _('Gérer les identifiants et rôles des membres du personnel.'),
         'condition' => Auth::can('view_all', 'user'),
     ],
     [
