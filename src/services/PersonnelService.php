@@ -42,16 +42,20 @@ class PersonnelService {
         $where = ["u.lycee_id IN (" . implode(',', array_map('intval', $authorized_lycees)) . ")"];
 
         // Cycle filter
+        $isGlobalAdmin = Auth::can('view_all_lycees', 'lycee') || Auth::can('view_all_cycles', 'cycle');
+
         if (!empty($filters['cycle_id'])) {
             $cycle_id = (int)$filters['cycle_id'];
-            if (!in_array($cycle_id, $authorized_cycles)) {
+            if (!$isGlobalAdmin && !in_array($cycle_id, $authorized_cycles)) {
                 return []; // Requested cycle outside scope
             }
             $where[] = "pca.cycle_id = :filter_cycle_id";
             $params['filter_cycle_id'] = $cycle_id;
-        } elseif (!empty($authorized_cycles)) {
-            // Filter by any authorized cycle if user is not a global admin
-            if (!Auth::can('view_all_lycees', 'lycee') && !Auth::can('view_all_cycles', 'cycle')) {
+        } else {
+            if (!$isGlobalAdmin) {
+                if (empty($authorized_cycles)) {
+                    return []; // Deny by default if user has no authorized cycles
+                }
                 $where[] = "(pca.cycle_id IN (" . implode(',', array_map('intval', $authorized_cycles)) . ") OR pca.cycle_id IS NULL)";
             }
         }
@@ -59,8 +63,12 @@ class PersonnelService {
         // Search term (name, matricule, email, phone)
         if (!empty($filters['search'])) {
             $searchTerm = '%' . trim($filters['search']) . '%';
-            $where[] = "(u.nom LIKE :search OR u.prenom LIKE :search OR u.identifiant_public LIKE :search OR u.email LIKE :search OR u.telephone LIKE :search)";
-            $params['search'] = $searchTerm;
+            $where[] = "(u.nom LIKE :s_nom OR u.prenom LIKE :s_prenom OR u.identifiant_public LIKE :s_identifiant OR u.email LIKE :s_email OR u.telephone LIKE :s_telephone)";
+            $params['s_nom'] = $searchTerm;
+            $params['s_prenom'] = $searchTerm;
+            $params['s_identifiant'] = $searchTerm;
+            $params['s_email'] = $searchTerm;
+            $params['s_telephone'] = $searchTerm;
         }
 
         // HR Status filter
