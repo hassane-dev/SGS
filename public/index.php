@@ -427,6 +427,25 @@ $router->register('/param-composition', 'ParamCompositionController', 'edit');
 $router->register('/param-composition/edit', 'ParamCompositionController', 'edit');
 $router->register('/param-composition/update', 'ParamCompositionController', 'update');
 
+// DRH - Direction des Ressources Humaines
+$router->register('/drh', 'PersonnelController', 'index');
+$router->register('/drh/dashboard', 'PersonnelController', 'dashboard');
+$router->register('/drh/show', 'PersonnelController', 'show');
+$router->register('/drh/create', 'PersonnelController', 'create');
+$router->register('/drh/store', 'PersonnelController', 'store');
+$router->register('/drh/edit', 'PersonnelController', 'edit');
+$router->register('/drh/update', 'PersonnelController', 'update');
+$router->register('/drh/update-status', 'PersonnelController', 'updateStatus');
+$router->register('/drh/export', 'PersonnelController', 'export');
+
+// DRH Sub-resource controllers
+$router->register('/drh/assignments/store', 'PersonnelAssignmentController', 'store');
+$router->register('/drh/assignments/delete', 'PersonnelAssignmentController', 'delete');
+$router->register('/drh/contracts/store', 'PersonnelContractController', 'store');
+$router->register('/drh/documents/store', 'PersonnelDocumentController', 'store');
+$router->register('/drh/documents/download', 'PersonnelDocumentController', 'download');
+$router->register('/drh/documents/delete', 'PersonnelDocumentController', 'delete');
+
 // Salaires
 $router->register('/salaires', 'SalaireController', 'index');
 $router->register('/salaires/create', 'SalaireController', 'create');
