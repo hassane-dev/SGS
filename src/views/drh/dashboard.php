@@ -1,20 +1,20 @@
 <?php require_once __DIR__ . '/../layouts/header_able.php'; ?>
-<?php require_once __DIR__ . '/../layouts/sidebar_able.php'; ?>
 
 <div class="pc-container">
     <div class="pc-content">
-        <!-- 1. En-tête et contexte -->
+        <!-- 1. En-tête avec Fil d'Ariane (Breadcrumb) & Titre -->
         <div class="page-header d-print-none mb-3">
             <div class="page-block">
                 <div class="row align-items-center">
                     <div class="col-md-7">
                         <div class="page-header-title">
-                            <h2 class="mb-1"><?= htmlspecialchars($title) ?></h2>
-                            <p class="text-muted mb-0 small">
-                                <i class="ph-duotone ph-shield-check me-1 text-success"></i>
-                                <?= _('Cockpit de pilotage RH & Périmètre d\'habilitation') ?>
-                            </p>
+                            <h5 class="m-b-10"><?= htmlspecialchars($title) ?></h5>
                         </div>
+                        <ul class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/home"><?= _('Tableau de Bord') ?></a></li>
+                            <li class="breadcrumb-item"><a href="/drh"><?= _('Ressources Humaines') ?></a></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= _('Cockpit DRH') ?></li>
+                        </ul>
                     </div>
                     <div class="col-md-5 text-end d-flex justify-content-end gap-2">
                         <?php if (Auth::can('create', 'drh')): ?>
@@ -54,7 +54,7 @@
             <?php unset($_SESSION['error_message']); ?>
         <?php endif; ?>
 
-        <!-- 2. KPIs RH principaux -->
+        <!-- 2. KPI RH -->
         <div class="row g-3 mb-4">
             <div class="col-sm-6 col-xl-3">
                 <div class="card h-100 border-0 shadow-sm">
@@ -69,7 +69,7 @@
                             </div>
                         </div>
                         <div class="mt-3 pt-2 border-top">
-                            <span class="text-muted small"><i class="ph-duotone ph-buildings me-1"></i><?= _('Périmètre autorisé') ?></span>
+                            <span class="text-muted small"><i class="ph-duotone ph-shield-check me-1 text-success"></i><?= _('Périmètre autorisé actif') ?></span>
                         </div>
                     </div>
                 </div>
@@ -89,7 +89,7 @@
                         </div>
                         <div class="mt-3 pt-2 border-top">
                             <span class="text-success small fw-semibold">
-                                <?= $total > 0 ? round(($actifs / $total) * 100, 1) : 0 ?>% <?= _('du personnel total') ?>
+                                <?= $total > 0 ? round(($actifs / $total) * 100, 1) : 0 ?>% <?= _('de l\'effectif total') ?>
                             </span>
                         </div>
                     </div>
@@ -110,7 +110,7 @@
                         </div>
                         <div class="mt-3 pt-2 border-top">
                             <span class="text-warning small fw-semibold">
-                                <?= $total > 0 ? round(($conges / $total) * 100, 1) : 0 ?>% <?= _('du personnel total') ?>
+                                <?= $total > 0 ? round(($conges / $total) * 100, 1) : 0 ?>% <?= _('de l\'effectif total') ?>
                             </span>
                         </div>
                     </div>
@@ -131,7 +131,7 @@
                         </div>
                         <div class="mt-3 pt-2 border-top">
                             <span class="text-danger small fw-semibold">
-                                <?= $suspendus > 0 ? _('Action requise DRH') : _('Aucune suspension') ?>
+                                <?= $suspendus > 0 ? _('Action requise DRH') : _('Aucune suspension active') ?>
                             </span>
                         </div>
                     </div>
@@ -139,8 +139,8 @@
             </div>
         </div>
 
+        <!-- 3. SYNTHÈSE / STATISTIQUES (Séquence cible : Synthèse globale) -->
         <div class="row g-3 mb-4">
-            <!-- 3. Synthèse du personnel -->
             <div class="col-lg-8">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3">
@@ -161,7 +161,7 @@
                                         <th><?= _('Matricule') ?></th>
                                         <th><?= _('Nom & Prénom') ?></th>
                                         <th><?= _('Fonction RH') ?></th>
-                                        <th><?= _('Rôle Applicatif') ?></th>
+                                        <th><?= _('Rôle RBAC') ?></th>
                                         <th><?= _('Statut RH') ?></th>
                                         <th class="text-end"><?= _('Action') ?></th>
                                     </tr>
@@ -204,7 +204,7 @@
                                             <span class="badge <?= $badge ?> fw-bold"><?= htmlspecialchars($stLabel) ?></span>
                                         </td>
                                         <td class="text-end">
-                                            <a href="/drh/show?id=<?= $p['id_user'] ?>" class="btn btn-sm btn-icon btn-light-primary" title="<?= _('Consulter Dossier 360°') ?>">
+                                            <a href="/drh/show?id=<?= $p['id_user'] ?>" class="btn btn-sm btn-icon btn-light-primary" title="<?= _('Dossier 360°') ?>">
                                                 <i class="ph-duotone ph-eye fs-6"></i>
                                             </a>
                                         </td>
@@ -226,10 +226,8 @@
                 </div>
             </div>
 
-            <!-- 4. Répartition par statut/fonction/cycle & 5. Alertes RH -->
-            <div class="col-lg-4 d-flex flex-column gap-3">
-                <!-- 4. Répartition -->
-                <div class="card border-0 shadow-sm">
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
                     <div class="card-header bg-transparent py-3">
                         <h5 class="mb-0 d-flex align-items-center gap-2">
                             <i class="ph-duotone ph-chart-donut text-info"></i>
@@ -250,7 +248,7 @@
                                 <span class="small fw-semibold text-success"><i class="ph-duotone ph-circle-fill fs-6 me-1"></i><?= _('En activité') ?></span>
                                 <span class="small font-monospace fw-bold"><?= $actifs ?> (<?= $total > 0 ? round(($actifs/$total)*100) : 0 ?>%)</span>
                             </div>
-                            <div class="progress" style="height: 6px;">
+                            <div class="progress" style="height: 8px;">
                                 <div class="progress-bar bg-success" style="width: <?= $total > 0 ? ($actifs/$total)*100 : 0 ?>%"></div>
                             </div>
                         </div>
@@ -260,7 +258,7 @@
                                 <span class="small fw-semibold text-warning"><i class="ph-duotone ph-circle-fill fs-6 me-1"></i><?= _('En congé') ?></span>
                                 <span class="small font-monospace fw-bold"><?= $conges ?> (<?= $total > 0 ? round(($conges/$total)*100) : 0 ?>%)</span>
                             </div>
-                            <div class="progress" style="height: 6px;">
+                            <div class="progress" style="height: 8px;">
                                 <div class="progress-bar bg-warning" style="width: <?= $total > 0 ? ($conges/$total)*100 : 0 ?>%"></div>
                             </div>
                         </div>
@@ -270,7 +268,7 @@
                                 <span class="small fw-semibold text-danger"><i class="ph-duotone ph-circle-fill fs-6 me-1"></i><?= _('Suspendus') ?></span>
                                 <span class="small font-monospace fw-bold"><?= $suspendus ?> (<?= $total > 0 ? round(($suspendus/$total)*100) : 0 ?>%)</span>
                             </div>
-                            <div class="progress" style="height: 6px;">
+                            <div class="progress" style="height: 8px;">
                                 <div class="progress-bar bg-danger" style="width: <?= $total > 0 ? ($suspendus/$total)*100 : 0 ?>%"></div>
                             </div>
                         </div>
@@ -281,16 +279,20 @@
                                 <span class="small fw-semibold text-secondary"><i class="ph-duotone ph-circle-fill fs-6 me-1"></i><?= _('Départs / Inactifs') ?></span>
                                 <span class="small font-monospace fw-bold"><?= $stCounts['autres'] ?> (<?= $total > 0 ? round(($stCounts['autres']/$total)*100) : 0 ?>%)</span>
                             </div>
-                            <div class="progress" style="height: 6px;">
+                            <div class="progress" style="height: 8px;">
                                 <div class="progress-bar bg-secondary" style="width: <?= $total > 0 ? ($stCounts['autres']/$total)*100 : 0 ?>%"></div>
                             </div>
                         </div>
                         <?php endif; ?>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- 5. Alertes RH -->
-                <div class="card border-0 shadow-sm">
+        <!-- 4. ALERTES RH & 5. INFORMATIONS NÉCESSITANT UNE ACTION -->
+        <div class="row g-3 mb-4">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm h-100">
                     <div class="card-header bg-transparent py-3">
                         <h5 class="mb-0 d-flex align-items-center gap-2">
                             <i class="ph-duotone ph-bell-ringing text-warning"></i>
@@ -301,52 +303,60 @@
                         <ul class="list-group list-group-flush">
                             <?php if ($suspendus > 0): ?>
                             <li class="list-group-item d-flex align-items-center justify-content-between py-3">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="avtar avtar-xs bg-light-danger text-danger rounded-circle">
-                                        <i class="ph-duotone ph-warning-circle"></i>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avtar avtar-sm bg-light-danger text-danger rounded-circle">
+                                        <i class="ph-duotone ph-warning-circle fs-5"></i>
                                     </div>
                                     <div>
-                                        <div class="fw-semibold small"><?= _('Personnel Suspendu') ?></div>
-                                        <div class="text-muted extra-small"><?= sprintf(_('%d agent(s) actuellement suspendu(s)'), $suspendus) ?></div>
+                                        <div class="fw-semibold text-dark"><?= _('Personnel actuellement sous suspension') ?></div>
+                                        <div class="text-muted small"><?= sprintf(_('%d dossier(s) requérant un réexamen administratif ou un rétablissement.'), $suspendus) ?></div>
                                     </div>
                                 </div>
-                                <a href="/drh?statut_rh=suspendu" class="btn btn-xs btn-light-danger"><?= _('Voir') ?></a>
+                                <a href="/drh?statut_rh=suspendu" class="btn btn-sm btn-light-danger d-inline-flex align-items-center gap-1">
+                                    <span><?= _('Traiter') ?></span>
+                                    <i class="ph-duotone ph-arrow-right"></i>
+                                </a>
                             </li>
                             <?php endif; ?>
 
                             <?php if ($conges > 0): ?>
                             <li class="list-group-item d-flex align-items-center justify-content-between py-3">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="avtar avtar-xs bg-light-warning text-warning rounded-circle">
-                                        <i class="ph-duotone ph-calendar-blank"></i>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avtar avtar-sm bg-light-warning text-warning rounded-circle">
+                                        <i class="ph-duotone ph-calendar-blank fs-5"></i>
                                     </div>
                                     <div>
-                                        <div class="fw-semibold small"><?= _('Congés en cours') ?></div>
-                                        <div class="text-muted extra-small"><?= sprintf(_('%d agent(s) en absence autorisée'), $conges) ?></div>
+                                        <div class="fw-semibold text-dark"><?= _('Absences et congés en cours') ?></div>
+                                        <div class="text-muted small"><?= sprintf(_('%d agent(s) actuellement en congé ou absence autorisée.'), $conges) ?></div>
                                     </div>
                                 </div>
-                                <a href="/drh?statut_rh=en_conge" class="btn btn-xs btn-light-warning"><?= _('Voir') ?></a>
+                                <a href="/drh?statut_rh=en_conge" class="btn btn-sm btn-light-warning d-inline-flex align-items-center gap-1">
+                                    <span><?= _('Consulter') ?></span>
+                                    <i class="ph-duotone ph-arrow-right"></i>
+                                </a>
                             </li>
                             <?php endif; ?>
 
                             <li class="list-group-item d-flex align-items-center justify-content-between py-3">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="avtar avtar-xs bg-light-success text-success rounded-circle">
-                                        <i class="ph-duotone ph-shield-check"></i>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avtar avtar-sm bg-light-success text-success rounded-circle">
+                                        <i class="ph-duotone ph-shield-check fs-5"></i>
                                     </div>
                                     <div>
-                                        <div class="fw-semibold small"><?= _('Conformité des Accès') ?></div>
-                                        <div class="text-muted extra-small"><?= _('Portée Phase 10 active') ?></div>
+                                        <div class="fw-semibold text-dark"><?= _('Conformité des Accès & Scopes (Phase 10)') ?></div>
+                                        <div class="text-muted small"><?= _('Tous les périmètres d\'habilitation et assignations de cycle sont synchronisés.') ?></div>
                                     </div>
                                 </div>
-                                <span class="badge bg-light-success text-success"><i class="ph-duotone ph-check"></i> OK</span>
+                                <span class="badge bg-light-success text-success px-3 py-2 fw-semibold"><i class="ph-duotone ph-check me-1"></i><?= _('Conforme') ?></span>
                             </li>
                         </ul>
                     </div>
                 </div>
+            </div>
 
-                <!-- 6. Actions rapides -->
-                <div class="card border-0 shadow-sm">
+            <!-- 6. ACTIONS RAPIDES -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
                     <div class="card-header bg-transparent py-3">
                         <h5 class="mb-0 d-flex align-items-center gap-2">
                             <i class="ph-duotone ph-lightning text-primary"></i>
@@ -356,18 +366,18 @@
                     <div class="card-body">
                         <div class="d-grid gap-2">
                             <?php if (Auth::can('create', 'drh')): ?>
-                            <a href="/drh/create" class="btn btn-light-primary text-start d-flex align-items-center justify-content-between">
-                                <span><i class="ph-duotone ph-user-plus me-2"></i><?= _('Créer une nouvelle fiche') ?></span>
+                            <a href="/drh/create" class="btn btn-light-primary text-start d-flex align-items-center justify-content-between py-2.5">
+                                <span class="fw-semibold"><i class="ph-duotone ph-user-plus me-2 text-primary fs-5"></i><?= _('Créer un nouveau personnel') ?></span>
                                 <i class="ph-duotone ph-caret-right"></i>
                             </a>
                             <?php endif; ?>
-                            <a href="/drh" class="btn btn-light-secondary text-start d-flex align-items-center justify-content-between">
-                                <span><i class="ph-duotone ph-users me-2"></i><?= _('Rechercher dans l\'annuaire') ?></span>
+                            <a href="/drh" class="btn btn-light-secondary text-start d-flex align-items-center justify-content-between py-2.5">
+                                <span class="fw-semibold"><i class="ph-duotone ph-users me-2 text-secondary fs-5"></i><?= _('Rechercher dans l\'annuaire') ?></span>
                                 <i class="ph-duotone ph-caret-right"></i>
                             </a>
                             <?php if (Auth::can('export', 'drh')): ?>
-                            <a href="/drh/export" class="btn btn-light-secondary text-start d-flex align-items-center justify-content-between">
-                                <span><i class="ph-duotone ph-file-csv me-2"></i><?= _('Télécharger le registre CSV') ?></span>
+                            <a href="/drh/export" class="btn btn-light-secondary text-start d-flex align-items-center justify-content-between py-2.5">
+                                <span class="fw-semibold"><i class="ph-duotone ph-file-csv me-2 text-success fs-5"></i><?= _('Télécharger le registre CSV') ?></span>
                                 <i class="ph-duotone ph-caret-right"></i>
                             </a>
                             <?php endif; ?>
