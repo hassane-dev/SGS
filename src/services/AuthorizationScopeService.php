@@ -89,12 +89,13 @@ class AuthorizationScopeService {
             FROM personnel_cycles_assignments
             WHERE personnel_id = :personnel_id
               AND actif = 1
-              AND date_debut <= :today
-              AND (date_fin IS NULL OR date_fin >= :today)
+              AND date_debut <= :today_start
+              AND (date_fin IS NULL OR date_fin >= :today_end)
         ");
         $stmt->execute([
             'personnel_id' => $user_id,
-            'today' => $today
+            'today_start' => $today,
+            'today_end' => $today
         ]);
 
         $cycle_ids = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)) ?: [];
