@@ -1,5 +1,4 @@
 <?php require_once __DIR__ . '/../layouts/header_able.php'; ?>
-<?php require_once __DIR__ . '/../layouts/sidebar_able.php'; ?>
 
 <div class="pc-container">
     <div class="pc-content">
@@ -13,7 +12,7 @@
                                 <i class="ph-duotone ph-arrow-left fs-5"></i>
                             </a>
                             <div>
-                                <h2 class="mb-1"><?= htmlspecialchars($title) ?></h2>
+                                <h5 class="m-b-10"><?= htmlspecialchars($title) ?></h5>
                                 <p class="text-muted mb-0 small">
                                     <i class="ph-duotone ph-user-plus me-1 text-primary"></i>
                                     <?= _('Enregistrement d\'un nouveau collaborateur dans le système SGS') ?>
