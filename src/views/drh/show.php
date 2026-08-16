@@ -337,12 +337,12 @@
                     <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 d-flex align-items-center gap-2">
                             <i class="ph-duotone ph-file-text text-primary"></i>
-                            <span><?= _('Historique des Contrats Administratifs') ?></span>
+                            <span><?= _('Historique des Contrats & Avenants') ?></span>
                         </h5>
-                        <?php if (Auth::can('manage_contrats', 'drh')): ?>
+                        <?php if (Auth::can('manage_contrats', 'drh') || Auth::can('create_contracts', 'drh')): ?>
                         <button type="button" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#newContractModal">
                             <i class="ph-duotone ph-plus fs-5"></i>
-                            <span><?= _('Nouveau Contrat') ?></span>
+                            <span><?= _('Nouveau Contrat / Avenant') ?></span>
                         </button>
                         <?php endif; ?>
                     </div>
