@@ -535,7 +535,7 @@ try {
             reference_transaction VARCHAR(150) DEFAULT NULL,
             source_type VARCHAR(100) NOT NULL,
             source_id INT NOT NULL,
-            evenement_type ENUM('encaissement', 'annulation', 'remboursement', 'correction') NOT NULL,
+            evenement_type ENUM('encaissement', 'annulation', 'remboursement', 'correction', 'remise_coffre_sortie', 'remise_coffre_entree', 'reglement_fournisseur') NOT NULL,
             motif VARCHAR(255) NOT NULL,
             date_mouvement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             user_id INT NOT NULL,
@@ -788,6 +788,9 @@ try {
     ");
 
     // --- PHASE 6 REMISE AU COFFRE ---
+    if (!$isSqlite) {
+        $db->exec("ALTER TABLE mouvements_tresorerie MODIFY COLUMN evenement_type ENUM('encaissement', 'annulation', 'remboursement', 'correction', 'remise_coffre_sortie', 'remise_coffre_entree', 'reglement_fournisseur') NOT NULL");
+    }
     addColumnIfNeeded($db, 'comptes_financiers', 'est_coffre', 'TINYINT DEFAULT 0');
     addColumnIfNeeded($db, 'comptes_financiers', 'compte_comptable_numero', 'VARCHAR(20) DEFAULT NULL');
     addColumnIfNeeded($db, 'sessions_caisse', 'montant_remis', 'DECIMAL(15,2) DEFAULT NULL');
