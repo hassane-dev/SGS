@@ -825,6 +825,10 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_11_create_drh_module.php';
     migrate_11($db);
 
+    // --- PHASE DRH LOT 1 - CONSOLIDATION CONTRATS & INTERNATIONALISATION ---
+    require_once __DIR__ . '/db/migrations/20240115_12_create_lot1_drh_contrats.php';
+    migrate_12($db);
+
     // Provision DRH role if not present
     $stmt_drh_role = $db->query("SELECT id_role FROM roles WHERE nom_role = 'drh'");
     if (!$stmt_drh_role->fetch()) {
