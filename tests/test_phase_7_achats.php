@@ -129,9 +129,9 @@ $pdo = setup_db();
 
 try {
     // Seed default chart of accounts
-    $pdo->exec("INSERT INTO comptes_comptables (numero, libelle, classe, nature) VALUES ('401100', 'Fournisseurs d''exploitation', 4, 'passif')");
-    $pdo->exec("INSERT INTO comptes_comptables (numero, libelle, classe, nature) VALUES ('605100', 'Fournitures de bureau', 6, 'charge')");
-    $pdo->exec("INSERT INTO comptes_comptables (numero, libelle, classe, nature) VALUES ('571200', 'Caisse Principale', 5, 'actif')");
+    $pdo->exec("INSERT OR IGNORE INTO comptes_comptables (numero, libelle, classe, nature) VALUES ('401100', 'Fournisseurs d''exploitation', 4, 'passif')");
+    $pdo->exec("INSERT OR IGNORE INTO comptes_comptables (numero, libelle, classe, nature) VALUES ('605100', 'Fournitures de bureau', 6, 'charge')");
+    $pdo->exec("INSERT OR IGNORE INTO comptes_comptables (numero, libelle, classe, nature) VALUES ('571200', 'Caisse Principale', 5, 'actif')");
 
     // 1. Create Lycee & Exercice
     $pdo->exec("INSERT INTO param_lycee (id, nom_lycee, type_lycee) VALUES (1, 'Lycée Pilote Phase 7', 'prive')");
