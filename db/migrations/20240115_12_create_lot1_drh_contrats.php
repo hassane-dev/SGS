@@ -8,19 +8,18 @@ function migrate_12($db) {
     $pk = $isSqlite ? "INTEGER PRIMARY KEY AUTOINCREMENT" : "INT AUTO_INCREMENT PRIMARY KEY";
     $fk_ref = $isSqlite ? "" : "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 
-    // Helper function to check if column exists
+    // Helper function to check if column exists idempotently across SQLite and MySQL
     $hasColumn = function($table, $column) use ($db, $isSqlite) {
         try {
             if ($isSqlite) {
-                $stmt = $db->query("PRAGMA table_info($table)");
+                $stmt = $db->query("PRAGMA table_info(`$table`)");
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                     if (strtolower($row['name']) === strtolower($column)) return true;
                 }
                 return false;
             } else {
-                $stmt = $db->prepare("SHOW COLUMNS FROM $table LIKE :col");
-                $stmt->execute(['col' => $column]);
-                return (bool)$stmt->fetch();
+                $stmt = $db->query("SHOW COLUMNS FROM `$table` LIKE '$column'");
+                return (bool)($stmt && $stmt->fetch());
             }
         } catch (Exception $e) {
             return false;
