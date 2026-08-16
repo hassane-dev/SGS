@@ -340,7 +340,7 @@
                             <span><?= _('Historique des Contrats & Avenants') ?></span>
                         </h5>
                         <?php if (Auth::can('manage_contrats', 'drh') || Auth::can('create_contracts', 'drh')): ?>
-                        <button type="button" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#newContractModal">
+                        <button type="button" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1" onclick="openNewContractModal()">
                             <i class="ph-duotone ph-plus fs-5"></i>
                             <span><?= _('Nouveau Contrat / Avenant') ?></span>
                         </button>
@@ -351,46 +351,85 @@
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>
+                                        <th><?= _('Version & Souche') ?></th>
                                         <th><?= _('Type de Contrat') ?></th>
-                                        <th><?= _('Date Début') ?></th>
-                                        <th><?= _('Date Fin') ?></th>
+                                        <th><?= _('Employeur') ?></th>
+                                        <th><?= _('Période') ?></th>
                                         <?php if ($can_view_sensitive): ?>
                                         <th><?= _('Salaire de Base') ?></th>
                                         <?php endif; ?>
-                                        <th><?= _('Mode Paiement') ?></th>
-                                        <th><?= _('Statut Contrat') ?></th>
+                                        <th><?= _('Statut') ?></th>
+                                        <th class="text-end"><?= _('Actions') ?></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php foreach ($contracts as $c): ?>
                                     <tr>
+                                        <td>
+                                            <span class="badge bg-light-primary text-primary font-monospace fw-bold">v<?= (int)($c['version_num'] ?? 1) ?></span>
+                                            <span class="text-muted small font-monospace d-block">CTR-<?= sprintf('%06d', $c['contrat_souche_id'] ?? $c['id']) ?></span>
+                                        </td>
                                         <td><span class="fw-bold text-dark"><?= htmlspecialchars($c['contrat_libelle']) ?></span></td>
-                                        <td><?= date('d/m/Y', strtotime($c['date_debut'])) ?></td>
-                                        <td><?= !empty($c['date_fin']) ? date('d/m/Y', strtotime($c['date_fin'])) : _('CDI / Indéterminé') ?></td>
+                                        <td><?= htmlspecialchars($c['employeur_nom'] ?? $c['employeur_sigle'] ?? _('Établissement')) ?></td>
+                                        <td>
+                                            <div class="small fw-semibold text-dark"><?= date('d/m/Y', strtotime($c['date_debut'])) ?></div>
+                                            <div class="small text-muted"><?= !empty($c['date_fin']) ? date('d/m/Y', strtotime($c['date_fin'])) : _('Indéterminé') ?></div>
+                                        </td>
                                         <?php if ($can_view_sensitive): ?>
                                         <td class="fw-bold font-monospace text-primary">
                                             <?= number_format($c['salaire_base'] ?? 0, 2) ?> <?= htmlspecialchars($c['devise'] ?? 'XAF') ?>
                                         </td>
                                         <?php endif; ?>
-                                        <td><span class="badge bg-light-secondary text-dark"><?= htmlspecialchars($c['type_paiement'] ?? 'fixe') ?></span></td>
                                         <td>
                                             <?php
                                             $stC = $c['statut_contrat'] ?? 'actif';
                                             $bC = match($stC) {
                                                 'actif' => 'bg-light-success text-success',
-                                                'renouvele' => 'bg-light-info text-info',
+                                                'avenant_remplace' => 'bg-light-info text-info',
                                                 'termine' => 'bg-light-secondary text-secondary',
+                                                'annule' => 'bg-light-danger text-danger',
                                                 default => 'bg-light-warning text-warning'
                                             };
+                                            $stCLabel = match($stC) {
+                                                'actif' => _('Actif'),
+                                                'avenant_remplace' => _('Remplacé par Avenant'),
+                                                'termine' => _('Terminé'),
+                                                'annule' => _('Annulé'),
+                                                default => strtoupper($stC)
+                                            };
                                             ?>
-                                            <span class="badge <?= $bC ?> fw-bold"><?= strtoupper(htmlspecialchars($stC)) ?></span>
+                                            <span class="badge <?= $bC ?> fw-bold"><?= htmlspecialchars($stCLabel) ?></span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-light-primary" title="<?= _('Visualiser') ?>" onclick="viewContractDetails(<?= $c['id'] ?>)">
+                                                    <i class="ph-duotone ph-eye fs-6"></i>
+                                                </button>
+
+                                                <?php if (($c['statut_contrat'] ?? 'actif') === 'actif'): ?>
+                                                    <?php if (Auth::can('manage_contrats', 'drh') || Auth::can('create_amendments', 'drh')): ?>
+                                                    <button type="button" class="btn btn-light-warning" title="<?= _('Modifier par Avenant') ?>" onclick="prepareAmendment(<?= htmlspecialchars(json_encode($c)) ?>)">
+                                                        <i class="ph-duotone ph-pencil fs-6"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-light-danger" title="<?= _('Annuler le contrat') ?>" onclick="prepareCancelContract(<?= $c['id'] ?>, <?= $c['version_num'] ?? 1 ?>)">
+                                                        <i class="ph-duotone ph-x-circle fs-6"></i>
+                                                    </button>
+                                                    <?php endif; ?>
+                                                <?php else: ?>
+                                                    <?php if (Auth::can('manage_contrats', 'drh') || Auth::can('create_amendments', 'drh')): ?>
+                                                    <button type="button" class="btn btn-light-info" title="<?= _('Créer un avenant à partir de cette version') ?>" onclick="prepareAmendment(<?= htmlspecialchars(json_encode($c)) ?>)">
+                                                        <i class="ph-duotone ph-plus-circle fs-6"></i>
+                                                    </button>
+                                                    <?php endif; ?>
+                                                <?php endif; ?>
+                                            </div>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>
 
                                     <?php if (empty($contracts)): ?>
                                     <tr>
-                                        <td colspan="<?= $can_view_sensitive ? 6 : 5 ?>" class="text-center py-4 text-muted">
+                                        <td colspan="<?= $can_view_sensitive ? 7 : 6 ?>" class="text-center py-4 text-muted">
                                             <i class="ph-duotone ph-file-x fs-2 d-block mb-2 text-muted"></i>
                                             <?= _('Aucun historique contractuel enregistré.') ?>
                                         </td>
@@ -858,5 +897,284 @@
         </div>
     </div>
 </div>
+
+<!-- MODAL 5: VISUALISER CONTRAT -->
+<div class="modal fade" id="viewContractModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title d-flex align-items-center gap-2">
+                    <i class="ph-duotone ph-file-text text-primary"></i>
+                    <span id="vContractTitle"><?= _('Détails de la Version Contractuelle') ?></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="vContractLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="text-muted small mt-2"><?= _('Chargement des éléments contractuels...') ?></p>
+                </div>
+                <div id="vContractBody" class="d-none">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="text-muted small d-block"><?= _('Type de Contrat') ?></label>
+                            <span class="fw-bold text-dark fs-6" id="vTypeContrat">—</span>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-muted small d-block"><?= _('Employeur Juridique') ?></label>
+                            <span class="fw-bold text-dark fs-6" id="vEmployeur">—</span>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-muted small d-block"><?= _('Statut Contractuel') ?></label>
+                            <span id="vStatutBadge" class="badge bg-light-primary text-primary fw-bold px-3 py-2">—</span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="text-muted small d-block"><?= _('Date de Début') ?></label>
+                            <span class="fw-semibold text-dark" id="vDateDebut">—</span>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-muted small d-block"><?= _('Date de Fin') ?></label>
+                            <span class="fw-semibold text-dark" id="vDateFin">—</span>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-muted small d-block"><?= _('Période d\'Essai') ?></label>
+                            <span class="fw-semibold text-dark" id="vPeriodeEssai">—</span>
+                        </div>
+                    </div>
+
+                    <?php if ($can_view_sensitive): ?>
+                    <div class="row g-3 mb-3 p-3 bg-light rounded border">
+                        <div class="col-md-4">
+                            <label class="text-muted small d-block"><?= _('Salaire de Base Contractuel') ?></label>
+                            <span class="font-monospace fw-bold text-primary fs-5" id="vSalaireBase">—</span>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-muted small d-block"><?= _('Mode de Calcul') ?></label>
+                            <span class="fw-semibold text-dark" id="vModeCalcul">—</span>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-muted small d-block"><?= _('Périodicité de Paiement') ?></label>
+                            <span class="fw-semibold text-dark" id="vPeriodicite">—</span>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-2"><i class="ph-duotone ph-list-plus me-1 text-primary"></i><?= _('Composants de Rémunération') ?></h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th><?= _('Code') ?></th>
+                                        <th><?= _('Libellé') ?></th>
+                                        <th><?= _('Nature') ?></th>
+                                        <th><?= _('Valeur') ?></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="vComposantsBody">
+                                    <tr><td colspan="4" class="text-center text-muted"><?= _('Aucun composant spécifique enregistré.') ?></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-2"><i class="ph-duotone ph-coins me-1 text-primary"></i><?= _('Financements & Prise en Charge') ?></h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th><?= _('Financeur') ?></th>
+                                        <th><?= _('Type') ?></th>
+                                        <th><?= _('Prise en charge (%)') ?></th>
+                                        <th><?= _('Plafond') ?></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="vFinancementsBody">
+                                    <tr><td colspan="4" class="text-center text-muted"><?= _('Aucun financement spécifique configuré.') ?></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="text-muted small d-block"><?= _('Commentaires / Acte Légatif') ?></label>
+                        <div class="p-2 bg-light border rounded small font-monospace text-dark" id="vCommentaire">—</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= _('Fermer') ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 6: ANNULER CONTRAT -->
+<div class="modal fade" id="cancelContractModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="/drh/contracts/cancel">
+                <input type="hidden" name="personnel_id" value="<?= $p['id_user'] ?>">
+                <input type="hidden" name="contract_id" id="cancelContractId">
+                <div class="modal-header">
+                    <h5 class="modal-title d-flex align-items-center gap-2 text-danger">
+                        <i class="ph-duotone ph-warning-circle"></i>
+                        <span><?= _('Annuler un Contrat / Avenant') ?></span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning small mb-3">
+                        <i class="ph-duotone ph-info me-1"></i>
+                        <?= _('Cette action ne supprime pas la ligne d\'historique (interdiction légale). Elle marque la version contractuelle comme annulée tout en conservant l\'audit complet.') ?>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required"><?= _('Motif obligatoire d\'annulation') ?></label>
+                        <textarea name="motif_annulation" class="form-control" rows="3" required placeholder="<?= _('Saisir le motif officiel d\'annulation...') ?>"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal"><?= _('Abandonner') ?></button>
+                    <button type="submit" class="btn btn-danger"><?= _('Confirmer l\'annulation') ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openNewContractModal() {
+    const modalEl = document.getElementById('newContractModal');
+    const form = modalEl.querySelector('form');
+    form.reset();
+    form.querySelector('input[name="id"]')?.remove();
+    modalEl.querySelector('.modal-title span').textContent = '<?= _('Nouveau Contrat / Avenant Administratif') ?>';
+    const bsModal = new bootstrap.Modal(modalEl);
+    bsModal.show();
+}
+
+function prepareAmendment(contractData) {
+    const modalEl = document.getElementById('newContractModal');
+    const form = modalEl.querySelector('form');
+
+    form.querySelector('input[name="id"]')?.remove();
+
+    if (form.querySelector('select[name="type_contrat_id"]')) {
+        form.querySelector('select[name="type_contrat_id"]').value = contractData.type_contrat_id || '';
+    }
+    if (form.querySelector('select[name="entite_juridique_id"]')) {
+        form.querySelector('select[name="entite_juridique_id"]').value = contractData.entite_juridique_id || '';
+    }
+    if (form.querySelector('input[name="date_debut"]')) {
+        form.querySelector('input[name="date_debut"]').value = '<?= date('Y-m-d') ?>';
+    }
+    if (form.querySelector('input[name="date_fin"]')) {
+        form.querySelector('input[name="date_fin"]').value = contractData.date_fin || '';
+    }
+    if (form.querySelector('input[name="salaire_base"]')) {
+        form.querySelector('input[name="salaire_base"]').value = contractData.salaire_base || '';
+    }
+    if (form.querySelector('select[name="mode_calcul_principal"]')) {
+        form.querySelector('select[name="mode_calcul_principal"]').value = contractData.mode_calcul_principal || 'forfait_fixe';
+    }
+    if (form.querySelector('select[name="periodicite_paiement"]')) {
+        form.querySelector('select[name="periodicite_paiement"]').value = contractData.periodicite_paiement || 'mensuel';
+    }
+    if (form.querySelector('select[name="type_avenant"]')) {
+        form.querySelector('select[name="type_avenant"]').value = 'revalorisation_salariale';
+    }
+
+    modalEl.querySelector('.modal-title span').textContent = '<?= _('Créer un Avenant au Contrat') ?> v' + (contractData.version_num || 1);
+    const bsModal = new bootstrap.Modal(modalEl);
+    bsModal.show();
+}
+
+function prepareCancelContract(contractId, versionNum) {
+    document.getElementById('cancelContractId').value = contractId;
+    const modalEl = document.getElementById('cancelContractModal');
+    const bsModal = new bootstrap.Modal(modalEl);
+    bsModal.show();
+}
+
+function viewContractDetails(contractId) {
+    const modalEl = document.getElementById('viewContractModal');
+    document.getElementById('vContractLoading').classList.remove('d-none');
+    document.getElementById('vContractBody').classList.add('d-none');
+
+    const bsModal = new bootstrap.Modal(modalEl);
+    bsModal.show();
+
+    fetch('/drh/contracts/details?id=' + contractId)
+        .then(r => r.json())
+        .then(res => {
+            if (!res.success || !res.contract) {
+                alert(res.error || '<?= _('Erreur lors de la récupération des détails.') ?>');
+                bsModal.hide();
+                return;
+            }
+            const c = res.contract;
+            document.getElementById('vContractTitle').textContent = '<?= _('Détails Version') ?> v' + (c.version_num || 1) + ' (CTR-' + String(c.contrat_souche_id || c.id).padStart(6, '0') + ')';
+            document.getElementById('vTypeContrat').textContent = c.contrat_libelle || '—';
+            document.getElementById('vEmployeur').textContent = c.employeur_nom || c.employeur_sigle || 'Établissement';
+
+            const badge = document.getElementById('vStatutBadge');
+            badge.textContent = (c.statut_contrat || 'actif').toUpperCase();
+
+            document.getElementById('vDateDebut').textContent = c.date_debut ? new Date(c.date_debut).toLocaleDateString('fr-FR') : '—';
+            document.getElementById('vDateFin').textContent = c.date_fin ? new Date(c.date_fin).toLocaleDateString('fr-FR') : 'Indéterminée / CDI';
+            document.getElementById('vPeriodeEssai').textContent = (c.periode_essai_jours || 0) + ' jours';
+
+            const salEl = document.getElementById('vSalaireBase');
+            if (salEl) {
+                salEl.textContent = parseFloat(c.salaire_base || 0).toLocaleString('fr-FR', {minimumFractionDigits: 2}) + ' ' + (c.devise || 'XAF');
+            }
+            const modeEl = document.getElementById('vModeCalcul');
+            if (modeEl) modeEl.textContent = c.mode_calcul_principal || 'forfait_fixe';
+            const perEl = document.getElementById('vPeriodicite');
+            if (perEl) perEl.textContent = c.periodicite_paiement || 'mensuel';
+
+            document.getElementById('vCommentaire').textContent = c.commentaire || '<?= _('Aucune observation.') ?>';
+
+            const cBody = document.getElementById('vComposantsBody');
+            if (c.composants && c.composants.length > 0) {
+                cBody.innerHTML = c.composants.map(comp => `
+                    <tr>
+                        <td class="font-monospace">${comp.code_composant || ''}</td>
+                        <td>${comp.libelle || ''}</td>
+                        <td><span class="badge bg-light-secondary text-dark">${comp.nature_composant || ''}</span></td>
+                        <td class="fw-bold font-monospace">${parseFloat(comp.valeur_numerique || 0).toFixed(2)} ${comp.devise_code || ''}</td>
+                    </tr>
+                `).join('');
+            } else {
+                cBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted"><?= _('Aucun composant spécifique enregistré.') ?></td></tr>';
+            }
+
+            const fBody = document.getElementById('vFinancementsBody');
+            if (c.financements && c.financements.length > 0) {
+                fBody.innerHTML = c.financements.map(fin => `
+                    <tr>
+                        <td>${fin.financeur_nom || ''}</td>
+                        <td>${fin.type_financeur || ''}</td>
+                        <td>${parseFloat(fin.pourcentage_prise_en_charge || 100).toFixed(2)}%</td>
+                        <td>${fin.montant_plafone ? parseFloat(fin.montant_plafone).toFixed(2) : 'Sans plafond'}</td>
+                    </tr>
+                `).join('');
+            } else {
+                fBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted"><?= _('Aucun financement spécifique configuré.') ?></td></tr>';
+            }
+
+            document.getElementById('vContractLoading').classList.add('d-none');
+            document.getElementById('vContractBody').classList.remove('d-none');
+        })
+        .catch(err => {
+            alert('<?= _('Erreur réseau lors de la récupération des détails.') ?>');
+            bsModal.hide();
+        });
+}
+</script>
 
 <?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>

@@ -179,7 +179,12 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (178, 'drh', 'manage_documents', 'Téléverser et gérer les pièces jointes du personnel'),
 (179, 'drh', 'view_sensitive', 'Consulter les données RH confidentielles (CNSS, contrats, salaires)'),
 (180, 'drh', 'export', 'Exporter le registre et les rapports du personnel'),
-(181, 'drh', 'view_history', 'Consulter l\'historique d\'audit des mouvements RH');
+(181, 'drh', 'view_history', 'Consulter l\'historique d\'audit des mouvements RH'),
+(182, 'drh', 'view_contracts', 'Consulter les contrats du personnel'),
+(183, 'drh', 'create_contracts', 'Créer un contrat pour un membre du personnel'),
+(184, 'drh', 'create_amendments', 'Créer un avenant à un contrat existant'),
+(185, 'drh', 'view_contract_history', 'Consulter l\'historique des versions et avenants de contrat'),
+(186, 'drh', 'view_contract_documents', 'Consulter les pièces jointes contractuelles');
 
 -- --------------------------------------------------------
 -- Role-Permission Assignments
