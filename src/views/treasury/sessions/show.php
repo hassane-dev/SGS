@@ -282,6 +282,12 @@
                                                         <span class="badge bg-light-danger text-danger"><?= _("Annulation") ?></span>
                                                     <?php elseif ($m['evenement_type'] === 'remboursement'): ?>
                                                         <span class="badge bg-light-warning text-warning"><?= _("Remboursement") ?></span>
+                                                    <?php elseif ($m['evenement_type'] === 'remise_coffre_sortie'): ?>
+                                                        <span class="badge bg-light-primary text-primary"><?= _("Remise Coffre (Sortie)") ?></span>
+                                                    <?php elseif ($m['evenement_type'] === 'remise_coffre_entree'): ?>
+                                                        <span class="badge bg-light-success text-success"><?= _("Remise Coffre (Entrée)") ?></span>
+                                                    <?php elseif ($m['evenement_type'] === 'reglement_fournisseur'): ?>
+                                                        <span class="badge bg-light-warning text-warning"><?= _("Règlement Fournisseur") ?></span>
                                                     <?php else: ?>
                                                         <span class="badge bg-light-info text-info"><?= _("Correction") ?></span>
                                                     <?php endif; ?>
