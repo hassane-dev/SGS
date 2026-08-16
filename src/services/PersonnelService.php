@@ -180,7 +180,14 @@ class PersonnelService {
             $statut_rh = $data['statut_rh'] ?? 'en_activite';
             $num_cnss = !empty($data['num_cnss']) ? trim($data['num_cnss']) : null;
             $situation_matrimoniale = $data['situation_matrimoniale'] ?? 'celibataire';
-            $nombre_enfants = (int)($data['nombre_enfants'] ?? 0);
+
+            $nombre_enfants = 0;
+            if (isset($data['nombre_enfants'])) {
+                $nombre_enfants = (int)$data['nombre_enfants'];
+                if ($nombre_enfants < 0) {
+                    throw new InvalidArgumentException(_("Le nombre d'enfants ne peut pas être négatif."));
+                }
+            }
             $date_sortie = !empty($data['date_sortie']) ? $data['date_sortie'] : null;
             $motif_sortie = $data['motif_sortie'] ?? null;
             $remarques = $data['remarques'] ?? null;

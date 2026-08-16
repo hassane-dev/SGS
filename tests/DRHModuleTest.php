@@ -331,6 +331,55 @@ try {
     assertTest(!in_array('view_sensitive', $admin_perms['drh'] ?? []), "Admin Local exclu de 'drh:view_sensitive'.");
     assertTest(!in_array('manage_documents', $admin_perms['drh'] ?? []), "Admin Local exclu de 'drh:manage_documents'.");
 
+    // --- TEST 11: Integration & Validation du champ Nombre d'enfants ---
+    echo "\n--- TEST 11: Validation & Saisie du Champ Nombre d'enfants ---\n";
+
+    // Rejection of negative values
+    $neg_rejected = false;
+    try {
+        PersonnelService::savePersonnel([
+            'nom' => 'TEST_NEG',
+            'prenom' => 'Enfant',
+            'email' => 'neg_child_' . time() . '@test.com',
+            'mot_de_passe' => 'Secret123!',
+            'role_id' => $teacher_role_id,
+            'lycee_id' => $lycee_a_id,
+            'nombre_enfants' => -2
+        ], 1);
+    } catch (InvalidArgumentException $e) {
+        $neg_rejected = true;
+    }
+    assertTest($neg_rejected, "Succès : La tentative de saisie d'un nombre d'enfants négatif (-2) a été rejetée.");
+
+    // Creation with 3 children and update to 4
+    $child_test_email = 'valid_child_' . time() . '@test.com';
+    $child_p_id = PersonnelService::savePersonnel([
+        'nom' => 'KOUAME',
+        'prenom' => 'Alice',
+        'email' => $child_test_email,
+        'mot_de_passe' => 'Secret123!',
+        'role_id' => $teacher_role_id,
+        'lycee_id' => $lycee_a_id,
+        'nombre_enfants' => 3
+    ], 1);
+
+    $d3 = PersonnelService::get360Details($child_p_id, true);
+    assertTest((int)$d3['personnel']['nombre_enfants'] === 3, "Nombre d'enfants initial renseigné à 3.");
+
+    // Update to 4 children
+    PersonnelService::savePersonnel([
+        'id_user' => $child_p_id,
+        'nom' => 'KOUAME',
+        'prenom' => 'Alice',
+        'email' => $child_test_email,
+        'role_id' => $teacher_role_id,
+        'lycee_id' => $lycee_a_id,
+        'nombre_enfants' => 4
+    ], 1);
+
+    $d4 = PersonnelService::get360Details($child_p_id, true);
+    assertTest((int)$d4['personnel']['nombre_enfants'] === 4, "Nombre d'enfants mis à jour avec succès de 3 à 4.");
+
     echo "\n=========================================================================\n";
     echo "🏆 TOUS LES TESTS D'INTÉGRATION ET DE SÉCURITÉ DRH ONT RÉUSSI AVEC SUCCÈS !\n";
     echo "=========================================================================\n";

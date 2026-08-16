@@ -66,15 +66,15 @@
                                     <option value="Femme"><?= _('Femme') ?></option>
                                 </select>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label class="form-label small fw-semibold text-muted"><?= _('Date de Naissance') ?></label>
                                 <input type="date" name="date_naissance" class="form-control">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label class="form-label small fw-semibold text-muted"><?= _('Lieu de Naissance') ?></label>
                                 <input type="text" name="lieu_naissance" class="form-control" placeholder="<?= _('Lieu de naissance...') ?>">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label class="form-label small fw-semibold text-muted"><?= _('Situation Matrimoniale') ?></label>
                                 <select name="situation_matrimoniale" class="form-select">
                                     <option value="celibataire"><?= _('Célibataire') ?></option>
@@ -82,6 +82,10 @@
                                     <option value="divorce"><?= _('Divorcé(e)') ?></option>
                                     <option value="veuf"><?= _('Veuf/Veuve') ?></option>
                                 </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold text-muted"><?= _('Nombre d\'Enfants') ?></label>
+                                <input type="number" name="nombre_enfants" class="form-control" min="0" value="0">
                             </div>
                         </div>
                     </div>
