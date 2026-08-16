@@ -18,7 +18,8 @@ INSERT INTO `roles` (`id_role`, `nom_role`, `lycee_id`) VALUES
 (7, 'comptable', NULL),
 (8, 'eleve', NULL),
 (9, 'chef_comptable', NULL),
-(10, 'caissier', NULL)
+(10, 'caissier', NULL),
+(11, 'drh', NULL)
 ON DUPLICATE KEY UPDATE nom_role=VALUES(nom_role);
 
 -- --------------------------------------------------------
@@ -164,7 +165,21 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (166, 'budget', 'adjust', 'Ajouter une allocation supplémentaire d''urgence sur une ligne'),
 (167, 'budget', 'transfer', 'Effectuer un virement de crédits entre deux lignes budgétaires'),
 (168, 'budget', 'report', 'Consulter la synthèse visuelle et graphiques d''exécution'),
-(169, 'budget', 'override', 'Autoriser le dépassement budgétaire exceptionnel');
+(169, 'budget', 'override', 'Autoriser le dépassement budgétaire exceptionnel'),
+
+-- Module DRH
+(170, 'drh', 'view_all', 'Consulter le registre général du personnel RH'),
+(171, 'drh', 'view_one', 'Consulter la fiche 360° d\'un membre du personnel'),
+(172, 'drh', 'create', 'Créer un nouveau membre du personnel'),
+(173, 'drh', 'edit', 'Modifier les informations du personnel'),
+(174, 'drh', 'delete', 'Archiver ou réactiver un compte personnel'),
+(175, 'drh', 'manage_affectations', 'Gérer les affectations par lycée et par cycle'),
+(176, 'drh', 'manage_contrats', 'Gérer les contrats et éléments contractuels de rémunération'),
+(177, 'drh', 'manage_statut', 'Gérer les statuts RH (congés, suspensions, départs)'),
+(178, 'drh', 'manage_documents', 'Téléverser et gérer les pièces jointes du personnel'),
+(179, 'drh', 'view_sensitive', 'Consulter les données RH confidentielles (CNSS, contrats, salaires)'),
+(180, 'drh', 'export', 'Exporter le registre et les rapports du personnel'),
+(181, 'drh', 'view_history', 'Consulter l\'historique d\'audit des mouvements RH');
 
 -- --------------------------------------------------------
 -- Role-Permission Assignments
@@ -253,6 +268,14 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Eleve (Student)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (8, 1); -- Can view dashboard
+
+-- DRH (HR Manager)
+INSERT INTO `role_permissions` (`role_id`, `permission_id`)
+SELECT 11, p.id_permission
+FROM permissions p
+WHERE p.resource = 'drh'
+   OR (p.resource = 'role' AND p.action = 'view_all')
+   OR (p.resource = 'dashboard' AND p.action = 'view');
 
 -- --------------------------------------------------------
 -- Default Academic Cycles

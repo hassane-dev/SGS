@@ -61,54 +61,19 @@ class UserController {
     }
 
     public function create() {
-        $this->checkAccess('create');
-        $lycee_id = Auth::get('lycee_id');
-        $lycees = (Auth::can('view_all_lycees', 'lycee')) ? Lycee::findAll() : [];
-        $contrats = TypeContrat::findAll($lycee_id);
-        $roles = Role::findAll($lycee_id);
-        $user = [];
-        $is_edit = false;
-        require_once __DIR__ . '/../views/users/create.php';
+        header('Location: /drh/create');
+        if (!defined('TEST_MODE')) exit(); return;
     }
 
     public function store() {
-        $this->checkAccess('create');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = Validator::sanitize($_POST);
-
-            // Ensure 'actif' is always set
-            $data['actif'] = isset($data['actif']) ? 1 : 0;
-
-            if (!Auth::can('view_all_lycees', 'lycee')) {
-                $data['lycee_id'] = Auth::get('lycee_id');
-            }
-
-            if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
-                $photoPath = $this->handlePhotoUpload($_FILES['photo']);
-                if ($photoPath) {
-                    $data['photo'] = $photoPath;
-                }
-            }
-
-            try {
-                User::save($data);
-                $_SESSION['success_message'] = "Le membre du personnel a été créé avec succès.";
-                header('Location: /users');
-                exit();
-            } catch (Exception $e) {
-                error_log("User creation failed: " . $e->getMessage());
-                // Redisplay the form with an error message and pre-filled data
-                $lycee_id = Auth::get('lycee_id');
-                $lycees = (Auth::can('view_all_lycees', 'lycee')) ? Lycee::findAll() : [];
-                $contrats = TypeContrat::findAll($lycee_id);
-                $roles = Role::findAll($lycee_id);
-                $user = $data;
-                $is_edit = false;
-                $error = $e->getMessage();
-                require_once __DIR__ . '/../views/users/create.php';
-                exit();
-            }
+            require_once __DIR__ . '/PersonnelController.php';
+            $personnelController = new PersonnelController();
+            $personnelController->store();
+            if (!defined('TEST_MODE')) exit(); return;
         }
+        header('Location: /drh/create');
+        if (!defined('TEST_MODE')) exit(); return;
     }
 
     public function edit() {

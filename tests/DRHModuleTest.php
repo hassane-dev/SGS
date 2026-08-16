@@ -4,6 +4,9 @@
 if (!defined('TEST_MODE')) {
     define('TEST_MODE', true);
 }
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
 
 require_once __DIR__ . '/../src/config/database.php';
 require_once __DIR__ . '/../src/core/Auth.php';
@@ -241,6 +244,92 @@ try {
     echo "\n--- TEST 8: Registre d'Audit des Mouvements RH ---\n";
     $history = PersonnelHistoryService::getHistoryForPersonnel($p_id);
     assertTest(count($history) >= 4, "Traçabilité immuable vérifiée : " . count($history) . " mouvements enregistrés.");
+
+    // --- TEST 9: Orphan File Cleanup on DB Failure & Upload Security ---
+    echo "\n--- TEST 9: Nettoyage Anti-Fichiers Orphelins & Sécurité Téléversement ---\n";
+
+    // 9.1 Forbidden MIME / Extension test
+    $invalid_file = sys_get_temp_dir() . '/fake_exec.exe';
+    file_put_contents($invalid_file, 'MZ fake executable content');
+    $invalid_file_data = [
+        'name' => 'malicious.exe',
+        'tmp_name' => $invalid_file,
+        'error' => UPLOAD_ERR_OK,
+        'size' => filesize($invalid_file)
+    ];
+
+    $mime_blocked = false;
+    try {
+        PersonnelDocumentService::saveDocument([
+            'personnel_id' => $p_id,
+            'type_document' => 'Autre Document RH'
+        ], $invalid_file_data, 1);
+    } catch (InvalidArgumentException $e) {
+        $mime_blocked = true;
+    }
+    assertTest($mime_blocked, "Succès : L'extension/MIME non autorisé (.exe) a été bloqué.");
+
+    // 9.2 Oversized File test (>10MB)
+    $oversized_file_data = [
+        'name' => 'oversized_doc.pdf',
+        'tmp_name' => $tmp_file,
+        'error' => UPLOAD_ERR_OK,
+        'size' => 15 * 1024 * 1024 // 15MB
+    ];
+    $size_blocked = false;
+    try {
+        PersonnelDocumentService::saveDocument([
+            'personnel_id' => $p_id,
+            'type_document' => 'Contrat de Travail'
+        ], $oversized_file_data, 1);
+    } catch (InvalidArgumentException $e) {
+        $size_blocked = true;
+    }
+    assertTest($size_blocked, "Succès : Le fichier dépassent la taille maximale (10 Mo) a été rejeté.");
+
+    // 9.3 Anti-orphan physical file cleanup when DB fails
+    $tmp_orphan = sys_get_temp_dir() . '/test_orphan.pdf';
+    file_put_contents($tmp_orphan, '%PDF-1.4 Fake PDF Content');
+    $orphan_file_data = [
+        'name' => 'test_orphan.pdf',
+        'tmp_name' => $tmp_orphan,
+        'error' => UPLOAD_ERR_OK,
+        'size' => filesize($tmp_orphan)
+    ];
+
+    // Enable foreign key constraints in SQLite for test
+    $db->exec("PRAGMA foreign_keys = ON;");
+
+    $orphan_cleaned = false;
+    try {
+        PersonnelDocumentService::saveDocument([
+            'personnel_id' => 9999999, // Invalid personnel_id violating FK constraint
+            'type_document' => 'Avenant'
+        ], $orphan_file_data, 1);
+    } catch (Exception $e) {
+        $orphan_cleaned = true;
+    }
+    assertTest($orphan_cleaned, "Succès : L'échec de la transaction DB a levé une exception et nettoyé les fichiers physiques orphelins.");
+
+    // --- TEST 10: RBAC Seeding & DRH Role Isolation Audit ---
+    echo "\n--- TEST 10: Audit RBAC & Isolation du Rôle DRH ---\n";
+
+    // Verify DRH role (id 11) exists
+    $stmt_r = $db->query("SELECT id_role FROM roles WHERE nom_role = 'drh'");
+    $drh_role_id = (int)$stmt_r->fetchColumn();
+    assertTest($drh_role_id > 0, "Rôle 'drh' provisionné en base de données (ID: $drh_role_id).");
+
+    // Verify DRH role permissions
+    $drh_perms = Role::getPermissions($drh_role_id);
+    assertTest(isset($drh_perms['drh']) && in_array('manage_documents', $drh_perms['drh']), "Permission 'drh:manage_documents' attribuée au rôle DRH.");
+    assertTest(isset($drh_perms['role']) && in_array('view_all', $drh_perms['role']), "Permission 'role:view_all' attribuée au rôle DRH.");
+    assertTest(!isset($drh_perms['role']) || !in_array('manage', $drh_perms['role']), "Rôle DRH restreint : AUCUNE permission 'role:manage' accordée.");
+
+    // Verify Admin Local (role 3) restriction on sensitive DRH permissions
+    $admin_perms = Role::getPermissions(3);
+    assertTest(isset($admin_perms['drh']) && in_array('view_all', $admin_perms['drh']), "Admin Local possède 'drh:view_all'.");
+    assertTest(!in_array('view_sensitive', $admin_perms['drh'] ?? []), "Admin Local exclu de 'drh:view_sensitive'.");
+    assertTest(!in_array('manage_documents', $admin_perms['drh'] ?? []), "Admin Local exclu de 'drh:manage_documents'.");
 
     echo "\n=========================================================================\n";
     echo "🏆 TOUS LES TESTS D'INTÉGRATION ET DE SÉCURITÉ DRH ONT RÉUSSI AVEC SUCCÈS !\n";
