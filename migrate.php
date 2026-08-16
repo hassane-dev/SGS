@@ -791,6 +791,9 @@ try {
     if (!$isSqlite) {
         $db->exec("ALTER TABLE mouvements_tresorerie MODIFY COLUMN evenement_type ENUM('encaissement', 'annulation', 'remboursement', 'correction', 'remise_coffre_sortie', 'remise_coffre_entree', 'reglement_fournisseur') NOT NULL");
     }
+    // Ensure Phase 6 Class 5 accounts (571100, 571200) and schemas exist in chart of accounts
+    ComptabiliteService::seedDefaultChartOfAccounts();
+    ComptabiliteService::seedDefaultSchemas();
     addColumnIfNeeded($db, 'comptes_financiers', 'est_coffre', 'TINYINT DEFAULT 0');
     addColumnIfNeeded($db, 'comptes_financiers', 'compte_comptable_numero', 'VARCHAR(20) DEFAULT NULL');
     addColumnIfNeeded($db, 'sessions_caisse', 'montant_remis', 'DECIMAL(15,2) DEFAULT NULL');

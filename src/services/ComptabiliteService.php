@@ -24,6 +24,8 @@ class ComptabiliteService {
             // Classe 5 (Trésorerie)
             ['521000', 'Banque d\'établissement', 5, 'actif', null, 1, 1],
             ['571000', 'Caisse principale de l\'établissement', 5, 'actif', null, 1, 1],
+            ['571100', 'Coffre-fort principal', 5, 'actif', null, 1, 1],
+            ['571200', 'Caisse opérationnelle / Guichet', 5, 'actif', null, 1, 1],
             ['572000', 'Mobile Money (Orange/MTN/Wave)', 5, 'actif', null, 1, 1],
             ['585000', 'Virements internes (Compte de passage)', 5, 'actif', null, 1, 1],
             // Classe 6 (Charges)
