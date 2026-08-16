@@ -8,35 +8,34 @@ require_once __DIR__ . '/../core/View.php';
 
 class RoleController {
 
-    private function checkAccess() {
-        // Only creator and national admin can manage roles in general
-        if (!Auth::can('manage', 'role')) {
+    private function checkAccess(string $action = 'manage') {
+        if (!Auth::can($action, 'role') && !Auth::can('manage', 'role')) {
             http_response_code(403);
             View::render('errors/403');
-            exit();
+            if (!defined('TEST_MODE')) exit(); return;
         }
     }
 
     public function index() {
-        $this->checkAccess();
+        $this->checkAccess('view_all');
         $user_lycee_id = Auth::get('lycee_id');
-        // Local admins see global roles + their own lycee's roles
+        // Local admins and HR managers see global roles + their own lycee's roles
         $roles = Role::findAll($user_lycee_id);
         require_once __DIR__ . '/../views/roles/index.php';
     }
 
     public function create() {
-        $this->checkAccess();
+        $this->checkAccess('create');
         $permissions = Permission::findAll();
         $lycees = (Auth::get('role_name') === 'super_admin_createur' || Auth::get('role_name') === 'super_admin_national') ? Lycee::findAll() : [];
         require_once __DIR__ . '/../views/roles/create.php';
     }
 
     public function store() {
-        $this->checkAccess();
+        $this->checkAccess('create');
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: /roles');
-            exit();
+            if (!defined('TEST_MODE')) exit(); return;
         }
 
         $data = Validator::sanitize($_POST);
@@ -73,7 +72,7 @@ class RoleController {
     }
 
     public function edit() {
-        $this->checkAccess();
+        $this->checkAccess('edit');
         $id = $_GET['id'] ?? null;
         if (!$id) { header('Location: /roles'); exit(); }
 
@@ -107,10 +106,10 @@ class RoleController {
     }
 
     public function update() {
-        $this->checkAccess();
+        $this->checkAccess('edit');
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: /roles');
-            exit();
+            if (!defined('TEST_MODE')) exit(); return;
         }
 
         $data = Validator::sanitize($_POST);
@@ -175,7 +174,7 @@ class RoleController {
     }
 
     public function destroy() {
-        $this->checkAccess();
+        $this->checkAccess('delete');
         $id = $_POST['id'] ?? null;
 
         if (!$id) {

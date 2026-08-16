@@ -31,9 +31,11 @@
                             <div class="flex-grow-1 me-3">
                                 <input type="text" id="userSearch" class="form-control" placeholder="<?= _('Rechercher un membre du personnel (nom, fonction)...') ?>">
                             </div>
-                            <a href="/users/create" class="btn btn-primary">
-                                <?= _('Ajouter un membre') ?>
+                            <?php if (Auth::can('create', 'drh') || Auth::can('create', 'user')): ?>
+                            <a href="/drh/create" class="btn btn-primary">
+                                <?= _('Ajouter un membre (DRH)') ?>
                             </a>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <div class="card-body">

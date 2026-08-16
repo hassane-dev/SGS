@@ -22,6 +22,7 @@
         <div class="row">
             <div class="col-12">
                 <div class="card">
+                    <?php if (Auth::can('create', 'role') || Auth::can('manage', 'role')): ?>
                     <div class="card-header">
                         <div class="d-flex justify-content-end">
                             <a href="/roles/create" class="btn btn-primary">
@@ -29,6 +30,7 @@
                             </a>
                         </div>
                     </div>
+                    <?php endif; ?>
                     <div class="card-body">
                         <?php if (isset($_SESSION['success_message'])): ?>
                             <div class="alert alert-success"><?= $_SESSION['success_message'] ?></div>
@@ -66,13 +68,15 @@
                                                     $is_target_super_admin = in_array($target_role_id, [1, 2]);
                                                     $is_target_default = $target_role_id <= 8;
 
-                                                    // Determine if current user can edit this role
+                                                    // Determine permissions
+                                                    $has_role_edit = Auth::can('edit', 'role') || Auth::can('manage', 'role');
+                                                    $has_role_delete = Auth::can('delete', 'role') || Auth::can('manage', 'role');
+
                                                     $can_edit = false;
-                                                    if ($is_super_admin) {
-                                                        $can_edit = true; // Super admin can edit everything
-                                                    } elseif ($is_local_admin) {
-                                                        // Local admin can edit non-super-admin roles
-                                                        if (!$is_target_super_admin) {
+                                                    if ($has_role_edit) {
+                                                        if ($is_super_admin) {
+                                                            $can_edit = true;
+                                                        } elseif ($is_local_admin && !$is_target_super_admin) {
                                                             $can_edit = true;
                                                         }
                                                     }
@@ -81,14 +85,14 @@
                                                         <a href="/roles/edit?id=<?= $target_role_id ?>" class="btn btn-sm btn-primary ms-2">
                                                             <?= $is_target_default ? _('Modifier Permissions') : _('Modifier') ?>
                                                         </a>
-                                                        <?php if (!$is_target_default): ?>
+                                                        <?php if (!$is_target_default && $has_role_delete): ?>
                                                             <form action="/roles/destroy" method="POST" class="d-inline ms-2" onsubmit="return confirm('<?= _('Êtes-vous sûr ?') ?>');">
                                                                 <input type="hidden" name="id" value="<?= $target_role_id ?>">
                                                                 <button type="submit" class="btn btn-sm btn-danger"><?= _('Supprimer') ?></button>
                                                             </form>
                                                         <?php endif; ?>
                                                     <?php else: ?>
-                                                        <span class="badge bg-light-secondary"><?= _('Protégé') ?></span>
+                                                        <span class="badge bg-light-secondary"><?= $is_target_super_admin ? _('Protégé') : _('Lecture seule') ?></span>
                                                     <?php endif; ?>
                                                 </td>
                                             </tr>

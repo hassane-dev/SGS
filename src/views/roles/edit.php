@@ -68,7 +68,7 @@
                                         <?php foreach ($grouped_permissions as $resource => $perms): ?>
                                             <div class="col-md-6 col-lg-4 mb-3">
                                                 <fieldset class="border rounded p-3 h-100">
-                                                    <legend class="px-2 float-none w-auto fs-6"><?= _(ucfirst(str_replace('_', ' ', $resource))) ?></legend>
+                                                    <legend class="px-2 float-none w-auto fs-6"><?= ($resource === 'drh') ? _('DRH (Ressources Humaines)') : _(ucfirst(str_replace('_', ' ', $resource))) ?></legend>
                                                     <?php foreach ($perms as $permission): ?>
                                                         <div class="form-check">
                                                             <input class="form-check-input" type="checkbox" name="permissions[]" value="<?= $permission['id_permission'] ?>" id="perm_<?= $permission['id_permission'] ?>"
