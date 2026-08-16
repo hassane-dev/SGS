@@ -1,5 +1,4 @@
 <?php require_once __DIR__ . '/../layouts/header_able.php'; ?>
-<?php require_once __DIR__ . '/../layouts/sidebar_able.php'; ?>
 
 <div class="pc-container">
     <div class="pc-content">
@@ -16,6 +15,31 @@
                         </ul>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <?php if (!empty($_SESSION['success_message'])): ?>
+            <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+                <?= htmlspecialchars($_SESSION['success_message']) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php unset($_SESSION['success_message']); ?>
+        <?php endif; ?>
+
+        <?php if (!empty($_SESSION['error_message'])): ?>
+            <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                <?= htmlspecialchars($_SESSION['error_message']) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php unset($_SESSION['error_message']); ?>
+        <?php endif; ?>
+
+        <div class="alert alert-info d-flex align-items-center gap-3 mb-4" role="alert">
+            <i class="ti ti-info-circle fs-3"></i>
+            <div>
+                <strong><?= _('Référentiel des Types de Contrat') ?> :</strong>
+                <?= _('Cette page permet de configurer les catégories de contrat (CDI, CDD, Vacataire...). Pour consulter ou gérer les contrats individuels, avenants et rémunérations du personnel, utilisez la') ?>
+                <a href="/drh" class="alert-link fw-bold text-decoration-underline"><?= _('Fiche Personnel 360° du Module DRH') ?></a>.
             </div>
         </div>
 

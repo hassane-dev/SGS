@@ -72,10 +72,24 @@ class TypeContratController {
         $this->checkAccess();
         $id = $_POST['id'] ?? null;
         if ($id) {
-            TypeContrat::delete($id);
+            $db = Database::getInstance();
+            $stmt1 = $db->prepare("SELECT COUNT(*) FROM personnel_contrats_historique WHERE type_contrat_id = :id");
+            $stmt1->execute(['id' => $id]);
+            $count1 = (int)$stmt1->fetchColumn();
+
+            $stmt2 = $db->prepare("SELECT COUNT(*) FROM utilisateurs WHERE contrat_id = :id");
+            $stmt2->execute(['id' => $id]);
+            $count2 = (int)$stmt2->fetchColumn();
+
+            if ($count1 > 0 || $count2 > 0) {
+                $_SESSION['error_message'] = _("Impossible de supprimer ce type de contrat car il est actuellement associé à des membres du personnel.");
+            } else {
+                TypeContrat::delete($id);
+                $_SESSION['success_message'] = _("Type de contrat supprimé avec succès.");
+            }
         }
         header('Location: /contrats');
-        exit();
+        if (!defined('TEST_MODE')) exit(); return;
     }
 }
 ?>

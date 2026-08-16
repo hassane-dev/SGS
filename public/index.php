@@ -442,6 +442,8 @@ $router->register('/drh/export', 'PersonnelController', 'export');
 $router->register('/drh/assignments/store', 'PersonnelAssignmentController', 'store');
 $router->register('/drh/assignments/delete', 'PersonnelAssignmentController', 'delete');
 $router->register('/drh/contracts/store', 'PersonnelContractController', 'store');
+$router->register('/drh/contracts/cancel', 'PersonnelContractController', 'cancel');
+$router->register('/drh/contracts/details', 'PersonnelContractController', 'details');
 $router->register('/drh/documents/store', 'PersonnelDocumentController', 'store');
 $router->register('/drh/documents/download', 'PersonnelDocumentController', 'download');
 $router->register('/drh/documents/delete', 'PersonnelDocumentController', 'delete');

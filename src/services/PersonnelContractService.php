@@ -263,6 +263,15 @@ class PersonnelContractService {
                 $stmt_old = $db->prepare("SELECT * FROM personnel_contrats_historique WHERE id = :id");
                 $stmt_old->execute(['id' => $id]);
                 $old_contract = $stmt_old->fetch(PDO::FETCH_ASSOC);
+
+                if (!$old_contract) {
+                    throw new InvalidArgumentException(_("Contrat introuvable."));
+                }
+
+                if ($old_contract['statut_contrat'] !== 'actif') {
+                    throw new InvalidArgumentException(_("Un contrat historique immuable ne peut pas être modifié directement. Veuillez créer un avenant."));
+                }
+
                 $contrat_souche_id = $old_contract['contrat_souche_id'] ?: $id;
                 $version_num = $old_contract['version_num'] ?: 1;
 
@@ -426,5 +435,157 @@ class PersonnelContractService {
             }
             throw $e;
         }
+    }
+
+    /**
+     * Get full detailed contract record including components, financing, and creator info.
+     */
+    public static function getContractDetails(int $contract_id): ?array {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("
+            SELECT pch.*, tc.libelle AS contrat_libelle, tc.type_paiement, tc.prise_en_charge,
+                   pej.raison_sociale AS employeur_nom, pej.sigle AS employeur_sigle,
+                   u.nom AS cree_par_nom, u.prenom AS cree_par_prenom
+            FROM personnel_contrats_historique pch
+            LEFT JOIN type_contrat tc ON pch.type_contrat_id = tc.id_contrat
+            LEFT JOIN paie_entites_juridiques pej ON pch.entite_juridique_id = pej.id
+            LEFT JOIN utilisateurs u ON pch.cree_par = u.id_user
+            WHERE pch.id = :id
+        ");
+        $stmt->execute(['id' => $contract_id]);
+        $contract = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$contract) return null;
+
+        $contract['composants'] = self::getComponentsForContract($contract_id);
+        $contract['financements'] = self::getFinancingForContract($contract_id);
+
+        return $contract;
+    }
+
+    /**
+     * Cancels an existing contract version with a required motif while retaining full history.
+     */
+    public static function cancelContract(int $contract_id, int $personnel_id, string $motif, int $author_id): bool {
+        if (empty(trim($motif))) {
+            throw new InvalidArgumentException(_("Un motif explicite est obligatoire pour annuler un contrat."));
+        }
+
+        $db = Database::getInstance();
+        $stmt = $db->prepare("SELECT * FROM personnel_contrats_historique WHERE id = :id AND personnel_id = :pid");
+        $stmt->execute(['id' => $contract_id, 'pid' => $personnel_id]);
+        $contract = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$contract) {
+            throw new InvalidArgumentException(_("Contrat introuvable."));
+        }
+
+        if ($contract['statut_contrat'] === 'annule') {
+            throw new InvalidArgumentException(_("Ce contrat est déjà annulé."));
+        }
+
+        $inTx = $db->inTransaction();
+        if (!$inTx) $db->beginTransaction();
+
+        try {
+            $dateNow = date('Y-m-d H:i:s');
+            $newComment = trim(($contract['commentaire'] ?? '') . "\n[Annulé le {$dateNow} par ID {$author_id}] Motif: " . $motif);
+
+            $stmt_upd = $db->prepare("
+                UPDATE personnel_contrats_historique
+                SET statut_contrat = 'annule', commentaire = :comment
+                WHERE id = :id
+            ");
+            $stmt_upd->execute(['comment' => $newComment, 'id' => $contract_id]);
+
+            PersonnelHistoryService::logMovement([
+                'personnel_id' => $personnel_id,
+                'type_mouvement' => 'annulation_contrat',
+                'motif' => "Annulation du contrat version {$contract['version_num']} : {$motif}",
+                'auteur_id' => $author_id,
+                'ancien_etat' => $contract,
+                'nouvel_etat' => ['statut_contrat' => 'annule', 'motif_annulation' => $motif]
+            ]);
+
+            if (!$inTx) $db->commit();
+            return true;
+        } catch (Exception $e) {
+            if (!$inTx && $db->inTransaction()) $db->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Physical deletion is strictly forbidden.
+     */
+    public static function deleteContract(int $contract_id): void {
+        throw new LogicException(_("La suppression physique d'un contrat historique est strictement interdite pour des raisons de traçabilité et de valeur légale."));
+    }
+
+    /**
+     * Migrates legacy user contract associations (`utilisateurs.contrat_id`)
+     * into `personnel_contrats_historique` for users that do not yet have a record in `personnel_contrats_historique`.
+     */
+    public static function migrateLegacyContracts(): int {
+        $db = Database::getInstance();
+
+        $sql = "
+            SELECT u.id_user, u.contrat_id, u.date_embauche, u.lycee_id, u.nom, u.prenom, tc.libelle AS tc_libelle
+            FROM utilisateurs u
+            JOIN type_contrat tc ON u.contrat_id = tc.id_contrat
+            WHERE u.contrat_id IS NOT NULL
+              AND NOT EXISTS (
+                  SELECT 1 FROM personnel_contrats_historique pch WHERE pch.personnel_id = u.id_user
+              )
+        ";
+        $stmt = $db->query($sql);
+        $legacyUsers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $migratedCount = 0;
+        foreach ($legacyUsers as $u) {
+            $personnel_id = (int)$u['id_user'];
+            $type_contrat_id = (int)$u['contrat_id'];
+            $date_debut = !empty($u['date_embauche']) ? date('Y-m-d', strtotime($u['date_embauche'])) : '2024-01-01';
+
+            $salaire_base = 0.00;
+            try {
+                $stmt_sal = $db->prepare("SELECT net_a_payer FROM salaires WHERE id_personnel = :pid ORDER BY id_salaire DESC LIMIT 1");
+                $stmt_sal->execute(['pid' => $personnel_id]);
+                $net = $stmt_sal->fetchColumn();
+                if ($net) {
+                    $salaire_base = (float)$net;
+                }
+            } catch (Exception $e) {
+                // Ignore if salaires table missing
+            }
+
+            $insSql = "
+                INSERT INTO personnel_contrats_historique (
+                    personnel_id, contrat_souche_id, type_contrat_id, date_debut, date_fin,
+                    salaire_base, devise, mode_calcul_principal, unite_remuneration,
+                    periodicite_paiement, version_num, statut_contrat, commentaire, cree_par
+                ) VALUES (
+                    :pid, NULL, :tcid, :dstart, NULL,
+                    :sal, 'FCFA', 'forfait_fixe', 'mois',
+                    'mensuel', 1, 'actif', :comment, 1
+                )
+            ";
+            $stmt_ins = $db->prepare($insSql);
+            $stmt_ins->execute([
+                'pid' => $personnel_id,
+                'tcid' => $type_contrat_id,
+                'dstart' => $date_debut,
+                'sal' => $salaire_base,
+                'comment' => 'Migré automatiquement depuis l\'ancien gestionnaire (utilisateurs.contrat_id)'
+            ]);
+            $newId = (int)$db->lastInsertId();
+
+            $stmt_souche = $db->prepare("UPDATE personnel_contrats_historique SET contrat_souche_id = :id WHERE id = :id");
+            $stmt_souche->execute(['id' => $newId]);
+
+            $migratedCount++;
+        }
+
+        return $migratedCount;
     }
 }

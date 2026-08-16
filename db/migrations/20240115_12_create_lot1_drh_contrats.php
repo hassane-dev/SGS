@@ -188,5 +188,16 @@ function migrate_12($db) {
         error_log("Index creation warning in migrate_12: " . $e->getMessage());
     }
 
+    // Legacy Data Migration: migrate utilisateurs.contrat_id to personnel_contrats_historique
+    try {
+        require_once __DIR__ . '/../../src/services/PersonnelContractService.php';
+        $migratedCount = PersonnelContractService::migrateLegacyContracts();
+        if ($migratedCount > 0) {
+            echo "Migration 12: $migratedCount legacy user contracts successfully migrated to personnel_contrats_historique.\n";
+        }
+    } catch (Exception $e) {
+        error_log("Legacy contract migration notice in migrate_12: " . $e->getMessage());
+    }
+
     echo "Migration 12: Lot 1 DRH & Contrats tables and extensions OK.\n";
 }
