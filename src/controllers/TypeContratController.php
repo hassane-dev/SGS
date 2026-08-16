@@ -7,10 +7,10 @@ require_once __DIR__ . '/../core/View.php';
 class TypeContratController {
 
     private function checkAccess() {
-        if (!Auth::can('manage', 'user')) { // Reuse this permission
+        if (!Auth::can('manage_contrats', 'drh') && !Auth::can('manage', 'user')) {
             http_response_code(403);
             View::render('errors/403');
-            exit();
+            if (!defined('TEST_MODE')) exit(); return;
         }
     }
 
