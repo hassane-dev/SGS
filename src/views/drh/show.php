@@ -707,52 +707,107 @@
     </div>
 </div>
 
-<!-- MODAL 3: CONTRAT -->
+<!-- MODAL 3: CONTRAT & AVENANTS -->
 <div class="modal fade" id="newContractModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <form method="POST" action="/drh/contracts/store">
                 <input type="hidden" name="personnel_id" value="<?= $p['id_user'] ?>">
+                <input type="hidden" name="idempotency_key" value="<?= bin2hex(random_bytes(16)) ?>">
                 <div class="modal-header">
                     <h5 class="modal-title d-flex align-items-center gap-2">
                         <i class="ph-duotone ph-file-text text-primary"></i>
-                        <span><?= _('Nouveau Contrat Administratif') ?></span>
+                        <span><?= _('Nouveau Contrat / Avenant Administratif') ?></span>
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label required"><?= _('Type de Contrat') ?></label>
-                        <select name="type_contrat_id" class="form-select" required>
-                            <?php foreach ($typeContrats as $tc): ?>
-                                <option value="<?= $tc['id_contrat'] ?>"><?= htmlspecialchars($tc['libelle']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label required"><?= _('Type de Contrat') ?></label>
+                            <select name="type_contrat_id" class="form-select" required>
+                                <?php foreach ($typeContrats as $tc): ?>
+                                    <option value="<?= $tc['id_contrat'] ?>"><?= htmlspecialchars($tc['libelle']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><?= _('Employeur Juridique') ?></label>
+                            <select name="entite_juridique_id" class="form-select">
+                                <option value=""><?= _('Utiliser l\'employeur par défaut') ?></option>
+                                <?php if (!empty($entitesJuridiques)): foreach ($entitesJuridiques as $ej): ?>
+                                    <option value="<?= $ej['id'] ?>"><?= htmlspecialchars($ej['raison_sociale'] . ($ej['sigle'] ? ' ('.$ej['sigle'].')' : '')) ?></option>
+                                <?php endforeach; endif; ?>
+                            </select>
+                        </div>
                     </div>
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
                             <label class="form-label required"><?= _('Date Début') ?></label>
                             <input type="date" name="date_debut" class="form-control" required value="<?= date('Y-m-d') ?>">
                         </div>
-                        <div class="col-6">
-                            <label class="form-label"><?= _('Date Fin') ?></label>
+                        <div class="col-md-4">
+                            <label class="form-label"><?= _('Date Fin (laisser vide pour CDI)') ?></label>
                             <input type="date" name="date_fin" class="form-control">
                         </div>
+                        <div class="col-md-4">
+                            <label class="form-label"><?= _('Période d\'essai (Jours)') ?></label>
+                            <input type="number" name="periode_essai_jours" class="form-control" value="0" min="0">
+                        </div>
                     </div>
+
                     <?php if ($can_view_sensitive): ?>
-                    <div class="mb-3">
-                        <label class="form-label"><?= _('Salaire de Base Contractuel') ?></label>
-                        <input type="number" step="0.01" name="salaire_base" class="form-control" placeholder="0.00">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label"><?= _('Salaire de Base Contractuel') ?></label>
+                            <input type="number" step="0.01" name="salaire_base" class="form-control" placeholder="0.00">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label"><?= _('Mode de Calcul') ?></label>
+                            <select name="mode_calcul_principal" class="form-select">
+                                <option value="forfait_fixe"><?= _('Forfait Fixe') ?></option>
+                                <option value="taux_horaire"><?= _('Taux Horaire') ?></option>
+                                <option value="taux_journalier"><?= _('Taux Journalier') ?></option>
+                                <option value="commission"><?= _('Commission') ?></option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label"><?= _('Périodicité') ?></label>
+                            <select name="periodicite_paiement" class="form-select">
+                                <option value="mensuel"><?= _('Mensuel') ?></option>
+                                <option value="bi_mensuel"><?= _('Bi-mensuel / Quinzaine') ?></option>
+                                <option value="hebdomadaire"><?= _('Hebdomadaire') ?></option>
+                                <option value="a_la_prestation"><?= _('À la prestation') ?></option>
+                            </select>
+                        </div>
                     </div>
                     <?php endif; ?>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label"><?= _('Type d\'Acte / Avenant') ?></label>
+                            <select name="type_avenant" class="form-select">
+                                <option value="creation"><?= _('Contrat Initial / Création') ?></option>
+                                <option value="revalorisation_salariale"><?= _('Avenant de revalorisation salariale') ?></option>
+                                <option value="changement_volume_horaire"><?= _('Avenant de changement de volume horaire') ?></option>
+                                <option value="extension_duree"><?= _('Avenant d\'extension de durée / Renouvellement') ?></option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><?= _('N° d\'Avenant ou de Référence Légale') ?></label>
+                            <input type="text" name="avenant_numero" class="form-control" placeholder="<?= _('Ex: AV-2024-001') ?>">
+                        </div>
+                    </div>
+
                     <div class="mb-3">
-                        <label class="form-label"><?= _('Commentaires / Précisions') ?></label>
+                        <label class="form-label"><?= _('Commentaires / Offre Contractuelle') ?></label>
                         <textarea name="commentaire" class="form-control" rows="2"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal"><?= _('Annuler') ?></button>
-                    <button type="submit" class="btn btn-primary"><?= _('Enregistrer Contrat') ?></button>
+                    <button type="submit" class="btn btn-primary"><?= _('Enregistrer Contrat / Avenant') ?></button>
                 </div>
             </form>
         </div>

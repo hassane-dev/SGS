@@ -101,10 +101,12 @@ class PersonnelController {
             if (!defined('TEST_MODE')) exit(); return;
         }
 
+        require_once __DIR__ . '/../models/PaieEntiteJuridique.php';
         $lycee_id = $details['personnel']['lycee_id'];
         $cycles = Cycle::findByLycee($lycee_id);
         $typeContrats = TypeContrat::findAll($lycee_id);
         $fonctions = PersonnelService::getFonctions($lycee_id);
+        $entitesJuridiques = PaieEntiteJuridique::findAll();
 
         View::render('drh/show', [
             'title' => _('Dossier Personnel 360° : ') . $details['personnel']['prenom'] . ' ' . $details['personnel']['nom'],
@@ -117,6 +119,7 @@ class PersonnelController {
             'cycles' => $cycles,
             'typeContrats' => $typeContrats,
             'fonctions' => $fonctions,
+            'entitesJuridiques' => $entitesJuridiques,
             'can_view_sensitive' => $can_view_sensitive
         ]);
     }
