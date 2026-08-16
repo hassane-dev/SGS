@@ -136,7 +136,16 @@ class PersonnelDocumentService {
             }
 
             if (!$moved) {
-                throw new Exception(_("Échec du déplacement du fichier téléversé."));
+                error_log(sprintf(
+                    "[DRH DOCUMENT UPLOAD ERROR] move_uploaded_file failed! tmp_name: %s | targetPath: %s | is_uploaded_file: %s | dir_exists: %s | dir_writable: %s | upload_error_code: %s",
+                    $file['tmp_name'] ?? 'N/A',
+                    $targetPath,
+                    is_uploaded_file($file['tmp_name'] ?? '') ? 'YES' : 'NO',
+                    is_dir($uploadDir) ? 'YES' : 'NO',
+                    is_writable($uploadDir) ? 'YES' : 'NO',
+                    $file['error'] ?? 'N/A'
+                ));
+                throw new Exception(_("Impossible d'enregistrer le document. Veuillez réessayer ou contacter l'administrateur."));
             }
 
             $sql = "INSERT INTO personnel_documents (

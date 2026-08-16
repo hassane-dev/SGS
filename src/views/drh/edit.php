@@ -68,15 +68,15 @@
                                     <option value="Femme" <?= $p['sexe'] === 'Femme' ? 'selected' : '' ?>><?= _('Femme') ?></option>
                                 </select>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label class="form-label small fw-semibold text-muted"><?= _('Date de Naissance') ?></label>
                                 <input type="date" name="date_naissance" class="form-control" value="<?= htmlspecialchars($p['date_naissance'] ?? '') ?>">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label class="form-label small fw-semibold text-muted"><?= _('Lieu de Naissance') ?></label>
                                 <input type="text" name="lieu_naissance" class="form-control" value="<?= htmlspecialchars($p['lieu_naissance'] ?? '') ?>">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label class="form-label small fw-semibold text-muted"><?= _('Situation Matrimoniale') ?></label>
                                 <select name="situation_matrimoniale" class="form-select">
                                     <option value="celibataire" <?= ($p['situation_matrimoniale'] ?? '') === 'celibataire' ? 'selected' : '' ?>><?= _('Célibataire') ?></option>
@@ -84,6 +84,10 @@
                                     <option value="divorce" <?= ($p['situation_matrimoniale'] ?? '') === 'divorce' ? 'selected' : '' ?>><?= _('Divorcé(e)') ?></option>
                                     <option value="veuf" <?= ($p['situation_matrimoniale'] ?? '') === 'veuf' ? 'selected' : '' ?>><?= _('Veuf/Veuve') ?></option>
                                 </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold text-muted"><?= _('Nombre d\'Enfants') ?></label>
+                                <input type="number" name="nombre_enfants" class="form-control" min="0" value="<?= (int)($p['nombre_enfants'] ?? 0) ?>">
                             </div>
                         </div>
                     </div>
