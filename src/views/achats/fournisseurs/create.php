@@ -67,9 +67,18 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
 
                                 <!-- Compte Comptable Tiers -->
                                 <div class="col-md-6">
-                                    <label class="form-label font-weight-bold" for="compte_comptable_tiers"><?= _("Compte Tiers OHADA") ?></label>
-                                    <input type="text" name="compte_comptable_tiers" id="compte_comptable_tiers" class="form-control" value="401100" placeholder="401100">
-                                    <small class="text-muted"><?= _("Compte auxiliaire rattaché de la classe 401.") ?></small>
+                                    <label class="form-label font-weight-bold" for="compte_comptable_tiers"><?= _("Compte Tiers OHADA *") ?></label>
+                                    <select name="compte_comptable_tiers" id="compte_comptable_tiers" class="form-select" required>
+                                        <option value=""><?= _("-- Sélectionner un compte tiers --") ?></option>
+                                        <?php if (!empty($comptesTiers)): ?>
+                                            <?php foreach ($comptesTiers as $ct): ?>
+                                                <option value="<?= htmlspecialchars($ct['numero']) ?>" <?= $ct['numero'] === '401100' ? 'selected' : '' ?>>
+                                                    <?= htmlspecialchars($ct['numero'] . ' — ' . $ct['libelle']) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </select>
+                                    <small class="text-muted"><?= _("Compte fournisseur rattaché du référentiel.") ?></small>
                                 </div>
 
                                 <!-- NIF -->

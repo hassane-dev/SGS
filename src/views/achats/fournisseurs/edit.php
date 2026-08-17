@@ -58,8 +58,17 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
 
                                 <!-- Compte Comptable Tiers -->
                                 <div class="col-md-6">
-                                    <label class="form-label font-weight-bold" for="compte_comptable_tiers"><?= _("Compte Tiers OHADA") ?></label>
-                                    <input type="text" name="compte_comptable_tiers" id="compte_comptable_tiers" class="form-control" value="<?= htmlspecialchars($fournisseur['compte_comptable_tiers'] ?: '401100') ?>">
+                                    <label class="form-label font-weight-bold" for="compte_comptable_tiers"><?= _("Compte Tiers OHADA *") ?></label>
+                                    <select name="compte_comptable_tiers" id="compte_comptable_tiers" class="form-select" required>
+                                        <option value=""><?= _("-- Sélectionner un compte tiers --") ?></option>
+                                        <?php if (!empty($comptesTiers)): ?>
+                                            <?php foreach ($comptesTiers as $ct): ?>
+                                                <option value="<?= htmlspecialchars($ct['numero']) ?>" <?= ($fournisseur['compte_comptable_tiers'] ?: '401100') === $ct['numero'] ? 'selected' : '' ?>>
+                                                    <?= htmlspecialchars($ct['numero'] . ' — ' . $ct['libelle']) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </select>
                                 </div>
 
                                 <!-- Statut -->
