@@ -377,7 +377,7 @@
                                         </td>
                                         <?php if ($can_view_sensitive): ?>
                                         <td class="fw-bold font-monospace text-primary">
-                                            <?= number_format($c['salaire_base'] ?? 0, 2) ?> <?= htmlspecialchars($c['devise'] ?? 'XAF') ?>
+                                            <?= number_format($c['salaire_base'] ?? 0, 2) ?> <?= htmlspecialchars(PersonnelContractService::resolveCurrency($c['devise'] ?? null, $p['lycee_id'])) ?>
                                         </td>
                                         <?php endif; ?>
                                         <td>

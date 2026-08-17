@@ -95,6 +95,31 @@ class PersonnelContractController {
     }
 
     /**
+     * Rejects physical contract deletion attempts with LogicException / HTTP 405.
+     */
+    public function delete() {
+        $this->checkAccess();
+        $id = isset($_REQUEST['id']) ? (int)$_REQUEST['id'] : (isset($_REQUEST['contract_id']) ? (int)$_REQUEST['contract_id'] : 0);
+        try {
+            PersonnelContractService::deleteContract($id);
+        } catch (LogicException $e) {
+            if (!headers_sent()) {
+                http_response_code(405);
+            }
+            if (defined('TEST_MODE')) {
+                throw $e;
+            }
+            if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+                echo json_encode(['error' => $e->getMessage()]);
+            } else {
+                $_SESSION['error_message'] = $e->getMessage();
+                header('Location: /drh');
+            }
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+    }
+
+    /**
      * Returns contract details as JSON.
      */
     public function details() {
