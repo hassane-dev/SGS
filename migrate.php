@@ -622,6 +622,10 @@ try {
         ['comptes_financiers', 'create', 'Créer de nouveaux comptes financiers'],
         ['comptes_financiers', 'edit', 'Modifier les propriétés d\'un compte financier'],
         ['comptes_financiers', 'manage', 'Suspendre ou réactiver un compte financier'],
+        ['comptes_comptables', 'view', 'Consulter le plan de comptes comptables general'],
+        ['comptes_comptables', 'create', 'Créer un compte comptable'],
+        ['comptes_comptables', 'edit', 'Modifier un compte comptable'],
+        ['comptes_comptables', 'delete', 'Supprimer ou désactiver un compte comptable'],
         ['sessions_caisse', 'view', 'Consulter la liste et le détail des sessions de caisse'],
         ['sessions_caisse', 'create', 'Ouvrir une session de caisse physique journalière'],
         ['sessions_caisse', 'edit', 'Fermer sa propre session de caisse'],
@@ -769,7 +773,7 @@ try {
         SELECT r.id_role, p.id_permission
         FROM roles r, permissions p
         WHERE r.id_role IN (1, 2, 3, 9)
-        AND p.resource IN ('comptes_financiers', 'sessions_caisse', 'finance', 'journal', 'grand_livre', 'balance')
+        AND p.resource IN ('comptes_financiers', 'comptes_comptables', 'sessions_caisse', 'finance', 'journal', 'grand_livre', 'balance')
     ");
 
     // 2. Specific permissions to Comptable (7) and Caissier (10)
@@ -780,6 +784,7 @@ try {
         WHERE r.id_role IN (7, 10)
         AND (
             (p.resource = 'comptes_financiers' AND p.action = 'view') OR
+            (p.resource = 'comptes_comptables' AND p.action IN ('view', 'create', 'edit')) OR
             (p.resource = 'sessions_caisse' AND p.action IN ('view', 'create', 'edit')) OR
             (p.resource = 'finance' AND p.action IN ('view_policy', 'view_control', 'view_reports')) OR
             (p.resource = 'journal' AND p.action = 'view') OR
@@ -793,6 +798,30 @@ try {
     }
     addColumnIfNeeded($db, 'comptes_financiers', 'est_coffre', 'TINYINT DEFAULT 0');
     addColumnIfNeeded($db, 'comptes_financiers', 'compte_comptable_numero', 'VARCHAR(20) DEFAULT NULL');
+    addColumnIfNeeded($db, 'comptes_financiers', 'compte_comptable_id', 'INTEGER DEFAULT NULL');
+
+    // Populate compte_comptable_id on comptes_financiers where missing
+    try {
+        ComptabiliteService::seedDefaultChartOfAccounts();
+        $stmt_cf = $db->query("SELECT id, compte_comptable_numero FROM comptes_financiers WHERE compte_comptable_id IS NULL AND compte_comptable_numero IS NOT NULL AND TRIM(compte_comptable_numero) != ''");
+        if ($stmt_cf) {
+            while ($cf = $stmt_cf->fetch(PDO::FETCH_ASSOC)) {
+                $num = trim($cf['compte_comptable_numero']);
+                $stmt_cc = $db->prepare("SELECT id FROM comptes_comptables WHERE TRIM(numero) = :num");
+                $stmt_cc->execute(['num' => $num]);
+                $ccId = $stmt_cc->fetchColumn();
+                if ($ccId) {
+                    $stmt_up = $db->prepare("UPDATE comptes_financiers SET compte_comptable_id = :cc_id WHERE id = :id");
+                    $stmt_up->execute(['cc_id' => $ccId, 'id' => $cf['id']]);
+                } else {
+                    echo "Notice: Compte financier #{$cf['id']} has unmapped compte_comptable_numero '{$num}'.\n";
+                }
+            }
+        }
+    } catch (Exception $e) {
+        echo "Notice mapping comptes_financiers: " . $e->getMessage() . "\n";
+    }
+
     addColumnIfNeeded($db, 'sessions_caisse', 'montant_remis', 'DECIMAL(15,2) DEFAULT NULL');
     addColumnIfNeeded($db, 'sessions_caisse', 'fonds_caisse_conserve', 'DECIMAL(15,2) DEFAULT NULL');
 

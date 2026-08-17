@@ -52,8 +52,17 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
                             <!-- Compte de Charge -->
                             <div class="mb-3">
                                 <label class="form-label font-weight-bold" for="compte_comptable_charge"><?= _("Compte comptable de charge OHADA") ?> <span class="text-danger">*</span></label>
-                                <input type="text" name="compte_comptable_charge" id="compte_comptable_charge" class="form-control" placeholder="Ex: 601100" required>
-                                <small class="text-muted"><?= _("Compte de la classe 6 où seront rattachées les factures de cette catégorie.") ?></small>
+                                <select name="compte_comptable_charge" id="compte_comptable_charge" class="form-select" required>
+                                    <option value=""><?= _("-- Sélectionner un compte de charge --") ?></option>
+                                    <?php if (!empty($comptesCharges)): ?>
+                                        <?php foreach ($comptesCharges as $cc): ?>
+                                            <option value="<?= htmlspecialchars($cc['numero']) ?>">
+                                                <?= htmlspecialchars($cc['numero'] . ' — ' . $cc['libelle']) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                                <small class="text-muted"><?= _("Compte de la classe 6 ou de charge où seront rattachées les factures de cette catégorie.") ?></small>
                             </div>
 
                             <div class="mt-4 d-flex justify-content-end gap-2">

@@ -365,6 +365,13 @@ $navItems = [
         'condition' => Auth::can('view', 'paiement'),
     ],
     [
+        'url' => '/comptes-comptables',
+        'icon' => 'ph-duotone ph-list-numbers',
+        'text' => _('Plan de comptes'),
+        'title' => _('Consulter et gérer le plan de comptes comptables OHADA.'),
+        'condition' => Auth::can('view', 'comptes_comptables'),
+    ],
+    [
         'url' => '/journal',
         'icon' => 'ph-duotone ph-book-open',
         'text' => _('Journal comptable'),

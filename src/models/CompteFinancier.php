@@ -8,7 +8,21 @@ class CompteFinancier {
         $db = Database::getInstance();
         $stmt = $db->prepare("SELECT * FROM comptes_financiers WHERE id = :id");
         $stmt->execute(['id' => $id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row && !empty($row['compte_comptable_id'])) {
+            try {
+                $stmtCC = $db->prepare("SELECT numero, libelle FROM comptes_comptables WHERE id = :id");
+                $stmtCC->execute(['id' => $row['compte_comptable_id']]);
+                $cc = $stmtCC->fetch(PDO::FETCH_ASSOC);
+                if ($cc) {
+                    $row['compte_comptable_numero'] = $cc['numero'];
+                    $row['compte_comptable_libelle'] = $cc['libelle'];
+                }
+            } catch (Exception $e) {
+                // Ignore if comptes_comptables table does not exist in legacy isolated test runner
+            }
+        }
+        return $row ?: null;
     }
 
     public static function findByLycee($lyceeId) {
@@ -19,7 +33,24 @@ class CompteFinancier {
             ORDER BY nom_compte ASC
         ");
         $stmt->execute(['lycee_id' => $lyceeId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as &$row) {
+            if (!empty($row['compte_comptable_id'])) {
+                try {
+                    $stmtCC = $db->prepare("SELECT numero, libelle FROM comptes_comptables WHERE id = :id");
+                    $stmtCC->execute(['id' => $row['compte_comptable_id']]);
+                    $cc = $stmtCC->fetch(PDO::FETCH_ASSOC);
+                    if ($cc) {
+                        $row['compte_comptable_numero'] = $cc['numero'];
+                        $row['compte_comptable_libelle'] = $cc['libelle'];
+                    }
+                } catch (Exception $e) {
+                    // Ignore
+                }
+            }
+        }
+        unset($row);
+        return $rows;
     }
 
     public static function findCoffreByLycee($lyceeId) {
@@ -45,20 +76,60 @@ class CompteFinancier {
             }
         }
 
-        $stmt = $db->prepare("
-            INSERT INTO comptes_financiers (lycee_id, nom_compte, type_compte, solde_courant, devise, responsable_id, est_coffre, compte_comptable_numero)
-            VALUES (:lycee_id, :nom_compte, :type_compte, :solde_courant, :devise, :responsable_id, :est_coffre, :compte_comptable_numero)
-        ");
-        $stmt->execute([
-            'lycee_id' => $data['lycee_id'],
-            'nom_compte' => $data['nom_compte'],
-            'type_compte' => $data['type_compte'],
-            'solde_courant' => $data['solde_courant'] ?? 0.00,
-            'devise' => $data['devise'] ?? 'FCFA',
-            'responsable_id' => $data['responsable_id'] ?? null,
-            'est_coffre' => $estCoffre,
-            'compte_comptable_numero' => !empty($data['compte_comptable_numero']) ? trim($data['compte_comptable_numero']) : null
-        ]);
+        // Resolve compte_comptable_id and compte_comptable_numero
+        $compteComptableId = !empty($data['compte_comptable_id']) ? (int)$data['compte_comptable_id'] : null;
+        $compteComptableNumero = !empty($data['compte_comptable_numero']) ? trim($data['compte_comptable_numero']) : null;
+
+        if ($compteComptableId) {
+            $stmtCC = $db->prepare("SELECT id, numero, actif, autoriser_ecriture FROM comptes_comptables WHERE id = :id");
+            $stmtCC->execute(['id' => $compteComptableId]);
+            $cc = $stmtCC->fetch(PDO::FETCH_ASSOC);
+            if ($cc) {
+                $compteComptableNumero = $cc['numero'];
+            }
+        } elseif ($compteComptableNumero) {
+            $stmtCC = $db->prepare("SELECT id, numero, actif, autoriser_ecriture FROM comptes_comptables WHERE TRIM(numero) = :num");
+            $stmtCC->execute(['num' => $compteComptableNumero]);
+            $cc = $stmtCC->fetch(PDO::FETCH_ASSOC);
+            if ($cc) {
+                $compteComptableId = (int)$cc['id'];
+                $compteComptableNumero = $cc['numero'];
+            }
+        }
+
+
+        try {
+            $stmt = $db->prepare("
+                INSERT INTO comptes_financiers (lycee_id, nom_compte, type_compte, solde_courant, devise, responsable_id, est_coffre, compte_comptable_id, compte_comptable_numero)
+                VALUES (:lycee_id, :nom_compte, :type_compte, :solde_courant, :devise, :responsable_id, :est_coffre, :compte_comptable_id, :compte_comptable_numero)
+            ");
+            $stmt->execute([
+                'lycee_id' => $data['lycee_id'],
+                'nom_compte' => $data['nom_compte'],
+                'type_compte' => $data['type_compte'],
+                'solde_courant' => $data['solde_courant'] ?? 0.00,
+                'devise' => $data['devise'] ?? 'FCFA',
+                'responsable_id' => $data['responsable_id'] ?? null,
+                'est_coffre' => $estCoffre,
+                'compte_comptable_id' => $compteComptableId,
+                'compte_comptable_numero' => $compteComptableNumero
+            ]);
+        } catch (Exception $e) {
+            $stmt = $db->prepare("
+                INSERT INTO comptes_financiers (lycee_id, nom_compte, type_compte, solde_courant, devise, responsable_id, est_coffre, compte_comptable_numero)
+                VALUES (:lycee_id, :nom_compte, :type_compte, :solde_courant, :devise, :responsable_id, :est_coffre, :compte_comptable_numero)
+            ");
+            $stmt->execute([
+                'lycee_id' => $data['lycee_id'],
+                'nom_compte' => $data['nom_compte'],
+                'type_compte' => $data['type_compte'],
+                'solde_courant' => $data['solde_courant'] ?? 0.00,
+                'devise' => $data['devise'] ?? 'FCFA',
+                'responsable_id' => $data['responsable_id'] ?? null,
+                'est_coffre' => $estCoffre,
+                'compte_comptable_numero' => $compteComptableNumero
+            ]);
+        }
         return $db->lastInsertId();
     }
 

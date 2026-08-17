@@ -63,8 +63,14 @@ class CompteFinancierController {
         $stmt->execute(['lycee_id' => $lyceeId]);
         $responsables = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Fetch eligible accounts from chart of accounts
+        $stmtCC = $db->prepare("SELECT id, numero, libelle, classe FROM comptes_comptables WHERE actif = 1 AND autoriser_ecriture = 1 ORDER BY numero ASC");
+        $stmtCC->execute();
+        $comptesComptables = $stmtCC->fetchAll(PDO::FETCH_ASSOC);
+
         View::render('comptabilite/comptes_financiers/create', [
             'responsables' => $responsables,
+            'comptesComptables' => $comptesComptables,
             'title' => _("Créer un Compte Financier")
         ]);
     }
@@ -96,7 +102,7 @@ class CompteFinancierController {
                     'devise' => $devise,
                     'responsable_id' => $responsableId,
                     'est_coffre' => !empty($data['est_coffre']) ? 1 : 0,
-                    'compte_comptable_numero' => !empty($data['compte_comptable_numero']) ? trim($data['compte_comptable_numero']) : null
+                    'compte_comptable_id' => !empty($data['compte_comptable_id']) ? (int)$data['compte_comptable_id'] : null
                 ]);
 
                 $_SESSION['success_message'] = _("Compte financier créé avec succès.");
@@ -134,9 +140,15 @@ class CompteFinancierController {
         $stmt->execute(['lycee_id' => $lyceeId]);
         $responsables = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Fetch eligible accounts from chart of accounts
+        $stmtCC = $db->prepare("SELECT id, numero, libelle, classe FROM comptes_comptables WHERE actif = 1 AND autoriser_ecriture = 1 ORDER BY numero ASC");
+        $stmtCC->execute();
+        $comptesComptables = $stmtCC->fetchAll(PDO::FETCH_ASSOC);
+
         View::render('comptabilite/comptes_financiers/edit', [
             'compte' => $compte,
             'responsables' => $responsables,
+            'comptesComptables' => $comptesComptables,
             'title' => _("Modifier le Compte Financier")
         ]);
     }
@@ -166,14 +178,30 @@ class CompteFinancierController {
             $responsableId = !empty($data['responsable_id']) ? (int)$data['responsable_id'] : null;
             $statut = trim($data['statut'] ?? 'actif');
             $estCoffre = !empty($data['est_coffre']) ? 1 : 0;
-            $compteComptableNumero = !empty($data['compte_comptable_numero']) ? trim($data['compte_comptable_numero']) : null;
+            $compteComptableId = !empty($data['compte_comptable_id']) ? (int)$data['compte_comptable_id'] : null;
 
             if (empty($nom) || empty($type)) {
                 $_SESSION['error_message'] = _("Le nom du compte et le type sont obligatoires.");
                 $this->redirect('/comptes-financiers/edit/' . $id);
             }
 
+            if (!$compteComptableId) {
+                $_SESSION['error_message'] = _("Un compte comptable général du référentiel doit être sélectionné.");
+                $this->redirect('/comptes-financiers/edit/' . $id);
+            }
+
             try {
+                $db = Database::getInstance();
+
+                // Validate account from chart
+                $stmtCC = $db->prepare("SELECT id, numero, actif, autoriser_ecriture FROM comptes_comptables WHERE id = :id");
+                $stmtCC->execute(['id' => $compteComptableId]);
+                $cc = $stmtCC->fetch(PDO::FETCH_ASSOC);
+                if (!$cc || !$cc['actif'] || !$cc['autoriser_ecriture']) {
+                    throw new Exception(_("Le compte comptable sélectionné est invalide, inactif ou n'autorise pas les écritures."));
+                }
+                $compteComptableNumero = $cc['numero'];
+
                 // Strict Uniqueness check of Coffre Principal per lycée on update
                 if ($estCoffre === 1) {
                     $existingCoffre = CompteFinancier::findCoffreByLycee($lyceeId);
@@ -182,10 +210,9 @@ class CompteFinancierController {
                     }
                 }
 
-                $db = Database::getInstance();
                 $stmt = $db->prepare("
                     UPDATE comptes_financiers
-                    SET nom_compte = :nom, type_compte = :type, devise = :devise, responsable_id = :responsable_id, statut = :statut, est_coffre = :est_coffre, compte_comptable_numero = :compte_comptable_numero
+                    SET nom_compte = :nom, type_compte = :type, devise = :devise, responsable_id = :responsable_id, statut = :statut, est_coffre = :est_coffre, compte_comptable_id = :compte_comptable_id, compte_comptable_numero = :compte_comptable_numero
                     WHERE id = :id AND lycee_id = :lycee_id
                 ");
                 $stmt->execute([
@@ -195,6 +222,7 @@ class CompteFinancierController {
                     'responsable_id' => $responsableId,
                     'statut' => $statut,
                     'est_coffre' => $estCoffre,
+                    'compte_comptable_id' => $compteComptableId,
                     'compte_comptable_numero' => $compteComptableNumero,
                     'id' => $id,
                     'lycee_id' => $lyceeId

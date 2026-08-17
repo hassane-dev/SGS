@@ -240,6 +240,15 @@ $router->register('/comptes-financiers/edit/{id}', 'CompteFinancierController', 
 $router->register('/comptes-financiers/update', 'CompteFinancierController', 'update');
 $router->register('/comptes-financiers/destroy/{id}', 'CompteFinancierController', 'destroy');
 
+// Référentiel Comptes Comptables
+$router->register('/comptes-comptables', 'CompteComptableController', 'index');
+$router->register('/comptes-comptables/create', 'CompteComptableController', 'create');
+$router->register('/comptes-comptables/store', 'CompteComptableController', 'store');
+$router->register('/comptes-comptables/edit/{id}', 'CompteComptableController', 'edit');
+$router->register('/comptes-comptables/update', 'CompteComptableController', 'update');
+$router->register('/comptes-comptables/toggle/{id}', 'CompteComptableController', 'toggleActive');
+$router->register('/comptes-comptables/destroy/{id}', 'CompteComptableController', 'destroy');
+
 // Gestion des Achats & Fournisseurs (Phase 7)
 $router->register('/achats/fournisseurs', 'AchatController', 'listFournisseurs');
 $router->register('/achats/fournisseurs/create', 'AchatController', 'createFournisseur');

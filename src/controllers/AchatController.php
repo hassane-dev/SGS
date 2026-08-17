@@ -18,6 +18,7 @@ require_once __DIR__ . '/../models/AchatFactureReglement.php';
 require_once __DIR__ . '/../models/AchatAvoirFournisseur.php';
 require_once __DIR__ . '/../models/AchatAvoirFournisseurLigne.php';
 require_once __DIR__ . '/../models/CompteFinancier.php';
+require_once __DIR__ . '/../models/CompteComptable.php';
 require_once __DIR__ . '/../models/SessionCaisse.php';
 require_once __DIR__ . '/../services/AchatWorkflowService.php';
 
@@ -94,7 +95,10 @@ class AchatController {
             }
         }
 
+        $comptesTiers = CompteComptable::findAll(['actif' => 1]);
+
         View::render('achats/fournisseurs/create', [
+            'comptesTiers' => $comptesTiers,
             'title' => _("Créer un Fournisseur")
         ]);
     }
@@ -155,8 +159,11 @@ class AchatController {
             }
         }
 
+        $comptesTiers = CompteComptable::findAll(['actif' => 1]);
+
         View::render('achats/fournisseurs/edit', [
             'fournisseur' => $fournisseur,
+            'comptesTiers' => $comptesTiers,
             'title' => _("Modifier le Fournisseur")
         ]);
     }
@@ -223,7 +230,10 @@ class AchatController {
             }
         }
 
+        $comptesCharges = CompteComptable::findAll(['actif' => 1]);
+
         View::render('achats/categories/create', [
+            'comptesCharges' => $comptesCharges,
             'title' => _("Créer une Catégorie")
         ]);
     }
@@ -252,8 +262,11 @@ class AchatController {
             }
         }
 
+        $comptesCharges = CompteComptable::findAll(['actif' => 1]);
+
         View::render('achats/categories/edit', [
             'category' => $category,
+            'comptesCharges' => $comptesCharges,
             'title' => _("Modifier la Catégorie")
         ]);
     }

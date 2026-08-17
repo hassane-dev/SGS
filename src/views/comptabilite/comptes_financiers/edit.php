@@ -104,9 +104,18 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
 
                                 <!-- Compte Comptable Général (OHADA) -->
                                 <div class="col-md-6 mb-3">
-                                    <label for="compte_comptable_numero" class="form-label font-weight-bold"><?= _("Compte Comptable Général (OHADA) *") ?></label>
-                                    <input type="text" class="form-control" id="compte_comptable_numero" name="compte_comptable_numero" value="<?= htmlspecialchars($compte['compte_comptable_numero'] ?? '') ?>" placeholder="Ex: 571200" required>
-                                    <div class="form-text text-muted"><?= _("Compte de classe 5 (ex: 571100 pour Coffre, 571200 pour Caisse).") ?></div>
+                                    <label for="compte_comptable_id" class="form-label font-weight-bold"><?= _("Compte Comptable Général (OHADA) *") ?></label>
+                                    <select class="form-select" id="compte_comptable_id" name="compte_comptable_id" required>
+                                        <option value=""><?= _("-- Sélectionner un compte comptable --") ?></option>
+                                        <?php if (!empty($comptesComptables)): ?>
+                                            <?php foreach ($comptesComptables as $cc): ?>
+                                                <option value="<?= $cc['id'] ?>" <?= (($compte['compte_comptable_id'] ?? null) == $cc['id'] || (empty($compte['compte_comptable_id']) && ($compte['compte_comptable_numero'] ?? '') === $cc['numero'])) ? 'selected' : '' ?>>
+                                                    <?= htmlspecialchars($cc['numero'] . ' — ' . $cc['libelle']) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </select>
+                                    <div class="form-text text-muted"><?= _("Compte comptable du référentiel lié à ce compte financier.") ?></div>
                                 </div>
                             </div>
 
