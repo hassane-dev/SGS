@@ -62,7 +62,7 @@ function migrate_11($db) {
         date_debut DATE NOT NULL,
         date_fin DATE DEFAULT NULL,
         salaire_base DECIMAL(12,2) NOT NULL DEFAULT 0.00,
-        devise VARCHAR(10) DEFAULT 'XAF',
+        devise VARCHAR(10) DEFAULT NULL,
         volume_horaire_mensuel DECIMAL(6,2) DEFAULT NULL,
         statut_contrat VARCHAR(50) DEFAULT 'actif',
         commentaire TEXT DEFAULT NULL,

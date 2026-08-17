@@ -13,9 +13,12 @@ class PersonnelContractService {
      * 2. School param_general monnaie
      * 3. Default fallback 'FCFA'
      */
-    public static function resolveCurrency(?string $explicitCode, ?int $lycee_id = null): string {
+    public static function resolveCurrency(?string $explicitCode, ?int $lycee_id = null, ?string $contractCurrency = null): string {
         if (!empty($explicitCode)) {
             return $explicitCode;
+        }
+        if (!empty($contractCurrency)) {
+            return $contractCurrency;
         }
         if ($lycee_id) {
             $params = ParamGeneral::findByLyceeId($lycee_id);
@@ -23,7 +26,7 @@ class PersonnelContractService {
                 return $params['monnaie'];
             }
         }
-        return 'FCFA';
+        throw new DomainException(_("Configuration monétaire incomplète : la monnaie générale de l'établissement n'est pas configurée dans les paramètres généraux."));
     }
 
     /**
@@ -171,41 +174,54 @@ class PersonnelContractService {
         $stmt_u_lycee->execute(['uid' => $personnel_id]);
         $lycee_id = $stmt_u_lycee->fetchColumn() ?: null;
 
-        $devise = self::resolveCurrency($data['devise'] ?? null, $lycee_id);
+        $devise = !empty($data['devise']) ? trim($data['devise']) : null;
+        // Verify currency resolution doesn't fail due to unconfigured school monnaie
+        self::resolveCurrency($devise, $lycee_id);
 
         if ($date_fin && $date_fin < $date_debut) {
             throw new InvalidArgumentException(_("La date de fin ne peut pas être antérieure à la date de début."));
         }
 
         // Anti-overlap validation for same personnel, same employer
-        $sql_overlap = "
-            SELECT id, date_debut, date_fin FROM personnel_contrats_historique
-            WHERE personnel_id = :pid
-              AND (entite_juridique_id IS NULL OR entite_juridique_id = :ejid)
-              AND statut_contrat = 'actif'
-              AND (:id IS NULL OR id != :id_check)";
+        if ($entite_juridique_id !== null) {
+            $sql_overlap = "
+                SELECT id, date_debut, date_fin FROM personnel_contrats_historique
+                WHERE personnel_id = :pid
+                  AND (entite_juridique_id = :ejid OR entite_juridique_id IS NULL)
+                  AND statut_contrat = 'actif'
+                  AND (:id IS NULL OR id != :id_check)";
+        } else {
+            $sql_overlap = "
+                SELECT id, date_debut, date_fin FROM personnel_contrats_historique
+                WHERE personnel_id = :pid
+                  AND entite_juridique_id IS NULL
+                  AND statut_contrat = 'actif'
+                  AND (:id IS NULL OR id != :id_check)";
+        }
 
         if (!$id && $statut_contrat === 'actif') {
             // When creating a new active contract/avenant, existing active contracts with date_debut < new date_debut will be closed automatically.
             // Conflict only if an active contract exists with date_debut >= new date_debut.
             $sql_overlap .= " AND date_debut >= :d_start";
             $stmt_overlap = $db->prepare($sql_overlap);
-            $stmt_overlap->execute([
+            $params = [
                 'pid' => $personnel_id,
-                'ejid' => $entite_juridique_id,
                 'id' => $id,
                 'id_check' => $id,
                 'd_start' => $date_debut
-            ]);
+            ];
+            if ($entite_juridique_id !== null) {
+                $params['ejid'] = $entite_juridique_id;
+            }
+            $stmt_overlap->execute($params);
         } else {
             $sql_overlap .= " AND (
                 (date_debut <= :d_start AND (date_fin IS NULL OR date_fin >= :d_start2)) OR
                 (:d_end IS NOT NULL AND date_debut <= :d_end2 AND (date_fin IS NULL OR date_fin >= :d_end3))
               )";
             $stmt_overlap = $db->prepare($sql_overlap);
-            $stmt_overlap->execute([
+            $params = [
                 'pid' => $personnel_id,
-                'ejid' => $entite_juridique_id,
                 'id' => $id,
                 'id_check' => $id,
                 'd_start' => $date_debut,
@@ -213,7 +229,11 @@ class PersonnelContractService {
                 'd_end' => $date_fin,
                 'd_end2' => $date_fin,
                 'd_end3' => $date_fin
-            ]);
+            ];
+            if ($entite_juridique_id !== null) {
+                $params['ejid'] = $entite_juridique_id;
+            }
+            $stmt_overlap->execute($params);
         }
 
         if ($stmt_overlap->fetch()) {
@@ -231,13 +251,24 @@ class PersonnelContractService {
 
             // Handle Avenant creation / Terminate previous active versions
             if ($statut_contrat === 'actif' && !$id) {
-                // Find existing active contract to branch as Avenant
-                $stmt_prev = $db->prepare("
+                // Find existing active contract for same employer to branch as Avenant
+                $sql_prev = "
                     SELECT id, contrat_souche_id, version_num FROM personnel_contrats_historique
                     WHERE personnel_id = :personnel_id AND statut_contrat = 'actif'
-                    ORDER BY id DESC LIMIT 1
-                ");
-                $stmt_prev->execute(['personnel_id' => $personnel_id]);
+                ";
+                if ($entite_juridique_id !== null) {
+                    $sql_prev .= " AND (entite_juridique_id = :ejid OR entite_juridique_id IS NULL)";
+                } else {
+                    $sql_prev .= " AND entite_juridique_id IS NULL";
+                }
+                $sql_prev .= " ORDER BY id DESC LIMIT 1";
+
+                $stmt_prev = $db->prepare($sql_prev);
+                $params_prev = ['personnel_id' => $personnel_id];
+                if ($entite_juridique_id !== null) {
+                    $params_prev['ejid'] = $entite_juridique_id;
+                }
+                $stmt_prev->execute($params_prev);
                 $prev = $stmt_prev->fetch(PDO::FETCH_ASSOC);
 
                 if ($prev) {
@@ -377,8 +408,18 @@ class PersonnelContractService {
                 }
             }
 
-            // Process multi-funder lines
+        // Validate multi-funder percentage sum <= 100%
             if (isset($data['financements']) && is_array($data['financements'])) {
+            $totalPct = 0.0;
+            foreach ($data['financements'] as $fin) {
+                if (!empty($fin['financeur_nom'])) {
+                    $totalPct += (float)($fin['pourcentage_prise_en_charge'] ?? 0);
+                }
+            }
+            if (round($totalPct, 2) > 100.00) {
+                throw new InvalidArgumentException(_("Le total des pourcentages de prise en charge ne peut pas dépasser 100%."));
+            }
+
                 $db->prepare("DELETE FROM personnel_contrat_financements WHERE contrat_id = :cid")->execute(['cid' => $contrat_id]);
                 $stmt_fin = $db->prepare("
                     INSERT INTO personnel_contrat_financements (
