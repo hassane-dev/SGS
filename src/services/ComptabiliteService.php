@@ -24,6 +24,8 @@ class ComptabiliteService {
             // Classe 5 (Trésorerie)
             ['521000', 'Banque d\'établissement', 5, 'actif', null, 1, 1],
             ['571000', 'Caisse principale de l\'établissement', 5, 'actif', null, 1, 1],
+            ['571100', 'Coffre-fort central', 5, 'actif', null, 1, 1],
+            ['571200', 'Caisse guichet / auxiliaire', 5, 'actif', null, 1, 1],
             ['572000', 'Mobile Money (Orange/MTN/Wave)', 5, 'actif', null, 1, 1],
             ['585000', 'Virements internes (Compte de passage)', 5, 'actif', null, 1, 1],
             // Classe 6 (Charges)
@@ -344,15 +346,16 @@ class ComptabiliteService {
 
             foreach ($lignes as $l) {
                 // Retrieve account id from its number
-                $stmt_compte = $db->prepare("SELECT id, autoriser_ecriture FROM comptes_comptables WHERE numero = :num");
-                $stmt_compte->execute(['num' => $l['compte_numero']]);
+                $num_compte = trim($l['compte_numero'] ?? '');
+                $stmt_compte = $db->prepare("SELECT id, autoriser_ecriture FROM comptes_comptables WHERE TRIM(numero) = :num");
+                $stmt_compte->execute(['num' => $num_compte]);
                 $compte_data = $stmt_compte->fetch(PDO::FETCH_ASSOC);
 
                 if (!$compte_data) {
-                    throw new Exception("Compte comptable " . $l['compte_numero'] . " inexistant.");
+                    throw new Exception("Compte comptable " . $num_compte . " inexistant.");
                 }
                 if (!$compte_data['autoriser_ecriture']) {
-                    throw new Exception("L'écriture directe sur le compte collectif/parent " . $l['compte_numero'] . " est interdite.");
+                    throw new Exception("L'écriture directe sur le compte collectif/parent " . $num_compte . " est interdite.");
                 }
 
                 $stmt_ins_ligne->execute([

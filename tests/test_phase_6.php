@@ -380,9 +380,9 @@ try {
     ComptabiliteService::seedDefaultJournalsForLycee(1);
     ComptabiliteService::seedDefaultSchemas();
 
-    // Insert OHADA General Ledger accounts used for dynamic routing
-    $pdo->exec("INSERT INTO comptes_comptables (numero, libelle, classe, nature, autoriser_ecriture) VALUES ('571100', 'Coffre Fort Central', 5, 'actif', 1)");
-    $pdo->exec("INSERT INTO comptes_comptables (numero, libelle, classe, nature, autoriser_ecriture) VALUES ('571200', 'Caisse Opérationnelle A', 5, 'actif', 1)");
+    // Ensure OHADA General Ledger accounts used for dynamic routing exist idempotently
+    $pdo->exec("INSERT OR IGNORE INTO comptes_comptables (numero, libelle, classe, nature, autoriser_ecriture) VALUES ('571100', 'Coffre Fort Central', 5, 'actif', 1)");
+    $pdo->exec("INSERT OR IGNORE INTO comptes_comptables (numero, libelle, classe, nature, autoriser_ecriture) VALUES ('571200', 'Caisse Opérationnelle A', 5, 'actif', 1)");
 
     // Inject mock user details & global roles
     $_SESSION['user'] = [
