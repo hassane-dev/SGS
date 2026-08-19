@@ -407,9 +407,16 @@ $navItems = [
         'condition' => Auth::can('view', 'reporting'),
     ],
     [
+        'url' => '/paie/periodes',
+        'icon' => 'ph-duotone ph-money',
+        'text' => _('Gestion de la Paie'),
+        'title' => _('Consulter et gérer les périodes et bulletins de paie.'),
+        'condition' => Auth::can('view', 'paie'),
+    ],
+    [
         'url' => '/salaires',
         'icon' => 'ph-duotone ph-wallet',
-        'text' => _('Salaires'),
+        'text' => _('Salaires (Historique)'),
         'title' => _('Gérer la paie des employés.'),
         'condition' => Auth::can('manage', 'salaire'),
     ],

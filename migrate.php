@@ -861,6 +861,10 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_12_create_lot1_drh_contrats.php';
     migrate_12($db);
 
+    // --- PHASE LOT 2.1 - INTERNATIONALIZED PAYROLL ENGINE ---
+    require_once __DIR__ . '/db/migrations/20240115_13_create_lot2_paie_engine.php';
+    migrate_13($db);
+
     // Provision DRH role if not present
     $stmt_drh_role = $db->query("SELECT id_role FROM roles WHERE nom_role = 'drh'");
     if (!$stmt_drh_role->fetch()) {
@@ -952,6 +956,45 @@ try {
         SELECT 9, p.id_permission
         FROM permissions p
         WHERE p.resource = 'drh' AND p.action IN ('view_all', 'view_one', 'view_history', 'view_sensitive', 'manage_contrats')
+    ");
+
+    // Seed permissions for Lot 2.1 Paie Module
+    $paie_perms = [
+        ['paie', 'view', 'Consulter les périodes, bulletins et registres de paie'],
+        ['paie', 'create', 'Créer une nouvelle période de paie ou importer les salaires'],
+        ['paie', 'calculate', 'Lancer le calcul automatisé des bulletins de paie'],
+        ['paie', 'validate', 'Valider les bulletins de paie et heures pédagogiques'],
+        ['paie', 'redraw', 'Exécuter un re-tirage atomique de bulletin (V1 vers V2)'],
+        ['paie', 'accounting', 'Comptabiliser les bulletins de paie au Grand Livre'],
+        ['paie', 'settle', 'Payer et régler les bulletins de paie'],
+        ['paie', 'regularize', 'Créer une régularisation de paie sur la période N+1'],
+        ['paie', 'close', 'Clôturer définitivement une période de paie'],
+        ['paie', 'audit', 'Consulter le journal d\'audit complet de la paie']
+    ];
+
+    foreach ($paie_perms as $perm) {
+        $stmt_ins_perm->execute([
+            'resource' => $perm[0],
+            'action' => $perm[1],
+            'description' => $perm[2]
+        ]);
+    }
+
+    // Assign all paie permissions to Super Admins (1, 2), DRH (11), and Chef Comptable (9)
+    $db->exec("
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
+        SELECT r.id_role, p.id_permission
+        FROM roles r, permissions p
+        WHERE (r.id_role IN (1, 2, 9) OR r.nom_role = 'drh')
+        AND p.resource = 'paie'
+    ");
+
+    // Assign viewing and settlement permissions to standard Comptable (7)
+    $db->exec("
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
+        SELECT 7, p.id_permission
+        FROM permissions p
+        WHERE p.resource = 'paie' AND p.action IN ('view', 'settle')
     ");
 
     // Seed permissions for Phase 9

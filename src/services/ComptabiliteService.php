@@ -21,6 +21,8 @@ class ComptabiliteService {
             ['411100', 'Créances élèves : Frais d\'inscription', 4, 'actif', null, 1, 1],
             ['411200', 'Créances élèves : Scolarité / Mensualités', 4, 'actif', null, 1, 1],
             ['421000', 'Personnel : Rémunérations dues', 4, 'passif', null, 1, 1],
+            ['431000', 'Sécurité sociale et cotisations salariales', 4, 'passif', null, 1, 1],
+            ['447000', 'Impôts et retenues à la source sur salaires', 4, 'passif', null, 1, 1],
             // Classe 5 (Trésorerie)
             ['521000', 'Banque d\'établissement', 5, 'actif', null, 1, 1],
             ['571000', 'Caisse principale de l\'établissement', 5, 'actif', null, 1, 1],
@@ -251,20 +253,25 @@ class ComptabiliteService {
             // Find active Exercise
             $stmt_ex = $db->prepare("
                 SELECT id FROM exercices_financiers
-                WHERE lycee_id = :lycee_id AND est_actif = 1 AND cloture = 0
+                WHERE lycee_id = :lycee_id AND est_actif = 1 AND (cloture = 0 OR cloture = '0' OR cloture IS NULL OR cloture = '')
                 LIMIT 1
             ");
             $stmt_ex->execute(['lycee_id' => $lyceeId]);
             $exerciceId = $stmt_ex->fetchColumn();
             if (!$exerciceId) {
-                // Fallback to first non-closed if none active (useful for testing/bootstrap)
+                // Fallback to first active or first record
                 $stmt_ex2 = $db->prepare("
                     SELECT id FROM exercices_financiers
-                    WHERE lycee_id = :lycee_id AND cloture = 0
+                    WHERE lycee_id = :lycee_id AND (cloture = 0 OR cloture = '0' OR cloture IS NULL OR cloture = '')
                     ORDER BY id ASC LIMIT 1
                 ");
                 $stmt_ex2->execute(['lycee_id' => $lyceeId]);
                 $exerciceId = $stmt_ex2->fetchColumn();
+            }
+            if (!$exerciceId) {
+                $stmt_ex3 = $db->prepare("SELECT id FROM exercices_financiers WHERE lycee_id = :lycee_id ORDER BY id ASC LIMIT 1");
+                $stmt_ex3->execute(['lycee_id' => $lyceeId]);
+                $exerciceId = $stmt_ex3->fetchColumn();
             }
 
             if (!$exerciceId) {
