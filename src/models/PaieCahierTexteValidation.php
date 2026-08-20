@@ -155,20 +155,18 @@ class PaieCahierTexteValidation {
         $niveau = !empty($context['niveau']) ? trim($context['niveau']) : null;
         $serie = !empty($context['serie']) ? trim($context['serie']) : null;
         $numero = (isset($context['numero']) && $context['numero'] !== '') ? trim($context['numero']) : null;
-        $dateDebut = !empty($context['date_debut']) ? $context['date_debut'] : '1970-01-01';
-        $dateFin = !empty($context['date_fin']) ? $context['date_fin'] : '2099-12-31';
 
-        // 1. Calculate Realized Hours
+        // 1. Calculate Realized Hours directly from cahier_texte
         $sqlReal = "
             SELECT ct.heure_debut, ct.heure_fin
             FROM cahier_texte ct
-            JOIN classes cl ON ct.classe_id = cl.id_classe
+            LEFT JOIN classes cl ON ct.classe_id = cl.id_classe
             WHERE 1=1
         ";
         $paramsReal = [];
 
         if ($lyceeId) {
-            $sqlReal .= " AND ct.lycee_id = :lycee_id";
+            $sqlReal .= " AND (ct.lycee_id = :lycee_id OR cl.lycee_id = :lycee_id)";
             $paramsReal['lycee_id'] = $lyceeId;
         }
         if ($teacherId) {
@@ -199,9 +197,14 @@ class PaieCahierTexteValidation {
             $sqlReal .= " AND cl.numero = :numero";
             $paramsReal['numero'] = $numero;
         }
-        $sqlReal .= " AND ct.date_cours BETWEEN :date_debut AND :date_fin";
-        $paramsReal['date_debut'] = $dateDebut;
-        $paramsReal['date_fin'] = $dateFin;
+        if (!empty($context['date_debut'])) {
+            $sqlReal .= " AND ct.date_cours >= :date_debut";
+            $paramsReal['date_debut'] = $context['date_debut'];
+        }
+        if (!empty($context['date_fin'])) {
+            $sqlReal .= " AND ct.date_cours <= :date_fin";
+            $paramsReal['date_fin'] = $context['date_fin'];
+        }
 
         $stmtReal = $db->prepare($sqlReal);
         $stmtReal->execute($paramsReal);
@@ -225,10 +228,10 @@ class PaieCahierTexteValidation {
         // 2. Calculate Validated / Paid Hours
         $sqlVal = "
             SELECT v.id, v.duree_heures, v.taux_horaire, v.statut_validation,
-                   bh.bulletin_id, b.est_version_active
+                   MAX(CASE WHEN b.est_version_active = 1 THEN 1 ELSE 0 END) as est_paye
             FROM paie_cahier_texte_validations v
             JOIN cahier_texte c ON v.cahier_id = c.cahier_id
-            JOIN classes cl ON c.classe_id = cl.id_classe
+            LEFT JOIN classes cl ON c.classe_id = cl.id_classe
             LEFT JOIN paie_bulletin_heures bh ON v.id = bh.cahier_validation_id
             LEFT JOIN paie_bulletins b ON bh.bulletin_id = b.id AND b.est_version_active = 1
             WHERE 1=1
@@ -236,7 +239,7 @@ class PaieCahierTexteValidation {
         $paramsVal = [];
 
         if ($lyceeId) {
-            $sqlVal .= " AND c.lycee_id = :lycee_id";
+            $sqlVal .= " AND (c.lycee_id = :lycee_id OR cl.lycee_id = :lycee_id)";
             $paramsVal['lycee_id'] = $lyceeId;
         }
         if ($teacherId) {
@@ -267,9 +270,16 @@ class PaieCahierTexteValidation {
             $sqlVal .= " AND cl.numero = :numero";
             $paramsVal['numero'] = $numero;
         }
-        $sqlVal .= " AND c.date_cours BETWEEN :date_debut AND :date_fin";
-        $paramsVal['date_debut'] = $dateDebut;
-        $paramsVal['date_fin'] = $dateFin;
+        if (!empty($context['date_debut'])) {
+            $sqlVal .= " AND c.date_cours >= :date_debut";
+            $paramsVal['date_debut'] = $context['date_debut'];
+        }
+        if (!empty($context['date_fin'])) {
+            $sqlVal .= " AND c.date_cours <= :date_fin";
+            $paramsVal['date_fin'] = $context['date_fin'];
+        }
+
+        $sqlVal .= " GROUP BY v.id, v.duree_heures, v.taux_horaire, v.statut_validation";
 
         $stmtVal = $db->prepare($sqlVal);
         $stmtVal->execute($paramsVal);
@@ -287,7 +297,7 @@ class PaieCahierTexteValidation {
             if ($rv['statut_validation'] === 'valide') {
                 $heuresValidees += $dh;
                 $montantEstime += ($dh * $th);
-                if (!empty($rv['est_version_active'])) {
+                if (!empty($rv['est_paye'])) {
                     $heuresPayees += $dh;
                     $montantPaye += ($dh * $th);
                 }
@@ -320,18 +330,24 @@ class PaieCahierTexteValidation {
                    v_u.nom as validator_nom, v_u.prenom as validator_prenom,
                    b.id as bulletin_id, b.version_num as bulletin_version, b.est_version_active as bulletin_active
             FROM cahier_texte ct
-            JOIN utilisateurs u ON ct.personnel_id = u.id_user
-            JOIN classes cl ON ct.classe_id = cl.id_classe
-            JOIN cycles cy ON cl.cycle_id = cy.id_cycle
-            JOIN matieres m ON ct.matiere_id = m.id_matiere
+            LEFT JOIN utilisateurs u ON ct.personnel_id = u.id_user
+            LEFT JOIN classes cl ON ct.classe_id = cl.id_classe
+            LEFT JOIN cycles cy ON cl.cycle_id = cy.id_cycle
+            LEFT JOIN matieres m ON ct.matiere_id = m.id_matiere
             LEFT JOIN paie_cahier_texte_validations v ON ct.cahier_id = v.cahier_id
             LEFT JOIN utilisateurs v_u ON v.valide_par = v_u.id_user
-            LEFT JOIN paie_bulletin_heures bh ON v.id = bh.cahier_validation_id
-            LEFT JOIN paie_bulletins b ON bh.bulletin_id = b.id AND b.est_version_active = 1
-            WHERE ct.lycee_id = :lycee_id
+            LEFT JOIN (
+                paie_bulletin_heures bh
+                JOIN paie_bulletins b ON bh.bulletin_id = b.id AND b.est_version_active = 1
+            ) ON v.id = bh.cahier_validation_id
+            WHERE 1=1
         ";
-        $params = ['lycee_id' => $filters['lycee_id']];
+        $params = [];
 
+        if (!empty($filters['lycee_id'])) {
+            $sql .= " AND (ct.lycee_id = :lycee_id OR cl.lycee_id = :lycee_id)";
+            $params['lycee_id'] = $filters['lycee_id'];
+        }
         if (!empty($filters['teacher_id'])) {
             $sql .= " AND ct.personnel_id = :teacher_id";
             $params['teacher_id'] = $filters['teacher_id'];
