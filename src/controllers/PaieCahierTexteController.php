@@ -28,7 +28,7 @@ class PaieCahierTexteController {
         $classeId = !empty($_GET['classe_id']) ? (int)$_GET['classe_id'] : null;
         $teacherId = !empty($_GET['teacher_id']) ? (int)$_GET['teacher_id'] : null;
         $matiereId = !empty($_GET['matiere_id']) ? (int)$_GET['matiere_id'] : null;
-        $limit = isset($_GET['limit']) && $_GET['limit'] !== 'all' ? (int)$_GET['limit'] : null;
+        $limit = isset($_GET['limit']) ? ($_GET['limit'] === 'all' ? null : (int)$_GET['limit']) : null;
 
         // Fetch payroll periods
         $stmtPer = $db->prepare("SELECT * FROM paie_periodes WHERE lycee_id = :lycee_id ORDER BY annee DESC, mois DESC");
@@ -137,7 +137,14 @@ class PaieCahierTexteController {
         if ($teacherId) {
             $validTeacherIds = array_map(function($t) { return (int)($t['id_user'] ?? $t['id']); }, $teachers);
             if (!in_array($teacherId, $validTeacherIds, true)) {
-                $teacherId = null;
+                $stmtCheckT = $db->prepare("SELECT id_user, nom, prenom, identifiant_public FROM utilisateurs WHERE id_user = :id AND lycee_id = :lycee_id");
+                $stmtCheckT->execute(['id' => $teacherId, 'lycee_id' => $lyceeId]);
+                $tRow = $stmtCheckT->fetch(PDO::FETCH_ASSOC);
+                if ($tRow) {
+                    $teachers[] = $tRow;
+                } else {
+                    $teacherId = null;
+                }
             }
         }
 
@@ -165,7 +172,14 @@ class PaieCahierTexteController {
         if ($matiereId) {
             $validMatiereIds = array_map(function($m) { return (int)$m['id_matiere']; }, $matieres);
             if (!in_array($matiereId, $validMatiereIds, true)) {
-                $matiereId = null;
+                $stmtCheckM = $db->prepare("SELECT * FROM matieres WHERE id_matiere = :id");
+                $stmtCheckM->execute(['id' => $matiereId]);
+                $mRow = $stmtCheckM->fetch(PDO::FETCH_ASSOC);
+                if ($mRow) {
+                    $matieres[] = $mRow;
+                } else {
+                    $matiereId = null;
+                }
             }
         }
 
