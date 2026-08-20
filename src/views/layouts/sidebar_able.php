@@ -236,7 +236,7 @@ $navItems = [
     [
         'label' => _('Comptabilité'),
         'is_caption' => true,
-        'condition' => Auth::can('manage', 'paiement') || Auth::can('manage', 'salaire') || Auth::can('view', 'depense') || Auth::can('create', 'depense') || Auth::can('create', 'sessions_caisse') || Auth::can('edit', 'sessions_caisse') || Auth::can('validate', 'sessions_caisse') || Auth::can('view', 'comptes_financiers'),
+        'condition' => Auth::can('manage', 'paiement') || Auth::can('manage', 'salaire') || Auth::can('view', 'depense') || Auth::can('create', 'depense') || Auth::can('create', 'sessions_caisse') || Auth::can('edit', 'sessions_caisse') || Auth::can('validate', 'sessions_caisse') || Auth::can('view', 'comptes_financiers') || Auth::can('view', 'comptabilite'),
     ],
     [
         'url' => '/paiements',
@@ -244,6 +244,20 @@ $navItems = [
         'text' => _('Tableau de bord'),
         'title' => _('Tableau de bord financier.'),
         'condition' => Auth::can('view', 'paiement'),
+    ],
+    [
+        'url' => '/comptabilite/exercices',
+        'icon' => 'ph-duotone ph-calendar',
+        'text' => _('Exercices Financiers'),
+        'title' => _('Consulter et gérer les exercices financiers.'),
+        'condition' => Auth::can('view', 'comptabilite'),
+    ],
+    [
+        'url' => '/comptabilite/periodes',
+        'icon' => 'ph-duotone ph-clock',
+        'text' => _('Périodes Comptables'),
+        'title' => _('Consulter et gérer les périodes comptables.'),
+        'condition' => Auth::can('view', 'comptabilite'),
     ],
     [
         'url' => '/treasury/sessions',
