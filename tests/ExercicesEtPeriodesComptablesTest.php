@@ -5,6 +5,8 @@
  */
 
 require_once __DIR__ . '/../src/config/database.php';
+require_once __DIR__ . '/../src/core/Auth.php';
+require_once __DIR__ . '/../src/models/Role.php';
 require_once __DIR__ . '/../src/models/ExerciceFinancier.php';
 require_once __DIR__ . '/../src/models/ComptabilitePeriode.php';
 require_once __DIR__ . '/../src/services/ComptabiliteService.php';
@@ -104,6 +106,41 @@ try {
     echo "   -> Refus chevauchement d'exercice : " . $e->getMessage() . "\n";
 }
 assert_test($overlapFail, "Création d'un exercice chevauchant rejetée avec succès");
+
+// Test 9: Matrice RBAC et visibilité du menu sidebar
+echo "\n--- TEST 9: Matrice RBAC et visibilité du menu sidebar ---\n";
+
+function mockSessionForTest($roleId, $roleName) {
+    Auth::startSession();
+    $perms = Role::getPermissions($roleId);
+    $_SESSION['user'] = [
+        'id' => 888,
+        'role_id' => $roleId,
+        'role_name' => $roleName,
+        'lycee_id' => 99,
+        'permissions' => $perms
+    ];
+}
+
+// 1. Admin Local (role 3)
+mockSessionForTest(3, 'admin_local');
+assert_test(Auth::can('view', 'comptabilite'), "Admin Local peut voir la comptabilité");
+assert_test(Auth::can('close', 'comptabilite'), "Admin Local peut clôturer un exercice/période");
+
+// 2. Chef Comptable (role 9)
+mockSessionForTest(9, 'chef_comptable');
+assert_test(Auth::can('view', 'comptabilite'), "Chef Comptable peut voir la comptabilité");
+assert_test(Auth::can('close', 'comptabilite'), "Chef Comptable peut clôturer un exercice/période");
+
+// 3. Comptable (role 7)
+mockSessionForTest(7, 'comptable');
+assert_test(Auth::can('view', 'comptabilite'), "Comptable peut voir la comptabilité");
+assert_test(Auth::can('create', 'comptabilite'), "Comptable peut créer des exercices/périodes");
+assert_test(!Auth::can('close', 'comptabilite'), "Comptable ne peut PAS clôturer un exercice/période");
+
+// 4. Enseignant (role 6)
+mockSessionForTest(6, 'enseignant');
+assert_test(!Auth::can('view', 'comptabilite'), "Enseignant ne peut PAS voir la comptabilité");
 
 // Cleanup test data
 $db->exec("DELETE FROM paie_periodes WHERE lycee_id = 99");

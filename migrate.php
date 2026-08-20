@@ -614,10 +614,42 @@ try {
         );
     ");
 
+    // Provision core default roles if not present
+    $default_roles = [
+        [1, 'super_admin_createur'],
+        [2, 'super_admin_national'],
+        [3, 'admin_local'],
+        [4, 'censeur'],
+        [5, 'surveillant'],
+        [6, 'enseignant'],
+        [7, 'comptable'],
+        [8, 'eleve'],
+        [9, 'chef_comptable'],
+        [10, 'caissier'],
+        [11, 'drh'],
+    ];
+
+    foreach ($default_roles as $r_def) {
+        $stmt_r = $db->prepare("SELECT id_role FROM roles WHERE id_role = :id");
+        $stmt_r->execute(['id' => $r_def[0]]);
+        if ($stmt_r->fetch()) {
+            $stmt_up_r = $db->prepare("UPDATE roles SET nom_role = :nom WHERE id_role = :id");
+            $stmt_up_r->execute(['id' => $r_def[0], 'nom' => $r_def[1]]);
+        } else {
+            $stmt_ins_r = $db->prepare("INSERT INTO roles (id_role, nom_role, lycee_id) VALUES (:id, :nom, NULL)");
+            $stmt_ins_r->execute(['id' => $r_def[0], 'nom' => $r_def[1]]);
+        }
+    }
+
     // Seed permissions into the database dynamically
     $new_perms = [
         ['dashboard', 'view', 'Consulter le tableau de bord principal'],
         ['role', 'view_all', 'Consulter la liste des rôles'],
+        ['comptabilite', 'view', 'Consulter les exercices financiers et périodes comptables'],
+        ['comptabilite', 'create', 'Créer des exercices financiers et générer des périodes comptables'],
+        ['comptabilite', 'edit', 'Modifier ou activer des exercices financiers et périodes comptables'],
+        ['comptabilite', 'close', 'Clôturer un exercice financier ou une période comptable'],
+        ['comptabilite', 'reopen', 'Réouvrir une période comptable clôturée'],
         ['comptes_financiers', 'view', 'Consulter la liste des comptes financiers et leurs soldes'],
         ['comptes_financiers', 'create', 'Créer de nouveaux comptes financiers'],
         ['comptes_financiers', 'edit', 'Modifier les propriétés d\'un compte financier'],
@@ -766,14 +798,14 @@ try {
         WHERE p.resource = 'budget' AND p.action IN ('view', 'report')
     ");
 
-    // Map Phase 1 & 2 (comptes_financiers, sessions_caisse, finance, journal) permissions
+    // Map Phase 1 & 2 (comptes_financiers, sessions_caisse, finance, journal, comptabilite) permissions
     // 1. All permissions to Super Admins (1, 2), Local Admin (3), Chef Comptable (9)
     $db->exec("
         {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
         SELECT r.id_role, p.id_permission
         FROM roles r, permissions p
-        WHERE r.id_role IN (1, 2, 3, 9)
-        AND p.resource IN ('comptes_financiers', 'comptes_comptables', 'sessions_caisse', 'finance', 'journal', 'grand_livre', 'balance')
+        WHERE (r.id_role IN (1, 2, 3, 9) OR r.nom_role IN ('super_admin_createur', 'super_admin_national', 'admin_local', 'chef_comptable'))
+        AND p.resource IN ('comptes_financiers', 'comptes_comptables', 'sessions_caisse', 'finance', 'journal', 'grand_livre', 'balance', 'comptabilite')
     ");
 
     // 2. Specific permissions to Comptable (7) and Caissier (10)
@@ -781,14 +813,15 @@ try {
         {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
         SELECT r.id_role, p.id_permission
         FROM roles r, permissions p
-        WHERE r.id_role IN (7, 10)
+        WHERE (r.id_role IN (7, 10) OR r.nom_role IN ('comptable', 'caissier'))
         AND (
             (p.resource = 'comptes_financiers' AND p.action = 'view') OR
             (p.resource = 'comptes_comptables' AND p.action IN ('view', 'create', 'edit')) OR
             (p.resource = 'sessions_caisse' AND p.action IN ('view', 'create', 'edit')) OR
             (p.resource = 'finance' AND p.action IN ('view_policy', 'view_control', 'view_reports')) OR
             (p.resource = 'journal' AND p.action = 'view') OR
-            (p.resource IN ('grand_livre', 'balance') AND p.action = 'view')
+            (p.resource IN ('grand_livre', 'balance') AND p.action = 'view') OR
+            (p.resource = 'comptabilite' AND p.action IN ('view', 'create', 'edit') AND (r.id_role = 7 OR r.nom_role = 'comptable'))
         )
     ");
 
@@ -864,17 +897,6 @@ try {
     // --- PHASE LOT 2.1 - INTERNATIONALIZED PAYROLL ENGINE ---
     require_once __DIR__ . '/db/migrations/20240115_13_create_lot2_paie_engine.php';
     migrate_13($db);
-
-    // Provision DRH role if not present
-    $stmt_drh_role = $db->query("SELECT id_role FROM roles WHERE nom_role = 'drh'");
-    if (!$stmt_drh_role->fetch()) {
-        if ($isSqlite) {
-            $db->exec("INSERT INTO roles (id_role, nom_role, lycee_id) VALUES (11, 'drh', NULL)");
-        } else {
-            $db->exec("INSERT INTO roles (id_role, nom_role, lycee_id) VALUES (11, 'drh', NULL) ON DUPLICATE KEY UPDATE nom_role = 'drh'");
-        }
-        echo "DRH role seeded.\n";
-    }
 
     // Seed permissions for DRH
     $drh_perms = [

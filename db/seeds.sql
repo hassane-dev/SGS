@@ -188,7 +188,14 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (183, 'drh', 'create_contracts', 'Créer un contrat pour un membre du personnel'),
 (184, 'drh', 'create_amendments', 'Créer un avenant à un contrat existant'),
 (185, 'drh', 'view_contract_history', 'Consulter l\'historique des versions et avenants de contrat'),
-(186, 'drh', 'view_contract_documents', 'Consulter les pièces jointes contractuelles');
+(186, 'drh', 'view_contract_documents', 'Consulter les pièces jointes contractuelles'),
+
+-- Exercices Financiers et Périodes Comptables
+(190, 'comptabilite', 'view', 'Consulter les exercices financiers et périodes comptables'),
+(191, 'comptabilite', 'create', 'Créer des exercices financiers et générer des périodes comptables'),
+(192, 'comptabilite', 'edit', 'Modifier ou activer des exercices financiers et périodes comptables'),
+(193, 'comptabilite', 'close', 'Clôturer un exercice financier ou une période comptable'),
+(194, 'comptabilite', 'reopen', 'Réouvrir une période comptable clôturée');
 
 -- --------------------------------------------------------
 -- Role-Permission Assignments
@@ -228,7 +235,9 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Phase 3 (Dépenses)
 (3, 150), (3, 151), (3, 152), (3, 153), (3, 154), (3, 155), (3, 156), (3, 157), (3, 158),
 -- Phase 4 (Budgets)
-(3, 160), (3, 161), (3, 162), (3, 163), (3, 164), (3, 165), (3, 166), (3, 167), (3, 168), (3, 169);
+(3, 160), (3, 161), (3, 162), (3, 163), (3, 164), (3, 165), (3, 166), (3, 167), (3, 168), (3, 169),
+-- Exercices & Périodes Comptables
+(3, 190), (3, 191), (3, 192), (3, 193), (3, 194);
 
 -- Censeur (Academic Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
@@ -252,7 +261,9 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Phase 3 (Dépenses)
 (7, 154), (7, 156), (7, 157),
 -- Phase 4 (Budgets)
-(7, 160), (7, 168);
+(7, 160), (7, 168),
+-- Exercices & Périodes Comptables
+(7, 190), (7, 191), (7, 192);
 
 -- Chef comptable (Chief Accountant)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
@@ -264,7 +275,9 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Phase 3 (Dépenses)
 (9, 150), (9, 151), (9, 152), (9, 153), (9, 154), (9, 155), (9, 156), (9, 157), (9, 158),
 -- Phase 4 (Budgets)
-(9, 160), (9, 161), (9, 162), (9, 163), (9, 164), (9, 165), (9, 166), (9, 167), (9, 168), (9, 169);
+(9, 160), (9, 161), (9, 162), (9, 163), (9, 164), (9, 165), (9, 166), (9, 167), (9, 168), (9, 169),
+-- Exercices & Périodes Comptables
+(9, 190), (9, 191), (9, 192), (9, 193), (9, 194);
 
 -- Caissier (Cashier)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
