@@ -6,6 +6,7 @@ require_once __DIR__ . '/../models/PaieCahierTexteValidation.php';
 require_once __DIR__ . '/../models/PaiePeriode.php';
 require_once __DIR__ . '/../models/EnseignantMatiere.php';
 require_once __DIR__ . '/../models/Classe.php';
+require_once __DIR__ . '/../models/Cycle.php';
 require_once __DIR__ . '/../models/User.php';
 
 class PaieCahierTexteController {
@@ -19,7 +20,7 @@ class PaieCahierTexteController {
         $searchMode = $_GET['search_mode'] ?? 'pedagogique';
 
         // Filter inputs
-        $periodeId = !empty($_GET['periode_id']) ? (int)$_GET['periode_id'] : null;
+        $periodeParam = $_GET['periode_id'] ?? null;
         $cycleId = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
         $niveau = !empty($_GET['niveau']) ? trim($_GET['niveau']) : null;
         $serie = !empty($_GET['serie']) ? trim($_GET['serie']) : null;
@@ -35,26 +36,43 @@ class PaieCahierTexteController {
         $periodes = $stmtPer->fetchAll(PDO::FETCH_ASSOC);
 
         $selectedPeriode = null;
-        if ($periodeId) {
+        $periodeId = null;
+        $dateDebut = null;
+        $dateFin = null;
+
+        if ($periodeParam === 'all') {
+            $periodeId = 'all';
+            $dateDebut = null;
+            $dateFin = null;
+        } elseif ($periodeParam !== null && is_numeric($periodeParam)) {
+            $pId = (int)$periodeParam;
             foreach ($periodes as $p) {
-                if ((int)$p['id'] === $periodeId) {
+                if ((int)$p['id'] === $pId) {
                     $selectedPeriode = $p;
+                    $periodeId = $pId;
                     break;
                 }
             }
         }
-        if (!$selectedPeriode && !empty($periodes)) {
-            $selectedPeriode = $periodes[0];
-            $periodeId = (int)$selectedPeriode['id'];
+
+        if ($selectedPeriode === null && $periodeParam !== 'all') {
+            if (!empty($periodes)) {
+                $selectedPeriode = $periodes[0];
+                $periodeId = (int)$selectedPeriode['id'];
+            }
         }
 
-        $dateDebut = $selectedPeriode['date_debut'] ?? date('Y-m-01');
-        $dateFin = $selectedPeriode['date_fin'] ?? date('Y-m-t');
+        if ($selectedPeriode) {
+            $dateDebut = $selectedPeriode['date_debut'];
+            $dateFin = $selectedPeriode['date_fin'];
+        }
 
-        // Fetch dynamic cycles
-        $stmtCyc = $db->prepare("SELECT * FROM cycles WHERE lycee_id = :lycee_id ORDER BY id_cycle ASC");
-        $stmtCyc->execute(['lycee_id' => $lyceeId]);
-        $cycles = $stmtCyc->fetchAll(PDO::FETCH_ASSOC);
+        // Fetch dynamic cycles using Cycle model as single source of truth
+        $cycles = Cycle::findByLycee($lyceeId);
+        $validCycleIds = array_map(function($c) { return (int)$c['id_cycle']; }, $cycles);
+        if ($cycleId && !in_array($cycleId, $validCycleIds, true)) {
+            $cycleId = null;
+        }
 
         // 1. Resolve Classe hierarchy bidirectional consistency
         if ($classeId) {
@@ -167,11 +185,8 @@ class PaieCahierTexteController {
         ];
         $sessions = PaieCahierTexteValidation::findSessionsForContext($sessionFilters);
 
-        // Metrics for selected context (or teacher)
-        $metrics = null;
-        if ($teacherId || $classeId || $cycleId) {
-            $metrics = PaieCahierTexteValidation::getTeacherHoursMetrics($sessionFilters);
-        }
+        // Metrics for active filters
+        $metrics = PaieCahierTexteValidation::getTeacherHoursMetrics($sessionFilters);
 
         include __DIR__ . '/../views/paie/cahier_texte/index.php';
     }
