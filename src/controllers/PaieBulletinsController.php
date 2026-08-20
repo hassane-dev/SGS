@@ -7,6 +7,7 @@ require_once __DIR__ . '/../models/PaieBulletinHeure.php';
 require_once __DIR__ . '/../models/PaieBulletinContratSnapshot.php';
 require_once __DIR__ . '/../models/PaieBulletinRegleSnapshot.php';
 require_once __DIR__ . '/../models/CompteFinancier.php';
+require_once __DIR__ . '/../models/PaiePeriode.php';
 require_once __DIR__ . '/../services/PaieWorkflowService.php';
 
 class PaieBulletinsController {
@@ -14,14 +15,32 @@ class PaieBulletinsController {
     public function index() {
         Auth::requirePermission('paie', 'view');
         $periodeId = (int)($_GET['periode_id'] ?? 0);
-        $bulletins = $periodeId ? PaieBulletin::findByPeriod($periodeId) : [];
+        $lyceeId = Auth::getLyceeId() ?: 1;
+        $periodes = PaiePeriode::findAllForLycee($lyceeId);
+
+        if ($periodeId > 0) {
+            $bulletins = PaieBulletin::findByPeriod($periodeId);
+        } else {
+            // Fetch active or latest bulletins across periods
+            $db = Database::getInstance();
+            $stmt = $db->prepare("
+                SELECT b.*, u.nom, u.prenom, u.identifiant_public, p.code_periode
+                FROM paie_bulletins b
+                JOIN utilisateurs u ON b.personnel_id = u.id_user
+                JOIN paie_periodes p ON b.periode_id = p.id
+                WHERE p.lycee_id = :lycee_id
+                ORDER BY b.id DESC LIMIT 100
+            ");
+            $stmt->execute(['lycee_id' => $lyceeId]);
+            $bulletins = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
 
         include __DIR__ . '/../views/paie/bulletins/index.php';
     }
 
-    public function show() {
+    public function show($id = null) {
         Auth::requirePermission('paie', 'view');
-        $id = (int)($_GET['id'] ?? 0);
+        $id = (int)($id ?: ($_GET['id'] ?? 0));
         $bulletin = PaieBulletin::findById($id);
 
         if (!$bulletin) {
@@ -54,11 +73,11 @@ class PaieBulletinsController {
         try {
             $newBulletinId = PaieWorkflowService::redrawBulletin($id, $userId, $manualAdjustments);
             $_SESSION['success_message'] = _("Re-tirage du bulletin (V2) exécuté avec succès.");
-            header('Location: /paie/bulletins/show?id=' . $newBulletinId);
+            header('Location: /paie/bulletins/' . $newBulletinId);
             exit();
         } catch (Exception $e) {
             $_SESSION['error_message'] = $e->getMessage();
-            header('Location: /paie/bulletins/show?id=' . $id);
+            header('Location: /paie/bulletins/' . $id);
             exit();
         }
     }
@@ -75,7 +94,7 @@ class PaieBulletinsController {
             $_SESSION['error_message'] = $e->getMessage();
         }
 
-        header('Location: /paie/bulletins/show?id=' . $id);
+        header('Location: /paie/bulletins/' . $id);
         exit();
     }
 
@@ -93,7 +112,7 @@ class PaieBulletinsController {
             $_SESSION['error_message'] = $e->getMessage();
         }
 
-        header('Location: /paie/bulletins/show?id=' . $id);
+        header('Location: /paie/bulletins/' . $id);
         exit();
     }
 }

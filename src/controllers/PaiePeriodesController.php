@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../models/PaiePeriode.php';
+require_once __DIR__ . '/../models/PaieBulletin.php';
 require_once __DIR__ . '/../services/PaieWorkflowService.php';
 
 class PaiePeriodesController {
@@ -14,9 +15,9 @@ class PaiePeriodesController {
         include __DIR__ . '/../views/paie/periodes/index.php';
     }
 
-    public function show() {
+    public function show($id = null) {
         Auth::requirePermission('paie', 'view');
-        $id = (int)($_GET['id'] ?? 0);
+        $id = (int)($id ?: ($_GET['id'] ?? 0));
         $periode = PaiePeriode::findById($id);
 
         if (!$periode) {
@@ -55,7 +56,7 @@ class PaiePeriodesController {
         try {
             $id = PaieWorkflowService::createPeriod($lyceeId, $periodeComptableId, $codePeriode, $mois, $annee, $dateDebut, $dateFin, $userId);
             $_SESSION['success_message'] = _("Période de paie créée avec succès.");
-            header('Location: /paie/periodes/show?id=' . $id);
+            header('Location: /paie/periodes/' . $id);
             exit();
         } catch (Exception $e) {
             $_SESSION['error_message'] = $e->getMessage();
@@ -66,7 +67,7 @@ class PaiePeriodesController {
 
     public function calculate() {
         Auth::requirePermission('paie', 'calculate');
-        $periodeId = (int)($_POST['periode_id'] ?? 0);
+        $periodeId = (int)($_POST['periode_id'] ?? ($_GET['id'] ?? 0));
         $userId = Auth::getUserId();
         $idempotencyKey = $_POST['idempotency_key'] ?? null;
 
@@ -77,13 +78,13 @@ class PaiePeriodesController {
             $_SESSION['error_message'] = $e->getMessage();
         }
 
-        header('Location: /paie/periodes/show?id=' . $periodeId);
+        header('Location: /paie/periodes/' . $periodeId);
         exit();
     }
 
-    public function close() {
+    public function close($id = null) {
         Auth::requirePermission('paie', 'close');
-        $periodeId = (int)($_POST['periode_id'] ?? 0);
+        $periodeId = (int)($id ?: ($_POST['periode_id'] ?? ($_GET['id'] ?? 0)));
         $userId = Auth::getUserId();
 
         try {
@@ -93,7 +94,7 @@ class PaiePeriodesController {
             $_SESSION['error_message'] = $e->getMessage();
         }
 
-        header('Location: /paie/periodes/show?id=' . $periodeId);
+        header('Location: /paie/periodes/' . $periodeId);
         exit();
     }
 }
