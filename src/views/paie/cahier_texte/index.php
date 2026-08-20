@@ -71,8 +71,9 @@ $searchMode = $searchMode ?? 'pedagogique';
             <div class="col-md-3">
               <label class="form-label text-muted small fw-bold mb-1"><?= _("Période de paie") ?></label>
               <select name="periode_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="all" <?= ($periodeId === 'all') ? 'selected' : '' ?>><?= _("Toutes les périodes") ?></option>
                 <?php foreach ($periodes as $p): ?>
-                  <option value="<?= $p['id'] ?>" <?= ($periodeId == $p['id']) ? 'selected' : '' ?>>
+                  <option value="<?= $p['id'] ?>" <?= ($periodeId == $p['id'] && $periodeId !== 'all') ? 'selected' : '' ?>>
                     <?= htmlspecialchars($p['code_periode']) ?> (<?= htmlspecialchars($p['date_debut']) ?> au <?= htmlspecialchars($p['date_fin']) ?>)
                   </option>
                 <?php endforeach; ?>

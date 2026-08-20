@@ -155,8 +155,8 @@ class PaieCahierTexteValidation {
         $niveau = !empty($context['niveau']) ? trim($context['niveau']) : null;
         $serie = !empty($context['serie']) ? trim($context['serie']) : null;
         $numero = (isset($context['numero']) && $context['numero'] !== '') ? trim($context['numero']) : null;
-        $dateDebut = $context['date_debut'] ?? '1970-01-01';
-        $dateFin = $context['date_fin'] ?? '2099-12-31';
+        $dateDebut = !empty($context['date_debut']) ? $context['date_debut'] : '1970-01-01';
+        $dateFin = !empty($context['date_fin']) ? $context['date_fin'] : '2099-12-31';
 
         // 1. Calculate Realized Hours
         $sqlReal = "
