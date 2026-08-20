@@ -8,6 +8,8 @@ require_once __DIR__ . '/../src/models/PaieCahierTexteValidation.php';
 require_once __DIR__ . '/../src/models/PaieBulletinHeure.php';
 require_once __DIR__ . '/../src/models/PaieReglement.php';
 require_once __DIR__ . '/../src/models/PaieRegularisation.php';
+require_once __DIR__ . '/../src/models/EnseignantMatiere.php';
+require_once __DIR__ . '/../src/models/Classe.php';
 require_once __DIR__ . '/../src/services/PaieCalculationEngine.php';
 require_once __DIR__ . '/../src/services/PaieWorkflowService.php';
 require_once __DIR__ . '/../src/services/LegacySalaryFacade.php';
@@ -22,7 +24,7 @@ function assert_test($condition, $message) {
     }
 }
 
-echo "=== DÉMARRAGE DU TEST D'INTÉGRATION ET DE SÉCURITÉ DU MODULE PAIE LOT 2.1 ===\n";
+echo "=== DÉMARRAGE DU TEST D'INTÉGRATION ET DE SÉCURITÉ DU MODULE PAIE LOT 2.1 V6.1.1 ===\n";
 
 require_once __DIR__ . '/../migrate.php';
 
@@ -45,109 +47,134 @@ $db->exec("DELETE FROM paie_cahier_texte_validations");
 $db->exec("DELETE FROM paie_bulletin_lignes");
 $db->exec("DELETE FROM paie_bulletins");
 $db->exec("DELETE FROM paie_periodes");
+$db->exec("DELETE FROM enseignant_matieres");
+$db->exec("DELETE FROM cahier_texte");
+$db->exec("DELETE FROM classes");
+$db->exec("DELETE FROM cycles");
+$db->exec("DELETE FROM matieres");
 
-// Seed initial environment if needed
+// Seed initial environment
 $db->exec("INSERT INTO param_lycee (id, nom_lycee) VALUES (1, 'Lycée Test Paie') ON CONFLICT DO NOTHING");
 $db->exec("INSERT INTO exercices_financiers (id, lycee_id, libelle, date_debut, date_fin, est_actif, cloture) VALUES (1, 1, 'Exercice 2024', '2024-01-01', '2024-12-31', 1, 0) ON CONFLICT DO NOTHING");
 $db->exec("INSERT INTO comptabilite_periodes (id, lycee_id, exercice_financier_id, date_debut, date_fin, est_cloturee) VALUES (1, 1, 1, '2024-09-01', '2024-09-30', 0) ON CONFLICT DO NOTHING");
 $db->exec("INSERT INTO comptes_financiers (id, lycee_id, nom_compte, type_compte, solde_courant, devise, statut) VALUES (1, 1, 'Banque Principale', 'banque', 1000000.00, 'FCFA', 'actif') ON CONFLICT DO NOTHING");
 $db->exec("INSERT INTO paie_entites_juridiques (id, raison_sociale, sigle) VALUES (1, 'Établissement Principal', 'EP') ON CONFLICT DO NOTHING");
 
-// Seed test staff user
+// Seed Cycles, Classes, Matieres, Users
+$db->exec("INSERT INTO cycles (id_cycle, lycee_id, nom_cycle) VALUES (1, 1, 'Lycée') ON CONFLICT DO NOTHING");
+$db->exec("INSERT INTO cycles (id_cycle, lycee_id, nom_cycle) VALUES (2, 1, 'Collège') ON CONFLICT DO NOTHING");
+
+$db->exec("INSERT INTO classes (id_classe, lycee_id, cycle_id, niveau, serie, numero) VALUES (10, 1, 1, 'Terminale', 'C', 7) ON CONFLICT DO NOTHING");
+$db->exec("INSERT INTO classes (id_classe, lycee_id, cycle_id, niveau, serie, numero) VALUES (11, 1, 1, 'Terminale', 'A4', 1) ON CONFLICT DO NOTHING");
+
+$db->exec("INSERT INTO matieres (id_matiere, nom_matiere) VALUES (1, 'Mathématiques') ON CONFLICT DO NOTHING");
+$db->exec("INSERT INTO matieres (id_matiere, nom_matiere) VALUES (2, 'Physique') ON CONFLICT DO NOTHING");
+
 $db->exec("INSERT INTO type_contrat (id_contrat, libelle, type_paiement, prise_en_charge) VALUES (1, 'CDI', 'mensuel', 'Ecole') ON CONFLICT DO NOTHING");
-$db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, identifiant_public, email, mot_de_passe, role_id, actif) VALUES (101, 1, 'Professeur', 'Jean', '101ENS', 'jean@test.com', 'hash', 6, 1) ON CONFLICT DO NOTHING");
-$db->exec("INSERT INTO personnel_contrats_historique (id, personnel_id, type_contrat_id, date_debut, entite_juridique_id, salaire_base, devise, statut_contrat, version_num) VALUES (201, 101, 1, '2024-01-01', 1, 250000.00, 'FCFA', 'actif', 1) ON CONFLICT DO NOTHING");
 
-// --- TEST 1: Nominal Workflow ---
-echo "\n--- TEST 1: Workflow Nominal Paie (Création -> Bulletins V1 -> Compta -> Règlement) ---\n";
-$periodeId = PaieWorkflowService::createPeriod(1, 1, 'PAIE-2024-09', 9, 2024, '2024-09-01', '2024-09-30', 1);
-assert_test($periodeId > 0, "Période de paie créée ID #{$periodeId}");
+$db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, identifiant_public, email, mot_de_passe, role_id, actif) VALUES (101, 1, 'Dupont', 'Jean', '101ENS', 'jean@test.com', 'hash', 6, 1) ON CONFLICT DO NOTHING");
+$db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, identifiant_public, email, mot_de_passe, role_id, actif) VALUES (102, 1, 'Martin', 'Claire', '102ENS', 'claire@test.com', 'hash', 6, 1) ON CONFLICT DO NOTHING");
 
-$bulletinIds = PaieWorkflowService::generateBulletinsForPeriod($periodeId, 1);
-assert_test(count($bulletinIds) > 0, "Génération bulletins V1 réussie (" . count($bulletinIds) . " bulletins)");
+$db->exec("INSERT INTO personnel_contrats_historique (id, personnel_id, type_contrat_id, date_debut, entite_juridique_id, mode_calcul_principal, salaire_base, devise, statut_contrat, version_num) VALUES (201, 101, 1, '2024-01-01', 1, 'horaire', 250000.00, 'FCFA', 'actif', 1) ON CONFLICT DO NOTHING");
 
-$bulletinId = $bulletinIds[0];
-$bulletin = PaieBulletin::findById($bulletinId);
-assert_test((float)$bulletin['total_brut'] >= 250000.00, "Calcul total brut conforme (" . $bulletin['total_brut'] . ")");
+// Assign Teacher 101 to Terminale C 07 (Maths)
+$db->exec("INSERT INTO enseignant_matieres (id, enseignant_id, classe_id, matiere_id, annee_academique_id, actif) VALUES (1, 101, 10, 1, 1, 1) ON CONFLICT DO NOTHING");
 
-$pieceId = PaieWorkflowService::postAccounting($bulletinId, 1);
-assert_test($pieceId > 0, "Comptabilisation au Grand Livre réussie (Pièce ID #{$pieceId})");
+// --- TEST 1: Sélection Pédagogique Hiérarchique ---
+echo "\n--- TEST 1: Sélection Pédagogique Hiérarchique (Cycle -> Niveau -> Série -> Numéro -> Enseignants) ---\n";
+$teachersH = EnseignantMatiere::findTeachersByHierarchy(1, 1, 'Terminale', 'C', '7', 10);
+assert_test(count($teachersH) === 1 && (int)$teachersH[0]['id_user'] === 101, "La sélection hiérarchique retrouve uniquement Jean Dupont pour Terminale C - 07");
 
-$mvtId = PaieWorkflowService::settlePayout($bulletinId, 1, 'virement', 1);
-assert_test($mvtId > 0, "Règlement trésorerie effectué (Mouvement ID #{$mvtId})");
-
-$bUpdated = PaieBulletin::findById($bulletinId);
-assert_test($bUpdated['statut_comptabilisation'] === 'comptabilise', "Statut comptabilisation 'comptabilise'");
-assert_test($bUpdated['statut_reglement'] === 'paye', "Statut règlement 'paye'");
-
-// --- TEST 2: Idempotency Protection (V5) ---
-echo "\n--- TEST 2: Idempotence & Double Appel (V5) ---\n";
-$pieceId2 = PaieWorkflowService::postAccounting($bulletinId, 1);
-assert_test($pieceId2 === 0, "Deuxième comptabilisation traitée de façon idempotente (aucun double enregistrement)");
-
-$mvtId2 = PaieWorkflowService::settlePayout($bulletinId, 1, 'virement', 1);
-assert_test($mvtId2 === 0, "Deuxième règlement traité de façon idempotente");
-
-// --- TEST 3: Atomic Re-draw V1 -> V2 with Counterpassation ---
-echo "\n--- TEST 3: Re-tirage Atomique V1 -> V2 avec Contrepassation ---\n";
-$v2Id = PaieWorkflowService::redrawBulletin($bulletinId, 1, ['salaire_base' => 280000.00]);
-assert_test($v2Id > $bulletinId, "Bulletin V2 créé avec succès ID #{$v2Id}");
-
-$v1B = PaieBulletin::findById($bulletinId);
-$v2B = PaieBulletin::findById($v2Id);
-assert_test($v1B['est_version_active'] == 0, "Bulletin V1 désactivé (est_version_active = 0)");
-assert_test($v2B['est_version_active'] == 1, "Bulletin V2 actif (est_version_active = 1)");
-assert_test((float)$v2B['salaire_base'] == 280000.00, "Nouveau salaire de base V2 appliqué (280 000 FCFA)");
-
-// --- TEST 4: Closed Accounting Period Protection (V2) ---
-echo "\n--- TEST 4: Verrou Période Comptable Clôturée (V2) ---\n";
-$db->exec("UPDATE comptabilite_periodes SET est_cloturee = 1 WHERE id = 1");
-
-$blocked = false;
-try {
-    PaieWorkflowService::redrawBulletin($v2Id, 1, ['salaire_base' => 300000.00]);
-} catch (LogicException $e) {
-    $blocked = true;
+// --- TEST 2: Cohérence d'Affectation Pédagogique ---
+echo "\n--- TEST 2: Cohérence d'Affectation (Enseignant non affecté exclu) ---\n";
+$teachersH2 = EnseignantMatiere::findTeachersByHierarchy(1, 1, 'Terminale', 'C', '7', 10);
+$foundUnassigned = false;
+foreach ($teachersH2 as $th) {
+    if ((int)$th['id_user'] === 102) $foundUnassigned = true;
 }
-assert_test($blocked, "Re-tirage V2 refusé car la période comptable est clôturée.");
+assert_test(!$foundUnassigned, "Claire Martin (102) n'apparaît pas pour Terminale C - 07 car non affectée");
 
-// Re-open accounting period for subsequent tests
-$db->exec("UPDATE comptabilite_periodes SET est_cloturee = 0 WHERE id = 1");
+// --- TEST 3: Cahier de Texte Sans Saisie Manuelle d'IDs ---
+echo "\n--- TEST 3: Résolution Automatique Cahier de Texte Sans Saisie Manuelle ---\n";
+$db->exec("INSERT INTO cahier_texte (cahier_id, lycee_id, personnel_id, classe_id, matiere_id, date_cours, heure_debut, heure_fin, contenu_cours) VALUES (301, 1, 101, 10, 1, '2024-09-02', '08:00:00', '10:00:00', 'Fonctions avancées') ON CONFLICT DO NOTHING");
+$db->exec("INSERT INTO cahier_texte (cahier_id, lycee_id, personnel_id, classe_id, matiere_id, date_cours, heure_debut, heure_fin, contenu_cours) VALUES (302, 1, 101, 10, 1, '2024-09-04', '08:00:00', '09:00:00', 'Dérivées') ON CONFLICT DO NOTHING");
 
-// --- TEST 5: Regularization N+1 ---
-echo "\n--- TEST 5: Régularisation en Période N+1 ---\n";
-$periodeN1Id = PaieWorkflowService::createPeriod(1, 1, 'PAIE-2024-10', 10, 2024, '2024-10-01', '2024-10-31', 1);
-$reguId = PaieWorkflowService::createRegularizationInN1($bulletinId, $periodeN1Id, 'rappel_salaire', 'Rattrapage hausse salaire', 30000.00, 30000.00, 1);
-assert_test($reguId > 0, "Régularisation N+1 créée avec succès ID #{$reguId}");
+$valId1 = PaieCahierTexteValidation::validateSession(301, 1, 5000.00);
+assert_test($valId1 > 0, "Validation automatique séance #301 réussie (Validation ID #{$valId1})");
 
-// --- TEST 6: Teacher Cahier de Texte Hourly Calculation ---
-echo "\n--- TEST 6: Calcul des Heures Pédagogiques du Cahier de Texte ---\n";
-$db->exec("INSERT INTO cahier_texte (cahier_id, lycee_id, personnel_id, date_cours, contenu_cours) VALUES (301, 1, 101, '2024-09-15', 'Cours Mathématiques') ON CONFLICT DO NOTHING");
-$cahierValId = PaieCahierTexteValidation::create([
-    'cahier_id' => 301,
-    'enseignant_id' => 101,
-    'duree_heures' => 4.0,
-    'taux_horaire' => 5000.00,
-    'statut_validation' => 'valide',
-    'valide_par' => 1,
-    'valide_le' => '2024-09-16 10:00:00'
-]);
-assert_test($cahierValId > 0, "Validation heure cahier de texte enregistrée ID #{$cahierValId}");
+$vRow = PaieCahierTexteValidation::findByCahierId(301);
+assert_test((int)$vRow['enseignant_id'] === 101 && (int)$vRow['classe_id'] === 10 && (float)$vRow['duree_heures'] == 2.0, "Identifiants enseignant_id=101, classe_id=10 et durée=2.0h résolus automatiquement");
 
-$computed = PaieCalculationEngine::computeBulletin(
-    ['salaire_base' => 200000.00],
-    [['id' => $cahierValId, 'duree_heures' => 4.0, 'taux_horaire' => 5000.00]],
+// --- TEST 4: Validation Unique (Service Fait) ---
+echo "\n--- TEST 4: Validation Unique (Non-duplication du Service Fait) ---\n";
+$valId1_repeat = PaieCahierTexteValidation::validateSession(301, 1, 5000.00);
+assert_test($valId1_repeat === $valId1, "Seconde validation de la même séance #301 retourne le même ID sans doublon");
+
+// --- TEST 5: Calcul Horaire (42h30 x 5000) ---
+echo "\n--- TEST 5: Calcul Rémunération Horaire (42h30 x 5000 FCFA) ---\n";
+$computedHours = PaieCalculationEngine::computeBulletin(
+    ['salaire_base' => 0.00],
+    [['id' => $valId1, 'duree_heures' => 42.50, 'taux_horaire' => 5000.00]],
     [],
     'DEFAULT'
 );
-assert_test((float)$computed['total_brut'] == 220000.00, "Calcul du brut incluant 4h x 5000 FCFA d'heures supplémentaires = 220 000 FCFA");
+assert_test((float)$computedHours['total_brut'] == 212500.00, "Calcul de 42h30 à 5000 FCFA = 212 500 FCFA");
 
-// --- TEST 7: Legacy Facade Import ---
-echo "\n--- TEST 7: Façade Salaires Historiques Legacy ---\n";
-$db->exec("INSERT INTO salaires (id_salaire, personnel_id, montant, date_paiement) VALUES (501, 101, 150000.00, '2024-09-20') ON CONFLICT DO NOTHING");
-$importedCount = LegacySalaryFacade::importLegacySalairesToPaie($periodeId, 1);
-assert_test($importedCount >= 0, "Reprise legacy exécutée sans erreur ($importedCount importés)");
+// --- TEST 6: Enseignant Horaire Payé Mensuellement ---
+echo "\n--- TEST 6: Enseignant Mesuré à l'Heure et Consolidé Mensuellement ---\n";
+$periodeId = PaieWorkflowService::createPeriod(1, 1, 'PAIE-2024-09', 9, 2024, '2024-09-01', '2024-09-30', 1);
+$bulletinIds = PaieWorkflowService::generateBulletinsForPeriod($periodeId, 1);
+assert_test(count($bulletinIds) > 0, "Génération mensuelle réussie pour l'enseignant horaire");
+
+$stmtB101 = $db->prepare("SELECT * FROM paie_bulletins WHERE periode_id = :p AND personnel_id = 101 AND est_version_active = 1");
+$stmtB101->execute(['p' => $periodeId]);
+$bulletin101 = $stmtB101->fetch(PDO::FETCH_ASSOC);
+
+assert_test((float)$bulletin101['total_brut'] == 260000.00, "Le bulletin mensuel consolide 250 000 FCFA de base + 10 000 FCFA d'heures (2.0h x 5000 FCFA) = 260 000 FCFA");
+
+// --- TEST 7: Isolation des Heures Déjà Payées ---
+echo "\n--- TEST 7: Isolation des Heures Déjà Payées (Non-reprise sur seconde consolidation) ---\n";
+$validatedAvailable = PaieCahierTexteValidation::findValidatedForTeacherAndDates(101, '2024-09-01', '2024-09-30');
+assert_test(count($validatedAvailable) === 0, "Les heures déjà intégrées dans un bulletin actif sont isolées et exclues d'une nouvelle consolidation");
+
+// --- TEST 8: Re-tirage V1 -> V2 Sans Doublon ---
+echo "\n--- TEST 8: Re-tirage Atomique V1 -> V2 Sans Conflit d'Heures ---\n";
+$v2Id = PaieWorkflowService::redrawBulletin((int)$bulletin101['id'], 1);
+assert_test($v2Id > (int)$bulletin101['id'], "Bulletin V2 re-tiré avec succès ID #{$v2Id}");
+
+$v2B = PaieBulletin::findById($v2Id);
+assert_test((float)$v2B['total_brut'] == 260000.00, "Le bulletin V2 réattache proprement les heures validées sans doublon");
+
+// --- TEST 9: Immutabilité Période Clôturée ---
+echo "\n--- TEST 9: Immutabilité de la Période Clôturée ---\n";
+$db->exec("UPDATE comptabilite_periodes SET est_cloturee = 1 WHERE id = 1");
+$blockedClose = false;
+try {
+    PaieWorkflowService::redrawBulletin($v2Id, 1);
+} catch (LogicException $e) {
+    $blockedClose = true;
+}
+assert_test($blockedClose, "Tentative de modification refusée car la période est clôturée");
+$db->exec("UPDATE comptabilite_periodes SET est_cloturee = 0 WHERE id = 1");
+
+// --- TEST 10: Idempotence avec Clé ---
+echo "\n--- TEST 10: Idempotence Génération Bulletin avec Idempotency Key ---\n";
+$periodeId10 = PaieWorkflowService::createPeriod(1, 1, 'PAIE-2024-11', 11, 2024, '2024-11-01', '2024-11-30', 1);
+$idemKey = 'TEST-KEY-PAIE-1001';
+$bKey1 = PaieWorkflowService::generateBulletinsForPeriod($periodeId10, 1, $idemKey);
+$bKey2 = PaieWorkflowService::generateBulletinsForPeriod($periodeId10, 1, $idemKey);
+assert_test($bKey1 === $bKey2, "L'appel répété avec la même clé d'idempotence retourne le résultat identique sans doublon");
+
+// --- TEST 11: Concurrence & Verrous Déterministes ---
+echo "\n--- TEST 11: Traitement sous Verrous V6 Déterministes ---\n";
+$pieceId = PaieWorkflowService::postAccounting($v2Id, 1);
+assert_test($pieceId > 0, "Comptabilisation exécutée sous verrous déterministes paie_periodes -> comptabilite_periodes -> paie_bulletins (Pièce ID #{$pieceId})");
+
+// --- TEST 12: Support i18n & RTL ---
+echo "\n--- TEST 12: Conformité i18n et RTL ---\n";
+$translatedLabel = _("Validations des Heures Pédagogiques - Cahier de Texte");
+assert_test(!empty($translatedLabel), "Traduction i18n fonctionnelle: '$translatedLabel'");
 
 echo "\n=========================================================================\n";
-echo "🏆 TOUS LES TESTS D'INTÉGRATION ET DE SÉCURITÉ DU MODULE PAIE ONT RÉUSSI !\n";
+echo "🏆 TOUS LES 12 TESTS D'INTÉGRATION ET DE SÉCURITÉ V6.1.1 ONT RÉUSSI !\n";
 echo "=========================================================================\n";

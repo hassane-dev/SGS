@@ -92,10 +92,12 @@ class PaieWorkflowService {
 
             // V5 Check idempotency key if provided
             if ($idempotencyKey) {
-                $existing = PaieBulletin::findByIdempotencyKey($periodePaieId, $idempotencyKey);
-                if ($existing) {
+                $stmtEx = $db->prepare("SELECT id FROM paie_bulletins WHERE periode_id = :p AND idempotency_key LIKE :k ORDER BY id ASC");
+                $stmtEx->execute(['p' => $periodePaieId, 'k' => "{$idempotencyKey}%"]);
+                $existingRows = $stmtEx->fetchAll(PDO::FETCH_COLUMN);
+                if (!empty($existingRows)) {
                     $db->commit();
-                    return [$existing['id']];
+                    return array_map('intval', $existingRows);
                 }
             }
 
@@ -146,7 +148,7 @@ class PaieWorkflowService {
                     'cout_total_employeur' => $computed['cout_total_employeur'],
                     'devise' => $c['devise'] ?? 'FCFA',
                     'statut_bulletin' => 'brouillon',
-                    'idempotency_key' => $idempotencyKey
+                    'idempotency_key' => $idempotencyKey ? "{$idempotencyKey}-{$personnelId}-{$contratId}" : null
                 ]);
 
                 // Create Lines
