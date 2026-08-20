@@ -107,8 +107,8 @@ $searchMode = $searchMode ?? 'pedagogique';
 
               <div class="col-md-2">
                 <label class="form-label text-muted small fw-bold mb-1"><?= _("Série") ?></label>
-                <select name="serie" class="form-select form-select-sm" onchange="this.form.submit()">
-                  <option value=""><?= _("Toutes") ?></option>
+                <select name="serie" class="form-select form-select-sm" onchange="this.form.submit()" <?= empty($series) ? 'disabled' : '' ?>>
+                  <option value=""><?= empty($series) ? _("N/A") : _("Toutes") ?></option>
                   <?php foreach ($series as $ser): ?>
                     <option value="<?= htmlspecialchars($ser) ?>" <?= ($serie === $ser) ? 'selected' : '' ?>>
                       <?= htmlspecialchars($ser) ?>

@@ -144,21 +144,69 @@ class PaieCahierTexteValidation {
         return $count;
     }
 
-    public static function getTeacherHoursMetrics(int $teacherId, string $dateDebut, string $dateFin): array {
+    public static function getTeacherHoursMetrics(array $context): array {
         $db = Database::getInstance();
 
-        $stmtReal = $db->prepare("
+        $lyceeId = $context['lycee_id'] ?? null;
+        $teacherId = !empty($context['teacher_id']) ? (int)$context['teacher_id'] : null;
+        $classeId = !empty($context['classe_id']) ? (int)$context['classe_id'] : null;
+        $matiereId = !empty($context['matiere_id']) ? (int)$context['matiere_id'] : null;
+        $cycleId = !empty($context['cycle_id']) ? (int)$context['cycle_id'] : null;
+        $niveau = !empty($context['niveau']) ? trim($context['niveau']) : null;
+        $serie = !empty($context['serie']) ? trim($context['serie']) : null;
+        $numero = (isset($context['numero']) && $context['numero'] !== '') ? trim($context['numero']) : null;
+        $dateDebut = $context['date_debut'] ?? '1970-01-01';
+        $dateFin = $context['date_fin'] ?? '2099-12-31';
+
+        // 1. Calculate Realized Hours
+        $sqlReal = "
             SELECT ct.heure_debut, ct.heure_fin
             FROM cahier_texte ct
-            WHERE ct.personnel_id = :teacher_id
-              AND ct.date_cours BETWEEN :date_debut AND :date_fin
-        ");
-        $stmtReal->execute([
-            'teacher_id' => $teacherId,
-            'date_debut' => $dateDebut,
-            'date_fin' => $dateFin
-        ]);
+            JOIN classes cl ON ct.classe_id = cl.id_classe
+            WHERE 1=1
+        ";
+        $paramsReal = [];
+
+        if ($lyceeId) {
+            $sqlReal .= " AND ct.lycee_id = :lycee_id";
+            $paramsReal['lycee_id'] = $lyceeId;
+        }
+        if ($teacherId) {
+            $sqlReal .= " AND ct.personnel_id = :teacher_id";
+            $paramsReal['teacher_id'] = $teacherId;
+        }
+        if ($classeId) {
+            $sqlReal .= " AND ct.classe_id = :classe_id";
+            $paramsReal['classe_id'] = $classeId;
+        }
+        if ($matiereId) {
+            $sqlReal .= " AND ct.matiere_id = :matiere_id";
+            $paramsReal['matiere_id'] = $matiereId;
+        }
+        if ($cycleId) {
+            $sqlReal .= " AND cl.cycle_id = :cycle_id";
+            $paramsReal['cycle_id'] = $cycleId;
+        }
+        if ($niveau) {
+            $sqlReal .= " AND cl.niveau = :niveau";
+            $paramsReal['niveau'] = $niveau;
+        }
+        if ($serie) {
+            $sqlReal .= " AND cl.serie = :serie";
+            $paramsReal['serie'] = $serie;
+        }
+        if ($numero !== null) {
+            $sqlReal .= " AND cl.numero = :numero";
+            $paramsReal['numero'] = $numero;
+        }
+        $sqlReal .= " AND ct.date_cours BETWEEN :date_debut AND :date_fin";
+        $paramsReal['date_debut'] = $dateDebut;
+        $paramsReal['date_fin'] = $dateFin;
+
+        $stmtReal = $db->prepare($sqlReal);
+        $stmtReal->execute($paramsReal);
         $rowsReal = $stmtReal->fetchAll(PDO::FETCH_ASSOC);
+
         $heuresRealisees = 0.0;
         foreach ($rowsReal as $r) {
             if (!empty($r['heure_debut']) && !empty($r['heure_fin'])) {
@@ -174,21 +222,57 @@ class PaieCahierTexteValidation {
             }
         }
 
-        $stmtVal = $db->prepare("
+        // 2. Calculate Validated / Paid Hours
+        $sqlVal = "
             SELECT v.id, v.duree_heures, v.taux_horaire, v.statut_validation,
                    bh.bulletin_id, b.est_version_active
             FROM paie_cahier_texte_validations v
             JOIN cahier_texte c ON v.cahier_id = c.cahier_id
+            JOIN classes cl ON c.classe_id = cl.id_classe
             LEFT JOIN paie_bulletin_heures bh ON v.id = bh.cahier_validation_id
             LEFT JOIN paie_bulletins b ON bh.bulletin_id = b.id AND b.est_version_active = 1
-            WHERE v.enseignant_id = :teacher_id
-              AND c.date_cours BETWEEN :date_debut AND :date_fin
-        ");
-        $stmtVal->execute([
-            'teacher_id' => $teacherId,
-            'date_debut' => $dateDebut,
-            'date_fin' => $dateFin
-        ]);
+            WHERE 1=1
+        ";
+        $paramsVal = [];
+
+        if ($lyceeId) {
+            $sqlVal .= " AND c.lycee_id = :lycee_id";
+            $paramsVal['lycee_id'] = $lyceeId;
+        }
+        if ($teacherId) {
+            $sqlVal .= " AND v.enseignant_id = :teacher_id";
+            $paramsVal['teacher_id'] = $teacherId;
+        }
+        if ($classeId) {
+            $sqlVal .= " AND c.classe_id = :classe_id";
+            $paramsVal['classe_id'] = $classeId;
+        }
+        if ($matiereId) {
+            $sqlVal .= " AND c.matiere_id = :matiere_id";
+            $paramsVal['matiere_id'] = $matiereId;
+        }
+        if ($cycleId) {
+            $sqlVal .= " AND cl.cycle_id = :cycle_id";
+            $paramsVal['cycle_id'] = $cycleId;
+        }
+        if ($niveau) {
+            $sqlVal .= " AND cl.niveau = :niveau";
+            $paramsVal['niveau'] = $niveau;
+        }
+        if ($serie) {
+            $sqlVal .= " AND cl.serie = :serie";
+            $paramsVal['serie'] = $serie;
+        }
+        if ($numero !== null) {
+            $sqlVal .= " AND cl.numero = :numero";
+            $paramsVal['numero'] = $numero;
+        }
+        $sqlVal .= " AND c.date_cours BETWEEN :date_debut AND :date_fin";
+        $paramsVal['date_debut'] = $dateDebut;
+        $paramsVal['date_fin'] = $dateFin;
+
+        $stmtVal = $db->prepare($sqlVal);
+        $stmtVal->execute($paramsVal);
         $rowsVal = $stmtVal->fetchAll(PDO::FETCH_ASSOC);
 
         $heuresValidees = 0.0;

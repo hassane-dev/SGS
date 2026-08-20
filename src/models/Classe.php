@@ -137,17 +137,31 @@ class Classe {
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    public static function findDistinctSeriesByNiveau($niveau, $lycee_id) {
+    public static function findDistinctSeriesByNiveau($niveau, $lycee_id, ?int $cycle_id = null) {
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT DISTINCT serie FROM classes WHERE niveau = :niveau AND lycee_id = :lycee_id AND serie IS NOT NULL ORDER BY serie ASC");
-        $stmt->execute(['niveau' => $niveau, 'lycee_id' => $lycee_id]);
+        $sql = "SELECT DISTINCT serie FROM classes WHERE niveau = :niveau AND lycee_id = :lycee_id AND serie IS NOT NULL AND serie != ''";
+        $params = ['niveau' => $niveau, 'lycee_id' => $lycee_id];
+
+        if (!empty($cycle_id)) {
+            $sql .= " AND cycle_id = :cycle_id";
+            $params['cycle_id'] = $cycle_id;
+        }
+
+        $sql .= " ORDER BY serie ASC";
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    public static function findAvailableNumeros($niveau, $serie, $lycee_id) {
+    public static function findAvailableNumeros($niveau, $serie, $lycee_id, ?int $cycle_id = null) {
         $db = Database::getInstance();
         $sql = "SELECT DISTINCT numero FROM classes WHERE niveau = :niveau AND lycee_id = :lycee_id";
         $params = ['niveau' => $niveau, 'lycee_id' => $lycee_id];
+
+        if (!empty($cycle_id)) {
+            $sql .= " AND cycle_id = :cycle_id";
+            $params['cycle_id'] = $cycle_id;
+        }
 
         if ($serie) {
             $sql .= " AND serie = :serie";
@@ -162,10 +176,15 @@ class Classe {
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    public static function findIdByDetails($lycee_id, $niveau, $serie, $numero) {
+    public static function findIdByDetails($lycee_id, $niveau, $serie, $numero, ?int $cycle_id = null) {
         $db = Database::getInstance();
         $sql = "SELECT id_classe FROM classes WHERE lycee_id = :lycee_id AND niveau = :niveau AND numero = :numero";
         $params = ['lycee_id' => $lycee_id, 'niveau' => $niveau, 'numero' => $numero];
+
+        if (!empty($cycle_id)) {
+            $sql .= " AND cycle_id = :cycle_id";
+            $params['cycle_id'] = $cycle_id;
+        }
 
         if ($serie) {
             $sql .= " AND serie = :serie";
