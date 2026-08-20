@@ -56,29 +56,99 @@ class PaieCahierTexteController {
         $stmtCyc->execute(['lycee_id' => $lyceeId]);
         $cycles = $stmtCyc->fetchAll(PDO::FETCH_ASSOC);
 
-        // Fetch dynamic hierarchy levels, series, numbers
-        $niveaux = $cycleId ? Classe::findDistinctNiveauxByCycle($cycleId, $lyceeId) : Classe::getDistinctNiveaux($lyceeId);
-        $series = $niveau ? Classe::findDistinctSeriesByNiveau($niveau, $lyceeId) : Classe::getDistinctSeries($lyceeId);
-        $numeros = $niveau ? Classe::findAvailableNumeros($niveau, $serie, $lyceeId) : [];
-
-        // Fetch classes
-        $classes = Classe::findAll($lyceeId);
-
-        // Fetch teachers based on mode and hierarchy
-        if ($searchMode === 'pedagogique') {
-            $teachers = EnseignantMatiere::findTeachersByHierarchy($lyceeId, $cycleId, $niveau, $serie, $numero, $classeId);
-        } else {
-            $teachers = User::findTeachers($lyceeId);
+        // 1. Resolve Classe hierarchy bidirectional consistency
+        if ($classeId) {
+            $selectedClasse = Classe::findById($classeId);
+            if ($selectedClasse && (int)$selectedClasse['lycee_id'] === $lyceeId) {
+                $cycleId = (int)$selectedClasse['cycle_id'];
+                $niveau = $selectedClasse['niveau'];
+                $serie = $selectedClasse['serie'];
+                $numero = (string)$selectedClasse['numero'];
+            } else {
+                $classeId = null;
+            }
         }
 
-        // Fetch subjects
+        // Fetch dynamic hierarchy levels, series, numbers based on cycle
+        $niveaux = $cycleId ? Classe::findDistinctNiveauxByCycle($cycleId, $lyceeId) : Classe::getDistinctNiveaux($lyceeId);
+        if ($niveau && !in_array($niveau, $niveaux, true)) {
+            $niveau = null;
+            $serie = null;
+            $numero = null;
+            $classeId = null;
+        }
+
+        $series = $niveau ? Classe::findDistinctSeriesByNiveau($niveau, $lyceeId, $cycleId) : [];
+        if ($serie && !in_array($serie, $series, true)) {
+            $serie = null;
+            $numero = null;
+            $classeId = null;
+        }
+
+        $numeros = $niveau ? Classe::findAvailableNumeros($niveau, $serie, $lyceeId, $cycleId) : [];
+        if ($numero !== null && $numero !== '' && !in_array($numero, array_map('strval', $numeros), true)) {
+            $numero = null;
+            $classeId = null;
+        }
+
+        // If cycle, niveau, (serie), and numero are selected, resolve target classe_id
+        if (!$classeId && $niveau && $numero !== null && $numero !== '') {
+            $resolvedId = Classe::findIdByDetails($lyceeId, $niveau, $serie, $numero, $cycleId);
+            if ($resolvedId) {
+                $classeId = (int)$resolvedId;
+            }
+        }
+
+        // Fetch classes list for select box
+        $classes = Classe::findAll($lyceeId);
+
+        // Fetch teachers based on mode and active assignments
+        if ($searchMode === 'pedagogique') {
+            $teachers = EnseignantMatiere::findTeachersByHierarchy($lyceeId, $cycleId, $niveau, $serie, $numero, $classeId, $matiereId);
+        } else {
+            $teachers = User::findTeachers($lyceeId);
+            if ($teacherId) {
+                $assignedClasses = EnseignantMatiere::findClassesForTeacher($teacherId, $lyceeId);
+                if (!empty($assignedClasses)) {
+                    $classes = $assignedClasses;
+                }
+            }
+        }
+
+        // Ensure selected teacher is valid in list
+        if ($teacherId) {
+            $validTeacherIds = array_map(function($t) { return (int)($t['id_user'] ?? $t['id']); }, $teachers);
+            if (!in_array($teacherId, $validTeacherIds, true)) {
+                $teacherId = null;
+            }
+        }
+
+        // Fetch subjects strictly based on assignment context
         $matieres = [];
         if ($teacherId && $classeId) {
             $matieres = EnseignantMatiere::findSubjectsForTeacherInClass($teacherId, $classeId);
+        } elseif ($classeId) {
+            $matieres = EnseignantMatiere::findSubjectsForClass($classeId);
+        } elseif ($teacherId) {
+            $matieres = EnseignantMatiere::findSubjectsForTeacher($teacherId);
         } else {
-            $stmtMat = $db->prepare("SELECT * FROM matieres ORDER BY nom_matiere ASC");
-            $stmtMat->execute();
+            $stmtMat = $db->prepare("
+                SELECT DISTINCT m.*
+                FROM matieres m
+                JOIN enseignant_matieres em ON m.id_matiere = em.matiere_id
+                JOIN classes c ON em.classe_id = c.id_classe
+                WHERE c.lycee_id = :lycee_id
+                ORDER BY m.nom_matiere ASC
+            ");
+            $stmtMat->execute(['lycee_id' => $lyceeId]);
             $matieres = $stmtMat->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        if ($matiereId) {
+            $validMatiereIds = array_map(function($m) { return (int)$m['id_matiere']; }, $matieres);
+            if (!in_array($matiereId, $validMatiereIds, true)) {
+                $matiereId = null;
+            }
         }
 
         // Query Sessions
@@ -97,10 +167,10 @@ class PaieCahierTexteController {
         ];
         $sessions = PaieCahierTexteValidation::findSessionsForContext($sessionFilters);
 
-        // Metrics for selected teacher
+        // Metrics for selected context (or teacher)
         $metrics = null;
-        if ($teacherId) {
-            $metrics = PaieCahierTexteValidation::getTeacherHoursMetrics($teacherId, $dateDebut, $dateFin);
+        if ($teacherId || $classeId || $cycleId) {
+            $metrics = PaieCahierTexteValidation::getTeacherHoursMetrics($sessionFilters);
         }
 
         include __DIR__ . '/../views/paie/cahier_texte/index.php';

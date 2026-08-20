@@ -120,9 +120,9 @@ class EnseignantMatiere {
     }
 
     /**
-     * Find distinct assigned teachers filtered by dynamic class hierarchy (cycle, niveau, serie, numero, classe).
+     * Find distinct assigned teachers filtered by dynamic class hierarchy (cycle, niveau, serie, numero, classe, matiere).
      */
-    public static function findTeachersByHierarchy(int $lyceeId, ?int $cycleId = null, ?string $niveau = null, ?string $serie = null, ?string $numero = null, ?int $classeId = null): array {
+    public static function findTeachersByHierarchy(int $lyceeId, ?int $cycleId = null, ?string $niveau = null, ?string $serie = null, ?string $numero = null, ?int $classeId = null, ?int $matiereId = null): array {
         $db = Database::getInstance();
         $sql = "
             SELECT DISTINCT u.id_user, u.nom, u.prenom, u.identifiant_public
@@ -153,6 +153,10 @@ class EnseignantMatiere {
             $sql .= " AND c.id_classe = :classe_id";
             $params['classe_id'] = $classeId;
         }
+        if (!empty($matiereId)) {
+            $sql .= " AND em.matiere_id = :matiere_id";
+            $params['matiere_id'] = $matiereId;
+        }
 
         $sql .= " ORDER BY u.nom ASC, u.prenom ASC";
 
@@ -162,6 +166,50 @@ class EnseignantMatiere {
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Error in EnseignantMatiere::findTeachersByHierarchy: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Find subjects assigned to teachers for a specific class.
+     */
+    public static function findSubjectsForClass(int $classeId): array {
+        $db = Database::getInstance();
+        $sql = "
+            SELECT DISTINCT m.id_matiere, m.nom_matiere
+            FROM enseignant_matieres em
+            JOIN matieres m ON em.matiere_id = m.id_matiere
+            WHERE em.classe_id = :classe_id
+            ORDER BY m.nom_matiere ASC
+        ";
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->execute(['classe_id' => $classeId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error in EnseignantMatiere::findSubjectsForClass: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Find subjects taught by a specific teacher across all assigned classes.
+     */
+    public static function findSubjectsForTeacher(int $teacherId): array {
+        $db = Database::getInstance();
+        $sql = "
+            SELECT DISTINCT m.id_matiere, m.nom_matiere
+            FROM enseignant_matieres em
+            JOIN matieres m ON em.matiere_id = m.id_matiere
+            WHERE em.enseignant_id = :teacher_id
+            ORDER BY m.nom_matiere ASC
+        ";
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->execute(['teacher_id' => $teacherId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error in EnseignantMatiere::findSubjectsForTeacher: " . $e->getMessage());
             return [];
         }
     }
