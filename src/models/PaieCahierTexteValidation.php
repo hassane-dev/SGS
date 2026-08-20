@@ -166,8 +166,9 @@ class PaieCahierTexteValidation {
         $paramsReal = [];
 
         if ($lyceeId) {
-            $sqlReal .= " AND (ct.lycee_id = :lycee_id OR cl.lycee_id = :lycee_id)";
-            $paramsReal['lycee_id'] = $lyceeId;
+            $sqlReal .= " AND (ct.lycee_id = :lycee_id_ct OR cl.lycee_id = :lycee_id_cl)";
+            $paramsReal['lycee_id_ct'] = $lyceeId;
+            $paramsReal['lycee_id_cl'] = $lyceeId;
         }
         if ($teacherId) {
             $sqlReal .= " AND ct.personnel_id = :teacher_id";
@@ -239,8 +240,9 @@ class PaieCahierTexteValidation {
         $paramsVal = [];
 
         if ($lyceeId) {
-            $sqlVal .= " AND (c.lycee_id = :lycee_id OR cl.lycee_id = :lycee_id)";
-            $paramsVal['lycee_id'] = $lyceeId;
+            $sqlVal .= " AND (c.lycee_id = :lycee_id_c OR cl.lycee_id = :lycee_id_cl)";
+            $paramsVal['lycee_id_c'] = $lyceeId;
+            $paramsVal['lycee_id_cl'] = $lyceeId;
         }
         if ($teacherId) {
             $sqlVal .= " AND v.enseignant_id = :teacher_id";
@@ -345,8 +347,9 @@ class PaieCahierTexteValidation {
         $params = [];
 
         if (!empty($filters['lycee_id'])) {
-            $sql .= " AND (ct.lycee_id = :lycee_id OR cl.lycee_id = :lycee_id)";
-            $params['lycee_id'] = $filters['lycee_id'];
+            $sql .= " AND (ct.lycee_id = :lycee_id_ct OR cl.lycee_id = :lycee_id_cl)";
+            $params['lycee_id_ct'] = $filters['lycee_id'];
+            $params['lycee_id_cl'] = $filters['lycee_id'];
         }
         if (!empty($filters['teacher_id'])) {
             $sql .= " AND ct.personnel_id = :teacher_id";
