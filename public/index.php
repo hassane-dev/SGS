@@ -183,6 +183,20 @@ $router->register('/inscriptions', 'EleveController', 'create');
 $router->register('/reinscriptions', 'EleveController', 'archives');
 $router->register('/reinscription', 'EleveController', 'archives');
 
+// Exercices et Périodes Comptables
+$router->register('/comptabilite/exercices', 'ExerciceFinancierController', 'index');
+$router->register('/comptabilite/exercices/create', 'ExerciceFinancierController', 'create');
+$router->register('/comptabilite/exercices/store', 'ExerciceFinancierController', 'store');
+$router->register('/comptabilite/exercices/{id}/activate', 'ExerciceFinancierController', 'activate');
+$router->register('/comptabilite/exercices/{id}/close', 'ExerciceFinancierController', 'close');
+
+$router->register('/comptabilite/periodes', 'ComptabilitePeriodeController', 'index');
+$router->register('/comptabilite/periodes/create', 'ComptabilitePeriodeController', 'create');
+$router->register('/comptabilite/periodes/store', 'ComptabilitePeriodeController', 'store');
+$router->register('/comptabilite/periodes/generate', 'ComptabilitePeriodeController', 'generate');
+$router->register('/comptabilite/periodes/{id}/cloture', 'ComptabilitePeriodeController', 'close');
+$router->register('/comptabilite/periodes/{id}/reouvrir', 'ComptabilitePeriodeController', 'reopen');
+
 // Gestion des Dépenses (Phase 3)
 $router->register('/depenses', 'DepenseController', 'index');
 $router->register('/depenses/create', 'DepenseController', 'create');
