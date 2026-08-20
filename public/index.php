@@ -482,6 +482,7 @@ $router->register('/paie/bulletins/{id}', 'PaieBulletinsController', 'show');
 
 $router->register('/paie/cahier-texte', 'PaieCahierTexteController', 'index');
 $router->register('/paie/cahier-texte/validate', 'PaieCahierTexteController', 'validate');
+$router->register('/paie/cahier-texte/bulk-validate', 'PaieCahierTexteController', 'bulkValidate');
 
 $router->register('/paie/legacy/import', 'PaieLegacyController', 'import');
 $router->register('/paie/legacy/conflits', 'PaieLegacyController', 'conflits');
