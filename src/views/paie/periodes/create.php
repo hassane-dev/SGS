@@ -1,23 +1,45 @@
 <?php
-// src/views/paie/periodes/create.php
+$title = _("Créer une Nouvelle Période de Paie");
+require_once __DIR__ . '/../../layouts/header_able.php';
 ?>
+
 <div class="pc-container">
   <div class="pc-content">
-    <div class="page-header">
+    <div class="page-header d-print-none mb-3">
       <div class="page-block">
         <div class="row align-items-center">
           <div class="col-md-12">
-            <h5 class="mb-0"><?= _("Créer une Nouvelle Période de Paie") ?></h5>
+            <div class="page-header-title">
+              <h5 class="m-b-10"><?= htmlspecialchars($title) ?></h5>
+            </div>
+            <ul class="breadcrumb">
+              <li class="breadcrumb-item"><a href="/"><?= _('Tableau de Bord') ?></a></li>
+              <li class="breadcrumb-item"><a href="/paie/periodes"><?= _('Paie') ?></a></li>
+              <li class="breadcrumb-item"><a href="/paie/periodes"><?= _('Périodes de paie') ?></a></li>
+              <li class="breadcrumb-item" aria-current="page"><?= _('Nouvelle Période') ?></li>
+            </ul>
           </div>
         </div>
       </div>
     </div>
 
+    <?php if (isset($_SESSION['error_message'])): ?>
+      <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+        <i class="ph-duotone ph-warning-circle me-1 fs-5 align-middle"></i>
+        <?= htmlspecialchars($_SESSION['error_message']) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      <?php unset($_SESSION['error_message']); ?>
+    <?php endif; ?>
+
     <div class="row">
       <div class="col-md-8 mx-auto">
-        <div class="card">
-          <div class="card-header">
-            <h5><?= _("Formulaire de Création") ?></h5>
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-transparent py-3">
+            <h5 class="mb-0 d-flex align-items-center gap-2">
+              <i class="ph-duotone ph-calendar-plus text-primary"></i>
+              <span><?= _("Formulaire de Création") ?></span>
+            </h5>
           </div>
           <div class="card-body">
             <form action="/paie/periodes/store" method="POST">
@@ -60,9 +82,12 @@
                 </div>
               </div>
 
-              <div class="d-flex justify-content-between">
+              <div class="d-flex justify-content-between pt-2">
                 <a href="/paie/periodes" class="btn btn-outline-secondary"><?= _("Annuler") ?></a>
-                <button type="submit" class="btn btn-primary"><?= _("Enregistrer Période") ?></button>
+                <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1">
+                  <i class="ph-duotone ph-floppy-disk fs-5"></i>
+                  <span><?= _("Enregistrer Période") ?></span>
+                </button>
               </div>
             </form>
           </div>
@@ -71,3 +96,5 @@
     </div>
   </div>
 </div>
+
+<?php require_once __DIR__ . '/../../layouts/footer_able.php'; ?>

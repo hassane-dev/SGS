@@ -1,20 +1,38 @@
 <?php
-// src/views/paie/periodes/index.php
+$title = _("Périodes de Paie");
+require_once __DIR__ . '/../../layouts/header_able.php';
 ?>
+
 <div class="pc-container">
   <div class="pc-content">
-    <div class="page-header">
+    <div class="page-header d-print-none mb-3">
       <div class="page-block">
         <div class="row align-items-center">
-          <div class="col-md-12">
-            <h5 class="mb-0"><?= _("Périodes de Paie") ?></h5>
+          <div class="col-md-7">
+            <div class="page-header-title">
+              <h5 class="m-b-10"><?= htmlspecialchars($title) ?></h5>
+            </div>
+            <ul class="breadcrumb">
+              <li class="breadcrumb-item"><a href="/"><?= _('Tableau de Bord') ?></a></li>
+              <li class="breadcrumb-item"><a href="/paie/periodes"><?= _('Paie') ?></a></li>
+              <li class="breadcrumb-item" aria-current="page"><?= _('Périodes de paie') ?></li>
+            </ul>
+          </div>
+          <div class="col-md-5 text-end">
+            <?php if (Auth::can('create', 'paie')): ?>
+              <a href="/paie/periodes/create" class="btn btn-primary d-inline-flex align-items-center gap-1">
+                <i class="ph-duotone ph-plus fs-5"></i>
+                <span><?= _("Nouvelle Période") ?></span>
+              </a>
+            <?php endif; ?>
           </div>
         </div>
       </div>
     </div>
 
     <?php if (isset($_SESSION['success_message'])): ?>
-      <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+        <i class="ph-duotone ph-check-circle me-1 fs-5 align-middle"></i>
         <?= htmlspecialchars($_SESSION['success_message']) ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
@@ -22,7 +40,8 @@
     <?php endif; ?>
 
     <?php if (isset($_SESSION['error_message'])): ?>
-      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+        <i class="ph-duotone ph-warning-circle me-1 fs-5 align-middle"></i>
         <?= htmlspecialchars($_SESSION['error_message']) ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
@@ -31,29 +50,32 @@
 
     <div class="row">
       <div class="col-12">
-        <div class="card">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <h5><?= _("Registre des Périodes de Paie") ?></h5>
-            <?php if (Auth::can('create', 'paie')): ?>
-              <a href="/paie/periodes/create" class="btn btn-primary"><i class="ti ti-plus me-1"></i><?= _("Nouvelle Période") ?></a>
-            <?php endif; ?>
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 d-flex align-items-center gap-2">
+              <i class="ph-duotone ph-calendar text-primary"></i>
+              <span><?= _("Registre des Périodes de Paie") ?></span>
+            </h5>
           </div>
-          <div class="card-body">
+          <div class="card-body p-0">
             <div class="table-responsive">
-              <table class="table table-hover">
-                <thead>
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
                   <tr>
                     <th><?= _("Code Période") ?></th>
                     <th><?= _("Mois / Année") ?></th>
                     <th><?= _("Dates") ?></th>
                     <th><?= _("Statut") ?></th>
-                    <th><?= _("Actions") ?></th>
+                    <th class="text-end"><?= _("Actions") ?></th>
                   </tr>
                 </thead>
                 <tbody>
                   <?php if (empty($periodes)): ?>
                     <tr>
-                      <td colspan="5" class="text-center text-muted"><?= _("Aucune période de paie enregistrée.") ?></td>
+                      <td colspan="5" class="text-center py-5 text-muted">
+                        <i class="ph-duotone ph-calendar-x fs-1 d-block mb-2 text-muted"></i>
+                        <?= _("Aucune période de paie enregistrée.") ?>
+                      </td>
                     </tr>
                   <?php else: ?>
                     <?php foreach ($periodes as $p): ?>
@@ -63,15 +85,24 @@
                         <td><?= htmlspecialchars($p['date_debut']) ?> &rarr; <?= htmlspecialchars($p['date_fin']) ?></td>
                         <td>
                           <?php if ($p['statut'] === 'brouillon'): ?>
-                            <span class="badge bg-warning"><?= _("Brouillon") ?></span>
+                            <span class="badge bg-light-warning text-warning fw-bold"><?= _("Brouillon") ?></span>
                           <?php elseif ($p['statut'] === 'valide'): ?>
-                            <span class="badge bg-info"><?= _("Validée") ?></span>
+                            <span class="badge bg-light-info text-info fw-bold"><?= _("Validée") ?></span>
                           <?php elseif ($p['statut'] === 'cloture'): ?>
-                            <span class="badge bg-success"><?= _("Clôturée") ?></span>
+                            <span class="badge bg-light-success text-success fw-bold"><?= _("Clôturée") ?></span>
                           <?php endif; ?>
                         </td>
-                        <td>
-                          <a href="/paie/periodes/show?id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="ti ti-eye me-1"></i><?= _("Détails") ?></a>
+                        <td class="text-end">
+                          <div class="btn-group btn-group-sm">
+                            <a href="/paie/periodes/<?= $p['id'] ?>" class="btn btn-light-primary" title="<?= _('Voir') ?>">
+                              <i class="ph-duotone ph-eye fs-6"></i>
+                              <span class="d-none d-md-inline ms-1"><?= _("Voir") ?></span>
+                            </a>
+                            <a href="/paie/bulletins?periode_id=<?= $p['id'] ?>" class="btn btn-light-secondary" title="<?= _('Bulletins') ?>">
+                              <i class="ph-duotone ph-receipt fs-6"></i>
+                              <span class="d-none d-md-inline ms-1"><?= _("Bulletins") ?></span>
+                            </a>
+                          </div>
                         </td>
                       </tr>
                     <?php endforeach; ?>
@@ -85,3 +116,5 @@
     </div>
   </div>
 </div>
+
+<?php require_once __DIR__ . '/../../layouts/footer_able.php'; ?>

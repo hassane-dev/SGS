@@ -465,22 +465,26 @@ $router->register('/salaires/fiche', 'SalaireController', 'genererFiche');
 
 // Lot 2.1 - Moteur de Paie
 $router->register('/paie/periodes', 'PaiePeriodesController', 'index');
-$router->register('/paie/periodes/show', 'PaiePeriodesController', 'show');
 $router->register('/paie/periodes/create', 'PaiePeriodesController', 'create');
 $router->register('/paie/periodes/store', 'PaiePeriodesController', 'store');
 $router->register('/paie/periodes/calculate', 'PaiePeriodesController', 'calculate');
 $router->register('/paie/periodes/close', 'PaiePeriodesController', 'close');
+$router->register('/paie/periodes/show', 'PaiePeriodesController', 'show');
+$router->register('/paie/periodes/{id}/cloture', 'PaiePeriodesController', 'close');
+$router->register('/paie/periodes/{id}', 'PaiePeriodesController', 'show');
 
 $router->register('/paie/bulletins', 'PaieBulletinsController', 'index');
 $router->register('/paie/bulletins/show', 'PaieBulletinsController', 'show');
 $router->register('/paie/bulletins/redraw', 'PaieBulletinsController', 'redraw');
 $router->register('/paie/bulletins/post-accounting', 'PaieBulletinsController', 'postAccounting');
 $router->register('/paie/bulletins/settle', 'PaieBulletinsController', 'settle');
+$router->register('/paie/bulletins/{id}', 'PaieBulletinsController', 'show');
 
 $router->register('/paie/cahier-texte', 'PaieCahierTexteController', 'index');
 $router->register('/paie/cahier-texte/validate', 'PaieCahierTexteController', 'validate');
 
 $router->register('/paie/legacy/import', 'PaieLegacyController', 'import');
+$router->register('/paie/legacy/conflits', 'PaieLegacyController', 'conflits');
 
 $router->register('/paie/regularisations', 'PaieRegularisationsController', 'index');
 $router->register('/paie/regularisations/store', 'PaieRegularisationsController', 'store');

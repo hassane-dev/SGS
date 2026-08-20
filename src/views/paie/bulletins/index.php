@@ -1,5 +1,5 @@
 <?php
-$title = sprintf(_("Détails de la Période de Paie : %s"), $periode['code_periode']);
+$title = _("Bulletins de Paie");
 require_once __DIR__ . '/../../layouts/header_able.php';
 ?>
 
@@ -15,18 +15,13 @@ require_once __DIR__ . '/../../layouts/header_able.php';
             <ul class="breadcrumb">
               <li class="breadcrumb-item"><a href="/"><?= _('Tableau de Bord') ?></a></li>
               <li class="breadcrumb-item"><a href="/paie/periodes"><?= _('Paie') ?></a></li>
-              <li class="breadcrumb-item"><a href="/paie/periodes"><?= _('Périodes de paie') ?></a></li>
-              <li class="breadcrumb-item" aria-current="page"><?= htmlspecialchars($periode['code_periode']) ?></li>
+              <li class="breadcrumb-item" aria-current="page"><?= _('Bulletins') ?></li>
             </ul>
           </div>
-          <div class="col-md-5 text-end d-flex justify-content-end gap-2">
-            <a href="/paie/bulletins?periode_id=<?= $periode['id'] ?>" class="btn btn-outline-primary d-inline-flex align-items-center gap-1">
-              <i class="ph-duotone ph-receipt fs-5"></i>
-              <span><?= _("Bulletins de la période") ?></span>
-            </a>
+          <div class="col-md-5 text-end">
             <a href="/paie/periodes" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1">
-              <i class="ph-duotone ph-arrow-left fs-5"></i>
-              <span><?= _("Retour aux Périodes") ?></span>
+              <i class="ph-duotone ph-calendar fs-5"></i>
+              <span><?= _("Voir les Périodes") ?></span>
             </a>
           </div>
         </div>
@@ -51,72 +46,44 @@ require_once __DIR__ . '/../../layouts/header_able.php';
       <?php unset($_SESSION['error_message']); ?>
     <?php endif; ?>
 
-    <div class="row">
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-transparent py-3">
-            <h5 class="mb-0 d-flex align-items-center gap-2">
-              <i class="ph-duotone ph-info text-primary"></i>
-              <span><?= _("Informations Période") ?></span>
-            </h5>
+    <!-- Period Filter Form -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body py-3">
+        <form method="GET" action="/paie/bulletins" class="row g-3 align-items-center">
+          <div class="col-md-6 col-lg-4">
+            <label class="form-label small fw-semibold text-muted mb-1"><?= _("Filtrer par Période de Paie") ?></label>
+            <select name="periode_id" class="form-select" onchange="this.form.submit()">
+              <option value=""><?= _("Toutes les périodes de paie") ?></option>
+              <?php foreach ($periodes as $p): ?>
+                <option value="<?= $p['id'] ?>" <?= ($periodeId == $p['id']) ? 'selected' : '' ?>>
+                  <?= htmlspecialchars($p['code_periode']) ?> (<?= sprintf('%02d/%04d', $p['mois'], $p['annee']) ?>)
+                </option>
+              <?php endforeach; ?>
+            </select>
           </div>
-          <div class="card-body">
-            <p class="mb-2"><strong><?= _("Code") ?> :</strong> <?= htmlspecialchars($periode['code_periode']) ?></p>
-            <p class="mb-2"><strong><?= _("Mois / Année") ?> :</strong> <?= sprintf('%02d/%04d', $periode['mois'], $periode['annee']) ?></p>
-            <p class="mb-2"><strong><?= _("Période") ?> :</strong> <?= htmlspecialchars($periode['date_debut']) ?> &rarr; <?= htmlspecialchars($periode['date_fin']) ?></p>
-            <p class="mb-2"><strong><?= _("Statut") ?> :</strong>
-              <?php if ($periode['statut'] === 'brouillon'): ?>
-                <span class="badge bg-light-warning text-warning fw-bold"><?= _("Brouillon") ?></span>
-              <?php elseif ($periode['statut'] === 'valide'): ?>
-                <span class="badge bg-light-info text-info fw-bold"><?= _("Validée") ?></span>
-              <?php elseif ($periode['statut'] === 'cloture'): ?>
-                <span class="badge bg-light-success text-success fw-bold"><?= _("Clôturée") ?></span>
-              <?php endif; ?>
-            </p>
-
-            <hr/>
-
-            <?php if ($periode['statut'] !== 'cloture'): ?>
-              <?php if (Auth::can('calculate', 'paie')): ?>
-                <form action="/paie/periodes/calculate" method="POST" class="mb-2">
-                  <input type="hidden" name="periode_id" value="<?= $periode['id'] ?>"/>
-                  <button type="submit" class="btn btn-warning w-100 d-inline-flex align-items-center justify-content-center gap-1">
-                    <i class="ph-duotone ph-calculator fs-5"></i>
-                    <span><?= _("Calculer") ?> / <?= _("Générer Bulletins") ?></span>
-                  </button>
-                </form>
-              <?php endif; ?>
-
-              <?php if (Auth::can('create', 'paie')): ?>
-                <form action="/paie/legacy/import" method="POST" class="mb-2">
-                  <input type="hidden" name="periode_id" value="<?= $periode['id'] ?>"/>
-                  <button type="submit" class="btn btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-1">
-                    <i class="ph-duotone ph-download-simple fs-5"></i>
-                    <span><?= _("Importer Salaires Historiques") ?></span>
-                  </button>
-                </form>
-              <?php endif; ?>
-
-              <?php if (Auth::can('close', 'paie')): ?>
-                <form action="/paie/periodes/<?= $periode['id'] ?>/cloture" method="POST" onsubmit="return confirm('<?= _("Êtes-vous sûr de vouloir clôturer cette période ? Cette action est irréversible.") ?>');">
-                  <input type="hidden" name="periode_id" value="<?= $periode['id'] ?>"/>
-                  <button type="submit" class="btn btn-danger w-100 d-inline-flex align-items-center justify-content-center gap-1">
-                    <i class="ph-duotone ph-lock-key fs-5"></i>
-                    <span><?= _("Clôturer") ?></span>
-                  </button>
-                </form>
-              <?php endif; ?>
+          <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1">
+              <i class="ph-duotone ph-funnel"></i>
+              <span><?= _("Filtrer") ?></span>
+            </button>
+            <?php if ($periodeId > 0): ?>
+              <a href="/paie/bulletins" class="btn btn-light-secondary ms-2" title="<?= _('Réinitialiser') ?>">
+                <i class="ph-duotone ph-arrow-counter-clockwise"></i>
+              </a>
             <?php endif; ?>
           </div>
-        </div>
+        </form>
       </div>
+    </div>
 
-      <div class="col-md-8">
+    <div class="row">
+      <div class="col-12">
         <div class="card border-0 shadow-sm">
           <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center">
             <h5 class="mb-0 d-flex align-items-center gap-2">
               <i class="ph-duotone ph-receipt text-primary"></i>
-              <span><?= _("Bulletins de Paie de la Période") ?> (<?= count($bulletins) ?>)</span>
+              <span><?= _("Liste des Bulletins de Paie") ?></span>
+              <span class="badge bg-light-primary text-primary font-monospace ms-1"><?= count($bulletins) ?></span>
             </h5>
           </div>
           <div class="card-body p-0">
@@ -124,9 +91,10 @@ require_once __DIR__ . '/../../layouts/header_able.php';
               <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                   <tr>
+                    <th><?= _("Période") ?></th>
                     <th><?= _("Personnel") ?></th>
                     <th><?= _("Version") ?></th>
-                    <th><?= _("Brut") ?></th>
+                    <th><?= _("Salaire Brut") ?></th>
                     <th><?= _("Net à Payer") ?></th>
                     <th><?= _("Compta") ?></th>
                     <th><?= _("Règlement") ?></th>
@@ -136,16 +104,17 @@ require_once __DIR__ . '/../../layouts/header_able.php';
                 <tbody>
                   <?php if (empty($bulletins)): ?>
                     <tr>
-                      <td colspan="7" class="text-center py-5 text-muted">
+                      <td colspan="8" class="text-center py-5 text-muted">
                         <i class="ph-duotone ph-file-x fs-1 d-block mb-2 text-muted"></i>
-                        <?= _("Aucun bulletin généré pour cette période.") ?>
+                        <?= _("Aucun bulletin de paie trouvé.") ?>
                       </td>
                     </tr>
                   <?php else: ?>
                     <?php foreach ($bulletins as $b): ?>
                       <tr class="<?= $b['est_version_active'] ? '' : 'table-secondary text-muted' ?>">
+                        <td><strong><?= htmlspecialchars($b['code_periode'] ?? '') ?></strong></td>
                         <td>
-                          <strong><?= htmlspecialchars($b['nom'] . ' ' . $b['prenom']) ?></strong>
+                          <strong><?= htmlspecialchars(($b['nom'] ?? '') . ' ' . ($b['prenom'] ?? '')) ?></strong>
                           <div class="small text-muted"><?= htmlspecialchars($b['identifiant_public'] ?? '') ?></div>
                         </td>
                         <td>

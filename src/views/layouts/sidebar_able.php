@@ -407,11 +407,37 @@ $navItems = [
         'condition' => Auth::can('view', 'reporting'),
     ],
     [
-        'url' => '/paie/periodes',
+        'text' => _('Paie'),
         'icon' => 'ph-duotone ph-money',
-        'text' => _('Gestion de la Paie'),
-        'title' => _('Consulter et gérer les périodes et bulletins de paie.'),
+        'is_dropdown' => true,
         'condition' => Auth::can('view', 'paie'),
+        'submenu' => [
+            [
+                'url' => '/paie/periodes',
+                'text' => _('Périodes de paie'),
+                'condition' => Auth::can('view', 'paie'),
+            ],
+            [
+                'url' => '/paie/bulletins',
+                'text' => _('Bulletins'),
+                'condition' => Auth::can('view', 'paie'),
+            ],
+            [
+                'url' => '/paie/cahier-texte',
+                'text' => _('Cahier de texte / heures'),
+                'condition' => Auth::can('view', 'paie'),
+            ],
+            [
+                'url' => '/paie/regularisations',
+                'text' => _('Régularisations'),
+                'condition' => Auth::can('view', 'paie'),
+            ],
+            [
+                'url' => '/paie/legacy/conflits',
+                'text' => _('Reprises historiques'),
+                'condition' => Auth::can('create', 'paie') || Auth::can('audit', 'paie'),
+            ],
+        ],
     ],
     [
         'url' => '/salaires',
@@ -550,7 +576,7 @@ $navItems = [
             // Check if active
             $is_active = false;
             foreach ($sub_items as $sub) {
-                if ($active_url == $sub['url']) {
+                if ($active_url == $sub['url'] || strpos($active_url, $sub['url']) === 0) {
                     $is_active = true;
                 }
             }
@@ -565,7 +591,7 @@ $navItems = [
               </a>
               <ul class="pc-submenu" style="<?= $is_active ? 'display: block;' : 'display: none;' ?>">
                 <?php foreach ($sub_items as $sub): ?>
-                  <li class="pc-item <?= ($active_url == $sub['url']) ? 'active' : '' ?>">
+                  <li class="pc-item <?= ($active_url == $sub['url'] || strpos($active_url, $sub['url']) === 0) ? 'active' : '' ?>">
                     <a class="pc-link" href="<?= $sub['url'] ?>"><?= $sub['text'] ?></a>
                   </li>
                 <?php endforeach; ?>
