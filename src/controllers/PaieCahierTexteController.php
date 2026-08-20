@@ -57,8 +57,40 @@ class PaieCahierTexteController {
 
         if ($selectedPeriode === null && $periodeParam !== 'all') {
             if (!empty($periodes)) {
-                $selectedPeriode = $periodes[0];
-                $periodeId = (int)$selectedPeriode['id'];
+                $today = date('Y-m-d');
+                foreach ($periodes as $p) {
+                    if (!empty($p['date_debut']) && !empty($p['date_fin'])) {
+                        if ($today >= $p['date_debut'] && $today <= $p['date_fin']) {
+                            $selectedPeriode = $p;
+                            $periodeId = (int)$p['id'];
+                            break;
+                        }
+                    }
+                }
+                if ($selectedPeriode === null) {
+                    $stmtHasSessions = $db->prepare("
+                        SELECT p.id
+                        FROM paie_periodes p
+                        JOIN cahier_texte ct ON ct.date_cours BETWEEN p.date_debut AND p.date_fin
+                        WHERE p.lycee_id = :lycee_id
+                        ORDER BY ct.date_cours DESC LIMIT 1
+                    ");
+                    $stmtHasSessions->execute(['lycee_id' => $lyceeId]);
+                    $sessionPId = $stmtHasSessions->fetchColumn();
+                    if ($sessionPId) {
+                        foreach ($periodes as $p) {
+                            if ((int)$p['id'] === (int)$sessionPId) {
+                                $selectedPeriode = $p;
+                                $periodeId = (int)$p['id'];
+                                break;
+                            }
+                        }
+                    }
+                }
+                if ($selectedPeriode === null) {
+                    $selectedPeriode = $periodes[0];
+                    $periodeId = (int)$selectedPeriode['id'];
+                }
             }
         }
 
@@ -66,6 +98,13 @@ class PaieCahierTexteController {
             $dateDebut = $selectedPeriode['date_debut'];
             $dateFin = $selectedPeriode['date_fin'];
         }
+
+        error_log(sprintf(
+            "[PaieCahierTexte] Resolved Period ID: %s, Date Debut: %s, Date Fin: %s",
+            var_export($periodeId, true),
+            var_export($dateDebut, true),
+            var_export($dateFin, true)
+        ));
 
         // Fetch dynamic cycles using Cycle model as single source of truth
         $cycles = Cycle::findByLycee($lyceeId);
@@ -104,9 +143,17 @@ class PaieCahierTexteController {
         }
 
         $numeros = $niveau ? Classe::findAvailableNumeros($niveau, $serie, $lyceeId, $cycleId) : [];
-        if ($numero !== null && $numero !== '' && !in_array($numero, array_map('strval', $numeros), true)) {
-            $numero = null;
-            $classeId = null;
+        if ($numero !== null && $numero !== '') {
+            $validNumeroStrings = [];
+            foreach ($numeros as $numVal) {
+                $validNumeroStrings[] = (string)$numVal;
+                $validNumeroStrings[] = (string)(int)$numVal;
+                $validNumeroStrings[] = sprintf('%02d', (int)$numVal);
+            }
+            if (!in_array((string)$numero, $validNumeroStrings, true)) {
+                $numero = null;
+                $classeId = null;
+            }
         }
 
         // If cycle, niveau, (serie), and numero are selected, resolve target classe_id
@@ -123,6 +170,29 @@ class PaieCahierTexteController {
         // Fetch teachers based on mode and active assignments
         if ($searchMode === 'pedagogique') {
             $teachers = EnseignantMatiere::findTeachersByHierarchy($lyceeId, $cycleId, $niveau, $serie, $numero, $classeId, $matiereId);
+            $sqlCtTeachers = "
+                SELECT DISTINCT u.id_user, u.nom, u.prenom, u.identifiant_public
+                FROM cahier_texte ct
+                JOIN utilisateurs u ON ct.personnel_id = u.id_user
+                LEFT JOIN classes cl ON ct.classe_id = cl.id_classe
+                WHERE (ct.lycee_id = :lycee_id OR cl.lycee_id = :lycee_id2)
+            ";
+            $ctParams = ['lycee_id' => $lyceeId, 'lycee_id2' => $lyceeId];
+            if ($classeId) {
+                $sqlCtTeachers .= " AND ct.classe_id = :classe_id";
+                $ctParams['classe_id'] = $classeId;
+            }
+            $stmtCtT = $db->prepare($sqlCtTeachers);
+            $stmtCtT->execute($ctParams);
+            $ctTeachers = $stmtCtT->fetchAll(PDO::FETCH_ASSOC);
+
+            $existingIds = array_map(function($t) { return (int)($t['id_user'] ?? $t['id']); }, $teachers);
+            foreach ($ctTeachers as $ctT) {
+                if (!in_array((int)$ctT['id_user'], $existingIds, true)) {
+                    $teachers[] = $ctT;
+                    $existingIds[] = (int)$ctT['id_user'];
+                }
+            }
         } else {
             $teachers = User::findTeachers($lyceeId);
             if ($teacherId) {
@@ -167,6 +237,27 @@ class PaieCahierTexteController {
             ");
             $stmtMat->execute(['lycee_id' => $lyceeId]);
             $matieres = $stmtMat->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        if (empty($matieres)) {
+            $sqlCtMat = "
+                SELECT DISTINCT m.id_matiere, m.nom_matiere
+                FROM cahier_texte ct
+                JOIN matieres m ON ct.matiere_id = m.id_matiere
+                WHERE (ct.lycee_id = :lycee_id)
+            ";
+            $ctMatParams = ['lycee_id' => $lyceeId];
+            if ($teacherId) {
+                $sqlCtMat .= " AND ct.personnel_id = :teacher_id";
+                $ctMatParams['teacher_id'] = $teacherId;
+            }
+            if ($classeId) {
+                $sqlCtMat .= " AND ct.classe_id = :classe_id";
+                $ctMatParams['classe_id'] = $classeId;
+            }
+            $stmtCtM = $db->prepare($sqlCtMat);
+            $stmtCtM->execute($ctMatParams);
+            $matieres = $stmtCtM->fetchAll(PDO::FETCH_ASSOC);
         }
 
         if ($matiereId) {

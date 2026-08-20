@@ -163,11 +163,11 @@ class Classe {
             $params['cycle_id'] = $cycle_id;
         }
 
-        if ($serie) {
+        if ($serie === 'none' || $serie === 'empty' || $serie === 'sans_serie') {
+            $sql .= " AND (serie IS NULL OR serie = '')";
+        } elseif (!empty($serie)) {
             $sql .= " AND serie = :serie";
             $params['serie'] = $serie;
-        } else {
-            $sql .= " AND (serie IS NULL OR serie = '')";
         }
 
         $sql .= " ORDER BY numero ASC";
@@ -186,11 +186,11 @@ class Classe {
             $params['cycle_id'] = $cycle_id;
         }
 
-        if ($serie) {
+        if ($serie === 'none' || $serie === 'empty' || $serie === 'sans_serie') {
+            $sql .= " AND (serie IS NULL OR serie = '')";
+        } elseif (!empty($serie)) {
             $sql .= " AND serie = :serie";
             $params['serie'] = $serie;
-        } else {
-            $sql .= " AND (serie IS NULL OR serie = '')";
         }
 
         $stmt = $db->prepare($sql);

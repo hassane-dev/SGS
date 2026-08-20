@@ -123,7 +123,7 @@ $searchMode = $searchMode ?? 'pedagogique';
                 <select name="numero" class="form-select form-select-sm" onchange="this.form.submit()">
                   <option value=""><?= _("Tous") ?></option>
                   <?php foreach ($numeros as $num): ?>
-                    <option value="<?= htmlspecialchars($num) ?>" <?= ($numero !== null && (string)$numero === (string)$num) ? 'selected' : '' ?>>
+                    <option value="<?= htmlspecialchars($num) ?>" <?= ($numero !== null && $numero !== '' && (int)$numero === (int)$num) ? 'selected' : '' ?>>
                       <?= htmlspecialchars($num) ?>
                     </option>
                   <?php endforeach; ?>
@@ -317,7 +317,7 @@ $searchMode = $searchMode ?? 'pedagogique';
                   <?php foreach ($sessions as $s): ?>
                     <tr>
                       <td class="text-center">
-                        <?php if ($s['status_code'] === 'a_valider'): ?>
+                        <?php if (in_array($s['status_code'], ['a_valider', 'en_attente'], true)): ?>
                           <input type="checkbox" name="cahier_ids[]" value="<?= $s['cahier_id'] ?>" class="form-check-input session-checkbox" />
                         <?php else: ?>
                           <i class="ph-duotone ph-check text-muted opacity-50"></i>
@@ -369,7 +369,7 @@ $searchMode = $searchMode ?? 'pedagogique';
                         <?php endif; ?>
                       </td>
                       <td class="text-end">
-                        <?php if ($s['status_code'] === 'a_valider' && Auth::can('validate', 'paie')): ?>
+                        <?php if (in_array($s['status_code'], ['a_valider', 'en_attente'], true) && Auth::can('validate', 'paie')): ?>
                           <form action="/paie/cahier-texte/validate" method="POST" class="d-inline">
                             <input type="hidden" name="cahier_id" value="<?= $s['cahier_id'] ?>" />
                             <button type="submit" class="btn btn-sm btn-success d-inline-flex align-items-center gap-1">
