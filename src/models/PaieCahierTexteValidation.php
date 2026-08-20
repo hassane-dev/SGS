@@ -272,15 +272,6 @@ class PaieCahierTexteValidation {
             $sqlVal .= " AND cl.numero = :numero";
             $paramsVal['numero'] = $numero;
         }
-        if (!empty($context['date_debut'])) {
-            $sqlVal .= " AND c.date_cours >= :date_debut";
-            $paramsVal['date_debut'] = $context['date_debut'];
-        }
-        if (!empty($context['date_fin'])) {
-            $sqlVal .= " AND c.date_cours <= :date_fin";
-            $paramsVal['date_fin'] = $context['date_fin'];
-        }
-
         $sqlVal .= " GROUP BY v.id, v.duree_heures, v.taux_horaire, v.statut_validation";
 
         $stmtVal = $db->prepare($sqlVal);
@@ -418,6 +409,9 @@ class PaieCahierTexteValidation {
             } elseif (!empty($r['statut_validation']) && $r['statut_validation'] === 'refuse') {
                 $r['status_code'] = 'refuse';
                 $r['status_label'] = _("Refusée");
+            } elseif (!empty($r['statut_validation']) && $r['statut_validation'] === 'en_attente') {
+                $r['status_code'] = 'en_attente';
+                $r['status_label'] = _("En attente");
             } else {
                 $r['status_code'] = 'a_valider';
                 $r['status_label'] = _("À valider");
