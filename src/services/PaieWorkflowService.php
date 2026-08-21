@@ -79,6 +79,123 @@ class PaieWorkflowService {
     }
 
     /**
+     * Generate a bulletin (V1) for a single employee contract.
+     * Reused by both individual and global generation workflows.
+     */
+    public static function generateBulletinForEmployee(int $periodePaieId, int $personnelId, int $contratId, int $userId, ?string $idempotencyKey = null): int {
+        $db = Database::getInstance();
+
+        // 1. Lock Acquisition
+        $locks = self::acquireLocks($db, $periodePaieId);
+        $periode = $locks['periode'];
+
+        if ($periode['statut'] === 'cloture') {
+            throw new LogicException("Impossible de générer un bulletin : la période de paie est clôturée.");
+        }
+
+        // 2. Fetch contract and active check
+        $stmtC = $db->prepare("SELECT * FROM personnel_contrats_historique WHERE id = :id");
+        $stmtC->execute(['id' => $contratId]);
+        $c = $stmtC->fetch(PDO::FETCH_ASSOC);
+
+        if (!$c || $c['statut_contrat'] !== 'actif') {
+            throw new InvalidArgumentException("Contrat introuvable ou non actif ID #{$contratId}");
+        }
+
+        $entiteJuridiqueId = (int)($c['entite_juridique_id'] ?? 1);
+
+        // Check if active bulletin already exists
+        $existing = PaieBulletin::findActiveForContractAndPeriod($personnelId, $entiteJuridiqueId, $contratId, $periodePaieId);
+        if ($existing) {
+            return (int)$existing['id'];
+        }
+
+        // 3. Fetch validated teacher hours for the period
+        $cahierValidations = PaieCahierTexteValidation::findValidatedForTeacherAndDates($personnelId, $periode['date_debut'], $periode['date_fin']);
+
+        // 4. Fetch contract components / allowances
+        $stmtComp = $db->prepare("SELECT * FROM personnel_contrat_composants WHERE contrat_id = :id");
+        $stmtComp->execute(['id' => $contratId]);
+        $components = $stmtComp->fetchAll(PDO::FETCH_ASSOC);
+
+        // 5. Fetch pending regularisations
+        $pendingRegularisations = PaieRegularisation::findPendingForEmployeeAndPeriod($personnelId, $periodePaieId);
+
+        // 6. Compute Bulletin
+        $computed = PaieCalculationEngine::computeBulletin($c, $cahierValidations, $components, 'DEFAULT', $periode['date_fin'], $pendingRegularisations);
+
+        // 7. Create PaieBulletin V1
+        $bulletinId = PaieBulletin::create([
+            'periode_id' => $periodePaieId,
+            'personnel_id' => $personnelId,
+            'contrat_id' => $contratId,
+            'version_num' => 1,
+            'est_version_active' => 1,
+            'entite_juridique_id' => $entiteJuridiqueId,
+            'salaire_base' => $computed['salaire_base'],
+            'total_brut' => $computed['total_brut'],
+            'total_cotisations_salariales' => $computed['total_cotisations_salariales'],
+            'total_impots' => $computed['total_impots'],
+            'total_retenues' => $computed['total_retenues'],
+            'net_imposable' => $computed['net_imposable'],
+            'net_a_payer' => $computed['net_a_payer'],
+            'total_cotisations_patronales' => $computed['total_cotisations_patronales'],
+            'cout_total_employeur' => $computed['cout_total_employeur'],
+            'devise' => $c['devise'] ?? 'FCFA',
+            'statut_bulletin' => 'brouillon',
+            'idempotency_key' => $idempotencyKey ? "{$idempotencyKey}-{$personnelId}-{$contratId}" : null
+        ]);
+
+        // 8. Create Rubrique Lines
+        foreach ($computed['rubrique_lines'] as $rl) {
+            $rl['bulletin_id'] = $bulletinId;
+            PaieBulletinLigne::create($rl);
+        }
+
+        // 9. Create Teacher Hours Lines
+        foreach ($computed['heures_lines'] as $hl) {
+            $hl['bulletin_id'] = $bulletinId;
+            PaieBulletinHeure::create($hl);
+        }
+
+        // 10. Log and Integrate Regularisations
+        foreach ($pendingRegularisations as $reg) {
+            PaieRegularisation::logIntegration(
+                (int)$reg['id'],
+                $bulletinId,
+                (float)($reg['montant_brut_delta'] ?? 0.00),
+                (float)($reg['montant_net_delta'] ?? 0.00)
+            );
+            PaieRegularisation::updateStatus((int)$reg['id'], 'integre', $userId);
+        }
+
+        // 11. Create Contract Snapshot
+        PaieBulletinContratSnapshot::create([
+            'bulletin_id' => $bulletinId,
+            'contrat_id' => $contratId,
+            'version_num' => $c['version_num'] ?? 1,
+            'type_contrat' => $c['type_contrat_id'] ?? 'CDI',
+            'mode_calcul_principal' => $c['mode_calcul_principal'] ?? 'forfait_fixe',
+            'devise' => $c['devise'] ?? 'FCFA',
+            'raw_json_snapshot' => $c
+        ]);
+
+        // 12. Create Rules Snapshots
+        foreach ($computed['rules_snapshots'] as $rs) {
+            $rs['bulletin_id'] = $bulletinId;
+            $rsId = PaieBulletinRegleSnapshot::create($rs);
+            foreach ($rs['tranches_snapshot'] as $ts) {
+                $ts['regle_snapshot_id'] = $rsId;
+                PaieBulletinRegleTrancheSnapshot::create($ts);
+            }
+        }
+
+        PaieAuditLog::log('paie_bulletins', $bulletinId, 'create_v1', $userId, null, $computed);
+
+        return $bulletinId;
+    }
+
+    /**
      * Generate payroll bulletins (V1) for all active staff contracts in a period.
      * V5: Supports idempotency_key protection.
      */
@@ -90,7 +207,11 @@ class PaieWorkflowService {
             $locks = self::acquireLocks($db, $periodePaieId);
             $periode = $locks['periode'];
 
-            // V5 Check idempotency key if provided
+            if ($periode['statut'] === 'cloture') {
+                throw new LogicException("Impossible de calculer la paie : la période de paie est clôturée.");
+            }
+
+            // Check idempotency key if provided
             if ($idempotencyKey) {
                 $stmtEx = $db->prepare("SELECT id FROM paie_bulletins WHERE periode_id = :p AND idempotency_key LIKE :k ORDER BY id ASC");
                 $stmtEx->execute(['p' => $periodePaieId, 'k' => "{$idempotencyKey}%"]);
@@ -114,77 +235,13 @@ class PaieWorkflowService {
             $createdBulletinIds = [];
 
             foreach ($contracts as $c) {
-                $personnelId = (int)$c['personnel_id'];
-                $contratId = (int)$c['id'];
-                $entiteJuridiqueId = (int)($c['entite_juridique_id'] ?? 1);
-
-                // Fetch validated teacher hours for the period
-                $cahierValidations = PaieCahierTexteValidation::findValidatedForTeacherAndDates($personnelId, $periode['date_debut'], $periode['date_fin']);
-
-                // Fetch contract components / allowances
-                $stmtComp = $db->prepare("SELECT * FROM personnel_contrat_composants WHERE contrat_id = :id");
-                $stmtComp->execute(['id' => $contratId]);
-                $components = $stmtComp->fetchAll(PDO::FETCH_ASSOC);
-
-                // Compute Bulletin
-                $computed = PaieCalculationEngine::computeBulletin($c, $cahierValidations, $components, 'DEFAULT', $periode['date_fin']);
-
-                // Create PaieBulletin V1
-                $bulletinId = PaieBulletin::create([
-                    'periode_id' => $periodePaieId,
-                    'personnel_id' => $personnelId,
-                    'contrat_id' => $contratId,
-                    'version_num' => 1,
-                    'est_version_active' => 1,
-                    'entite_juridique_id' => $entiteJuridiqueId,
-                    'salaire_base' => $computed['salaire_base'],
-                    'total_brut' => $computed['total_brut'],
-                    'total_cotisations_salariales' => $computed['total_cotisations_salariales'],
-                    'total_impots' => $computed['total_impots'],
-                    'total_retenues' => $computed['total_retenues'],
-                    'net_imposable' => $computed['net_imposable'],
-                    'net_a_payer' => $computed['net_a_payer'],
-                    'total_cotisations_patronales' => $computed['total_cotisations_patronales'],
-                    'cout_total_employeur' => $computed['cout_total_employeur'],
-                    'devise' => $c['devise'] ?? 'FCFA',
-                    'statut_bulletin' => 'brouillon',
-                    'idempotency_key' => $idempotencyKey ? "{$idempotencyKey}-{$personnelId}-{$contratId}" : null
-                ]);
-
-                // Create Lines
-                foreach ($computed['rubrique_lines'] as $rl) {
-                    $rl['bulletin_id'] = $bulletinId;
-                    PaieBulletinLigne::create($rl);
-                }
-
-                // Create Teacher Hours Lines
-                foreach ($computed['heures_lines'] as $hl) {
-                    $hl['bulletin_id'] = $bulletinId;
-                    PaieBulletinHeure::create($hl);
-                }
-
-                // Create Contract Snapshot
-                PaieBulletinContratSnapshot::create([
-                    'bulletin_id' => $bulletinId,
-                    'contrat_id' => $contratId,
-                    'version_num' => $c['version_num'] ?? 1,
-                    'type_contrat' => $c['type_contrat_id'] ?? 'CDI',
-                    'mode_calcul_principal' => $c['mode_calcul_principal'] ?? 'forfait_fixe',
-                    'devise' => $c['devise'] ?? 'FCFA',
-                    'raw_json_snapshot' => $c
-                ]);
-
-                // Create Rules Snapshots
-                foreach ($computed['rules_snapshots'] as $rs) {
-                    $rs['bulletin_id'] = $bulletinId;
-                    $rsId = PaieBulletinRegleSnapshot::create($rs);
-                    foreach ($rs['tranches_snapshot'] as $ts) {
-                        $ts['regle_snapshot_id'] = $rsId;
-                        PaieBulletinRegleTrancheSnapshot::create($ts);
-                    }
-                }
-
-                PaieAuditLog::log('paie_bulletins', $bulletinId, 'create_v1', $userId, null, $computed);
+                $bulletinId = self::generateBulletinForEmployee(
+                    $periodePaieId,
+                    (int)$c['personnel_id'],
+                    (int)$c['id'],
+                    $userId,
+                    $idempotencyKey
+                );
                 $createdBulletinIds[] = $bulletinId;
             }
 
@@ -215,10 +272,17 @@ class PaieWorkflowService {
 
             $locks = self::acquireLocks($db, (int)$currentB['periode_id'], $bulletinId);
 
+            if ($locks['periode']['statut'] === 'cloture') {
+                throw new LogicException("Impossible de re-tirer le bulletin : la période de paie est clôturée.");
+            }
+
             // Counterpass GL entry if posted
             if ($currentB['statut_comptabilisation'] === 'comptabilise') {
                 PaieAccountingAdapter::reverseBulletinInGL($bulletinId, $userId, "Re-tirage bulletin vers V" . ($currentB['version_num'] + 1));
             }
+
+            // Rollback regularisations linked to this old version so they can be re-consumed by V+1
+            PaieRegularisation::rollbackIntegrationsForBulletin($bulletinId);
 
             // Mark old version as inactive
             PaieBulletin::update($bulletinId, [
@@ -241,7 +305,9 @@ class PaieWorkflowService {
             $components = $stmtComp->fetchAll(PDO::FETCH_ASSOC);
 
             $cahierValidations = PaieCahierTexteValidation::findValidatedForTeacherAndDates((int)$currentB['personnel_id'], $locks['periode']['date_debut'], $locks['periode']['date_fin']);
-            $computed = PaieCalculationEngine::computeBulletin($contract, $cahierValidations, $components, 'DEFAULT', $locks['periode']['date_fin']);
+            $pendingRegularisations = PaieRegularisation::findPendingForEmployeeAndPeriod((int)$currentB['personnel_id'], (int)$currentB['periode_id']);
+
+            $computed = PaieCalculationEngine::computeBulletin($contract, $cahierValidations, $components, 'DEFAULT', $locks['periode']['date_fin'], $pendingRegularisations);
 
             $newBulletinId = PaieBulletin::create([
                 'periode_id' => $currentB['periode_id'],
@@ -270,6 +336,23 @@ class PaieWorkflowService {
                 PaieBulletinLigne::create($rl);
             }
 
+            // Save Teacher Hours
+            foreach ($computed['heures_lines'] as $hl) {
+                $hl['bulletin_id'] = $newBulletinId;
+                PaieBulletinHeure::create($hl);
+            }
+
+            // Integrate regularisations into V+1
+            foreach ($pendingRegularisations as $reg) {
+                PaieRegularisation::logIntegration(
+                    (int)$reg['id'],
+                    $newBulletinId,
+                    (float)($reg['montant_brut_delta'] ?? 0.00),
+                    (float)($reg['montant_net_delta'] ?? 0.00)
+                );
+                PaieRegularisation::updateStatus((int)$reg['id'], 'integre', $userId);
+            }
+
             PaieAuditLog::log('paie_bulletins', $newBulletinId, "redraw_v{$newVersionNum}", $userId, $currentB, $computed);
 
             $db->commit();
@@ -296,7 +379,6 @@ class PaieWorkflowService {
                 throw new InvalidArgumentException("Bulletin introuvable ID #{$bulletinId}");
             }
 
-            // Lock acquisition V6: paie_periodes -> comptabilite_periodes -> paie_bulletins
             $locks = self::acquireLocks($db, $periodeId, $bulletinId);
             $bulletin = $locks['bulletin'];
 
@@ -304,10 +386,9 @@ class PaieWorkflowService {
                 throw new LogicException("Seul un bulletin actif peut être comptabilisé.");
             }
 
-            // V3: Check unique accounting piece protection
             if ($bulletin['statut_comptabilisation'] === 'comptabilise') {
                 $db->commit();
-                return 0; // Already posted idempotently
+                return 0; // Already posted
             }
 
             $lignes = PaieBulletinLigne::findByBulletinId($bulletinId);
@@ -345,7 +426,6 @@ class PaieWorkflowService {
                 throw new InvalidArgumentException("Bulletin introuvable ID #{$bulletinId}");
             }
 
-            // Lock acquisition V6: paie_periodes -> comptabilite_periodes -> paie_bulletins
             $locks = self::acquireLocks($db, $periodeId, $bulletinId);
             $bulletin = $locks['bulletin'];
 
@@ -355,7 +435,7 @@ class PaieWorkflowService {
 
             if ($bulletin['statut_reglement'] === 'paye') {
                 $db->commit();
-                return 0; // Already paid idempotently
+                return 0; // Already paid
             }
 
             $mouvementId = PaieTreasuryAdapter::settleBulletin($bulletin, $compteFinancierId, $modeReglement, $userId);
@@ -385,20 +465,29 @@ class PaieWorkflowService {
     }
 
     /**
-     * Create an N+1 regularization when a closed period needs adjustment.
+     * Create a regularization (N+1) supporting source_type ('bulletin', 'service_fait', 'autre').
      */
-    public static function createRegularizationInN1(int $sourceBulletinId, int $destinationPeriodId, string $typeRegu, string $motif, float $brutDelta, float $netDelta, int $userId): int {
+    public static function createRegularization(
+        int $personnelId,
+        int $destinationPeriodId,
+        string $sourceType,
+        ?int $periodeSourceId,
+        ?int $bulletinSourceId,
+        string $typeRegu,
+        string $motif,
+        float $brutDelta,
+        float $netDelta,
+        int $userId
+    ): int {
         $db = Database::getInstance();
         $db->beginTransaction();
 
         try {
-            // Verify source bulletin exists
-            $stmtB = $db->prepare("SELECT * FROM paie_bulletins WHERE id = :id");
-            $stmtB->execute(['id' => $sourceBulletinId]);
-            $sourceB = $stmtB->fetch(PDO::FETCH_ASSOC);
-
-            if (!$sourceB) {
-                throw new InvalidArgumentException("Bulletin source introuvable ID #{$sourceBulletinId}");
+            // Verify personnel exists
+            $stmtUser = $db->prepare("SELECT id_user FROM utilisateurs WHERE id_user = :id");
+            $stmtUser->execute(['id' => $personnelId]);
+            if (!$stmtUser->fetchColumn()) {
+                throw new InvalidArgumentException("Membre du personnel introuvable ID #{$personnelId}");
             }
 
             // Verify destination period is open
@@ -410,8 +499,46 @@ class PaieWorkflowService {
                 throw new LogicException("La période de destination N+1 doit être ouverte.");
             }
 
+            // Validate source_type rules
+            if ($sourceType === 'bulletin') {
+                if (!$bulletinSourceId) {
+                    throw new InvalidArgumentException("Un bulletin source doit être sélectionné.");
+                }
+                $stmtB = $db->prepare("SELECT * FROM paie_bulletins WHERE id = :id");
+                $stmtB->execute(['id' => $bulletinSourceId]);
+                $srcB = $stmtB->fetch(PDO::FETCH_ASSOC);
+
+                if (!$srcB) {
+                    throw new InvalidArgumentException("Bulletin source introuvable ID #{$bulletinSourceId}");
+                }
+                if ((int)$srcB['personnel_id'] !== $personnelId) {
+                    throw new InvalidArgumentException("Le bulletin source #{$bulletinSourceId} n'appartient pas au salarié sélectionné.");
+                }
+
+                $periodeSourceId = (int)$srcB['periode_id'];
+                if ($periodeSourceId >= $destinationPeriodId) {
+                    throw new InvalidArgumentException("La période source doit être antérieure à la période de destination.");
+                }
+            } elseif ($sourceType === 'service_fait') {
+                if (!$periodeSourceId) {
+                    throw new InvalidArgumentException("Une période source est obligatoire pour un régularisation liée au service fait.");
+                }
+                if ($periodeSourceId >= $destinationPeriodId) {
+                    throw new InvalidArgumentException("La période source doit être antérieure à la période de destination.");
+                }
+            } elseif ($sourceType === 'autre') {
+                if (strlen(trim($motif)) < 10) {
+                    throw new InvalidArgumentException("Le motif de la régularisation doit contenir au moins 10 caractères.");
+                }
+            } else {
+                throw new InvalidArgumentException("Type de source de régularisation invalide: {$sourceType}");
+            }
+
             $reguId = PaieRegularisation::create([
-                'bulletin_source_id' => $sourceBulletinId,
+                'personnel_id' => $personnelId,
+                'source_type' => $sourceType,
+                'periode_source_id' => $periodeSourceId,
+                'bulletin_source_id' => $bulletinSourceId,
                 'periode_destination_id' => $destinationPeriodId,
                 'type_regularisation' => $typeRegu,
                 'motif' => $motif,
@@ -423,7 +550,8 @@ class PaieWorkflowService {
             ]);
 
             PaieAuditLog::log('paie_regularisations', $reguId, 'create_regularization', $userId, null, [
-                'source_bulletin_id' => $sourceBulletinId,
+                'personnel_id' => $personnelId,
+                'source_type' => $sourceType,
                 'destination_periode_id' => $destinationPeriodId,
                 'brut_delta' => $brutDelta,
                 'net_delta' => $netDelta
@@ -435,5 +563,32 @@ class PaieWorkflowService {
             $db->rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * Backward compatibility wrapper for legacy createRegularizationInN1
+     */
+    public static function createRegularizationInN1(int $sourceBulletinId, int $destinationPeriodId, string $typeRegu, string $motif, float $brutDelta, float $netDelta, int $userId): int {
+        $db = Database::getInstance();
+        $stmtB = $db->prepare("SELECT personnel_id, periode_id FROM paie_bulletins WHERE id = :id");
+        $stmtB->execute(['id' => $sourceBulletinId]);
+        $b = $stmtB->fetch(PDO::FETCH_ASSOC);
+
+        if (!$b) {
+            throw new InvalidArgumentException("Bulletin source introuvable ID #{$sourceBulletinId}");
+        }
+
+        return self::createRegularization(
+            (int)$b['personnel_id'],
+            $destinationPeriodId,
+            'bulletin',
+            (int)$b['periode_id'],
+            $sourceBulletinId,
+            $typeRegu,
+            $motif,
+            $brutDelta,
+            $netDelta,
+            $userId
+        );
     }
 }

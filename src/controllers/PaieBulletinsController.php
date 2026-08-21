@@ -9,14 +9,36 @@ require_once __DIR__ . '/../models/PaieBulletinRegleSnapshot.php';
 require_once __DIR__ . '/../models/CompteFinancier.php';
 require_once __DIR__ . '/../models/PaiePeriode.php';
 require_once __DIR__ . '/../services/PaieWorkflowService.php';
+require_once __DIR__ . '/../services/PersonnelContractService.php';
 
 class PaieBulletinsController {
 
     public function index() {
         Auth::requirePermission('paie', 'view');
         $periodeId = (int)($_GET['periode_id'] ?? 0);
+        $personnelId = (int)($_GET['personnel_id'] ?? 0);
         $lyceeId = Auth::getLyceeId() ?: 1;
         $periodes = PaiePeriode::findAllForLycee($lyceeId);
+
+        $selectedTeacher = null;
+        $activeContract = null;
+        $individualBulletin = null;
+        $selectedPeriode = null;
+
+        if ($personnelId > 0 && $periodeId > 0) {
+            $db = Database::getInstance();
+            $stmtU = $db->prepare("SELECT id_user, nom, prenom, identifiant_public FROM utilisateurs WHERE id_user = :id");
+            $stmtU->execute(['id' => $personnelId]);
+            $selectedTeacher = $stmtU->fetch(PDO::FETCH_ASSOC);
+
+            $selectedPeriode = PaiePeriode::findById($periodeId);
+            $activeContract = PersonnelContractService::getActiveContract($personnelId, $selectedPeriode['date_fin'] ?? date('Y-m-d'));
+
+            if ($activeContract) {
+                $entiteJuridiqueId = (int)($activeContract['entite_juridique_id'] ?? 1);
+                $individualBulletin = PaieBulletin::findActiveForContractAndPeriod($personnelId, $entiteJuridiqueId, (int)$activeContract['id'], $periodeId);
+            }
+        }
 
         if ($periodeId > 0) {
             $bulletins = PaieBulletin::findByPeriod($periodeId);
@@ -36,6 +58,51 @@ class PaieBulletinsController {
         }
 
         include __DIR__ . '/../views/paie/bulletins/index.php';
+    }
+
+    public function generateIndividual() {
+        Auth::requirePermission('paie', 'calculate');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /paie/bulletins');
+            exit();
+        }
+
+        $personnelId = (int)($_POST['personnel_id'] ?? 0);
+        $periodeId = (int)($_POST['periode_id'] ?? 0);
+        $userId = Auth::getUserId();
+
+        if (!$personnelId || !$periodeId) {
+            $_SESSION['error_message'] = _("Identifiants du personnel ou de la période manquants.");
+            header("Location: /paie/bulletins");
+            exit();
+        }
+
+        try {
+            $periode = PaiePeriode::findById($periodeId);
+            if (!$periode) {
+                throw new InvalidArgumentException("Période de paie introuvable ID #{$periodeId}");
+            }
+
+            $contract = PersonnelContractService::getActiveContract($personnelId, $periode['date_fin']);
+            if (!$contract) {
+                throw new LogicException("Aucun contrat actif trouvé pour ce membre du personnel.");
+            }
+
+            $bulletinId = PaieWorkflowService::generateBulletinForEmployee(
+                $periodeId,
+                $personnelId,
+                (int)$contract['id'],
+                $userId
+            );
+
+            $_SESSION['success_message'] = _("Bulletin de paie individuel généré avec succès.");
+            header("Location: /paie/bulletins/{$bulletinId}");
+            exit();
+        } catch (Exception $e) {
+            $_SESSION['error_message'] = $e->getMessage();
+            header("Location: /paie/bulletins?personnel_id={$personnelId}&periode_id={$periodeId}");
+            exit();
+        }
     }
 
     public function show($id = null) {

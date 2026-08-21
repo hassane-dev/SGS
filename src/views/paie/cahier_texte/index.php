@@ -282,7 +282,7 @@ $searchMode = $searchMode ?? 'pedagogique';
                 <span><?= _("Valider la sélection") ?></span>
               </button>
               <?php if ($teacherId): ?>
-                <a href="/paie/bulletins?personnel_id=<?= $teacherId ?>" class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1">
+                <a href="/paie/bulletins?personnel_id=<?= $teacherId ?><?= ($periodeId && $periodeId !== 'all') ? '&periode_id=' . $periodeId : '' ?>" class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1">
                   <i class="ph-duotone ph-receipt fs-6"></i>
                   <span><?= _("Préparer le bulletin") ?></span>
                 </a>

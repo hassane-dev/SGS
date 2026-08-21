@@ -5,9 +5,16 @@ require_once __DIR__ . '/PaieRuleRepository.php';
 class PaieCalculationEngine {
 
     /**
-     * Compute a full bulletin breakdown given contract data, teacher hourly validations, components, rules, and jurisdiction.
+     * Compute a full bulletin breakdown given contract data, teacher hourly validations, components, rules, jurisdiction, and regularisations.
      */
-    public static function computeBulletin(array $contract, array $cahierValidations = [], array $components = [], string $juridictionCode = 'DEFAULT', ?string $asOfDate = null): array {
+    public static function computeBulletin(
+        array $contract,
+        array $cahierValidations = [],
+        array $components = [],
+        string $juridictionCode = 'DEFAULT',
+        ?string $asOfDate = null,
+        array $regularisations = []
+    ): array {
         PaieRuleRepository::seedDefaultRulesIfNeeded();
         $rules = PaieRuleRepository::getActiveRulesWithTiers($juridictionCode, $asOfDate);
 
@@ -52,6 +59,13 @@ class PaieCalculationEngine {
         foreach ($components as $comp) {
             $val = (float)($comp['valeur_numerique'] ?? 0.00);
             $nature = strtolower($comp['nature_composant'] ?? 'prime');
+            $code = strtoupper($comp['code_composant'] ?? '');
+
+            // Skip rate reference components (such as TAUX_HORAIRE) from being counted as monthly allowances
+            if ($nature === 'taux_horaire' || $code === 'TAUX_HORAIRE') {
+                continue;
+            }
+
             if ($nature === 'prime') {
                 $totalPrimes += $val;
             } else {
@@ -70,10 +84,67 @@ class PaieCalculationEngine {
             ];
         }
 
-        // 3. Gross Total
-        $totalBrut = round($salaireBase + $totalHeuresMontant + $totalPrimes + $totalIndemnites, 4);
+        // 3. Process Regularisations
+        $regulBrutDelta = 0.00;
+        $regulNetDelta = 0.00;
+        $regulLines = [];
 
-        // 4. Cotisations & Taxes Breakdown
+        foreach ($regularisations as $reg) {
+            $bDelta = (float)($reg['montant_brut_delta'] ?? 0.00);
+            $nDelta = (float)($reg['montant_net_delta'] ?? 0.00);
+            $motif = $reg['motif'] ?? 'Régularisation';
+
+            if ($bDelta > 0) {
+                $regulBrutDelta += $bDelta;
+                $regulLines[] = [
+                    'code_rubrique' => 'REGUL_BRUT',
+                    'libelle' => "Rappel Brut: {$motif}",
+                    'categorie' => 'gain_regularisation',
+                    'base_calcul' => $bDelta,
+                    'taux' => 100.00,
+                    'montant_salarial' => $bDelta,
+                    'montant_patronal' => 0.00,
+                    'est_imposable' => 1,
+                    'est_cotisable' => 1,
+                    'regularisation_id' => $reg['id'] ?? null
+                ];
+            } elseif ($bDelta < 0) {
+                $regulBrutDelta += $bDelta;
+                $regulLines[] = [
+                    'code_rubrique' => 'REGUL_RETENUE',
+                    'libelle' => "Retenue Trop-Perçu: {$motif}",
+                    'categorie' => 'retenue_regularisation',
+                    'base_calcul' => abs($bDelta),
+                    'taux' => 100.00,
+                    'montant_salarial' => $bDelta,
+                    'montant_patronal' => 0.00,
+                    'est_imposable' => 1,
+                    'est_cotisable' => 1,
+                    'regularisation_id' => $reg['id'] ?? null
+                ];
+            }
+
+            if ($nDelta != 0.00) {
+                $regulNetDelta += $nDelta;
+                $regulLines[] = [
+                    'code_rubrique' => 'REGUL_NET',
+                    'libelle' => "Ajustement Net: {$motif}",
+                    'categorie' => 'ajustement_net',
+                    'base_calcul' => abs($nDelta),
+                    'taux' => 100.00,
+                    'montant_salarial' => $nDelta,
+                    'montant_patronal' => 0.00,
+                    'est_imposable' => 0,
+                    'est_cotisable' => 0,
+                    'regularisation_id' => $reg['id'] ?? null
+                ];
+            }
+        }
+
+        // 4. Gross Total (incorporating REGUL_BRUT / REGUL_RETENUE)
+        $totalBrut = max(0.00, round($salaireBase + $totalHeuresMontant + $totalPrimes + $totalIndemnites + $regulBrutDelta, 4));
+
+        // 5. Cotisations & Taxes Breakdown
         $totalCotisationsSalariales = 0.00;
         $totalCotisationsPatronales = 0.00;
         $totalImpots = 0.00;
@@ -116,6 +187,13 @@ class PaieCalculationEngine {
         foreach ($componentLines as $cline) {
             $cline['ordre_affichage'] = $ordre;
             $rubriqueLines[] = $cline;
+            $ordre += 10;
+        }
+
+        // Add regularisation lines to rubriques
+        foreach ($regulLines as $rline) {
+            $rline['ordre_affichage'] = $ordre;
+            $rubriqueLines[] = $rline;
             $ordre += 10;
         }
 
@@ -206,7 +284,7 @@ class PaieCalculationEngine {
 
         // Net Computations
         $netImposable = max(0.00, $totalBrut - $totalCotisationsSalariales);
-        $netAPayer = max(0.00, $totalBrut - $totalCotisationsSalariales - $totalImpots - $totalRetenues);
+        $netAPayer = max(0.00, round($totalBrut - $totalCotisationsSalariales - $totalImpots - $totalRetenues + $regulNetDelta, 4));
         $coutTotalEmployeur = round($totalBrut + $totalCotisationsPatronales, 4);
 
         return [
@@ -221,7 +299,8 @@ class PaieCalculationEngine {
             'cout_total_employeur' => $coutTotalEmployeur,
             'heures_lines' => $heuresLines,
             'rubrique_lines' => $rubriqueLines,
-            'rules_snapshots' => $rulesSnapshots
+            'rules_snapshots' => $rulesSnapshots,
+            'regularisations_consumed' => $regularisations
         ];
     }
 }

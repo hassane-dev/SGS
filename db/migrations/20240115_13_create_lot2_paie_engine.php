@@ -236,7 +236,7 @@ function migrate_13($db) {
         montant_total DECIMAL(15,4) NOT NULL,
         FOREIGN KEY (bulletin_id) REFERENCES paie_bulletins(id) ON DELETE CASCADE,
         FOREIGN KEY (cahier_validation_id) REFERENCES paie_cahier_texte_validations(id) ON DELETE RESTRICT,
-        UNIQUE (cahier_validation_id)
+        UNIQUE (bulletin_id, cahier_validation_id)
     );" : "
     CREATE TABLE IF NOT EXISTS paie_bulletin_heures (
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -247,7 +247,7 @@ function migrate_13($db) {
         montant_total DECIMAL(15,4) NOT NULL,
         FOREIGN KEY (bulletin_id) REFERENCES paie_bulletins(id) ON DELETE CASCADE,
         FOREIGN KEY (cahier_validation_id) REFERENCES paie_cahier_texte_validations(id) ON DELETE RESTRICT,
-        UNIQUE KEY uk_paie_bul_cahier (cahier_validation_id),
+        UNIQUE KEY uk_paie_bul_cahier (bulletin_id, cahier_validation_id),
         INDEX idx_paie_hrs_bul (bulletin_id)
     ) $fk_ref;";
     $db->exec($sql_bulletin_heures);
@@ -466,7 +466,10 @@ function migrate_13($db) {
     $sql_regularisations = $isSqlite ? "
     CREATE TABLE IF NOT EXISTS paie_regularisations (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        bulletin_source_id INTEGER NOT NULL,
+        personnel_id INTEGER NULL,
+        source_type VARCHAR(30) NULL,
+        periode_source_id INTEGER NULL,
+        bulletin_source_id INTEGER NULL,
         periode_destination_id INTEGER NOT NULL,
         type_regularisation VARCHAR(50) NOT NULL,
         motif TEXT NOT NULL,
@@ -476,6 +479,8 @@ function migrate_13($db) {
         cree_par INTEGER NOT NULL,
         valide_par INTEGER NULL,
         created_at DATETIME NOT NULL,
+        FOREIGN KEY (personnel_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+        FOREIGN KEY (periode_source_id) REFERENCES paie_periodes(id) ON DELETE RESTRICT,
         FOREIGN KEY (bulletin_source_id) REFERENCES paie_bulletins(id) ON DELETE RESTRICT,
         FOREIGN KEY (periode_destination_id) REFERENCES paie_periodes(id) ON DELETE RESTRICT,
         FOREIGN KEY (cree_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
@@ -483,7 +488,10 @@ function migrate_13($db) {
     );" : "
     CREATE TABLE IF NOT EXISTS paie_regularisations (
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
-        bulletin_source_id BIGINT NOT NULL,
+        personnel_id INT NULL,
+        source_type VARCHAR(30) NULL,
+        periode_source_id INT NULL,
+        bulletin_source_id BIGINT NULL,
         periode_destination_id INT NOT NULL,
         type_regularisation VARCHAR(50) NOT NULL,
         motif TEXT NOT NULL,
@@ -493,6 +501,8 @@ function migrate_13($db) {
         cree_par INT NOT NULL,
         valide_par INT NULL,
         created_at DATETIME NOT NULL,
+        FOREIGN KEY (personnel_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+        FOREIGN KEY (periode_source_id) REFERENCES paie_periodes(id) ON DELETE RESTRICT,
         FOREIGN KEY (bulletin_source_id) REFERENCES paie_bulletins(id) ON DELETE RESTRICT,
         FOREIGN KEY (periode_destination_id) REFERENCES paie_periodes(id) ON DELETE RESTRICT,
         FOREIGN KEY (cree_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
