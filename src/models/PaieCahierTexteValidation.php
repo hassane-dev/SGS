@@ -55,20 +55,35 @@ class PaieCahierTexteValidation {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public static function resolveContractHourlyRate(int $personnelId): float {
-        $db = Database::getInstance();
-        $stmt = $db->prepare("
-            SELECT cc.valeur_numerique
-            FROM personnel_contrats_historique c
-            JOIN personnel_contrat_composants cc ON c.id = cc.contrat_id
-            WHERE c.personnel_id = :personnel_id
-              AND c.statut_contrat = 'actif'
-              AND (cc.nature_composant = 'taux_horaire' OR cc.code_composant = 'TAUX_HORAIRE' OR cc.unite_remuneration = 'heure')
-            ORDER BY cc.id DESC LIMIT 1
-        ");
-        $stmt->execute(['personnel_id' => $personnelId]);
-        $val = $stmt->fetchColumn();
-        return ($val !== false && (float)$val > 0) ? (float)$val : 5000.00;
+    public static function resolveContractHourlyRate(int $personnelId, ?string $dateRef = null): float {
+        require_once __DIR__ . '/../services/PersonnelContractService.php';
+        $contract = PersonnelContractService::getActiveContract($personnelId, $dateRef);
+        if (!$contract) {
+            return 0.00;
+        }
+
+        if (!empty($contract['composants'])) {
+            foreach ($contract['composants'] as $cc) {
+                $nat = strtolower($cc['nature_composant'] ?? '');
+                $code = strtoupper($cc['code_composant'] ?? '');
+                $unite = strtolower($cc['unite_remuneration'] ?? '');
+                if ($nat === 'taux_horaire' || $code === 'TAUX_HORAIRE' || $unite === 'heure') {
+                    $val = (float)($cc['valeur_numerique'] ?? 0);
+                    if ($val > 0) {
+                        return $val;
+                    }
+                }
+            }
+        }
+
+        if (($contract['mode_calcul_principal'] ?? '') === 'taux_horaire' || ($contract['unite_remuneration'] ?? '') === 'heure') {
+            $base = (float)($contract['salaire_base'] ?? 0);
+            if ($base > 0) {
+                return $base;
+            }
+        }
+
+        return 0.00;
     }
 
     public static function validateSession(int $cahierId, int $userId, ?float $tauxHoraire = null): int {
@@ -95,7 +110,7 @@ class PaieCahierTexteValidation {
         $cycleId = $stmtCl->fetchColumn() ?: null;
 
         if ($tauxHoraire === null || $tauxHoraire <= 0) {
-            $tauxHoraire = self::resolveContractHourlyRate((int)$cahier['personnel_id']);
+            $tauxHoraire = self::resolveContractHourlyRate((int)$cahier['personnel_id'], $cahier['date_cours'] ?? null);
         }
 
         $existing = self::findByCahierId($cahierId);
@@ -146,6 +161,7 @@ class PaieCahierTexteValidation {
 
     public static function getTeacherHoursMetrics(array $context): array {
         $db = Database::getInstance();
+        require_once __DIR__ . '/../services/PersonnelContractService.php';
 
         $lyceeId = $context['lycee_id'] ?? null;
         $teacherId = !empty($context['teacher_id']) ? (int)$context['teacher_id'] : null;
@@ -156,9 +172,16 @@ class PaieCahierTexteValidation {
         $serie = !empty($context['serie']) ? trim($context['serie']) : null;
         $numero = (isset($context['numero']) && $context['numero'] !== '') ? trim($context['numero']) : null;
 
+        $dateRef = $context['date_debut'] ?? date('Y-m-d');
+        $contract = $teacherId ? PersonnelContractService::getActiveContract($teacherId, $dateRef) : null;
+
+        $modeRemuneration = $contract['mode_calcul_principal'] ?? ($contract['type_paiement'] ?? 'forfait_fixe');
+        $salaireBase = (float)($contract['salaire_base'] ?? 0.0);
+        $tauxHoraireContractuel = $teacherId ? self::resolveContractHourlyRate($teacherId, $dateRef) : 0.0;
+
         // 1. Calculate Realized Hours directly from cahier_texte
         $sqlReal = "
-            SELECT ct.heure_debut, ct.heure_fin
+            SELECT ct.date_cours, ct.heure_debut, ct.heure_fin, ct.personnel_id
             FROM cahier_texte ct
             LEFT JOIN classes cl ON ct.classe_id = cl.id_classe
             WHERE 1=1
@@ -212,23 +235,28 @@ class PaieCahierTexteValidation {
         $rowsReal = $stmtReal->fetchAll(PDO::FETCH_ASSOC);
 
         $heuresRealisees = 0.0;
+        $valorisationRealiseeVariable = 0.0;
+
         foreach ($rowsReal as $r) {
+            $dh = 2.0;
             if (!empty($r['heure_debut']) && !empty($r['heure_fin'])) {
                 $t1 = strtotime($r['heure_debut']);
                 $t2 = strtotime($r['heure_fin']);
                 if ($t2 > $t1) {
-                    $heuresRealisees += ($t2 - $t1) / 3600.0;
-                } else {
-                    $heuresRealisees += 2.0;
+                    $dh = ($t2 - $t1) / 3600.0;
                 }
-            } else {
-                $heuresRealisees += 2.0;
             }
+            $heuresRealisees += $dh;
+
+            $pId = (int)($r['personnel_id'] ?? $teacherId);
+            $thDate = $pId ? self::resolveContractHourlyRate($pId, $r['date_cours']) : 0.0;
+            $valorisationRealiseeVariable += ($dh * $thDate);
         }
 
         // 2. Calculate Validated / Paid Hours
         $sqlVal = "
-            SELECT v.id, v.duree_heures, v.taux_horaire, v.statut_validation,
+            SELECT v.id, v.cahier_id, v.duree_heures, v.taux_horaire, v.statut_validation,
+                   c.date_cours, c.personnel_id,
                    MAX(CASE WHEN b.est_version_active = 1 THEN 1 ELSE 0 END) as est_paye
             FROM paie_cahier_texte_validations v
             JOIN cahier_texte c ON v.cahier_id = c.cahier_id
@@ -272,7 +300,16 @@ class PaieCahierTexteValidation {
             $sqlVal .= " AND cl.numero = :numero";
             $paramsVal['numero'] = $numero;
         }
-        $sqlVal .= " GROUP BY v.id, v.duree_heures, v.taux_horaire, v.statut_validation";
+        if (!empty($context['date_debut'])) {
+            $sqlVal .= " AND c.date_cours >= :date_debut";
+            $paramsVal['date_debut'] = $context['date_debut'];
+        }
+        if (!empty($context['date_fin'])) {
+            $sqlVal .= " AND c.date_cours <= :date_fin";
+            $paramsVal['date_fin'] = $context['date_fin'];
+        }
+
+        $sqlVal .= " GROUP BY v.id, v.cahier_id, v.duree_heures, v.taux_horaire, v.statut_validation, c.date_cours, c.personnel_id";
 
         $stmtVal = $db->prepare($sqlVal);
         $stmtVal->execute($paramsVal);
@@ -281,7 +318,7 @@ class PaieCahierTexteValidation {
         $heuresValidees = 0.0;
         $heuresRefusees = 0.0;
         $heuresPayees = 0.0;
-        $montantEstime = 0.0;
+        $valorisationValideeVariable = 0.0;
         $montantPaye = 0.0;
 
         foreach ($rowsVal as $rv) {
@@ -289,7 +326,7 @@ class PaieCahierTexteValidation {
             $th = (float)$rv['taux_horaire'];
             if ($rv['statut_validation'] === 'valide') {
                 $heuresValidees += $dh;
-                $montantEstime += ($dh * $th);
+                $valorisationValideeVariable += ($dh * $th);
                 if (!empty($rv['est_paye'])) {
                     $heuresPayees += $dh;
                     $montantPaye += ($dh * $th);
@@ -301,13 +338,33 @@ class PaieCahierTexteValidation {
 
         $heuresAConsolider = max(0.0, $heuresValidees - $heuresPayees);
 
+        if (!$teacherId) {
+            $valorisationRealiseeEstimee = $valorisationRealiseeVariable;
+            $valorisationValidee = $valorisationValideeVariable;
+            $modeRemuneration = 'multi_enseignants';
+        } elseif ($modeRemuneration === 'forfait_fixe') {
+            $valorisationRealiseeEstimee = $salaireBase;
+            $valorisationValidee = $salaireBase;
+        } elseif ($modeRemuneration === 'mixte') {
+            $valorisationRealiseeEstimee = $salaireBase + $valorisationRealiseeVariable;
+            $valorisationValidee = $salaireBase + $valorisationValideeVariable;
+        } else {
+            $valorisationRealiseeEstimee = $valorisationRealiseeVariable;
+            $valorisationValidee = $valorisationValideeVariable;
+        }
+
         return [
             'heures_realisees' => round($heuresRealisees, 2),
             'heures_validees' => round($heuresValidees, 2),
             'heures_refusees' => round($heuresRefusees, 2),
             'heures_payees' => round($heuresPayees, 2),
             'heures_a_consolider' => round($heuresAConsolider, 2),
-            'montant_estime' => round($montantEstime, 2),
+            'mode_remuneration' => $modeRemuneration,
+            'salaire_base_contractuel' => round($salaireBase, 2),
+            'taux_horaire_contractuel' => round($tauxHoraireContractuel, 2),
+            'valorisation_realisee_estimee' => round($valorisationRealiseeEstimee, 2),
+            'valorisation_validee' => round($valorisationValidee, 2),
+            'montant_estime' => round($valorisationValidee > 0 ? $valorisationValidee : $valorisationRealiseeEstimee, 2),
             'montant_paye' => round($montantPaye, 2)
         ];
     }

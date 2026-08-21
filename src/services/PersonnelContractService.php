@@ -117,10 +117,10 @@ class PersonnelContractService {
             LEFT JOIN type_contrat tc ON pch.type_contrat_id = tc.id_contrat
             LEFT JOIN paie_entites_juridiques pej ON pch.entite_juridique_id = pej.id
             WHERE pch.personnel_id = :personnel_id
-              AND pch.statut_contrat = 'actif'
+              AND pch.statut_contrat IN ('actif', 'avenant_remplace')
               AND pch.date_debut <= :date_ref1
               AND (pch.date_fin IS NULL OR pch.date_fin >= :date_ref2)
-            ORDER BY pch.date_debut DESC
+            ORDER BY pch.date_debut DESC, pch.version_num DESC
             LIMIT 1
         ");
         $stmt->execute([

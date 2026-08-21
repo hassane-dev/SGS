@@ -249,14 +249,17 @@ $searchMode = $searchMode ?? 'pedagogique';
         </div>
         <div class="col-md-2 col-6">
           <div class="card border-0 shadow-sm text-center py-2">
-            <span class="text-muted small fw-bold text-uppercase"><?= _("Montant estimé") ?></span>
-            <h5 class="mb-0 text-dark font-monospace"><?= number_format($metrics['montant_estime'], 0, ',', ' ') ?> FCFA</h5>
+            <span class="text-muted small fw-bold text-uppercase"><?= _("Valorisation estimée") ?></span>
+            <h5 class="mb-0 text-dark font-monospace"><?= number_format($metrics['valorisation_realisee_estimee'], 0, ',', ' ') ?> FCFA</h5>
+            <span class="text-muted extra-small" style="font-size: 10px;">
+              <?= $metrics['mode_remuneration'] === 'forfait_fixe' ? _("Fixe mensuel") : ($metrics['mode_remuneration'] === 'mixte' ? _("Fixe + Heures") : _("Service réalisé")) ?>
+            </span>
           </div>
         </div>
         <div class="col-md-2 col-6">
           <div class="card border-0 shadow-sm text-center py-2">
-            <span class="text-success small fw-bold text-uppercase"><?= _("Montant payé") ?></span>
-            <h5 class="mb-0 text-success font-monospace"><?= number_format($metrics['montant_paye'], 0, ',', ' ') ?> FCFA</h5>
+            <span class="text-success small fw-bold text-uppercase"><?= _("Valorisation validée") ?></span>
+            <h5 class="mb-0 text-success font-monospace"><?= number_format($metrics['valorisation_validee'], 0, ',', ' ') ?> FCFA</h5>
           </div>
         </div>
       </div>
@@ -310,7 +313,10 @@ $searchMode = $searchMode ?? 'pedagogique';
                   <tr>
                     <td colspan="8" class="text-center py-5 text-muted">
                       <i class="ph-duotone ph-clock-afternoon fs-1 d-block mb-2 text-muted"></i>
-                      <?= _("Aucune séance de cours trouvée pour les critères sélectionnés.") ?>
+                      <div><?= _("Aucune séance du Cahier de Texte ne correspond à la période de paie sélectionnée.") ?></div>
+                      <a href="?search_mode=<?= htmlspecialchars($searchMode) ?>&periode_id=all" class="btn btn-sm btn-link-primary mt-2">
+                        <i class="ph-duotone ph-calendar me-1"></i> <?= _("Voir les séances de toutes les périodes") ?>
+                      </a>
                     </td>
                   </tr>
                 <?php else: ?>
