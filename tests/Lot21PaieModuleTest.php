@@ -52,6 +52,7 @@ $db->exec("DELETE FROM cahier_texte");
 $db->exec("DELETE FROM classes");
 $db->exec("DELETE FROM cycles");
 $db->exec("DELETE FROM matieres");
+$db->exec("DELETE FROM personnel_contrats_historique WHERE personnel_id >= 100");
 
 // Seed initial environment
 $db->exec("INSERT INTO param_lycee (id, nom_lycee) VALUES (1, 'Lycée Test Paie') ON CONFLICT DO NOTHING");
@@ -175,6 +176,61 @@ echo "\n--- TEST 12: Conformité i18n et RTL ---\n";
 $translatedLabel = _("Validations des Heures Pédagogiques - Cahier de Texte");
 assert_test(!empty($translatedLabel), "Traduction i18n fonctionnelle: '$translatedLabel'");
 
+// --- TEST 13: Mode Fixe Mensuel (Non-transformé en Heures x 5000) ---
+echo "\n--- TEST 13: Fixe Mensuel (Préservation du salaire contractuel de base) ---\n";
+$db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, identifiant_public, email, mot_de_passe, role_id, actif) VALUES (103, 1, 'Sow', 'Mamadou', '103ENS', 'mamadou@test.com', 'hash', 6, 1) ON CONFLICT DO NOTHING");
+$db->exec("INSERT INTO personnel_contrats_historique (id, personnel_id, type_contrat_id, date_debut, entite_juridique_id, mode_calcul_principal, salaire_base, devise, statut_contrat, version_num) VALUES (203, 103, 1, '2024-01-01', 1, 'forfait_fixe', 300000.00, 'FCFA', 'actif', 1) ON CONFLICT DO NOTHING");
+
+$metricsFixe = PaieCahierTexteValidation::getTeacherHoursMetrics([
+    'lycee_id' => 1,
+    'teacher_id' => 103,
+    'date_debut' => '2024-09-01',
+    'date_fin' => '2024-09-30'
+]);
+assert_test((float)$metricsFixe['valorisation_realisee_estimee'] == 300000.00, "Un enseignant fixe mensuel affiche sa rémunération contractuelle (300 000 FCFA) et non un calcul fictif à l'heure");
+
+// --- TEST 14: Absence de Fallback 5000 FCFA ---
+echo "\n--- TEST 14: Zéro Fallback Hardcodé (0.00 si non configuré) ---\n";
+$rateZero = PaieCahierTexteValidation::resolveContractHourlyRate(103, '2024-09-01');
+assert_test($rateZero === 0.00, "Le système retourne 0.00 et n'invente jamais 5000.00 FCFA pour un contrat sans composant horaire");
+
+// --- TEST 15: Avenant avec Date d'Effet (Pondération Datée par Séance) ---
+echo "\n--- TEST 15: Avenant avec Date d'Effet ---\n";
+$db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, identifiant_public, email, mot_de_passe, role_id, actif) VALUES (104, 1, 'Diallo', 'Aissatou', '104ENS', 'aissatou@test.com', 'hash', 6, 1) ON CONFLICT DO NOTHING");
+// Contrat V1 (01/09 -> 14/09): Taux = 4000 FCFA
+$db->exec("INSERT INTO personnel_contrats_historique (id, personnel_id, type_contrat_id, date_debut, date_fin, entite_juridique_id, mode_calcul_principal, salaire_base, devise, statut_contrat, version_num) VALUES (204, 104, 1, '2024-09-01', '2024-09-14', 1, 'taux_horaire', 4000.00, 'FCFA', 'avenant_remplace', 1) ON CONFLICT DO NOTHING");
+// Avenant V2 (15/09 -> 30/09): Taux = 5000 FCFA
+$db->exec("INSERT INTO personnel_contrats_historique (id, personnel_id, type_contrat_id, date_debut, date_fin, entite_juridique_id, mode_calcul_principal, salaire_base, devise, statut_contrat, version_num) VALUES (205, 104, 1, '2024-09-15', NULL, 1, 'taux_horaire', 5000.00, 'FCFA', 'actif', 2) ON CONFLICT DO NOTHING");
+
+$rateBefore = PaieCahierTexteValidation::resolveContractHourlyRate(104, '2024-09-05');
+$rateAfter = PaieCahierTexteValidation::resolveContractHourlyRate(104, '2024-09-20');
+
+assert_test($rateBefore === 4000.00 && $rateAfter === 5000.00, "Chaque séance est valorisée au taux contractuel actif à sa date réelle (4000 FCFA le 05/09 vs 5000 FCFA le 20/09)");
+
+// --- TEST 16: Valorisation Estimée AVANT et APRÈS Validation ---
+echo "\n--- TEST 16: Estimation AVANT et APRÈS Validation ---\n";
+$db->exec("INSERT INTO cahier_texte (cahier_id, lycee_id, personnel_id, classe_id, matiere_id, date_cours, heure_debut, heure_fin, contenu_cours) VALUES (305, 1, 104, 10, 1, '2024-09-05', '08:00:00', '12:00:00', 'Cours 1') ON CONFLICT DO NOTHING"); // 4h x 4000 = 16000
+$db->exec("INSERT INTO cahier_texte (cahier_id, lycee_id, personnel_id, classe_id, matiere_id, date_cours, heure_debut, heure_fin, contenu_cours) VALUES (306, 1, 104, 10, 1, '2024-09-20', '08:00:00', '12:00:00', 'Cours 2') ON CONFLICT DO NOTHING"); // 4h x 5000 = 20000
+
+$metricsBeforeVal = PaieCahierTexteValidation::getTeacherHoursMetrics([
+    'lycee_id' => 1,
+    'teacher_id' => 104,
+    'date_debut' => '2024-09-01',
+    'date_fin' => '2024-09-30'
+]);
+assert_test((float)$metricsBeforeVal['valorisation_realisee_estimee'] == 36000.00 && (float)$metricsBeforeVal['heures_validees'] == 0.00, "AVANT validation: Valorisation estimée du service réalisé = 36 000 FCFA (16k + 20k)");
+
+PaieCahierTexteValidation::validateSession(305, 1);
+PaieCahierTexteValidation::validateSession(306, 1);
+
+$metricsAfterVal = PaieCahierTexteValidation::getTeacherHoursMetrics([
+    'lycee_id' => 1,
+    'teacher_id' => 104,
+    'date_debut' => '2024-09-01',
+    'date_fin' => '2024-09-30'
+]);
+assert_test((float)$metricsAfterVal['valorisation_validee'] == 36000.00 && (float)$metricsAfterVal['heures_validees'] == 8.00, "APRÈS validation: Valorisation validée = 36 000 FCFA sur 8.0h validées");
+
 echo "\n=========================================================================\n";
-echo "🏆 TOUS LES 12 TESTS D'INTÉGRATION ET DE SÉCURITÉ V6.1.1 ONT RÉUSSI !\n";
+echo "🏆 TOUS LES 16 TESTS D'INTÉGRATION ET DE SÉCURITÉ V6.1.2 ONT RÉUSSI !\n";
 echo "=========================================================================\n";
