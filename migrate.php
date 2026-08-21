@@ -266,11 +266,13 @@ try {
 
     // Retroactive generation for existing students (eleves)
     $stmt = $db->query("SELECT id_eleve, (SELECT date_activation FROM etudes WHERE eleve_id = id_eleve LIMIT 1) as date_activation FROM eleves WHERE identifiant_public IS NULL ORDER BY id_eleve ASC");
-    $eleves_without_id = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $eleves_without_id = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    if ($stmt) $stmt->closeCursor();
 
     if (!empty($eleves_without_id)) {
         $stmt_counter = $db->query("SELECT identifiant_public FROM eleves WHERE identifiant_public LIKE '%E' ORDER BY id_eleve DESC LIMIT 1");
-        $last_student_public_id = $stmt_counter->fetchColumn();
+        $last_student_public_id = $stmt_counter ? $stmt_counter->fetchColumn() : null;
+        if ($stmt_counter) $stmt_counter->closeCursor();
         $student_counter = 1;
         if ($last_student_public_id && preg_match('/-(\d+)E$/', $last_student_public_id, $matches)) {
             $student_counter = (int)$matches[1] + 1;
@@ -293,11 +295,13 @@ try {
 
     // Retroactive generation for existing staff (utilisateurs)
     $stmt = $db->query("SELECT id_user, role_id FROM utilisateurs WHERE identifiant_public IS NULL ORDER BY id_user ASC");
-    $users_without_id = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $users_without_id = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    if ($stmt) $stmt->closeCursor();
 
     if (!empty($users_without_id)) {
         $stmt_counter = $db->query("SELECT identifiant_public FROM utilisateurs WHERE identifiant_public IS NOT NULL ORDER BY id_user DESC LIMIT 1");
-        $last_user_public_id = $stmt_counter->fetchColumn();
+        $last_user_public_id = $stmt_counter ? $stmt_counter->fetchColumn() : null;
+        if ($stmt_counter) $stmt_counter->closeCursor();
         $user_counter = 1;
         if ($last_user_public_id && preg_match('/^(\d+)/', $last_user_public_id, $matches)) {
             $user_counter = (int)$matches[1] + 1;
@@ -897,6 +901,10 @@ try {
     // --- PHASE LOT 2.1 - INTERNATIONALIZED PAYROLL ENGINE ---
     require_once __DIR__ . '/db/migrations/20240115_13_create_lot2_paie_engine.php';
     migrate_13($db);
+
+    // --- PHASE LOT 2.1 - REGULARISATIONS UPDATE & INTEGRATIONS ---
+    require_once __DIR__ . '/db/migrations/20240115_14_update_paie_regularisations.php';
+    migrate_14($db);
 
     // Seed permissions for DRH
     $drh_perms = [
