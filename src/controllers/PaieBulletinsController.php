@@ -35,7 +35,7 @@ class PaieBulletinsController {
 
         $selectedPeriode = $periodeId ? PaiePeriode::findById($periodeId) : null;
         $eligibleContracts = $periodeId ? PersonnelContractService::getEligibleContractsForPeriod($periodeId, $lyceeId) : [];
-        $cycles = Cycle::findByLycee($lyceeId);
+        $cycles = Cycle::findAllForLycee($lyceeId);
 
         include __DIR__ . '/../views/paie/bulletins/prepare.php';
     }
@@ -229,7 +229,7 @@ class PaieBulletinsController {
         $reglesSnapshot = PaieBulletinRegleSnapshot::findByBulletinId($id);
 
         $lyceeId = Auth::getLyceeId() ?: 1;
-        $comptesFinanciers = CompteFinancier::findByLycee($lyceeId);
+        $comptesFinanciers = CompteFinancier::findAllForLycee($lyceeId);
 
         include __DIR__ . '/../views/paie/bulletins/show.php';
     }
