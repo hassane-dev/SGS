@@ -8,10 +8,117 @@ require_once __DIR__ . '/../models/PaieBulletinContratSnapshot.php';
 require_once __DIR__ . '/../models/PaieBulletinRegleSnapshot.php';
 require_once __DIR__ . '/../models/CompteFinancier.php';
 require_once __DIR__ . '/../models/PaiePeriode.php';
+require_once __DIR__ . '/../models/Cycle.php';
 require_once __DIR__ . '/../services/PaieWorkflowService.php';
 require_once __DIR__ . '/../services/PersonnelContractService.php';
 
 class PaieBulletinsController {
+
+    public function prepare() {
+        Auth::requirePermission('paie', 'view');
+        $lyceeId = Auth::getLyceeId() ?: 1;
+        $periodeId = (int)($_GET['periode_id'] ?? 0);
+        $periodes = PaiePeriode::findAllForLycee($lyceeId);
+
+        // Auto-select latest open period if not specified
+        if (!$periodeId && !empty($periodes)) {
+            foreach ($periodes as $p) {
+                if ($p['statut'] !== 'cloture') {
+                    $periodeId = (int)$p['id'];
+                    break;
+                }
+            }
+            if (!$periodeId) {
+                $periodeId = (int)$periodes[0]['id'];
+            }
+        }
+
+        $selectedPeriode = $periodeId ? PaiePeriode::findById($periodeId) : null;
+        $eligibleContracts = $periodeId ? PersonnelContractService::getEligibleContractsForPeriod($periodeId, $lyceeId) : [];
+        $cycles = Cycle::findAllForLycee($lyceeId);
+
+        include __DIR__ . '/../views/paie/bulletins/prepare.php';
+    }
+
+    public function preview() {
+        Auth::requirePermission('paie', 'calculate');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /paie/bulletins/prepare');
+            exit();
+        }
+
+        $lyceeId = Auth::getLyceeId() ?: 1;
+        $periodeId = (int)($_POST['periode_id'] ?? 0);
+        $scope = $_POST['scope'] ?? 'all';
+        $selectedPersonnelIds = $_POST['personnel_ids'] ?? [];
+
+        if (!$periodeId) {
+            $_SESSION['error_message'] = _("Veuillez sélectionner une période de paie valide.");
+            header('Location: /paie/bulletins/prepare');
+            exit();
+        }
+
+        if ($scope === 'selection' && empty($selectedPersonnelIds)) {
+            $_SESSION['error_message'] = _("Veuillez sélectionner au moins un membre du personnel pour la prévisualisation.");
+            header("Location: /paie/bulletins/prepare?periode_id={$periodeId}");
+            exit();
+        }
+
+        $personnelFilter = ($scope === 'selection') ? array_map('intval', $selectedPersonnelIds) : null;
+
+        try {
+            $previewData = PaieWorkflowService::previewBulletinsForPeriod($periodeId, $personnelFilter, $lyceeId);
+            $selectedPeriode = $previewData['periode'];
+            $previewItems = $previewData['items'];
+
+            include __DIR__ . '/../views/paie/bulletins/prepare.php';
+        } catch (Exception $e) {
+            $_SESSION['error_message'] = $e->getMessage();
+            header("Location: /paie/bulletins/prepare?periode_id={$periodeId}");
+            exit();
+        }
+    }
+
+    public function calculate() {
+        Auth::requirePermission('paie', 'calculate');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /paie/bulletins/prepare');
+            exit();
+        }
+
+        $lyceeId = Auth::getLyceeId() ?: 1;
+        $userId = Auth::getUserId();
+        $periodeId = (int)($_POST['periode_id'] ?? 0);
+        $scope = $_POST['scope'] ?? 'all';
+        $selectedPersonnelIds = $_POST['personnel_ids'] ?? [];
+        $idempotencyKey = $_POST['idempotency_key'] ?? null;
+
+        if (!$periodeId) {
+            $_SESSION['error_message'] = _("Veuillez sélectionner une période de paie valide.");
+            header('Location: /paie/bulletins/prepare');
+            exit();
+        }
+
+        if ($scope === 'selection' && empty($selectedPersonnelIds)) {
+            $_SESSION['error_message'] = _("Veuillez sélectionner au moins un membre du personnel pour la génération.");
+            header("Location: /paie/bulletins/prepare?periode_id={$periodeId}");
+            exit();
+        }
+
+        $personnelFilter = ($scope === 'selection') ? array_map('intval', $selectedPersonnelIds) : null;
+
+        try {
+            $bulletinIds = PaieWorkflowService::generateBulletinsForPeriod($periodeId, $userId, $personnelFilter, $idempotencyKey, $lyceeId);
+            $count = count($bulletinIds);
+            $_SESSION['success_message'] = sprintf(_("Génération réussie de %d bulletin(s) de paie pour la période."), $count);
+            header("Location: /paie/bulletins?periode_id={$periodeId}");
+            exit();
+        } catch (Exception $e) {
+            $_SESSION['error_message'] = $e->getMessage();
+            header("Location: /paie/bulletins/prepare?periode_id={$periodeId}");
+            exit();
+        }
+    }
 
     public function index() {
         Auth::requirePermission('paie', 'view');

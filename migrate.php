@@ -761,8 +761,11 @@ try {
     ComptabiliteService::seedDefaultChartOfAccounts();
     ComptabiliteService::seedDefaultSchemas();
     $stmt_lycees = $db->query("SELECT id FROM param_lycee");
-    while ($row_lycee = $stmt_lycees->fetch(PDO::FETCH_ASSOC)) {
-        ComptabiliteService::seedDefaultJournalsForLycee($row_lycee['id']);
+    if ($stmt_lycees) {
+        while ($row_lycee = $stmt_lycees->fetch(PDO::FETCH_ASSOC)) {
+            ComptabiliteService::seedDefaultJournalsForLycee($row_lycee['id']);
+        }
+        $stmt_lycees->closeCursor();
     }
 
     $insert_ignore_keyword = $isSqlite ? 'INSERT OR IGNORE' : 'INSERT IGNORE';
@@ -842,7 +845,10 @@ try {
         ComptabiliteService::seedDefaultChartOfAccounts();
         $stmt_cf = $db->query("SELECT id, compte_comptable_numero FROM comptes_financiers WHERE compte_comptable_id IS NULL AND compte_comptable_numero IS NOT NULL AND TRIM(compte_comptable_numero) != ''");
         if ($stmt_cf) {
-            while ($cf = $stmt_cf->fetch(PDO::FETCH_ASSOC)) {
+            $cfRows = $stmt_cf->fetchAll(PDO::FETCH_ASSOC);
+            $stmt_cf->closeCursor();
+
+            foreach ($cfRows as $cf) {
                 $num = trim($cf['compte_comptable_numero']);
                 $stmt_cc = $db->prepare("SELECT id FROM comptes_comptables WHERE TRIM(numero) = :num");
                 $stmt_cc->execute(['num' => $num]);
