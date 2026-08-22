@@ -488,6 +488,9 @@ $router->register('/paie/periodes/{id}/cloture', 'PaiePeriodesController', 'clos
 $router->register('/paie/periodes/{id}', 'PaiePeriodesController', 'show');
 
 $router->register('/paie/bulletins', 'PaieBulletinsController', 'index');
+$router->register('/paie/bulletins/prepare', 'PaieBulletinsController', 'prepare');
+$router->register('/paie/bulletins/preview', 'PaieBulletinsController', 'preview');
+$router->register('/paie/bulletins/calculate', 'PaieBulletinsController', 'calculate');
 $router->register('/paie/bulletins/generate-individual', 'PaieBulletinsController', 'generateIndividual');
 $router->register('/paie/bulletins/show', 'PaieBulletinsController', 'show');
 $router->register('/paie/bulletins/redraw', 'PaieBulletinsController', 'redraw');

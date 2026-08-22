@@ -18,7 +18,11 @@ require_once __DIR__ . '/../../layouts/header_able.php';
               <li class="breadcrumb-item" aria-current="page"><?= _('Bulletins') ?></li>
             </ul>
           </div>
-          <div class="col-md-5 text-end">
+          <div class="col-md-5 text-end d-flex justify-content-end gap-2">
+            <a href="/paie/bulletins/prepare" class="btn btn-primary d-inline-flex align-items-center gap-1">
+              <i class="ph-duotone ph-list-checks fs-5"></i>
+              <span><?= _("Préparer les Bulletins") ?></span>
+            </a>
             <a href="/paie/periodes" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1">
               <i class="ph-duotone ph-calendar fs-5"></i>
               <span><?= _("Voir les Périodes") ?></span>

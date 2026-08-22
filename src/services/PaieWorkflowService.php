@@ -196,10 +196,95 @@ class PaieWorkflowService {
     }
 
     /**
-     * Generate payroll bulletins (V1) for all active staff contracts in a period.
+     * Dry-run calculation (Preview) for a period.
+     * Guaranteed 100% read-only: no DB insertions, no regularisation state changes, no persistent locks.
+     * Intersects requested $personnelIds with eligible contracts.
+     */
+    public static function previewBulletinsForPeriod(int $periodePaieId, ?array $personnelIds = null, ?int $lyceeId = null): array {
+        $db = Database::getInstance();
+
+        // Fetch period info (read-only)
+        $stmtP = $db->prepare("SELECT * FROM paie_periodes WHERE id = :id");
+        $stmtP->execute(['id' => $periodePaieId]);
+        $periode = $stmtP->fetch(PDO::FETCH_ASSOC);
+
+        if (!$periode) {
+            throw new InvalidArgumentException("Période de paie introuvable ID #{$periodePaieId}");
+        }
+
+        // Retrieve official eligible contracts
+        $eligibleContracts = PersonnelContractService::getEligibleContractsForPeriod($periodePaieId, $lyceeId);
+
+        // Filter by requested personnel IDs if provided (Intersection)
+        if ($personnelIds !== null) {
+            $requestedSet = array_map('intval', $personnelIds);
+            $eligibleContracts = array_filter($eligibleContracts, function($c) use ($requestedSet) {
+                return in_array((int)$c['personnel_id'], $requestedSet, true);
+            });
+        }
+
+        $results = [];
+
+        foreach ($eligibleContracts as $c) {
+            $personnelId = (int)$c['personnel_id'];
+            $contratId = (int)$c['id'];
+
+            // Fetch validated hours for period
+            $cahierValidations = PaieCahierTexteValidation::findValidatedForTeacherAndDates($personnelId, $periode['date_debut'], $periode['date_fin']);
+
+            // Fetch components
+            $components = PersonnelContractService::getComponentsForContract($contratId);
+
+            // Fetch pending regularisations (read-only)
+            $pendingRegs = PaieRegularisation::findPendingForEmployeeAndPeriod($personnelId, $periodePaieId);
+
+            // Run dry-run computation
+            $computed = PaieCalculationEngine::computeBulletin($c, $cahierValidations, $components, 'DEFAULT', $periode['date_fin'], $pendingRegs);
+
+            $results[] = [
+                'personnel_id' => $personnelId,
+                'nom' => $c['nom'],
+                'prenom' => $c['prenom'],
+                'identifiant_public' => $c['identifiant_public'],
+                'contrat_id' => $contratId,
+                'contrat_libelle' => $c['contrat_libelle'] ?? 'Contrat',
+                'salaire_base' => $computed['salaire_base'],
+                'total_brut' => $computed['total_brut'],
+                'total_cotisations_salariales' => $computed['total_cotisations_salariales'],
+                'total_impots' => $computed['total_impots'],
+                'total_retenues' => $computed['total_retenues'],
+                'net_imposable' => $computed['net_imposable'],
+                'net_a_payer' => $computed['net_a_payer'],
+                'total_cotisations_patronales' => $computed['total_cotisations_patronales'],
+                'cout_total_employeur' => $computed['cout_total_employeur'],
+                'devise' => $c['devise'] ?? 'FCFA',
+                'regularisations_count' => count($pendingRegs),
+                'heures_validees_count' => count($cahierValidations),
+                'status' => ($computed['total_brut'] <= 0) ? 'warning' : 'ok',
+                'message' => ($computed['total_brut'] <= 0) ? _("Salaire brut égal à 0") : _("Prêt")
+            ];
+        }
+
+        return [
+            'periode' => $periode,
+            'items' => $results
+        ];
+    }
+
+    /**
+     * Generate payroll bulletins (V1) for active staff contracts in a period.
+     * Intersects provided $personnelIds with eligible contracts.
      * V5: Supports idempotency_key protection.
      */
-    public static function generateBulletinsForPeriod(int $periodePaieId, int $userId, ?string $idempotencyKey = null): array {
+    public static function generateBulletinsForPeriod(int $periodePaieId, int $userId, $personnelIds = null, ?string $idempotencyKey = null, ?int $lyceeId = null): array {
+        // Support backward-compatible signature where 3rd param was $idempotencyKey
+        if (is_string($personnelIds) && $idempotencyKey === null) {
+            $idempotencyKey = $personnelIds;
+            $personnelIds = null;
+        } elseif (!is_array($personnelIds) && $personnelIds !== null) {
+            $personnelIds = null;
+        }
+
         $db = Database::getInstance();
         $db->beginTransaction();
 
@@ -212,7 +297,7 @@ class PaieWorkflowService {
             }
 
             // Check idempotency key if provided
-            if ($idempotencyKey) {
+            if (!empty($idempotencyKey)) {
                 $stmtEx = $db->prepare("SELECT id FROM paie_bulletins WHERE periode_id = :p AND idempotency_key LIKE :k ORDER BY id ASC");
                 $stmtEx->execute(['p' => $periodePaieId, 'k' => "{$idempotencyKey}%"]);
                 $existingRows = $stmtEx->fetchAll(PDO::FETCH_COLUMN);
@@ -222,19 +307,20 @@ class PaieWorkflowService {
                 }
             }
 
-            // Find all active personnel contracts
-            $stmtContracts = $db->prepare("
-                SELECT c.*, u.nom, u.prenom
-                FROM personnel_contrats_historique c
-                JOIN utilisateurs u ON c.personnel_id = u.id_user
-                WHERE c.statut_contrat = 'actif'
-            ");
-            $stmtContracts->execute();
-            $contracts = $stmtContracts->fetchAll(PDO::FETCH_ASSOC);
+            // Find official eligible contracts for period
+            $eligibleContracts = PersonnelContractService::getEligibleContractsForPeriod($periodePaieId, $lyceeId);
+
+            // Filter by provided personnel IDs if selection specified (Intersection)
+            if ($personnelIds !== null) {
+                $requestedSet = array_map('intval', $personnelIds);
+                $eligibleContracts = array_filter($eligibleContracts, function($c) use ($requestedSet) {
+                    return in_array((int)$c['personnel_id'], $requestedSet, true);
+                });
+            }
 
             $createdBulletinIds = [];
 
-            foreach ($contracts as $c) {
+            foreach ($eligibleContracts as $c) {
                 $bulletinId = self::generateBulletinForEmployee(
                     $periodePaieId,
                     (int)$c['personnel_id'],

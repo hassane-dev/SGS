@@ -105,6 +105,46 @@ class PersonnelContractService {
     }
 
     /**
+     * Get all active contracts for personnel eligible for payroll in a specific period.
+     * Serves as the authoritative source of truth for payroll scope.
+     */
+    public static function getEligibleContractsForPeriod(int $periodePaieId, ?int $lyceeId = null): array {
+        $db = Database::getInstance();
+
+        $sql = "
+            SELECT c.*, u.nom, u.prenom, u.identifiant_public, u.email, tc.libelle AS contrat_libelle
+            FROM paie_periodes p
+            JOIN personnel_contrats_historique c ON (
+                c.statut_contrat = 'actif'
+                AND c.date_debut <= p.date_fin
+                AND (c.date_fin IS NULL OR c.date_fin >= p.date_debut)
+            )
+            JOIN utilisateurs u ON c.personnel_id = u.id_user
+            LEFT JOIN type_contrat tc ON c.type_contrat_id = tc.id_contrat
+            WHERE p.id = :periode_id
+        ";
+        $params = ['periode_id' => $periodePaieId];
+
+        if ($lyceeId) {
+            $sql .= " AND u.lycee_id = :lycee_id";
+            $params['lycee_id'] = $lyceeId;
+        }
+
+        $sql .= " ORDER BY u.nom ASC, u.prenom ASC";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $contracts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($contracts as &$c) {
+            $c['composants'] = self::getComponentsForContract((int)$c['id']);
+            $c['financements'] = self::getFinancingForContract((int)$c['id']);
+        }
+
+        return $contracts;
+    }
+
+    /**
      * Gets the active current contract for a personnel.
      */
     public static function getActiveContract(int $personnel_id, ?string $dateRef = null): ?array {

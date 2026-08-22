@@ -34,7 +34,9 @@ class Database {
                 $this->conn = new PDO('sqlite:' . __DIR__ . '/../../database.sqlite', null, null, [
                     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_TIMEOUT            => 10,
                 ]);
+                $this->conn->exec('PRAGMA busy_timeout = 10000;');
             } catch (Exception $ex) {
                 if (APP_ENV === 'development') {
                     throw new PDOException($e->getMessage(), (int)$e->getCode());
