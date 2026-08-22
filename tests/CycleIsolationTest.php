@@ -29,7 +29,7 @@ function run_cycle_isolation_tests() {
         // --- 1. SETUP FIXTURES STRICTES ET COHÉRENTES ---
 
         // Setup Test Lycee
-        $db->exec("INSERT INTO param_lycee (id, nom_lycee) VALUES (99, 'Lycée de Test Isolation')");
+        $db->exec("INSERT INTO param_lycee (id, nom_lycee) VALUES (99, 'Lycée de Test Isolation') ON CONFLICT DO NOTHING");
 
         // Setup Cycles
         $db->exec("INSERT INTO cycles (id_cycle, lycee_id, nom_cycle) VALUES (991, 99, 'Cycle CEG Test')");
