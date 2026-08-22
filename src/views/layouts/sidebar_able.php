@@ -432,11 +432,6 @@ $navItems = [
                 'condition' => Auth::can('view', 'paie'),
             ],
             [
-                'url' => '/paie/bulletins/prepare',
-                'text' => _('Préparation des bulletins'),
-                'condition' => Auth::can('view', 'paie'),
-            ],
-            [
                 'url' => '/paie/bulletins',
                 'text' => _('Bulletins'),
                 'condition' => Auth::can('view', 'paie'),
@@ -592,24 +587,13 @@ $navItems = [
             if (empty($sub_items)) {
                 continue;
             }
-            // Check if active and find best matching sub-item
-            $best_match_url = null;
-            $best_match_len = -1;
+            // Check if active
+            $is_active = false;
             foreach ($sub_items as $sub) {
-                if ($active_url == $sub['url']) {
-                    $best_match_url = $sub['url'];
-                    $best_match_len = 9999;
-                    break;
-                }
-                if (strpos($active_url, $sub['url'] . '/') === 0 || $active_url == $sub['url']) {
-                    $len = strlen($sub['url']);
-                    if ($len > $best_match_len) {
-                        $best_match_len = $len;
-                        $best_match_url = $sub['url'];
-                    }
+                if ($active_url == $sub['url'] || strpos($active_url, $sub['url']) === 0) {
+                    $is_active = true;
                 }
             }
-            $is_active = ($best_match_url !== null);
             ?>
             <li class="pc-item pc-hasmenu <?= $is_active ? 'pc-trigger active' : '' ?>">
               <a href="#!" class="pc-link">
@@ -621,7 +605,7 @@ $navItems = [
               </a>
               <ul class="pc-submenu" style="<?= $is_active ? 'display: block;' : 'display: none;' ?>">
                 <?php foreach ($sub_items as $sub): ?>
-                  <li class="pc-item <?= ($sub['url'] === $best_match_url) ? 'active' : '' ?>">
+                  <li class="pc-item <?= ($active_url == $sub['url'] || strpos($active_url, $sub['url']) === 0) ? 'active' : '' ?>">
                     <a class="pc-link" href="<?= $sub['url'] ?>"><?= $sub['text'] ?></a>
                   </li>
                 <?php endforeach; ?>
