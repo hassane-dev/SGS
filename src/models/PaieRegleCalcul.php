@@ -33,13 +33,14 @@ class PaieRegleCalcul {
             SELECT * FROM paie_regles_calcul
             WHERE (juridiction_code = :juridiction_code OR juridiction_code = 'DEFAULT')
               AND actif = 1
-              AND date_debut_validite <= :as_of_date
-              AND (date_fin_validite IS NULL OR date_fin_validite >= :as_of_date)
+              AND date_debut_validite <= :as_of_date1
+              AND (date_fin_validite IS NULL OR date_fin_validite >= :as_of_date2)
             ORDER BY id ASC
         ");
         $stmt->execute([
             'juridiction_code' => $juridictionCode,
-            'as_of_date' => $asOfDate
+            'as_of_date1' => $asOfDate,
+            'as_of_date2' => $asOfDate
         ]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

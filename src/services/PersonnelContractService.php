@@ -126,7 +126,7 @@ class PersonnelContractService {
         $params = ['periode_id' => $periodePaieId];
 
         if ($lyceeId) {
-            $sql .= " AND u.lycee_id = :lycee_id";
+            $sql .= " AND (u.lycee_id = :lycee_id OR u.lycee_id IS NULL)";
             $params['lycee_id'] = $lyceeId;
         }
 
@@ -229,14 +229,14 @@ class PersonnelContractService {
                 WHERE personnel_id = :pid
                   AND (entite_juridique_id = :ejid OR entite_juridique_id IS NULL)
                   AND statut_contrat = 'actif'
-                  AND (:id IS NULL OR id != :id_check)";
+                  AND (:id_null IS NULL OR id != :id_check)";
         } else {
             $sql_overlap = "
                 SELECT id, date_debut, date_fin FROM personnel_contrats_historique
                 WHERE personnel_id = :pid
                   AND entite_juridique_id IS NULL
                   AND statut_contrat = 'actif'
-                  AND (:id IS NULL OR id != :id_check)";
+                  AND (:id_null IS NULL OR id != :id_check)";
         }
 
         if (!$id && $statut_contrat === 'actif') {
@@ -246,7 +246,7 @@ class PersonnelContractService {
             $stmt_overlap = $db->prepare($sql_overlap);
             $params = [
                 'pid' => $personnel_id,
-                'id' => $id,
+                'id_null' => $id,
                 'id_check' => $id,
                 'd_start' => $date_debut
             ];
@@ -262,7 +262,7 @@ class PersonnelContractService {
             $stmt_overlap = $db->prepare($sql_overlap);
             $params = [
                 'pid' => $personnel_id,
-                'id' => $id,
+                'id_null' => $id,
                 'id_check' => $id,
                 'd_start' => $date_debut,
                 'd_start2' => $date_debut,
@@ -415,8 +415,8 @@ class PersonnelContractService {
                 $contrat_id = (int)$db->lastInsertId();
 
                 if (!$contrat_souche_id) {
-                    $stmt_souche = $db->prepare("UPDATE personnel_contrats_historique SET contrat_souche_id = :cid WHERE id = :cid");
-                    $stmt_souche->execute(['cid' => $contrat_id]);
+                    $stmt_souche = $db->prepare("UPDATE personnel_contrats_historique SET contrat_souche_id = :souche_id WHERE id = :target_id");
+                    $stmt_souche->execute(['souche_id' => $contrat_id, 'target_id' => $contrat_id]);
                 }
             }
 
@@ -661,8 +661,8 @@ class PersonnelContractService {
             ]);
             $newId = (int)$db->lastInsertId();
 
-            $stmt_souche = $db->prepare("UPDATE personnel_contrats_historique SET contrat_souche_id = :id WHERE id = :id");
-            $stmt_souche->execute(['id' => $newId]);
+            $stmt_souche = $db->prepare("UPDATE personnel_contrats_historique SET contrat_souche_id = :souche_id WHERE id = :target_id");
+            $stmt_souche->execute(['souche_id' => $newId, 'target_id' => $newId]);
 
             $migratedCount++;
         }
