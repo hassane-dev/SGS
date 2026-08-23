@@ -62,6 +62,102 @@ class PaieWorkflowService {
     }
 
     /**
+     * Retrieve eligible contracts for a period enriched with their exact Service Fait and calculation status.
+     */
+    public static function getEligibleContractsWithServiceFaitStatus(int $periodePaieId, ?int $lyceeId = null): array {
+        $db = Database::getInstance();
+        $stmtP = $db->prepare("SELECT * FROM paie_periodes WHERE id = :id");
+        $stmtP->execute(['id' => $periodePaieId]);
+        $periode = $stmtP->fetch(PDO::FETCH_ASSOC);
+
+        if (!$periode) {
+            return [];
+        }
+
+        $contracts = PersonnelContractService::getEligibleContractsForPeriod($periodePaieId, $lyceeId);
+
+        foreach ($contracts as &$c) {
+            $personnelId = (int)$c['personnel_id'];
+            $contratId = (int)$c['id'];
+            $entiteJuridiqueId = (int)($c['entite_juridique_id'] ?? 1);
+            $modeCalcul = strtolower($c['mode_calcul_principal'] ?? ($c['type_paiement'] ?? 'forfait_fixe'));
+
+            // 1. Check existing active bulletin
+            $existingB = PaieBulletin::findActiveForContractAndPeriod($personnelId, $entiteJuridiqueId, $contratId, $periodePaieId);
+
+            // 2. Fetch validated hours
+            $validatedSessions = PaieCahierTexteValidation::findValidatedForTeacherAndDates($personnelId, $periode['date_debut'], $periode['date_fin']);
+            $heuresValideesCount = count($validatedSessions);
+            $totalHeuresValidees = 0.0;
+            $totalMontantHeuresValidees = 0.0;
+            foreach ($validatedSessions as $vs) {
+                $dh = (float)$vs['duree_heures'];
+                $th = (float)$vs['taux_horaire'];
+                $totalHeuresValidees += $dh;
+                $totalMontantHeuresValidees += ($dh * $th);
+            }
+
+            // 3. Fetch unvalidated sessions in cahier_texte for period
+            $stmtUnval = $db->prepare("
+                SELECT COUNT(*) FROM cahier_texte
+                WHERE personnel_id = :pid
+                  AND date_cours BETWEEN :dstart AND :dend
+                  AND NOT EXISTS (
+                      SELECT 1 FROM paie_cahier_texte_validations v WHERE v.cahier_id = cahier_texte.cahier_id
+                  )
+            ");
+            $stmtUnval->execute([
+                'pid' => $personnelId,
+                'dstart' => $periode['date_debut'],
+                'dend' => $periode['date_fin']
+            ]);
+            $unvalidatedSessionsCount = (int)$stmtUnval->fetchColumn();
+
+            // Determine status badge code and label
+            if ($existingB) {
+                $c['service_fait_code'] = 'bulletin_existant';
+                $c['service_fait_label'] = _("Bulletin déjà généré");
+                $c['status_badge_class'] = 'bg-light-info text-info';
+                $c['est_calculable'] = false;
+            } elseif ($heuresValideesCount > 0) {
+                $c['service_fait_code'] = 'service_fait_valide';
+                $c['service_fait_label'] = sprintf(_("Service fait validé (%s h)"), number_format($totalHeuresValidees, 1));
+                $c['status_badge_class'] = 'bg-light-success text-success';
+                $c['est_calculable'] = true;
+            } elseif ($unvalidatedSessionsCount > 0) {
+                $c['service_fait_code'] = 'service_fait_non_valide';
+                $c['service_fait_label'] = sprintf(_("Service fait non validé (%d séance(s))"), $unvalidatedSessionsCount);
+                $c['status_badge_class'] = 'bg-light-warning text-warning';
+                $c['est_calculable'] = ($modeCalcul !== 'taux_horaire');
+            } else {
+                if ($modeCalcul === 'taux_horaire' || $modeCalcul === 'horaire') {
+                    $c['service_fait_code'] = 'aucun_service_fait';
+                    $c['service_fait_label'] = _("Contrat horaire — Aucun service fait");
+                    $c['status_badge_class'] = 'bg-light-secondary text-secondary';
+                    $c['est_calculable'] = false;
+                } elseif ($modeCalcul === 'mixte') {
+                    $c['service_fait_code'] = 'aucun_service_fait_mixte';
+                    $c['service_fait_label'] = _("Contrat mixte — Fixe uniquement");
+                    $c['status_badge_class'] = 'bg-light-primary text-primary';
+                    $c['est_calculable'] = true;
+                } else {
+                    $c['service_fait_code'] = 'aucun_service_fait_fixe';
+                    $c['service_fait_label'] = _("Contrat fixe — Calculable");
+                    $c['status_badge_class'] = 'bg-light-success text-success';
+                    $c['est_calculable'] = true;
+                }
+            }
+
+            $c['heures_validees_count'] = $heuresValideesCount;
+            $c['total_heures_validees'] = $totalHeuresValidees;
+            $c['total_montant_heures_validees'] = $totalMontantHeuresValidees;
+            $c['seances_non_validees_count'] = $unvalidatedSessionsCount;
+        }
+
+        return $contracts;
+    }
+
+    /**
      * Create a new payroll period.
      */
     public static function createPeriod(int $lyceeId, int $periodeComptableId, string $codePeriode, int $mois, int $annee, string $dateDebut, string $dateFin, int $userId): int {

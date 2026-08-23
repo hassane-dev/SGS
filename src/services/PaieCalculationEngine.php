@@ -33,8 +33,14 @@ class PaieCalculationEngine {
             return $orderA <=> $orderB;
         });
 
-        // 1. Calculate Base Salary & Pedagogical Hours
-        $salaireBase = (float)($contract['salaire_base'] ?? 0.00);
+        // 1. Calculate Base Salary & Pedagogical Hours respecting Contract Mode
+        $modeCalcul = strtolower($contract['mode_calcul_principal'] ?? ($contract['type_paiement'] ?? 'forfait_fixe'));
+        if ($modeCalcul === 'taux_horaire') {
+            $salaireBase = 0.00;
+        } else {
+            $salaireBase = (float)($contract['salaire_base'] ?? 0.00);
+        }
+
         $totalHeuresMontant = 0.00;
         $heuresLines = [];
 

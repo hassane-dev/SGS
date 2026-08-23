@@ -126,8 +126,9 @@ class PersonnelContractService {
         $params = ['periode_id' => $periodePaieId];
 
         if ($lyceeId) {
-            $sql .= " AND (u.lycee_id = :lycee_id OR u.lycee_id IS NULL)";
-            $params['lycee_id'] = $lyceeId;
+            $sql .= " AND p.lycee_id = :lycee_id_p AND u.lycee_id = :lycee_id_u";
+            $params['lycee_id_p'] = $lyceeId;
+            $params['lycee_id_u'] = $lyceeId;
         }
 
         $sql .= " ORDER BY u.nom ASC, u.prenom ASC";
