@@ -34,7 +34,7 @@ class PaieBulletinsController {
         }
 
         $selectedPeriode = $periodeId ? PaiePeriode::findById($periodeId) : null;
-        $eligibleContracts = $periodeId ? PersonnelContractService::getEligibleContractsForPeriod($periodeId, $lyceeId) : [];
+        $eligibleContracts = $periodeId ? PaieWorkflowService::getEligibleContractsWithServiceFaitStatus($periodeId, $lyceeId) : [];
         $cycles = Cycle::findByLycee($lyceeId);
 
         include __DIR__ . '/../views/paie/bulletins/prepare.php';

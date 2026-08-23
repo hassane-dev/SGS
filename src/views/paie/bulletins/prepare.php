@@ -144,8 +144,8 @@ $isPreviewStage = isset($previewItems) && is_array($previewItems);
                       <th><?= _("Nom & Prénom") ?></th>
                       <th><?= _("Intitulé Contrat") ?></th>
                       <th><?= _("Mode Calcul") ?></th>
-                      <th><?= _("Base Mensuelle") ?></th>
-                      <th><?= _("Éligibilité Période") ?></th>
+                      <th><?= _("Service Fait Validé") ?></th>
+                      <th><?= _("Statut Paie Période") ?></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -167,11 +167,23 @@ $isPreviewStage = isset($previewItems) && is_array($previewItems);
                           <td><?= htmlspecialchars($c['contrat_libelle'] ?? 'CDI') ?> (v<?= $c['version_num'] ?>)</td>
                           <td>
                             <span class="badge bg-light-info text-info">
-                              <?= htmlspecialchars($c['mode_calcul_principal']) ?>
+                              <?= htmlspecialchars($c['mode_calcul_principal'] ?? 'forfait_fixe') ?>
                             </span>
                           </td>
-                          <td><?= number_format($c['salaire_base'], 2) ?> <?= htmlspecialchars($c['devise'] ?? 'FCFA') ?></td>
-                          <td><span class="badge bg-light-success text-success fw-bold"><i class="ph-duotone ph-check me-1"></i> Éligible</span></td>
+                          <td>
+                            <?php if (!empty($c['heures_validees_count']) && $c['heures_validees_count'] > 0): ?>
+                              <span class="fw-bold text-success"><i class="ph-duotone ph-check-circle me-1"></i><?= number_format($c['total_heures_validees'], 1) ?> h validée(s)</span>
+                            <?php elseif (!empty($c['seances_non_validees_count']) && $c['seances_non_validees_count'] > 0): ?>
+                              <span class="text-warning"><i class="ph-duotone ph-clock me-1"></i><?= $c['seances_non_validees_count'] ?> séance(s) à valider</span>
+                            <?php else: ?>
+                              <span class="text-muted small"><i class="ph-duotone ph-minus-circle me-1"></i>Aucun service fait</span>
+                            <?php endif; ?>
+                          </td>
+                          <td>
+                            <span class="badge <?= htmlspecialchars($c['status_badge_class'] ?? 'bg-light-secondary text-secondary') ?> fw-bold">
+                              <?= htmlspecialchars($c['service_fait_label'] ?? 'Éligible') ?>
+                            </span>
+                          </td>
                         </tr>
                       <?php endforeach; ?>
                     <?php endif; ?>
