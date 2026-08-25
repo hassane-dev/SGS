@@ -122,6 +122,7 @@ class PersonnelContractService {
             JOIN utilisateurs u ON c.personnel_id = u.id_user
             LEFT JOIN type_contrat tc ON c.type_contrat_id = tc.id_contrat
             WHERE p.id = :periode_id
+              AND u.actif = 1
         ";
         $params = ['periode_id' => $periodePaieId];
 
