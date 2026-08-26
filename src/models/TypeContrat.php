@@ -54,6 +54,12 @@ class TypeContrat {
         return $stmt->execute($params);
     }
 
+    public static function deactivate($id) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("UPDATE type_contrat SET actif = 0 WHERE id_contrat = :id");
+        return $stmt->execute(['id' => $id]);
+    }
+
     public static function delete($id) {
         $db = Database::getInstance();
         $stmt = $db->prepare("DELETE FROM type_contrat WHERE id_contrat = :id");

@@ -242,33 +242,38 @@ class PersonnelContractService {
         }
 
         if (!$id && $statut_contrat === 'actif') {
-            // When creating a new active contract/avenant, existing active contracts with date_debut < new date_debut will be closed automatically.
-            // Conflict only if an active contract exists with date_debut >= new date_debut.
-            $sql_overlap .= " AND date_debut >= :d_start";
-            $stmt_overlap = $db->prepare($sql_overlap);
-            $params = [
+            // Check if active contract exists for same employer
+            $stmt_check_active = $db->prepare("
+                SELECT id, date_debut FROM personnel_contrats_historique
+                WHERE personnel_id = :pid
+                  AND (entite_juridique_id = :ejid OR (:ejid_null IS NULL AND entite_juridique_id IS NULL))
+                  AND statut_contrat = 'actif'
+            ");
+            $stmt_check_active->execute([
                 'pid' => $personnel_id,
-                'id_null' => $id,
-                'id_check' => $id,
-                'd_start' => $date_debut
-            ];
-            if ($entite_juridique_id !== null) {
-                $params['ejid'] = $entite_juridique_id;
+                'ejid' => $entite_juridique_id,
+                'ejid_null' => $entite_juridique_id
+            ]);
+            $activeContracts = $stmt_check_active->fetchAll(PDO::FETCH_ASSOC);
+            if (count($activeContracts) > 1) {
+                throw new InvalidArgumentException(_("Plusieurs contrats actifs existent pour cet employeur. Veuillez assainir l'historique avant de créer une nouvelle version."));
             }
-            $stmt_overlap->execute($params);
+            if (count($activeContracts) === 1 && $activeContracts[0]['date_debut'] >= $date_debut) {
+                throw new InvalidArgumentException(_("Un contrat actif existe déjà pour le même employeur sur cette période. Veuillez clore ou modifier le contrat précédent."));
+            }
         } else {
             $sql_overlap .= " AND (
-                (date_debut <= :d_start AND (date_fin IS NULL OR date_fin >= :d_start2)) OR
-                (:d_end IS NOT NULL AND date_debut <= :d_end2 AND (date_fin IS NULL OR date_fin >= :d_end3))
+                (date_debut <= :d_start1 AND (date_fin IS NULL OR date_fin >= :d_start2)) OR
+                (:d_end1 IS NOT NULL AND date_debut <= :d_end2 AND (date_fin IS NULL OR date_fin >= :d_end3))
               )";
             $stmt_overlap = $db->prepare($sql_overlap);
             $params = [
                 'pid' => $personnel_id,
                 'id_null' => $id,
                 'id_check' => $id,
-                'd_start' => $date_debut,
+                'd_start1' => $date_debut,
                 'd_start2' => $date_debut,
-                'd_end' => $date_fin,
+                'd_end1' => $date_fin,
                 'd_end2' => $date_fin,
                 'd_end3' => $date_fin
             ];
@@ -276,10 +281,9 @@ class PersonnelContractService {
                 $params['ejid'] = $entite_juridique_id;
             }
             $stmt_overlap->execute($params);
-        }
-
-        if ($stmt_overlap->fetch()) {
-            throw new InvalidArgumentException(_("Un contrat actif existe déjà pour le même employeur sur cette période. Veuillez clore ou modifier le contrat précédent."));
+            if ($stmt_overlap->fetch()) {
+                throw new InvalidArgumentException(_("Un contrat actif existe déjà pour le même employeur sur cette période. Veuillez clore ou modifier le contrat précédent."));
+            }
         }
 
         $inTx = $db->inTransaction();
