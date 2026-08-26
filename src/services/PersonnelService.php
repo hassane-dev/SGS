@@ -127,6 +127,14 @@ class PersonnelService {
         // Assert Tenant & Cycle Scope Access
         AuthorizationScopeService::assertAccessToObject($personnel['lycee_id']);
 
+        // Auto-migrate legacy user contract pointer if no contracts exist yet
+        if (!empty($personnel['contrat_id'])) {
+            $existingContracts = PersonnelContractService::getContractsForPersonnel($personnel_id);
+            if (empty($existingContracts)) {
+                PersonnelContractService::migrateLegacyContracts();
+            }
+        }
+
         // Fetch relations
         $assignments = PersonnelAssignmentService::getAssignmentsForPersonnel($personnel_id);
         $contracts = PersonnelContractService::getContractsForPersonnel($personnel_id);
