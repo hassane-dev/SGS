@@ -151,26 +151,65 @@ class PersonnelContractService {
      */
     public static function getActiveContract(int $personnel_id, ?string $dateRef = null): ?array {
         $db = Database::getInstance();
-        $targetDate = $dateRef ?: date('Y-m-d');
-        $stmt = $db->prepare("
-            SELECT pch.*, tc.libelle AS contrat_libelle, tc.type_paiement, tc.prise_en_charge,
-                   pej.raison_sociale AS employeur_nom, pej.sigle AS employeur_sigle
-            FROM personnel_contrats_historique pch
-            LEFT JOIN type_contrat tc ON pch.type_contrat_id = tc.id_contrat
-            LEFT JOIN paie_entites_juridiques pej ON pch.entite_juridique_id = pej.id
-            WHERE pch.personnel_id = :personnel_id
-              AND pch.statut_contrat IN ('actif', 'avenant_remplace')
-              AND pch.date_debut <= :date_ref1
-              AND (pch.date_fin IS NULL OR pch.date_fin >= :date_ref2)
-            ORDER BY pch.date_debut DESC, pch.version_num DESC
-            LIMIT 1
-        ");
-        $stmt->execute([
-            'personnel_id' => $personnel_id,
-            'date_ref1' => $targetDate,
-            'date_ref2' => $targetDate
-        ]);
-        $res = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($dateRef !== null) {
+            $stmt = $db->prepare("
+                SELECT pch.*, tc.libelle AS contrat_libelle, tc.type_paiement, tc.prise_en_charge,
+                       pej.raison_sociale AS employeur_nom, pej.sigle AS employeur_sigle
+                FROM personnel_contrats_historique pch
+                LEFT JOIN type_contrat tc ON pch.type_contrat_id = tc.id_contrat
+                LEFT JOIN paie_entites_juridiques pej ON pch.entite_juridique_id = pej.id
+                WHERE pch.personnel_id = :personnel_id
+                  AND pch.statut_contrat IN ('actif', 'avenant_remplace')
+                  AND pch.date_debut <= :date_ref1
+                  AND (pch.date_fin IS NULL OR pch.date_fin >= :date_ref2)
+                ORDER BY pch.date_debut DESC, pch.version_num DESC, pch.id DESC
+                LIMIT 1
+            ");
+            $stmt->execute([
+                'personnel_id' => $personnel_id,
+                'date_ref1' => $dateRef,
+                'date_ref2' => $dateRef
+            ]);
+            $res = $stmt->fetch(PDO::FETCH_ASSOC);
+        } else {
+            $stmt = $db->prepare("
+                SELECT pch.*, tc.libelle AS contrat_libelle, tc.type_paiement, tc.prise_en_charge,
+                       pej.raison_sociale AS employeur_nom, pej.sigle AS employeur_sigle
+                FROM personnel_contrats_historique pch
+                LEFT JOIN type_contrat tc ON pch.type_contrat_id = tc.id_contrat
+                LEFT JOIN paie_entites_juridiques pej ON pch.entite_juridique_id = pej.id
+                WHERE pch.personnel_id = :personnel_id
+                  AND pch.statut_contrat = 'actif'
+                ORDER BY pch.date_debut DESC, pch.version_num DESC, pch.id DESC
+                LIMIT 1
+            ");
+            $stmt->execute(['personnel_id' => $personnel_id]);
+            $res = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$res) {
+                $today = date('Y-m-d');
+                $stmt = $db->prepare("
+                    SELECT pch.*, tc.libelle AS contrat_libelle, tc.type_paiement, tc.prise_en_charge,
+                           pej.raison_sociale AS employeur_nom, pej.sigle AS employeur_sigle
+                    FROM personnel_contrats_historique pch
+                    LEFT JOIN type_contrat tc ON pch.type_contrat_id = tc.id_contrat
+                    LEFT JOIN paie_entites_juridiques pej ON pch.entite_juridique_id = pej.id
+                    WHERE pch.personnel_id = :personnel_id
+                      AND pch.statut_contrat IN ('actif', 'avenant_remplace')
+                      AND pch.date_debut <= :date_ref1
+                      AND (pch.date_fin IS NULL OR pch.date_fin >= :date_ref2)
+                    ORDER BY pch.date_debut DESC, pch.version_num DESC, pch.id DESC
+                    LIMIT 1
+                ");
+                $stmt->execute([
+                    'personnel_id' => $personnel_id,
+                    'date_ref1' => $today,
+                    'date_ref2' => $today
+                ]);
+                $res = $stmt->fetch(PDO::FETCH_ASSOC);
+            }
+        }
+
         if ($res) {
             $res['composants'] = self::getComponentsForContract((int)$res['id']);
             $res['financements'] = self::getFinancingForContract((int)$res['id']);

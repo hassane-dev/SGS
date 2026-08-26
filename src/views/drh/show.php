@@ -455,11 +455,14 @@
                         <?php if ($can_view_sensitive): ?>
                             <?php if ($active_contract): ?>
                             <div class="row g-3 mb-4">
+                                <?php
+                                $resolvedDevise = PersonnelContractService::resolveCurrency($active_contract['devise'] ?? null, $p['lycee_id']);
+                                ?>
                                 <div class="col-md-4">
                                     <div class="p-3 bg-light rounded border">
                                         <div class="text-muted small mb-1"><?= _('Salaire de Base Contractuel') ?></div>
                                         <div class="h4 mb-0 font-monospace text-primary fw-bold">
-                                            <?= number_format($active_contract['salaire_base'] ?? 0, 2) ?> <?= htmlspecialchars($active_contract['devise'] ?? 'XAF') ?>
+                                            <?= number_format($active_contract['salaire_base'] ?? 0, 2) ?> <?= htmlspecialchars($resolvedDevise) ?>
                                         </div>
                                     </div>
                                 </div>
