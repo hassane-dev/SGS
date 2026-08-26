@@ -133,8 +133,8 @@ class Evaluation {
         $db = Database::getInstance();
 
         // Find teacher for this class/subject
-        require_once __DIR__ . '/../models/EnseignantMatiere.php';
-        $assignments = EnseignantMatiere::findAssignmentsForClass($classe_id);
+        require_once __DIR__ . '/../models/AffectationPedagogique.php';
+        $assignments = AffectationPedagogique::findAssignmentsForClass($classe_id);
         $enseignant_id = $assignments[$matiere_id]['enseignant_id'] ?? null;
 
         // 1. Check standard evaluation settings (harmonized logic)

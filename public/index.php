@@ -113,8 +113,6 @@ $router->register('/classes/update', 'ClasseController', 'update');
 $router->register('/classes/destroy', 'ClasseController', 'destroy');
 $router->register('/classes/assignMatiere', 'ClasseController', 'assignMatiere');
 $router->register('/classes/removeMatiere', 'ClasseController', 'removeMatiere');
-$router->register('/classes/assignEnseignant', 'ClasseController', 'assignEnseignant');
-$router->register('/classes/unassignEnseignant', 'ClasseController', 'unassignEnseignant');
 $router->register('/classes/updateParams', 'ClasseController', 'updateParams');
 
 
@@ -435,6 +433,14 @@ $router->register('/param-devoir/update', 'ParamDevoirController', 'update');
 $router->register('/param-composition', 'ParamCompositionController', 'edit');
 $router->register('/param-composition/edit', 'ParamCompositionController', 'edit');
 $router->register('/param-composition/update', 'ParamCompositionController', 'update');
+
+// Affectations Pédagogiques Routes
+$router->register('/affectations-pedagogiques', 'AffectationPedagogiqueController', 'index');
+$router->register('/affectations-pedagogiques/create', 'AffectationPedagogiqueController', 'create');
+$router->register('/affectations-pedagogiques/store', 'AffectationPedagogiqueController', 'store');
+$router->register('/affectations-pedagogiques/suspend', 'AffectationPedagogiqueController', 'suspend');
+$router->register('/affectations-pedagogiques/terminate', 'AffectationPedagogiqueController', 'terminate');
+$router->register('/affectations-pedagogiques/history', 'AffectationPedagogiqueController', 'history');
 
 // DRH - Direction des Ressources Humaines
 $router->register('/drh', 'PersonnelController', 'index');

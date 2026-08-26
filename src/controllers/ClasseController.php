@@ -7,7 +7,7 @@ require_once __DIR__ . '/../models/Lycee.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../models/Matiere.php';
 require_once __DIR__ . '/../models/User.php';
-require_once __DIR__ . '/../models/EnseignantMatiere.php';
+require_once __DIR__ . '/../models/AffectationPedagogique.php';
 require_once __DIR__ . '/../models/ClasseParametre.php';
 require_once __DIR__ . '/../models/ParamGeneral.php';
 require_once __DIR__ . '/../core/Auth.php';
@@ -86,7 +86,7 @@ class ClasseController {
         $assigned_matieres = Matiere::findByClassId($id);
         $all_matieres = Matiere::findAll($classe['lycee_id']);
         $enseignants = User::findTeachers($classe['lycee_id']);
-        $teacher_assignments = EnseignantMatiere::findAssignmentsForClass($id);
+        $teacher_assignments = AffectationPedagogique::findAssignmentsForClass($id);
 
         // Add formatted name to the classe array
         $classe['nom_complet'] = Classe::getFormattedName($classe);
@@ -242,35 +242,6 @@ class ClasseController {
         exit();
     }
 
-    public function assignEnseignant() {
-        $this->checkAccess('class:edit'); // Or a more specific permission
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $classe_id = $_POST['classe_id'];
-            $matiere_id = $_POST['matiere_id'];
-            $enseignant_id = $_POST['enseignant_id'];
-
-            $classe = Classe::findById($classe_id);
-            $this->checkOwnership($classe['lycee_id']);
-
-            EnseignantMatiere::assign($enseignant_id, $classe_id, $matiere_id);
-        }
-        header('Location: /classes/show?id=' . $classe_id);
-        exit();
-    }
-
-    public function unassignEnseignant() {
-        $this->checkAccess('class:edit'); // Or a more specific permission
-        $classe_id = $_GET['classe_id'];
-        $assignment_id = $_GET['assignment_id'];
-
-        $classe = Classe::findById($classe_id);
-        $this->checkOwnership($classe['lycee_id']);
-
-        EnseignantMatiere::unassign($assignment_id);
-
-        header('Location: /classes/show?id=' . $classe_id);
-        exit();
-    }
 
     private function checkOwnership($resource_lycee_id) {
         if (!Auth::can('view_all_lycees', 'lycee') && $resource_lycee_id != Auth::getLyceeId()) {

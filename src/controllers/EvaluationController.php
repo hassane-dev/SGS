@@ -4,7 +4,7 @@ require_once __DIR__ . '/../models/Evaluation.php';
 require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Matiere.php';
 require_once __DIR__ . '/../models/Eleve.php';
-require_once __DIR__ . '/../models/EnseignantMatiere.php';
+require_once __DIR__ . '/../models/AffectationPedagogique.php';
 require_once __DIR__ . '/../models/Sequence.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../core/Auth.php';
