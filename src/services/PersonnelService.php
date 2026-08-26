@@ -41,17 +41,23 @@ class PersonnelService {
 
         $where = ["u.lycee_id IN (" . implode(',', array_map('intval', $authorized_lycees)) . ")"];
 
-        // Optional cycle filter (only applied when explicitly selected by manager)
+        // Cycle filter
+        $isGlobalAdmin = Auth::can('view_all_lycees', 'lycee') || Auth::can('view_all_cycles', 'cycle');
+
         if (!empty($filters['cycle_id'])) {
             $cycle_id = (int)$filters['cycle_id'];
-            $stmt_c = $db->prepare("SELECT lycee_id FROM cycles WHERE id_cycle = :cid");
-            $stmt_c->execute(['cid' => $cycle_id]);
-            $cycle_lycee = $stmt_c->fetchColumn();
-            if ($cycle_lycee === false || !in_array((int)$cycle_lycee, array_map('intval', $authorized_lycees))) {
-                return []; // Cycle outside authorized lycee scope
+            if (!$isGlobalAdmin && !in_array($cycle_id, $authorized_cycles)) {
+                return []; // Requested cycle outside scope
             }
             $where[] = "pca.cycle_id = :filter_cycle_id";
             $params['filter_cycle_id'] = $cycle_id;
+        } else {
+            if (!$isGlobalAdmin) {
+                if (empty($authorized_cycles)) {
+                    return []; // Deny by default if user has no authorized cycles
+                }
+                $where[] = "(pca.cycle_id IN (" . implode(',', array_map('intval', $authorized_cycles)) . ") OR pca.cycle_id IS NULL)";
+            }
         }
 
         // Search term (name, matricule, email, phone)
