@@ -50,7 +50,11 @@ class PersonnelAssignmentService {
         $stmt_c_lycee->execute(['cid' => $cycle_id]);
         $cycle_lycee_id = $stmt_c_lycee->fetchColumn();
 
-        if ($user_lycee_id === false || $cycle_lycee_id === false || $user_lycee_id === null || $cycle_lycee_id === null || (int)$user_lycee_id !== (int)$cycle_lycee_id) {
+        if ($user_lycee_id === false || $cycle_lycee_id === false || $user_lycee_id === null) {
+            throw new InvalidArgumentException(_("Le cycle sélectionné n'appartient pas à l'établissement de l'utilisateur."));
+        }
+
+        if ($cycle_lycee_id !== null && (int)$user_lycee_id !== (int)$cycle_lycee_id) {
             throw new InvalidArgumentException(_("Le cycle sélectionné n'appartient pas à l'établissement de l'utilisateur."));
         }
 
