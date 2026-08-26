@@ -29,8 +29,10 @@ DELETE FROM `role_permissions`;
 DELETE FROM `permissions`;
 
 -- --------------------------------------------------------
--- New Granular Permissions
+-- Modern RBAC Permission Catalogue
+-- Synchronized with migrate.php
 -- --------------------------------------------------------
+
 INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`) VALUES
 -- Dashboard
 (1, 'dashboard', 'view', 'Can view the main dashboard'),
@@ -71,7 +73,6 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (49, 'sequence', 'manage', 'Can manage academic sequences (trimesters, semesters)'),
 (100, 'cycle', 'manage', 'Can manage academic cycles'),
 
-
 -- Students
 (50, 'eleve', 'create', 'Can create new student profiles'),
 (51, 'eleve', 'view_all', 'Can view all student profiles'),
@@ -93,7 +94,7 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (67, 'presence', 'manage', 'Can manage student attendance'),
 (68, 'presence', 'view', 'Can view student attendance'),
 
--- Finance
+-- Finance & Report Cards
 (70, 'paiement', 'manage', 'Can manage and validate student payments'),
 (71, 'salaire', 'manage', 'Can manage staff payroll records'),
 (72, 'frais', 'manage', 'Can manage the fee structure (frais)'),
@@ -119,14 +120,14 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (95, 'boutique', 'manage', 'Gérer la boutique (articles et achats)'),
 
 -- Test Entree
-(96, 'tests_entree', 'manage', 'Gérer les tests d\'entrée'),
+(96, 'tests_entree', 'manage', 'Gérer les tests d''entrée'),
 
 -- Finance Permissions
 (110, 'finance', 'view_policy', 'Consulter la politique financière du lycée'),
 (111, 'finance', 'edit_policy', 'Modifier la politique financière du lycée'),
 (112, 'finance', 'view_advantages', 'Consulter les avantages financiers des élèves'),
 (113, 'finance', 'edit_advantages', 'Modifier les avantages financiers des élèves'),
-(114, 'finance', 'view_history', 'Consulter l\'historique des modifications de l\'élève'),
+(114, 'finance', 'view_history', 'Consulter l''historique des modifications de l''élève'),
 (115, 'finance', 'view_control', 'Consulter le panneau de contrôle financier'),
 (120, 'paiement', 'cancel', 'Annuler un reçu de paiement'),
 (121, 'paiement', 'refund', 'Effectuer un remboursement élève'),
@@ -151,6 +152,8 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (143, 'sessions_caisse', 'modify', 'Modifier une session de caisse'),
 (147, 'finance', 'view_reports', 'Consulter les rapports financiers'),
 (148, 'journal', 'view', 'Consulter le journal comptable unique'),
+
+-- Phase 3 (Dépenses)
 (150, 'depense', 'create', 'Créer une demande d''engagement de dépense (brouillon)'),
 (151, 'depense', 'update', 'Modifier une demande de dépense non approuvée'),
 (152, 'depense', 'validate', 'Voter pour ou approuver une demande de dépense'),
@@ -160,6 +163,8 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (156, 'depense', 'view', 'Consulter la liste et l''historique d''audit des dépenses'),
 (157, 'depense', 'export', 'Exporter le registre des dépenses'),
 (158, 'depense', 'manage', 'Gérer les catégories, centres de coûts et bénéficiaires de dépenses'),
+
+-- Phase 4 (Budgets)
 (160, 'budget', 'view', 'Consulter la liste des budgets et lignes budgétaires'),
 (161, 'budget', 'create', 'Configurer un nouveau budget annuel pour l''établissement'),
 (162, 'budget', 'update', 'Modifier ou ajouter des lignes de budget'),
@@ -171,9 +176,9 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (168, 'budget', 'report', 'Consulter la synthèse visuelle et graphiques d''exécution'),
 (169, 'budget', 'override', 'Autoriser le dépassement budgétaire exceptionnel'),
 
--- Module DRH
+-- Module DRH (Lot 1)
 (170, 'drh', 'view_all', 'Consulter le registre général du personnel RH'),
-(171, 'drh', 'view_one', 'Consulter la fiche 360° d\'un membre du personnel'),
+(171, 'drh', 'view_one', 'Consulter la fiche 360° d''un membre du personnel'),
 (172, 'drh', 'create', 'Créer un nouveau membre du personnel'),
 (173, 'drh', 'edit', 'Modifier les informations du personnel'),
 (174, 'drh', 'delete', 'Archiver ou réactiver un compte personnel'),
@@ -183,11 +188,11 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (178, 'drh', 'manage_documents', 'Téléverser et gérer les pièces jointes du personnel'),
 (179, 'drh', 'view_sensitive', 'Consulter les données RH confidentielles (CNSS, contrats, salaires)'),
 (180, 'drh', 'export', 'Exporter le registre et les rapports du personnel'),
-(181, 'drh', 'view_history', 'Consulter l\'historique d\'audit des mouvements RH'),
+(181, 'drh', 'view_history', 'Consulter l''historique d''audit des mouvements RH'),
 (182, 'drh', 'view_contracts', 'Consulter les contrats du personnel'),
 (183, 'drh', 'create_contracts', 'Créer un contrat pour un membre du personnel'),
 (184, 'drh', 'create_amendments', 'Créer un avenant à un contrat existant'),
-(185, 'drh', 'view_contract_history', 'Consulter l\'historique des versions et avenants de contrat'),
+(185, 'drh', 'view_contract_history', 'Consulter l''historique des versions et avenants de contrat'),
 (186, 'drh', 'view_contract_documents', 'Consulter les pièces jointes contractuelles'),
 
 -- Exercices Financiers et Périodes Comptables
@@ -195,7 +200,33 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (191, 'comptabilite', 'create', 'Créer des exercices financiers et générer des périodes comptables'),
 (192, 'comptabilite', 'edit', 'Modifier ou activer des exercices financiers et périodes comptables'),
 (193, 'comptabilite', 'close', 'Clôturer un exercice financier ou une période comptable'),
-(194, 'comptabilite', 'reopen', 'Réouvrir une période comptable clôturée');
+(194, 'comptabilite', 'reopen', 'Réouvrir une période comptable clôturée'),
+
+-- Module Paie (Lot 2.1)
+(200, 'paie', 'view', 'Consulter les périodes, bulletins et registres de paie'),
+(201, 'paie', 'create', 'Créer une nouvelle période de paie ou importer les salaires'),
+(202, 'paie', 'calculate', 'Lancer le calcul automatisé des bulletins de paie'),
+(203, 'paie', 'validate', 'Valider les bulletins de paie et heures pédagogiques'),
+(204, 'paie', 'redraw', 'Exécuter un re-tirage atomique de bulletin (V1 vers V2)'),
+(205, 'paie', 'accounting', 'Comptabiliser les bulletins de paie au Grand Livre'),
+(206, 'paie', 'settle', 'Payer et régler les bulletins de paie'),
+(207, 'paie', 'regularize', 'Créer une régularisation de paie sur la période N+1'),
+(208, 'paie', 'close', 'Clôturer définitivement une période de paie'),
+(209, 'paie', 'audit', 'Consulter le journal d''audit complet de la paie'),
+(210, 'paie', '*', 'Wildcard paie'),
+
+-- Phase 9 (Reporting Décisionnel)
+(220, 'reporting', 'view', 'Consulter le tableau de bord décisionnel général'),
+(221, 'reporting', 'dashboard', 'Accéder au cockpit principal de décision'),
+(222, 'reporting', 'kpis', 'Consulter le catalogue détaillé des KPI et drill-down'),
+(223, 'reporting', 'analyse', 'Accéder aux analyses d''évolution temporelle'),
+(224, 'reporting', 'comparaison', 'Accéder aux analyses comparatives multi-établissements'),
+(225, 'reporting', 'previsions', 'Consulter les projections de flux et prévisions financières'),
+(226, 'reporting', 'export', 'Exporter les données de reporting au format CSV/PDF'),
+(227, 'reporting', 'threshold_manage', 'Paramétrer les seuils d''alertes des KPI'),
+(228, 'reporting', 'forecast_manage', 'Gérer les configurations et hypothèses de prévisions'),
+(229, 'reporting', 'snapshot_manage', 'Gérer manuellement la génération de snapshots analytiques'),
+(230, 'reporting', 'view_all_lycees', 'Permission spéciale d''audit et d\'analyse transversale multi-établissements');
 
 -- --------------------------------------------------------
 -- Role-Permission Assignments
@@ -237,11 +268,17 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Phase 4 (Budgets)
 (3, 160), (3, 161), (3, 162), (3, 163), (3, 164), (3, 165), (3, 166), (3, 167), (3, 168), (3, 169),
 -- Exercices & Périodes Comptables
-(3, 190), (3, 191), (3, 192), (3, 193), (3, 194);
+(3, 190), (3, 191), (3, 192), (3, 193), (3, 194),
+-- Module DRH
+(3, 170), (3, 171), (3, 172), (3, 173), (3, 175), (3, 180), (3, 181),
+-- Module Paie
+(3, 200), (3, 201), (3, 202), (3, 203), (3, 204), (3, 205), (3, 206), (3, 207), (3, 208), (3, 209), (3, 210),
+-- Reporting
+(3, 220), (3, 221), (3, 222), (3, 223), (3, 224), (3, 225), (3, 226), (3, 227), (3, 228), (3, 229);
 
 -- Censeur (Academic Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(4, 1), (4, 40), (4, 51), (4, 61), (4, 62), (4, 73), (4, 75), (4, 76), (4, 67), (4, 68);
+(4, 1), (4, 40), (4, 51), (4, 61), (4, 62), (4, 73), (4, 75), (4, 76), (4, 67), (4, 68), (4, 170), (4, 171), (4, 181);
 
 -- Surveillant (Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
@@ -263,7 +300,9 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Phase 4 (Budgets)
 (7, 160), (7, 168),
 -- Exercices & Périodes Comptables
-(7, 190), (7, 191), (7, 192);
+(7, 190), (7, 191), (7, 192),
+-- Module Paie (Consulter & Régler)
+(7, 200), (7, 206);
 
 -- Chef comptable (Chief Accountant)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
@@ -277,7 +316,11 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Phase 4 (Budgets)
 (9, 160), (9, 161), (9, 162), (9, 163), (9, 164), (9, 165), (9, 166), (9, 167), (9, 168), (9, 169),
 -- Exercices & Périodes Comptables
-(9, 190), (9, 191), (9, 192), (9, 193), (9, 194);
+(9, 190), (9, 191), (9, 192), (9, 193), (9, 194),
+-- Module DRH
+(9, 170), (9, 171), (9, 176), (9, 179), (9, 181),
+-- Module Paie (Complet)
+(9, 200), (9, 201), (9, 202), (9, 203), (9, 204), (9, 205), (9, 206), (9, 207), (9, 208), (9, 209), (9, 210);
 
 -- Caissier (Cashier)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
@@ -296,6 +339,7 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`)
 SELECT 11, p.id_permission
 FROM permissions p
 WHERE p.resource = 'drh'
+   OR p.resource = 'paie'
    OR (p.resource = 'role' AND p.action = 'view_all')
    OR (p.resource = 'dashboard' AND p.action = 'view');
 
