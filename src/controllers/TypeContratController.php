@@ -81,8 +81,14 @@ class TypeContratController {
             $stmt2->execute(['id' => $id]);
             $count2 = (int)$stmt2->fetchColumn();
 
-            if ($count1 > 0 || $count2 > 0) {
-                $_SESSION['error_message'] = _("Impossible de supprimer ce type de contrat car il est actuellement associé à des membres du personnel.");
+            $stmt3 = $db->prepare("SELECT COUNT(*) FROM paie_bulletin_contrat_snapshot WHERE type_contrat_id = :id");
+            $stmt3->execute(['id' => $id]);
+            $count3 = (int)$stmt3->fetchColumn();
+
+            if ($count1 > 0 || $count2 > 0 || $count3 > 0) {
+                // Soft deactivation to preserve referential integrity on active or historical records
+                TypeContrat::deactivate($id);
+                $_SESSION['success_message'] = _("Le type de contrat étant associé à des éléments historiques/actifs, il a été désactivé avec succès.");
             } else {
                 TypeContrat::delete($id);
                 $_SESSION['success_message'] = _("Type de contrat supprimé avec succès.");

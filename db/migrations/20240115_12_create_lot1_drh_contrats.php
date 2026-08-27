@@ -43,7 +43,10 @@ function migrate_12($db) {
 
     // Seed default Legal Entity if empty
     $stmt_check_e = $db->query("SELECT COUNT(*) FROM paie_entites_juridiques");
-    if ((int)$stmt_check_e->fetchColumn() === 0) {
+    $hasEntites = (int)$stmt_check_e->fetchColumn();
+    $stmt_check_e->closeCursor();
+
+    if ($hasEntites === 0) {
         $stmt_ins_e = $db->prepare("INSERT INTO paie_entites_juridiques (raison_sociale, sigle, immatriculation_fiscale) VALUES (?, ?, ?)");
         $stmt_ins_e->execute(['Établissement Employeur Principal', 'EEP', 'NIF-DEFAULT-001']);
     }

@@ -93,6 +93,13 @@ $navItems = [
         'condition' => Auth::can('view', 'matiere'),
     ],
     [
+        'url' => '/affectations-pedagogiques',
+        'icon' => 'ph-duotone ph-chalkboard-teacher',
+        'text' => _('Affectations Enseignants'),
+        'title' => _('Gérer les affectations pédagogiques des enseignants.'),
+        'condition' => Auth::can('view_affectations', 'pedagogy') || Auth::can('view_my_affectations', 'pedagogy') || Auth::can('manage_affectations', 'pedagogy'),
+    ],
+    [
         'label' => _('Pédagogie'),
         'is_caption' => true,
         'condition' => Auth::get('role_name') === 'enseignant' || Auth::can('note', 'view_all') || Auth::can('bulletin', 'generate'),
@@ -236,7 +243,7 @@ $navItems = [
     [
         'label' => _('Comptabilité'),
         'is_caption' => true,
-        'condition' => Auth::can('manage', 'paiement') || Auth::can('manage', 'salaire') || Auth::can('view', 'depense') || Auth::can('create', 'depense') || Auth::can('create', 'sessions_caisse') || Auth::can('edit', 'sessions_caisse') || Auth::can('validate', 'sessions_caisse') || Auth::can('view', 'comptes_financiers'),
+        'condition' => Auth::can('manage', 'paiement') || Auth::can('manage', 'salaire') || Auth::can('view', 'depense') || Auth::can('create', 'depense') || Auth::can('create', 'sessions_caisse') || Auth::can('edit', 'sessions_caisse') || Auth::can('validate', 'sessions_caisse') || Auth::can('view', 'comptes_financiers') || Auth::can('view', 'comptabilite'),
     ],
     [
         'url' => '/paiements',
@@ -244,6 +251,20 @@ $navItems = [
         'text' => _('Tableau de bord'),
         'title' => _('Tableau de bord financier.'),
         'condition' => Auth::can('view', 'paiement'),
+    ],
+    [
+        'url' => '/comptabilite/exercices',
+        'icon' => 'ph-duotone ph-calendar',
+        'text' => _('Exercices Financiers'),
+        'title' => _('Consulter et gérer les exercices financiers.'),
+        'condition' => Auth::can('view', 'comptabilite'),
+    ],
+    [
+        'url' => '/comptabilite/periodes',
+        'icon' => 'ph-duotone ph-clock',
+        'text' => _('Périodes Comptables'),
+        'title' => _('Consulter et gérer les périodes comptables.'),
+        'condition' => Auth::can('view', 'comptabilite'),
     ],
     [
         'url' => '/treasury/sessions',
@@ -407,9 +428,47 @@ $navItems = [
         'condition' => Auth::can('view', 'reporting'),
     ],
     [
+        'text' => _('Paie'),
+        'icon' => 'ph-duotone ph-money',
+        'is_dropdown' => true,
+        'condition' => Auth::can('view', 'paie'),
+        'submenu' => [
+            [
+                'url' => '/paie/periodes',
+                'text' => _('Périodes de paie'),
+                'condition' => Auth::can('view', 'paie'),
+            ],
+            [
+                'url' => '/paie/bulletins/prepare',
+                'text' => _('Préparation des bulletins'),
+                'condition' => Auth::can('view', 'paie'),
+            ],
+            [
+                'url' => '/paie/bulletins',
+                'text' => _('Bulletins'),
+                'condition' => Auth::can('view', 'paie'),
+            ],
+            [
+                'url' => '/paie/cahier-texte',
+                'text' => _('Cahier de texte / heures'),
+                'condition' => Auth::can('view', 'paie'),
+            ],
+            [
+                'url' => '/paie/regularisations',
+                'text' => _('Régularisations'),
+                'condition' => Auth::can('view', 'paie'),
+            ],
+            [
+                'url' => '/paie/legacy/conflits',
+                'text' => _('Reprises historiques'),
+                'condition' => Auth::can('create', 'paie') || Auth::can('audit', 'paie'),
+            ],
+        ],
+    ],
+    [
         'url' => '/salaires',
         'icon' => 'ph-duotone ph-wallet',
-        'text' => _('Salaires'),
+        'text' => _('Salaires (Historique)'),
         'title' => _('Gérer la paie des employés.'),
         'condition' => Auth::can('manage', 'salaire'),
     ],
@@ -540,13 +599,24 @@ $navItems = [
             if (empty($sub_items)) {
                 continue;
             }
-            // Check if active
-            $is_active = false;
+            // Check if active and find best matching sub-item
+            $best_match_url = null;
+            $best_match_len = -1;
             foreach ($sub_items as $sub) {
                 if ($active_url == $sub['url']) {
-                    $is_active = true;
+                    $best_match_url = $sub['url'];
+                    $best_match_len = 9999;
+                    break;
+                }
+                if (strpos($active_url, $sub['url'] . '/') === 0 || $active_url == $sub['url']) {
+                    $len = strlen($sub['url']);
+                    if ($len > $best_match_len) {
+                        $best_match_len = $len;
+                        $best_match_url = $sub['url'];
+                    }
                 }
             }
+            $is_active = ($best_match_url !== null);
             ?>
             <li class="pc-item pc-hasmenu <?= $is_active ? 'pc-trigger active' : '' ?>">
               <a href="#!" class="pc-link">
@@ -558,7 +628,7 @@ $navItems = [
               </a>
               <ul class="pc-submenu" style="<?= $is_active ? 'display: block;' : 'display: none;' ?>">
                 <?php foreach ($sub_items as $sub): ?>
-                  <li class="pc-item <?= ($active_url == $sub['url']) ? 'active' : '' ?>">
+                  <li class="pc-item <?= ($sub['url'] === $best_match_url) ? 'active' : '' ?>">
                     <a class="pc-link" href="<?= $sub['url'] ?>"><?= $sub['text'] ?></a>
                   </li>
                 <?php endforeach; ?>

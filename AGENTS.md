@@ -156,3 +156,8 @@ Cinq nouvelles tables à créer :
 3. **Zéro régression** : `tests/test_phase_3.php` et autres tests de validation s'exécutent avec un succès de 100%.
 4. **Couverture de tests d'intégration** : Couverture complète de tous les cas (engager, consommer, rejeter, annuler, virement de crédits, dépassements autorisés ou bloqués).
 5. **Validation visuelle** : Captures d'écrans ou scripts Playwright d'intégration validant les vues Able Pro de la Phase 4.
+
+## 12. Règle Obligatoire de Synchronisation RBAC (Invariants Catalogue)
+
+- **Invariant RBAC : Synchronisation Migrations <-> Seeds.** Toute nouvelle permission créée dans une migration PHP (ex: `$drh_perms`, `$paie_perms`, `$phase9_perms`) ou un nouveau module doit être impérativement et simultanément répercutée dans le script d'initialisation général `db/seeds.sql` (table `permissions` et assignations par rôle dans `role_permissions`).
+- **Absence de divergence :** Il est strictement interdit d'avoir un catalogue de permissions dans `migrate.php` ou une migration qui n'existe pas dans `db/seeds.sql`. Toute modification de la structure RBAC doit maintenir une parité exacte entre le seed initial et les migrations de mise à jour.

@@ -5,7 +5,7 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- Drop tables if they exist to ensure a clean slate on execution
-DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_ventes`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `enseignant_matieres`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `parametres_generaux`, `annees_academiques`, `personnel_assignments`, `param_lycee`, `param_general`, `param_devoir`, `param_composition`, `bulletins`, `parametres_evaluations`, `deblocages_notes`, `classe_parametres`, `inscriptions`, `mensualites`, `mensualite_details`, `frais`, `modele_carte`, `modele_bulletin`, `notifications`, `evaluations`, `presences`, `horaire_enseignant`, `sequences`, `surveillant_classes`, `surveillant_niveaux`, `surveillant_general`, `series`, `carte_templates`, `carte_objects`, `politiques_financieres`, `parametres_financiers_eleves`, `parametres_financiers_historique`, `etats_financiers_eleves`, `journal_comptable`;
+DROP TABLE IF EXISTS `salaires`, `cahier_texte`, `type_contrat`, `emploi_du_temps`, `role_permissions`, `permissions`, `tests_entree`, `traductions`, `licences`, `cartes_scolaires`, `boutique_ventes`, `boutique_achats`, `boutique_articles`, `paiements`, `notes_compositions`, `notes_devoirs`, `etudes`, `affectations_pedagogiques`, `classe_matieres`, `eleves`, `matieres`, `classes`, `salles`, `cycles`, `utilisateurs`, `roles`, `parametres_generaux`, `annees_academiques`, `personnel_assignments`, `param_lycee`, `param_general`, `param_devoir`, `param_composition`, `bulletins`, `parametres_evaluations`, `deblocages_notes`, `classe_parametres`, `inscriptions`, `mensualites`, `mensualite_details`, `frais`, `modele_carte`, `modele_bulletin`, `notifications`, `evaluations`, `presences`, `horaire_enseignant`, `sequences`, `surveillant_classes`, `surveillant_niveaux`, `surveillant_general`, `series`, `carte_templates`, `carte_objects`, `politiques_financieres`, `parametres_financiers_eleves`, `parametres_financiers_historique`, `etats_financiers_eleves`, `journal_comptable`;
 
 -- =================================================================
 -- General and Core Tables
@@ -203,8 +203,8 @@ CREATE TABLE `classe_matieres` (
     UNIQUE KEY `unique_classe_matiere` (`classe_id`, `matiere_id`)
 );
 
--- Junction table for teachers, classes, and subjects
-CREATE TABLE `enseignant_matieres` (
+-- Junction table for pedagogical teacher assignments
+CREATE TABLE `affectations_pedagogiques` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `enseignant_id` INT NOT NULL,
     `classe_id` INT NOT NULL,
@@ -212,11 +212,21 @@ CREATE TABLE `enseignant_matieres` (
     `annee_academique_id` INT NOT NULL,
     `disponibilite_horaire` TEXT,
     `actif` BOOLEAN DEFAULT TRUE,
+    `volume_horaire_hebdo` DECIMAL(5,2) DEFAULT 0.00,
+    `date_debut` DATE NOT NULL,
+    `date_fin` DATE DEFAULT NULL,
+    `statut` VARCHAR(20) NOT NULL DEFAULT 'actif',
+    `motif_changement` VARCHAR(255) DEFAULT NULL,
+    `created_by` INT DEFAULT NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
     FOREIGN KEY (`classe_id`) REFERENCES `classes`(`id_classe`) ON DELETE CASCADE,
     FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
-    UNIQUE KEY `unique_enseignant_matiere_annee` (`enseignant_id`, `classe_id`, `matiere_id`, `annee_academique_id`)
+    FOREIGN KEY (`created_by`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL,
+    KEY `idx_aff_pedag_unique_active` (`classe_id`, `matiere_id`, `annee_academique_id`, `statut`),
+    KEY `idx_aff_pedag_enseignant` (`enseignant_id`, `annee_academique_id`, `statut`)
 );
 
 

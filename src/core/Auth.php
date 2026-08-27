@@ -186,5 +186,19 @@ class Auth {
         require_once __DIR__ . '/../services/AuthorizationScopeService.php';
         AuthorizationScopeService::assertAccessToObject($resource_lycee_id, $resource_cycle_id);
     }
+
+    /**
+     * Enforce permission check. If user lacks permission, return 403 Forbidden.
+     * @param string $resource
+     * @param string $action
+     */
+    public static function requirePermission(string $resource, string $action): void {
+        if (!self::can($action, $resource)) {
+            http_response_code(403);
+            require_once __DIR__ . '/View.php';
+            View::render('errors/403');
+            exit();
+        }
+    }
 }
 ?>
