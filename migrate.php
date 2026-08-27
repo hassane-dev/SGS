@@ -266,11 +266,13 @@ try {
 
     // Retroactive generation for existing students (eleves)
     $stmt = $db->query("SELECT id_eleve, (SELECT date_activation FROM etudes WHERE eleve_id = id_eleve LIMIT 1) as date_activation FROM eleves WHERE identifiant_public IS NULL ORDER BY id_eleve ASC");
-    $eleves_without_id = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $eleves_without_id = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    if ($stmt) $stmt->closeCursor();
 
     if (!empty($eleves_without_id)) {
         $stmt_counter = $db->query("SELECT identifiant_public FROM eleves WHERE identifiant_public LIKE '%E' ORDER BY id_eleve DESC LIMIT 1");
-        $last_student_public_id = $stmt_counter->fetchColumn();
+        $last_student_public_id = $stmt_counter ? $stmt_counter->fetchColumn() : null;
+        if ($stmt_counter) $stmt_counter->closeCursor();
         $student_counter = 1;
         if ($last_student_public_id && preg_match('/-(\d+)E$/', $last_student_public_id, $matches)) {
             $student_counter = (int)$matches[1] + 1;
@@ -293,11 +295,13 @@ try {
 
     // Retroactive generation for existing staff (utilisateurs)
     $stmt = $db->query("SELECT id_user, role_id FROM utilisateurs WHERE identifiant_public IS NULL ORDER BY id_user ASC");
-    $users_without_id = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $users_without_id = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    if ($stmt) $stmt->closeCursor();
 
     if (!empty($users_without_id)) {
         $stmt_counter = $db->query("SELECT identifiant_public FROM utilisateurs WHERE identifiant_public IS NOT NULL ORDER BY id_user DESC LIMIT 1");
-        $last_user_public_id = $stmt_counter->fetchColumn();
+        $last_user_public_id = $stmt_counter ? $stmt_counter->fetchColumn() : null;
+        if ($stmt_counter) $stmt_counter->closeCursor();
         $user_counter = 1;
         if ($last_user_public_id && preg_match('/^(\d+)/', $last_user_public_id, $matches)) {
             $user_counter = (int)$matches[1] + 1;
@@ -614,10 +618,42 @@ try {
         );
     ");
 
+    // Provision core default roles if not present
+    $default_roles = [
+        [1, 'super_admin_createur'],
+        [2, 'super_admin_national'],
+        [3, 'admin_local'],
+        [4, 'censeur'],
+        [5, 'surveillant'],
+        [6, 'enseignant'],
+        [7, 'comptable'],
+        [8, 'eleve'],
+        [9, 'chef_comptable'],
+        [10, 'caissier'],
+        [11, 'drh'],
+    ];
+
+    foreach ($default_roles as $r_def) {
+        $stmt_r = $db->prepare("SELECT id_role FROM roles WHERE id_role = :id");
+        $stmt_r->execute(['id' => $r_def[0]]);
+        if ($stmt_r->fetch()) {
+            $stmt_up_r = $db->prepare("UPDATE roles SET nom_role = :nom WHERE id_role = :id");
+            $stmt_up_r->execute(['id' => $r_def[0], 'nom' => $r_def[1]]);
+        } else {
+            $stmt_ins_r = $db->prepare("INSERT INTO roles (id_role, nom_role, lycee_id) VALUES (:id, :nom, NULL)");
+            $stmt_ins_r->execute(['id' => $r_def[0], 'nom' => $r_def[1]]);
+        }
+    }
+
     // Seed permissions into the database dynamically
     $new_perms = [
         ['dashboard', 'view', 'Consulter le tableau de bord principal'],
         ['role', 'view_all', 'Consulter la liste des rôles'],
+        ['comptabilite', 'view', 'Consulter les exercices financiers et périodes comptables'],
+        ['comptabilite', 'create', 'Créer des exercices financiers et générer des périodes comptables'],
+        ['comptabilite', 'edit', 'Modifier ou activer des exercices financiers et périodes comptables'],
+        ['comptabilite', 'close', 'Clôturer un exercice financier ou une période comptable'],
+        ['comptabilite', 'reopen', 'Réouvrir une période comptable clôturée'],
         ['comptes_financiers', 'view', 'Consulter la liste des comptes financiers et leurs soldes'],
         ['comptes_financiers', 'create', 'Créer de nouveaux comptes financiers'],
         ['comptes_financiers', 'edit', 'Modifier les propriétés d\'un compte financier'],
@@ -725,8 +761,11 @@ try {
     ComptabiliteService::seedDefaultChartOfAccounts();
     ComptabiliteService::seedDefaultSchemas();
     $stmt_lycees = $db->query("SELECT id FROM param_lycee");
-    while ($row_lycee = $stmt_lycees->fetch(PDO::FETCH_ASSOC)) {
-        ComptabiliteService::seedDefaultJournalsForLycee($row_lycee['id']);
+    if ($stmt_lycees) {
+        while ($row_lycee = $stmt_lycees->fetch(PDO::FETCH_ASSOC)) {
+            ComptabiliteService::seedDefaultJournalsForLycee($row_lycee['id']);
+        }
+        $stmt_lycees->closeCursor();
     }
 
     $insert_ignore_keyword = $isSqlite ? 'INSERT OR IGNORE' : 'INSERT IGNORE';
@@ -766,14 +805,14 @@ try {
         WHERE p.resource = 'budget' AND p.action IN ('view', 'report')
     ");
 
-    // Map Phase 1 & 2 (comptes_financiers, sessions_caisse, finance, journal) permissions
+    // Map Phase 1 & 2 (comptes_financiers, sessions_caisse, finance, journal, comptabilite) permissions
     // 1. All permissions to Super Admins (1, 2), Local Admin (3), Chef Comptable (9)
     $db->exec("
         {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
         SELECT r.id_role, p.id_permission
         FROM roles r, permissions p
-        WHERE r.id_role IN (1, 2, 3, 9)
-        AND p.resource IN ('comptes_financiers', 'comptes_comptables', 'sessions_caisse', 'finance', 'journal', 'grand_livre', 'balance')
+        WHERE (r.id_role IN (1, 2, 3, 9) OR r.nom_role IN ('super_admin_createur', 'super_admin_national', 'admin_local', 'chef_comptable'))
+        AND p.resource IN ('comptes_financiers', 'comptes_comptables', 'sessions_caisse', 'finance', 'journal', 'grand_livre', 'balance', 'comptabilite')
     ");
 
     // 2. Specific permissions to Comptable (7) and Caissier (10)
@@ -781,14 +820,15 @@ try {
         {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
         SELECT r.id_role, p.id_permission
         FROM roles r, permissions p
-        WHERE r.id_role IN (7, 10)
+        WHERE (r.id_role IN (7, 10) OR r.nom_role IN ('comptable', 'caissier'))
         AND (
             (p.resource = 'comptes_financiers' AND p.action = 'view') OR
             (p.resource = 'comptes_comptables' AND p.action IN ('view', 'create', 'edit')) OR
             (p.resource = 'sessions_caisse' AND p.action IN ('view', 'create', 'edit')) OR
             (p.resource = 'finance' AND p.action IN ('view_policy', 'view_control', 'view_reports')) OR
             (p.resource = 'journal' AND p.action = 'view') OR
-            (p.resource IN ('grand_livre', 'balance') AND p.action = 'view')
+            (p.resource IN ('grand_livre', 'balance') AND p.action = 'view') OR
+            (p.resource = 'comptabilite' AND p.action IN ('view', 'create', 'edit') AND (r.id_role = 7 OR r.nom_role = 'comptable'))
         )
     ");
 
@@ -805,7 +845,10 @@ try {
         ComptabiliteService::seedDefaultChartOfAccounts();
         $stmt_cf = $db->query("SELECT id, compte_comptable_numero FROM comptes_financiers WHERE compte_comptable_id IS NULL AND compte_comptable_numero IS NOT NULL AND TRIM(compte_comptable_numero) != ''");
         if ($stmt_cf) {
-            while ($cf = $stmt_cf->fetch(PDO::FETCH_ASSOC)) {
+            $cfRows = $stmt_cf->fetchAll(PDO::FETCH_ASSOC);
+            $stmt_cf->closeCursor();
+
+            foreach ($cfRows as $cf) {
                 $num = trim($cf['compte_comptable_numero']);
                 $stmt_cc = $db->prepare("SELECT id FROM comptes_comptables WHERE TRIM(numero) = :num");
                 $stmt_cc->execute(['num' => $num]);
@@ -861,6 +904,11 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_12_create_lot1_drh_contrats.php';
     migrate_12($db);
 
+<<<<<<< HEAD
+    // --- PHASE AFFECTATIONS PEDAGOGIQUES ---
+    require_once __DIR__ . '/db/migrations/20240115_13_rename_and_extend_enseignant_matieres.php';
+    migrate_13($db);
+
     // Provision DRH role if not present
     $stmt_drh_role = $db->query("SELECT id_role FROM roles WHERE nom_role = 'drh'");
     if (!$stmt_drh_role->fetch()) {
@@ -871,6 +919,47 @@ try {
         }
         echo "DRH role seeded.\n";
     }
+=======
+    // --- PHASE LOT 2.1 - INTERNATIONALIZED PAYROLL ENGINE ---
+    require_once __DIR__ . '/db/migrations/20240115_13_create_lot2_paie_engine.php';
+    migrate_13($db);
+
+    // --- PHASE LOT 2.1 - REGULARISATIONS UPDATE & INTEGRATIONS ---
+    require_once __DIR__ . '/db/migrations/20240115_14_update_paie_regularisations.php';
+    migrate_14($db);
+>>>>>>> origin/main
+
+    // Seed permissions for Pedagogy (Affectations pédagogiques)
+    $pedagogy_perms = [
+        ['pedagogy', 'manage_affectations', 'Créer, modifier, suspendre et clôturer les affectations pédagogiques'],
+        ['pedagogy', 'view_affectations', 'Consulter le registre général des affectations pédagogiques'],
+        ['pedagogy', 'view_my_affectations', 'Consulter ses propres affectations pédagogiques (enseignant)']
+    ];
+
+    foreach ($pedagogy_perms as $perm) {
+        $stmt_ins_perm->execute([
+            'resource' => $perm[0],
+            'action' => $perm[1],
+            'description' => $perm[2]
+        ]);
+    }
+
+    // Assign pedagogy:manage_affectations and view_affectations to Super Admins (1, 2), Admin Local (3), Censeur (4), Proviseur (5), DRH (11)
+    $db->exec("
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
+        SELECT r.id_role, p.id_permission
+        FROM roles r, permissions p
+        WHERE r.id_role IN (1, 2, 3, 4, 5, 11)
+        AND p.resource = 'pedagogy' AND p.action IN ('manage_affectations', 'view_affectations')
+    ");
+
+    // Assign pedagogy:view_my_affectations to Enseignant (6)
+    $db->exec("
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
+        SELECT 6, p.id_permission
+        FROM permissions p
+        WHERE p.resource = 'pedagogy' AND p.action = 'view_my_affectations'
+    ");
 
     // Seed permissions for DRH
     $drh_perms = [
@@ -952,6 +1041,45 @@ try {
         SELECT 9, p.id_permission
         FROM permissions p
         WHERE p.resource = 'drh' AND p.action IN ('view_all', 'view_one', 'view_history', 'view_sensitive', 'manage_contrats')
+    ");
+
+    // Seed permissions for Lot 2.1 Paie Module
+    $paie_perms = [
+        ['paie', 'view', 'Consulter les périodes, bulletins et registres de paie'],
+        ['paie', 'create', 'Créer une nouvelle période de paie ou importer les salaires'],
+        ['paie', 'calculate', 'Lancer le calcul automatisé des bulletins de paie'],
+        ['paie', 'validate', 'Valider les bulletins de paie et heures pédagogiques'],
+        ['paie', 'redraw', 'Exécuter un re-tirage atomique de bulletin (V1 vers V2)'],
+        ['paie', 'accounting', 'Comptabiliser les bulletins de paie au Grand Livre'],
+        ['paie', 'settle', 'Payer et régler les bulletins de paie'],
+        ['paie', 'regularize', 'Créer une régularisation de paie sur la période N+1'],
+        ['paie', 'close', 'Clôturer définitivement une période de paie'],
+        ['paie', 'audit', 'Consulter le journal d\'audit complet de la paie']
+    ];
+
+    foreach ($paie_perms as $perm) {
+        $stmt_ins_perm->execute([
+            'resource' => $perm[0],
+            'action' => $perm[1],
+            'description' => $perm[2]
+        ]);
+    }
+
+    // Assign all paie permissions to Super Admins (1, 2), DRH (11), and Chef Comptable (9)
+    $db->exec("
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
+        SELECT r.id_role, p.id_permission
+        FROM roles r, permissions p
+        WHERE (r.id_role IN (1, 2, 9) OR r.nom_role = 'drh')
+        AND p.resource = 'paie'
+    ");
+
+    // Assign viewing and settlement permissions to standard Comptable (7)
+    $db->exec("
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
+        SELECT 7, p.id_permission
+        FROM permissions p
+        WHERE p.resource = 'paie' AND p.action IN ('view', 'settle')
     ");
 
     // Seed permissions for Phase 9

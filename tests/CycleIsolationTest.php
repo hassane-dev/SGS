@@ -28,8 +28,18 @@ function run_cycle_isolation_tests() {
     try {
         // --- 1. SETUP FIXTURES STRICTES ET COHÉRENTES ---
 
+        // Clean up previous test fixtures if present
+        $db->exec("DELETE FROM journal_comptable WHERE lycee_id = 99");
+        $db->exec("DELETE FROM etudes WHERE lycee_id = 99");
+        $db->exec("DELETE FROM eleves WHERE lycee_id = 99");
+        $db->exec("DELETE FROM classes WHERE lycee_id = 99");
+        $db->exec("DELETE FROM personnel_cycles_assignments WHERE personnel_id IN (SELECT id_user FROM utilisateurs WHERE lycee_id = 99)");
+        $db->exec("DELETE FROM utilisateurs WHERE lycee_id = 99");
+        $db->exec("DELETE FROM cycles WHERE id_cycle IN (991, 992)");
+        $db->exec("DELETE FROM param_lycee WHERE id = 99");
+
         // Setup Test Lycee
-        $db->exec("INSERT INTO param_lycee (id, nom_lycee) VALUES (99, 'Lycée de Test Isolation')");
+        $db->exec("INSERT INTO param_lycee (id, nom_lycee) VALUES (99, 'Lycée de Test Isolation') ON CONFLICT DO NOTHING");
 
         // Setup Cycles
         $db->exec("INSERT INTO cycles (id_cycle, lycee_id, nom_cycle) VALUES (991, 99, 'Cycle CEG Test')");

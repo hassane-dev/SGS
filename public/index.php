@@ -113,8 +113,6 @@ $router->register('/classes/update', 'ClasseController', 'update');
 $router->register('/classes/destroy', 'ClasseController', 'destroy');
 $router->register('/classes/assignMatiere', 'ClasseController', 'assignMatiere');
 $router->register('/classes/removeMatiere', 'ClasseController', 'removeMatiere');
-$router->register('/classes/assignEnseignant', 'ClasseController', 'assignEnseignant');
-$router->register('/classes/unassignEnseignant', 'ClasseController', 'unassignEnseignant');
 $router->register('/classes/updateParams', 'ClasseController', 'updateParams');
 
 
@@ -182,6 +180,20 @@ $router->register('/eleves/parametres-financiers/update', 'EleveController', 'up
 $router->register('/inscriptions', 'EleveController', 'create');
 $router->register('/reinscriptions', 'EleveController', 'archives');
 $router->register('/reinscription', 'EleveController', 'archives');
+
+// Exercices et Périodes Comptables
+$router->register('/comptabilite/exercices', 'ExerciceFinancierController', 'index');
+$router->register('/comptabilite/exercices/create', 'ExerciceFinancierController', 'create');
+$router->register('/comptabilite/exercices/store', 'ExerciceFinancierController', 'store');
+$router->register('/comptabilite/exercices/{id}/activate', 'ExerciceFinancierController', 'activate');
+$router->register('/comptabilite/exercices/{id}/close', 'ExerciceFinancierController', 'close');
+
+$router->register('/comptabilite/periodes', 'ComptabilitePeriodeController', 'index');
+$router->register('/comptabilite/periodes/create', 'ComptabilitePeriodeController', 'create');
+$router->register('/comptabilite/periodes/store', 'ComptabilitePeriodeController', 'store');
+$router->register('/comptabilite/periodes/generate', 'ComptabilitePeriodeController', 'generate');
+$router->register('/comptabilite/periodes/{id}/cloture', 'ComptabilitePeriodeController', 'close');
+$router->register('/comptabilite/periodes/{id}/reouvrir', 'ComptabilitePeriodeController', 'reopen');
 
 // Gestion des Dépenses (Phase 3)
 $router->register('/depenses', 'DepenseController', 'index');
@@ -436,6 +448,14 @@ $router->register('/param-composition', 'ParamCompositionController', 'edit');
 $router->register('/param-composition/edit', 'ParamCompositionController', 'edit');
 $router->register('/param-composition/update', 'ParamCompositionController', 'update');
 
+// Affectations Pédagogiques Routes
+$router->register('/affectations-pedagogiques', 'AffectationPedagogiqueController', 'index');
+$router->register('/affectations-pedagogiques/create', 'AffectationPedagogiqueController', 'create');
+$router->register('/affectations-pedagogiques/store', 'AffectationPedagogiqueController', 'store');
+$router->register('/affectations-pedagogiques/suspend', 'AffectationPedagogiqueController', 'suspend');
+$router->register('/affectations-pedagogiques/terminate', 'AffectationPedagogiqueController', 'terminate');
+$router->register('/affectations-pedagogiques/history', 'AffectationPedagogiqueController', 'history');
+
 // DRH - Direction des Ressources Humaines
 $router->register('/drh', 'PersonnelController', 'index');
 $router->register('/drh/dashboard', 'PersonnelController', 'dashboard');
@@ -457,11 +477,44 @@ $router->register('/drh/documents/store', 'PersonnelDocumentController', 'store'
 $router->register('/drh/documents/download', 'PersonnelDocumentController', 'download');
 $router->register('/drh/documents/delete', 'PersonnelDocumentController', 'delete');
 
-// Salaires
+// Salaires (Legacy)
 $router->register('/salaires', 'SalaireController', 'index');
 $router->register('/salaires/create', 'SalaireController', 'create');
 $router->register('/salaires/store', 'SalaireController', 'store');
 $router->register('/salaires/fiche', 'SalaireController', 'genererFiche');
+
+// Lot 2.1 - Moteur de Paie
+$router->register('/paie/periodes', 'PaiePeriodesController', 'index');
+$router->register('/paie/periodes/create', 'PaiePeriodesController', 'create');
+$router->register('/paie/periodes/store', 'PaiePeriodesController', 'store');
+$router->register('/paie/periodes/calculate', 'PaiePeriodesController', 'calculate');
+$router->register('/paie/periodes/close', 'PaiePeriodesController', 'close');
+$router->register('/paie/periodes/show', 'PaiePeriodesController', 'show');
+$router->register('/paie/periodes/{id}/cloture', 'PaiePeriodesController', 'close');
+$router->register('/paie/periodes/{id}', 'PaiePeriodesController', 'show');
+
+$router->register('/paie/bulletins', 'PaieBulletinsController', 'index');
+$router->register('/paie/bulletins/prepare', 'PaieBulletinsController', 'prepare');
+$router->register('/paie/bulletins/preview', 'PaieBulletinsController', 'preview');
+$router->register('/paie/bulletins/calculate', 'PaieBulletinsController', 'calculate');
+$router->register('/paie/bulletins/generate-individual', 'PaieBulletinsController', 'generateIndividual');
+$router->register('/paie/bulletins/show', 'PaieBulletinsController', 'show');
+$router->register('/paie/bulletins/redraw', 'PaieBulletinsController', 'redraw');
+$router->register('/paie/bulletins/post-accounting', 'PaieBulletinsController', 'postAccounting');
+$router->register('/paie/bulletins/settle', 'PaieBulletinsController', 'settle');
+$router->register('/paie/bulletins/{id}', 'PaieBulletinsController', 'show');
+
+$router->register('/paie/cahier-texte', 'PaieCahierTexteController', 'index');
+$router->register('/paie/cahier-texte/validate', 'PaieCahierTexteController', 'validate');
+$router->register('/paie/cahier-texte/bulk-validate', 'PaieCahierTexteController', 'bulkValidate');
+
+$router->register('/paie/legacy/import', 'PaieLegacyController', 'import');
+$router->register('/paie/legacy/conflits', 'PaieLegacyController', 'conflits');
+
+$router->register('/paie/regularisations', 'PaieRegularisationsController', 'index');
+$router->register('/paie/regularisations/store', 'PaieRegularisationsController', 'store');
+
+$router->register('/paie/cloture/process', 'PaieClotureController', 'process');
 
 // Cahier de Texte
 $router->register('/cahier-texte', 'CahierTexteController', 'index');

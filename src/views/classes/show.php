@@ -143,35 +143,28 @@
                                                 <?php if (isset($teacher_assignments[$matiere['id_matiere']])):
                                                     $assignment = $teacher_assignments[$matiere['id_matiere']];
                                                 ?>
-                                                    <span><?= htmlspecialchars($assignment['enseignant_nom']) ?></span>
+                                                    <span class="fw-bold"><?= htmlspecialchars($assignment['enseignant_nom']) ?></span>
 
-                                                    <div class="d-inline-flex">
-                                                        <?php if (Auth::can('manage_settings', 'evaluation')): ?>
-                                                        <a href="/evaluations/settings/legacy?classe_id=<?= $classe['id_classe'] ?>&matiere_id=<?= $matiere['id_matiere'] ?>" class="btn btn-sm btn-outline-secondary ms-2" title="<?= _('Paramètres des évaluations') ?>">
-                                                            <?= _('Params Éval.') ?>
+                                                    <div class="d-inline-flex ms-2">
+                                                        <?php if (Auth::can('manage_affectations', 'pedagogy')): ?>
+                                                        <a href="/affectations-pedagogiques/create?classe_id=<?= $classe['id_classe'] ?>&matiere_id=<?= $matiere['id_matiere'] ?>" class="btn btn-sm btn-outline-primary" title="<?= _('Gérer / Remplacer l\'enseignant') ?>">
+                                                            <?= _('Gérer / Remplacer') ?>
                                                         </a>
                                                         <?php endif; ?>
 
-                                                        <?php if (Auth::can('edit', 'class')): ?>
-                                                        <a href="/classes/unassignEnseignant?assignment_id=<?= $assignment['id'] ?>&classe_id=<?= $classe['id_classe'] ?>" class="btn btn-sm btn-outline-danger ms-1" title="<?= _('Dissocier l\'enseignant') ?>">
-                                                            X
+                                                        <?php if (Auth::can('manage_settings', 'evaluation')): ?>
+                                                        <a href="/evaluations/settings/legacy?classe_id=<?= $classe['id_classe'] ?>&matiere_id=<?= $matiere['id_matiere'] ?>" class="btn btn-sm btn-outline-secondary ms-1" title="<?= _('Paramètres des évaluations') ?>">
+                                                            <?= _('Params Éval.') ?>
                                                         </a>
                                                         <?php endif; ?>
                                                     </div>
 
                                                 <?php else: ?>
-                                                    <?php if (Auth::can('edit', 'class')): ?>
-                                                    <form action="/classes/assignEnseignant" method="POST" class="d-flex">
-                                                        <input type="hidden" name="classe_id" value="<?= $classe['id_classe'] ?>">
-                                                        <input type="hidden" name="matiere_id" value="<?= $matiere['id_matiere'] ?>">
-                                                        <select name="enseignant_id" class="form-select form-select-sm" required>
-                                                            <option value=""><?= _('-- Assigner --') ?></option>
-                                                            <?php foreach ($enseignants as $enseignant): ?>
-                                                                <option value="<?= $enseignant['id_user'] ?>"><?= htmlspecialchars($enseignant['full_name']) ?></option>
-                                                            <?php endforeach; ?>
-                                                        </select>
-                                                        <button type="submit" class="btn btn-sm btn-success ms-2">+</button>
-                                                    </form>
+                                                    <?php if (Auth::can('manage_affectations', 'pedagogy')): ?>
+                                                        <a href="/affectations-pedagogiques/create?classe_id=<?= $classe['id_classe'] ?>&matiere_id=<?= $matiere['id_matiere'] ?>" class="btn btn-sm btn-primary">
+                                                            <i class="ph-duotone ph-plus-circle me-1"></i>
+                                                            <?= _('Assigner') ?>
+                                                        </a>
                                                     <?php else: ?>
                                                         <span class="text-muted"><?= _('Non assigné') ?></span>
                                                     <?php endif; ?>

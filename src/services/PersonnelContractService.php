@@ -105,30 +105,111 @@ class PersonnelContractService {
     }
 
     /**
+     * Get all active contracts for personnel eligible for payroll in a specific period.
+     * Serves as the authoritative source of truth for payroll scope.
+     */
+    public static function getEligibleContractsForPeriod(int $periodePaieId, ?int $lyceeId = null): array {
+        $db = Database::getInstance();
+
+        $sql = "
+            SELECT c.*, u.nom, u.prenom, u.identifiant_public, u.email, tc.libelle AS contrat_libelle
+            FROM paie_periodes p
+            JOIN personnel_contrats_historique c ON (
+                c.statut_contrat = 'actif'
+                AND c.date_debut <= p.date_fin
+                AND (c.date_fin IS NULL OR c.date_fin >= p.date_debut)
+            )
+            JOIN utilisateurs u ON c.personnel_id = u.id_user
+            LEFT JOIN type_contrat tc ON c.type_contrat_id = tc.id_contrat
+            WHERE p.id = :periode_id
+              AND u.actif = 1
+        ";
+        $params = ['periode_id' => $periodePaieId];
+
+        if ($lyceeId) {
+            $sql .= " AND p.lycee_id = :lycee_id_p AND u.lycee_id = :lycee_id_u";
+            $params['lycee_id_p'] = $lyceeId;
+            $params['lycee_id_u'] = $lyceeId;
+        }
+
+        $sql .= " ORDER BY u.nom ASC, u.prenom ASC";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $contracts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($contracts as &$c) {
+            $c['composants'] = self::getComponentsForContract((int)$c['id']);
+            $c['financements'] = self::getFinancingForContract((int)$c['id']);
+        }
+
+        return $contracts;
+    }
+
+    /**
      * Gets the active current contract for a personnel.
      */
     public static function getActiveContract(int $personnel_id, ?string $dateRef = null): ?array {
         $db = Database::getInstance();
-        $targetDate = $dateRef ?: date('Y-m-d');
-        $stmt = $db->prepare("
-            SELECT pch.*, tc.libelle AS contrat_libelle, tc.type_paiement, tc.prise_en_charge,
-                   pej.raison_sociale AS employeur_nom, pej.sigle AS employeur_sigle
-            FROM personnel_contrats_historique pch
-            LEFT JOIN type_contrat tc ON pch.type_contrat_id = tc.id_contrat
-            LEFT JOIN paie_entites_juridiques pej ON pch.entite_juridique_id = pej.id
-            WHERE pch.personnel_id = :personnel_id
-              AND pch.statut_contrat = 'actif'
-              AND pch.date_debut <= :date_ref1
-              AND (pch.date_fin IS NULL OR pch.date_fin >= :date_ref2)
-            ORDER BY pch.date_debut DESC
-            LIMIT 1
-        ");
-        $stmt->execute([
-            'personnel_id' => $personnel_id,
-            'date_ref1' => $targetDate,
-            'date_ref2' => $targetDate
-        ]);
-        $res = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($dateRef !== null) {
+            $stmt = $db->prepare("
+                SELECT pch.*, tc.libelle AS contrat_libelle, tc.type_paiement, tc.prise_en_charge,
+                       pej.raison_sociale AS employeur_nom, pej.sigle AS employeur_sigle
+                FROM personnel_contrats_historique pch
+                LEFT JOIN type_contrat tc ON pch.type_contrat_id = tc.id_contrat
+                LEFT JOIN paie_entites_juridiques pej ON pch.entite_juridique_id = pej.id
+                WHERE pch.personnel_id = :personnel_id
+                  AND pch.statut_contrat IN ('actif', 'avenant_remplace')
+                  AND pch.date_debut <= :date_ref1
+                  AND (pch.date_fin IS NULL OR pch.date_fin >= :date_ref2)
+                ORDER BY pch.date_debut DESC, pch.version_num DESC, pch.id DESC
+                LIMIT 1
+            ");
+            $stmt->execute([
+                'personnel_id' => $personnel_id,
+                'date_ref1' => $dateRef,
+                'date_ref2' => $dateRef
+            ]);
+            $res = $stmt->fetch(PDO::FETCH_ASSOC);
+        } else {
+            $stmt = $db->prepare("
+                SELECT pch.*, tc.libelle AS contrat_libelle, tc.type_paiement, tc.prise_en_charge,
+                       pej.raison_sociale AS employeur_nom, pej.sigle AS employeur_sigle
+                FROM personnel_contrats_historique pch
+                LEFT JOIN type_contrat tc ON pch.type_contrat_id = tc.id_contrat
+                LEFT JOIN paie_entites_juridiques pej ON pch.entite_juridique_id = pej.id
+                WHERE pch.personnel_id = :personnel_id
+                  AND pch.statut_contrat = 'actif'
+                ORDER BY pch.date_debut DESC, pch.version_num DESC, pch.id DESC
+                LIMIT 1
+            ");
+            $stmt->execute(['personnel_id' => $personnel_id]);
+            $res = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$res) {
+                $today = date('Y-m-d');
+                $stmt = $db->prepare("
+                    SELECT pch.*, tc.libelle AS contrat_libelle, tc.type_paiement, tc.prise_en_charge,
+                           pej.raison_sociale AS employeur_nom, pej.sigle AS employeur_sigle
+                    FROM personnel_contrats_historique pch
+                    LEFT JOIN type_contrat tc ON pch.type_contrat_id = tc.id_contrat
+                    LEFT JOIN paie_entites_juridiques pej ON pch.entite_juridique_id = pej.id
+                    WHERE pch.personnel_id = :personnel_id
+                      AND pch.statut_contrat IN ('actif', 'avenant_remplace')
+                      AND pch.date_debut <= :date_ref1
+                      AND (pch.date_fin IS NULL OR pch.date_fin >= :date_ref2)
+                    ORDER BY pch.date_debut DESC, pch.version_num DESC, pch.id DESC
+                    LIMIT 1
+                ");
+                $stmt->execute([
+                    'personnel_id' => $personnel_id,
+                    'date_ref1' => $today,
+                    'date_ref2' => $today
+                ]);
+                $res = $stmt->fetch(PDO::FETCH_ASSOC);
+            }
+        }
+
         if ($res) {
             $res['composants'] = self::getComponentsForContract((int)$res['id']);
             $res['financements'] = self::getFinancingForContract((int)$res['id']);
@@ -189,44 +270,49 @@ class PersonnelContractService {
                 WHERE personnel_id = :pid
                   AND (entite_juridique_id = :ejid OR entite_juridique_id IS NULL)
                   AND statut_contrat = 'actif'
-                  AND (:id IS NULL OR id != :id_check)";
+                  AND (:id_null IS NULL OR id != :id_check)";
         } else {
             $sql_overlap = "
                 SELECT id, date_debut, date_fin FROM personnel_contrats_historique
                 WHERE personnel_id = :pid
                   AND entite_juridique_id IS NULL
                   AND statut_contrat = 'actif'
-                  AND (:id IS NULL OR id != :id_check)";
+                  AND (:id_null IS NULL OR id != :id_check)";
         }
 
         if (!$id && $statut_contrat === 'actif') {
-            // When creating a new active contract/avenant, existing active contracts with date_debut < new date_debut will be closed automatically.
-            // Conflict only if an active contract exists with date_debut >= new date_debut.
-            $sql_overlap .= " AND date_debut >= :d_start";
-            $stmt_overlap = $db->prepare($sql_overlap);
-            $params = [
+            // Check if active contract exists for same employer
+            $stmt_check_active = $db->prepare("
+                SELECT id, date_debut FROM personnel_contrats_historique
+                WHERE personnel_id = :pid
+                  AND (entite_juridique_id = :ejid OR (:ejid_null IS NULL AND entite_juridique_id IS NULL))
+                  AND statut_contrat = 'actif'
+            ");
+            $stmt_check_active->execute([
                 'pid' => $personnel_id,
-                'id' => $id,
-                'id_check' => $id,
-                'd_start' => $date_debut
-            ];
-            if ($entite_juridique_id !== null) {
-                $params['ejid'] = $entite_juridique_id;
+                'ejid' => $entite_juridique_id,
+                'ejid_null' => $entite_juridique_id
+            ]);
+            $activeContracts = $stmt_check_active->fetchAll(PDO::FETCH_ASSOC);
+            if (count($activeContracts) > 1) {
+                throw new InvalidArgumentException(_("Plusieurs contrats actifs existent pour cet employeur. Veuillez assainir l'historique avant de créer une nouvelle version."));
             }
-            $stmt_overlap->execute($params);
+            if (count($activeContracts) === 1 && $activeContracts[0]['date_debut'] >= $date_debut) {
+                throw new InvalidArgumentException(_("Un contrat actif existe déjà pour le même employeur sur cette période. Veuillez clore ou modifier le contrat précédent."));
+            }
         } else {
             $sql_overlap .= " AND (
-                (date_debut <= :d_start AND (date_fin IS NULL OR date_fin >= :d_start2)) OR
-                (:d_end IS NOT NULL AND date_debut <= :d_end2 AND (date_fin IS NULL OR date_fin >= :d_end3))
+                (date_debut <= :d_start1 AND (date_fin IS NULL OR date_fin >= :d_start2)) OR
+                (:d_end1 IS NOT NULL AND date_debut <= :d_end2 AND (date_fin IS NULL OR date_fin >= :d_end3))
               )";
             $stmt_overlap = $db->prepare($sql_overlap);
             $params = [
                 'pid' => $personnel_id,
-                'id' => $id,
+                'id_null' => $id,
                 'id_check' => $id,
-                'd_start' => $date_debut,
+                'd_start1' => $date_debut,
                 'd_start2' => $date_debut,
-                'd_end' => $date_fin,
+                'd_end1' => $date_fin,
                 'd_end2' => $date_fin,
                 'd_end3' => $date_fin
             ];
@@ -234,10 +320,9 @@ class PersonnelContractService {
                 $params['ejid'] = $entite_juridique_id;
             }
             $stmt_overlap->execute($params);
-        }
-
-        if ($stmt_overlap->fetch()) {
-            throw new InvalidArgumentException(_("Un contrat actif existe déjà pour le même employeur sur cette période. Veuillez clore ou modifier le contrat précédent."));
+            if ($stmt_overlap->fetch()) {
+                throw new InvalidArgumentException(_("Un contrat actif existe déjà pour le même employeur sur cette période. Veuillez clore ou modifier le contrat précédent."));
+            }
         }
 
         $inTx = $db->inTransaction();
@@ -375,8 +460,8 @@ class PersonnelContractService {
                 $contrat_id = (int)$db->lastInsertId();
 
                 if (!$contrat_souche_id) {
-                    $stmt_souche = $db->prepare("UPDATE personnel_contrats_historique SET contrat_souche_id = :cid WHERE id = :cid");
-                    $stmt_souche->execute(['cid' => $contrat_id]);
+                    $stmt_souche = $db->prepare("UPDATE personnel_contrats_historique SET contrat_souche_id = :souche_id WHERE id = :target_id");
+                    $stmt_souche->execute(['souche_id' => $contrat_id, 'target_id' => $contrat_id]);
                 }
             }
 
@@ -621,8 +706,8 @@ class PersonnelContractService {
             ]);
             $newId = (int)$db->lastInsertId();
 
-            $stmt_souche = $db->prepare("UPDATE personnel_contrats_historique SET contrat_souche_id = :id WHERE id = :id");
-            $stmt_souche->execute(['id' => $newId]);
+            $stmt_souche = $db->prepare("UPDATE personnel_contrats_historique SET contrat_souche_id = :souche_id WHERE id = :target_id");
+            $stmt_souche->execute(['souche_id' => $newId, 'target_id' => $newId]);
 
             $migratedCount++;
         }

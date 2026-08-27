@@ -243,7 +243,7 @@ class User {
                 'email' => $data['email'] ?? $currentData['email'],
                 'fonction' => $data['fonction'] ?? $currentData['fonction'],
                 'role_id' => $data['role_id'] ?? $currentData['role_id'],
-                'lycee_id' => !isset($data['lycee_id']) ? $currentData['lycee_id'] : (empty($data['lycee_id']) ? null : (int)$data['lycee_id']),
+                'lycee_id' => !isset($data['lycee_id']) ? $currentData['lycee_id'] : (empty($data['lycee_id']) ? (Auth::getLyceeId() ?: 1) : (int)$data['lycee_id']),
                 'contrat_id' => !isset($data['contrat_id']) ? $currentData['contrat_id'] : (empty($data['contrat_id']) ? null : (int)$data['contrat_id']),
                 'date_embauche' => !isset($data['date_embauche']) ? $currentData['date_embauche'] : (empty($data['date_embauche']) ? null : $data['date_embauche']),
                 'actif' => $data['actif'] ?? $currentData['actif'],
@@ -261,7 +261,7 @@ class User {
                 'email' => $data['email'],
                 'fonction' => $data['fonction'] ?? null,
                 'role_id' => $data['role_id'],
-                'lycee_id' => empty($data['lycee_id']) ? null : (int)$data['lycee_id'],
+                'lycee_id' => empty($data['lycee_id']) ? (Auth::getLyceeId() ?: 1) : (int)$data['lycee_id'],
                 'contrat_id' => empty($data['contrat_id']) ? null : (int)$data['contrat_id'],
                 'date_embauche' => empty($data['date_embauche']) ? null : $data['date_embauche'],
                 'actif' => $data['actif'] ?? 1,
@@ -338,10 +338,10 @@ class User {
         $db = Database::getInstance();
         $stmt = $db->prepare("
             SELECT c.id_classe, c.niveau, c.serie, c.numero, m.id_matiere, m.nom_matiere
-            FROM enseignant_matieres em
-            JOIN classes c ON em.classe_id = c.id_classe
-            JOIN matieres m ON em.matiere_id = m.id_matiere
-            WHERE em.enseignant_id = :teacher_id AND em.actif = 1
+            FROM affectations_pedagogiques ap
+            JOIN classes c ON ap.classe_id = c.id_classe
+            JOIN matieres m ON ap.matiere_id = m.id_matiere
+            WHERE ap.enseignant_id = :teacher_id AND ap.statut = 'actif'
             ORDER BY c.niveau, c.serie, c.numero, m.nom_matiere
         ");
         $stmt->execute(['teacher_id' => $teacher_id]);
@@ -376,17 +376,18 @@ class User {
 
         $sql = "
             SELECT
-                em.classe_id,
-                em.matiere_id,
+                ap.classe_id,
+                ap.matiere_id,
                 c.niveau,
                 c.serie,
                 c.numero,
                 m.nom_matiere
-            FROM enseignant_matieres em
-            JOIN classes c ON em.classe_id = c.id_classe
-            JOIN matieres m ON em.matiere_id = m.id_matiere
-            WHERE em.enseignant_id = :enseignant_id
-            AND em.annee_academique_id = :annee_id
+            FROM affectations_pedagogiques ap
+            JOIN classes c ON ap.classe_id = c.id_classe
+            JOIN matieres m ON ap.matiere_id = m.id_matiere
+            WHERE ap.enseignant_id = :enseignant_id
+            AND ap.annee_academique_id = :annee_id
+            AND ap.statut = 'actif'
             ORDER BY c.niveau, c.serie, c.numero, m.nom_matiere
         ";
 
