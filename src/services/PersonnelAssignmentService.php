@@ -39,6 +39,25 @@ class PersonnelAssignmentService {
         $actif = isset($data['actif']) ? (int)$data['actif'] : 1;
         $id = !empty($data['id']) ? (int)$data['id'] : null;
 
+        $db = Database::getInstance();
+
+        // Multi-tenant school isolation check: Verify user and cycle belong to the same school
+        $stmt_u_lycee = $db->prepare("SELECT lycee_id FROM utilisateurs WHERE id_user = :uid");
+        $stmt_u_lycee->execute(['uid' => $personnel_id]);
+        $user_lycee_id = $stmt_u_lycee->fetchColumn();
+
+        $stmt_c_lycee = $db->prepare("SELECT lycee_id FROM cycles WHERE id_cycle = :cid");
+        $stmt_c_lycee->execute(['cid' => $cycle_id]);
+        $cycle_lycee_id = $stmt_c_lycee->fetchColumn();
+
+        if ($user_lycee_id === false || $cycle_lycee_id === false || $user_lycee_id === null) {
+            throw new InvalidArgumentException(_("Le cycle sélectionné n'appartient pas à l'établissement de l'utilisateur."));
+        }
+
+        if ($cycle_lycee_id !== null && (int)$user_lycee_id !== (int)$cycle_lycee_id) {
+            throw new InvalidArgumentException(_("Le cycle sélectionné n'appartient pas à l'établissement de l'utilisateur."));
+        }
+
         // Date sanity check
         if ($date_fin && $date_fin < $date_debut) {
             throw new InvalidArgumentException(_("La date de fin ne peut pas être antérieure à la date de début."));

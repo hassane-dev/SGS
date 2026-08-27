@@ -37,7 +37,10 @@ function migrate_11($db) {
 
     // Seed default HR Functions if empty
     $stmt_check = $db->query("SELECT COUNT(*) FROM personnel_fonctions");
-    if ((int)$stmt_check->fetchColumn() === 0) {
+    $hasFonctions = (int)$stmt_check->fetchColumn();
+    $stmt_check->closeCursor();
+
+    if ($hasFonctions === 0) {
         $default_fonctions = [
             ['Enseignant', 'Pédagogie', 'Membre du corps enseignant'],
             ['Surveillant Général', 'Vie Scolaire', 'Supervision générale de la discipline'],
