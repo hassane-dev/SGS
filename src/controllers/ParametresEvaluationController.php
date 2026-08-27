@@ -4,7 +4,7 @@ require_once __DIR__ . '/../models/ParametresEvaluation.php';
 require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Matiere.php';
 require_once __DIR__ . '/../models/Sequence.php';
-require_once __DIR__ . '/../models/EnseignantMatiere.php';
+require_once __DIR__ . '/../models/AffectationPedagogique.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
 
@@ -122,7 +122,7 @@ class ParametresEvaluationController {
         }
 
         $sequences = Sequence::findAll();
-        $teacher_assignments = EnseignantMatiere::findAssignmentsForClass($classe_id);
+        $teacher_assignments = AffectationPedagogique::findAssignmentsForClass($classe_id);
         $existing_settings = ParametresEvaluation::findByClassAndMatiere($classe_id, $matiere_id);
 
         $enseignant_id = $teacher_assignments[$matiere_id]['enseignant_id'] ?? null;

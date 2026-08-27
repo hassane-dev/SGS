@@ -912,6 +912,53 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_14_update_paie_regularisations.php';
     migrate_14($db);
 
+    // --- PHASE AFFECTATIONS PEDAGOGIQUES ---
+    require_once __DIR__ . '/db/migrations/20240115_15_rename_and_extend_enseignant_matieres.php';
+    migrate_15($db);
+
+    // Provision DRH role if not present
+    $stmt_drh_role = $db->query("SELECT id_role FROM roles WHERE nom_role = 'drh'");
+    if (!$stmt_drh_role->fetch()) {
+        if ($isSqlite) {
+            $db->exec("INSERT INTO roles (id_role, nom_role, lycee_id) VALUES (11, 'drh', NULL)");
+        } else {
+            $db->exec("INSERT INTO roles (id_role, nom_role, lycee_id) VALUES (11, 'drh', NULL) ON DUPLICATE KEY UPDATE nom_role = 'drh'");
+        }
+        echo "DRH role seeded.\n";
+    }
+
+    // Seed permissions for Pedagogy (Affectations pédagogiques)
+    $pedagogy_perms = [
+        ['pedagogy', 'manage_affectations', 'Créer, modifier, suspendre et clôturer les affectations pédagogiques'],
+        ['pedagogy', 'view_affectations', 'Consulter le registre général des affectations pédagogiques'],
+        ['pedagogy', 'view_my_affectations', 'Consulter ses propres affectations pédagogiques (enseignant)']
+    ];
+
+    foreach ($pedagogy_perms as $perm) {
+        $stmt_ins_perm->execute([
+            'resource' => $perm[0],
+            'action' => $perm[1],
+            'description' => $perm[2]
+        ]);
+    }
+
+    // Assign pedagogy:manage_affectations and view_affectations to Super Admins (1, 2), Admin Local (3), Censeur (4), DRH (11)
+    $db->exec("
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
+        SELECT r.id_role, p.id_permission
+        FROM roles r, permissions p
+        WHERE r.id_role IN (1, 2, 3, 4, 11)
+        AND p.resource = 'pedagogy' AND p.action IN ('manage_affectations', 'view_affectations')
+    ");
+
+    // Assign pedagogy:view_my_affectations to Enseignant (6)
+    $db->exec("
+        {$insert_ignore_keyword} INTO role_permissions (role_id, permission_id)
+        SELECT 6, p.id_permission
+        FROM permissions p
+        WHERE p.resource = 'pedagogy' AND p.action = 'view_my_affectations'
+    ");
+
     // Seed permissions for DRH
     $drh_perms = [
         ['drh', 'view_all', 'Consulter le registre général du personnel RH'],

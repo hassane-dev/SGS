@@ -93,6 +93,13 @@ $navItems = [
         'condition' => Auth::can('view', 'matiere'),
     ],
     [
+        'url' => '/affectations-pedagogiques',
+        'icon' => 'ph-duotone ph-chalkboard-teacher',
+        'text' => _('Affectations Enseignants'),
+        'title' => _('Gérer les affectations pédagogiques des enseignants.'),
+        'condition' => Auth::can('view_affectations', 'pedagogy') || Auth::can('view_my_affectations', 'pedagogy') || Auth::can('manage_affectations', 'pedagogy'),
+    ],
+    [
         'label' => _('Pédagogie'),
         'is_caption' => true,
         'condition' => Auth::get('role_name') === 'enseignant' || Auth::can('note', 'view_all') || Auth::can('bulletin', 'generate'),

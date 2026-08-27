@@ -226,7 +226,12 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (227, 'reporting', 'threshold_manage', 'Paramétrer les seuils d''alertes des KPI'),
 (228, 'reporting', 'forecast_manage', 'Gérer les configurations et hypothèses de prévisions'),
 (229, 'reporting', 'snapshot_manage', 'Gérer manuellement la génération de snapshots analytiques'),
-(230, 'reporting', 'view_all_lycees', 'Permission spéciale d''audit et d\'analyse transversale multi-établissements');
+(230, 'reporting', 'view_all_lycees', 'Permission spéciale d''audit et d\'analyse transversale multi-établissements'),
+
+-- Pedagogy (Affectations Pédagogiques)
+(240, 'pedagogy', 'manage_affectations', 'Créer, modifier, suspendre et clôturer les affectations pédagogiques'),
+(241, 'pedagogy', 'view_affectations', 'Consulter le registre général des affectations pédagogiques'),
+(242, 'pedagogy', 'view_my_affectations', 'Consulter ses propres affectations pédagogiques (enseignant)');
 
 -- --------------------------------------------------------
 -- Role-Permission Assignments
@@ -274,11 +279,11 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Module Paie
 (3, 200), (3, 201), (3, 202), (3, 203), (3, 204), (3, 205), (3, 206), (3, 207), (3, 208), (3, 209), (3, 210),
 -- Reporting
-(3, 220), (3, 221), (3, 222), (3, 223), (3, 224), (3, 225), (3, 226), (3, 227), (3, 228), (3, 229);
+(3, 220), (3, 221), (3, 222), (3, 223), (3, 224), (3, 225), (3, 226), (3, 227), (3, 228), (3, 229), (3, 240), (3, 241);
 
 -- Censeur (Academic Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(4, 1), (4, 40), (4, 51), (4, 61), (4, 62), (4, 73), (4, 75), (4, 76), (4, 67), (4, 68), (4, 170), (4, 171), (4, 181);
+(4, 1), (4, 40), (4, 51), (4, 61), (4, 62), (4, 73), (4, 75), (4, 76), (4, 67), (4, 68), (4, 170), (4, 171), (4, 181), (4, 240), (4, 241);
 
 -- Surveillant (Supervisor)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
@@ -286,7 +291,7 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 
 -- Enseignant (Teacher)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
-(6, 1), (6, 60), (6, 61), (6, 64), (6, 65), (6, 67), (6, 68);
+(6, 1), (6, 60), (6, 61), (6, 64), (6, 65), (6, 67), (6, 68), (6, 242);
 
 -- Comptable (Accountant)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
@@ -340,6 +345,7 @@ SELECT 11, p.id_permission
 FROM permissions p
 WHERE p.resource = 'drh'
    OR p.resource = 'paie'
+   OR p.resource = 'pedagogy'
    OR (p.resource = 'role' AND p.action = 'view_all')
    OR (p.resource = 'dashboard' AND p.action = 'view');
 
