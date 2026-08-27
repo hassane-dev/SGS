@@ -8,7 +8,7 @@ require_once __DIR__ . '/../src/models/PaieCahierTexteValidation.php';
 require_once __DIR__ . '/../src/models/PaieBulletinHeure.php';
 require_once __DIR__ . '/../src/models/PaieReglement.php';
 require_once __DIR__ . '/../src/models/PaieRegularisation.php';
-require_once __DIR__ . '/../src/models/EnseignantMatiere.php';
+require_once __DIR__ . '/../src/models/AffectationPedagogique.php';
 require_once __DIR__ . '/../src/models/Classe.php';
 require_once __DIR__ . '/../src/services/PaieCalculationEngine.php';
 require_once __DIR__ . '/../src/services/PaieWorkflowService.php';
@@ -47,7 +47,7 @@ $db->exec("DELETE FROM paie_cahier_texte_validations");
 $db->exec("DELETE FROM paie_bulletin_lignes");
 $db->exec("DELETE FROM paie_bulletins");
 $db->exec("DELETE FROM paie_periodes");
-$db->exec("DELETE FROM enseignant_matieres");
+$db->exec("DELETE FROM affectations_pedagogiques");
 $db->exec("DELETE FROM cahier_texte");
 $db->exec("DELETE FROM classes");
 $db->exec("DELETE FROM cycles");
@@ -79,16 +79,16 @@ $db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, identifiant
 $db->exec("INSERT INTO personnel_contrats_historique (id, personnel_id, type_contrat_id, date_debut, entite_juridique_id, mode_calcul_principal, salaire_base, devise, statut_contrat, version_num) VALUES (201, 101, 1, '2024-01-01', 1, 'horaire', 250000.00, 'FCFA', 'actif', 1) ON CONFLICT DO NOTHING");
 
 // Assign Teacher 101 to Terminale C 07 (Maths)
-$db->exec("INSERT INTO enseignant_matieres (id, enseignant_id, classe_id, matiere_id, annee_academique_id, actif) VALUES (1, 101, 10, 1, 1, 1) ON CONFLICT DO NOTHING");
+$db->exec("INSERT INTO affectations_pedagogiques (id, enseignant_id, classe_id, matiere_id, annee_academique_id, volume_horaire_hebdo, date_debut, date_fin, statut) VALUES (1, 101, 10, 1, 1, 4.0, '2024-09-01', NULL, 'actif') ON CONFLICT DO NOTHING");
 
 // --- TEST 1: Sélection Pédagogique Hiérarchique ---
 echo "\n--- TEST 1: Sélection Pédagogique Hiérarchique (Cycle -> Niveau -> Série -> Numéro -> Enseignants) ---\n";
-$teachersH = EnseignantMatiere::findTeachersByHierarchy(1, 1, 'Terminale', 'C', '7', 10);
+$teachersH = AffectationPedagogique::findTeachersByHierarchy(1, 1, 'Terminale', 'C', '7', 10);
 assert_test(count($teachersH) === 1 && (int)$teachersH[0]['id_user'] === 101, "La sélection hiérarchique retrouve uniquement Jean Dupont pour Terminale C - 07");
 
 // --- TEST 2: Cohérence d'Affectation Pédagogique ---
 echo "\n--- TEST 2: Cohérence d'Affectation (Enseignant non affecté exclu) ---\n";
-$teachersH2 = EnseignantMatiere::findTeachersByHierarchy(1, 1, 'Terminale', 'C', '7', 10);
+$teachersH2 = AffectationPedagogique::findTeachersByHierarchy(1, 1, 'Terminale', 'C', '7', 10);
 $foundUnassigned = false;
 foreach ($teachersH2 as $th) {
     if ((int)$th['id_user'] === 102) $foundUnassigned = true;

@@ -4,7 +4,7 @@ require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../models/PaieCahierTexteValidation.php';
 require_once __DIR__ . '/../models/PaiePeriode.php';
-require_once __DIR__ . '/../models/EnseignantMatiere.php';
+require_once __DIR__ . '/../models/AffectationPedagogique.php';
 require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Cycle.php';
 require_once __DIR__ . '/../models/User.php';
@@ -169,7 +169,7 @@ class PaieCahierTexteController {
 
         // Fetch teachers based on mode and active assignments
         if ($searchMode === 'pedagogique') {
-            $teachers = EnseignantMatiere::findTeachersByHierarchy($lyceeId, $cycleId, $niveau, $serie, $numero, $classeId, $matiereId);
+            $teachers = AffectationPedagogique::findTeachersByHierarchy($lyceeId, $cycleId, $niveau, $serie, $numero, $classeId, $matiereId);
             $sqlCtTeachers = "
                 SELECT DISTINCT u.id_user, u.nom, u.prenom, u.identifiant_public
                 FROM cahier_texte ct
@@ -196,7 +196,7 @@ class PaieCahierTexteController {
         } else {
             $teachers = User::findTeachers($lyceeId);
             if ($teacherId) {
-                $assignedClasses = EnseignantMatiere::findClassesForTeacher($teacherId, $lyceeId);
+                $assignedClasses = AffectationPedagogique::findClassesForTeacher($teacherId, $lyceeId);
                 if (!empty($assignedClasses)) {
                     $classes = $assignedClasses;
                 }
@@ -221,16 +221,16 @@ class PaieCahierTexteController {
         // Fetch subjects strictly based on assignment context
         $matieres = [];
         if ($teacherId && $classeId) {
-            $matieres = EnseignantMatiere::findSubjectsForTeacherInClass($teacherId, $classeId);
+            $matieres = AffectationPedagogique::findSubjectsForTeacherInClass($teacherId, $classeId);
         } elseif ($classeId) {
-            $matieres = EnseignantMatiere::findSubjectsForClass($classeId);
+            $matieres = AffectationPedagogique::findSubjectsForClass($classeId);
         } elseif ($teacherId) {
-            $matieres = EnseignantMatiere::findSubjectsForTeacher($teacherId);
+            $matieres = AffectationPedagogique::findSubjectsForTeacher($teacherId);
         } else {
             $stmtMat = $db->prepare("
                 SELECT DISTINCT m.*
                 FROM matieres m
-                JOIN enseignant_matieres em ON m.id_matiere = em.matiere_id
+                JOIN affectations_pedagogiques ap ON m.id_matiere = ap.matiere_id AND ap.statut = 'actif'
                 JOIN classes c ON em.classe_id = c.id_classe
                 WHERE c.lycee_id = :lycee_id
                 ORDER BY m.nom_matiere ASC
