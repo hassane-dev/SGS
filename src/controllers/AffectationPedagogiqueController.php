@@ -30,60 +30,17 @@ class AffectationPedagogiqueController {
 
     public function index() {
         $this->checkViewAccess();
-        $lycee_id = Auth::getLyceeId();
+        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::getLyceeId() : null;
         $user_id = Auth::getUserId();
 
-        require_once __DIR__ . '/../models/Cycle.php';
-        $cycles = Cycle::findByLycee($lycee_id);
-        if (empty($cycles)) {
-            $cycles = Cycle::findAll();
-        }
-
-        $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
-        $niveau = !empty($_GET['niveau']) ? trim($_GET['niveau']) : null;
-        $serie = !empty($_GET['serie']) ? trim($_GET['serie']) : null;
-        $numero = (isset($_GET['numero']) && $_GET['numero'] !== '') ? trim($_GET['numero']) : null;
-        $classe_id = !empty($_GET['classe_id']) ? (int)$_GET['classe_id'] : null;
-        $matiere_id = !empty($_GET['matiere_id']) ? (int)$_GET['matiere_id'] : null;
-        $enseignant_id = !empty($_GET['enseignant_id']) ? (int)$_GET['enseignant_id'] : null;
-        $statut = !empty($_GET['statut']) ? trim($_GET['statut']) : null;
-
-        // Dynamic level, series, number cascades for filter dropdowns
-        $niveaux = $cycle_id ? Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id) : Classe::getDistinctNiveaux($lycee_id);
-        $series = $niveau ? Classe::findDistinctSeriesByNiveau($niveau, $lycee_id, $cycle_id) : [];
-        $numeros = $niveau ? Classe::findAvailableNumeros($niveau, $serie, $lycee_id, $cycle_id) : [];
-
-        // Resolve classe_id automatically if hierarchy criteria are selected
-        if (!$classe_id && $niveau && $numero !== null && $numero !== '') {
-            $resolvedId = Classe::findIdByDetails($lycee_id, $niveau, $serie, $numero, $cycle_id);
-            if ($resolvedId) {
-                $classe_id = (int)$resolvedId;
-            }
-        }
-
-        // Fetch subjects based on context
-        $matieres = [];
-        if ($classe_id) {
-            $matieres = Matiere::findByClassId($classe_id);
-        } else {
-            $matieres = Matiere::findByLycee($lycee_id);
-        }
-
-        $enseignants = User::findTeachers($lycee_id);
-
         $filters = [
-            'lycee_id' => !Auth::can('view_all_lycees', 'lycee') ? $lycee_id : null,
-            'cycle_id' => $cycle_id,
-            'niveau' => $niveau,
-            'serie' => $serie,
-            'numero' => $numero,
-            'classe_id' => $classe_id,
-            'matiere_id' => $matiere_id,
-            'enseignant_id' => $enseignant_id,
-            'statut' => $statut,
+            'lycee_id' => $lycee_id,
+            'classe_id' => $_GET['classe_id'] ?? null,
+            'enseignant_id' => $_GET['enseignant_id'] ?? null,
+            'statut' => $_GET['statut'] ?? null,
         ];
 
-        // If user is teacher only (view_my_affectations), strictly constrain to their own user_id
+        // If user is teacher only (view_my_affectations), constrain to their own user_id
         if (!Auth::can('view_affectations', 'pedagogy') && !Auth::can('manage_affectations', 'pedagogy') && Auth::can('view_my_affectations', 'pedagogy')) {
             $filters['enseignant_id'] = $user_id;
         }
@@ -95,15 +52,11 @@ class AffectationPedagogiqueController {
 
         $affectations = AffectationPedagogique::findAll($filters);
         $classes = Classe::findAll($lycee_id);
+        $enseignants = User::findTeachers($lycee_id);
 
         View::render('affectations_pedagogiques/index', [
             'affectations' => $affectations,
-            'cycles' => $cycles,
-            'niveaux' => $niveaux,
-            'series' => $series,
-            'numeros' => $numeros,
             'classes' => $classes,
-            'matieres' => $matieres,
             'enseignants' => $enseignants,
             'active_year' => $active_year,
             'filters' => $filters,
