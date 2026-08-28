@@ -51,32 +51,92 @@
             <div class="col-12">
                 <div class="card mb-3">
                     <div class="card-body py-3">
-                        <form action="/affectations-pedagogiques" method="GET" class="row g-2 align-items-end">
-                            <div class="col-md-3">
-                                <label class="form-label small"><?= _('Classe') ?></label>
-                                <select name="classe_id" class="form-select form-select-sm">
-                                    <option value=""><?= _('-- Toutes les classes --') ?></option>
-                                    <?php foreach ($classes as $c): ?>
-                                        <option value="<?= $c['id_classe'] ?>" <?= (isset($filters['classe_id']) && $filters['classe_id'] == $c['id_classe']) ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars(Classe::getFormattedName($c)) ?>
+                        <form action="/affectations-pedagogiques" method="GET" class="row g-2 align-items-end" id="filterForm">
+                            <!-- Hidden resolved Class ID -->
+                            <input type="hidden" name="classe_id" id="filter_classe_id" value="<?= htmlspecialchars($filters['classe_id'] ?? '') ?>">
+
+                            <!-- Cycle -->
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold"><?= _('Cycle') ?></label>
+                                <select name="cycle_id" id="filter_cycle" class="form-select form-select-sm">
+                                    <option value=""><?= _('-- Tous les cycles --') ?></option>
+                                    <?php foreach ($cycles as $cy): ?>
+                                        <option value="<?= $cy['id_cycle'] ?>" <?= (isset($filters['cycle_id']) && $filters['cycle_id'] == $cy['id_cycle']) ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($cy['nom_cycle']) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label small"><?= _('Enseignant') ?></label>
-                                <select name="enseignant_id" class="form-select form-select-sm">
+
+                            <!-- Niveau -->
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold"><?= _('Niveau') ?></label>
+                                <select name="niveau" id="filter_niveau" class="form-select form-select-sm" <?= empty($filters['cycle_id']) && empty($niveaux) ? 'disabled' : '' ?>>
+                                    <option value=""><?= _('-- Tous les niveaux --') ?></option>
+                                    <?php foreach ($niveaux as $n): ?>
+                                        <option value="<?= htmlspecialchars($n) ?>" <?= (isset($filters['niveau']) && $filters['niveau'] === $n) ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($n) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <!-- Série -->
+                            <div class="col-md-2" id="group_filter_serie" style="<?= (!empty($series) || !empty($filters['serie'])) ? '' : 'display: none;' ?>">
+                                <label class="form-label small fw-bold"><?= _('Série') ?></label>
+                                <select name="serie" id="filter_serie" class="form-select form-select-sm" <?= empty($filters['niveau']) ? 'disabled' : '' ?>>
+                                    <option value=""><?= _('-- Toutes les séries --') ?></option>
+                                    <?php foreach ($series as $s): ?>
+                                        <option value="<?= htmlspecialchars($s) ?>" <?= (isset($filters['serie']) && $filters['serie'] === $s) ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($s) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <!-- Numéro / Division -->
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold"><?= _('Numéro / Div.') ?></label>
+                                <select name="numero" id="filter_numero" class="form-select form-select-sm" <?= empty($filters['niveau']) ? 'disabled' : '' ?>>
+                                    <option value=""><?= _('-- Tous --') ?></option>
+                                    <?php foreach ($numeros as $num): ?>
+                                        <option value="<?= htmlspecialchars($num) ?>" <?= (isset($filters['numero']) && (string)$filters['numero'] === (string)$num) ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($num) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <!-- Matière -->
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold"><?= _('Matière') ?></label>
+                                <select name="matiere_id" id="filter_matiere" class="form-select form-select-sm">
+                                    <option value=""><?= _('-- Toutes les matières --') ?></option>
+                                    <?php foreach ($matieres as $m): ?>
+                                        <option value="<?= $m['id_matiere'] ?>" <?= (isset($filters['matiere_id']) && $filters['matiere_id'] == $m['id_matiere']) ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($m['nom_matiere']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <!-- Enseignant -->
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold"><?= _('Enseignant') ?></label>
+                                <select name="enseignant_id" id="filter_enseignant" class="form-select form-select-sm">
                                     <option value=""><?= _('-- Tous les enseignants --') ?></option>
                                     <?php foreach ($enseignants as $e): ?>
                                         <option value="<?= $e['id_user'] ?>" <?= (isset($filters['enseignant_id']) && $filters['enseignant_id'] == $e['id_user']) ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($e['full_name']) ?>
+                                            <?= htmlspecialchars($e['full_name'] ?? ($e['prenom'] . ' ' . $e['nom'])) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label small"><?= _('Statut') ?></label>
-                                <select name="statut" class="form-select form-select-sm">
+
+                            <!-- Statut -->
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold"><?= _('Statut') ?></label>
+                                <select name="statut" id="filter_statut" class="form-select form-select-sm">
                                     <option value=""><?= _('-- Tous les statuts --') ?></option>
                                     <option value="actif" <?= (isset($filters['statut']) && $filters['statut'] === 'actif') ? 'selected' : '' ?>><?= _('Actif') ?></option>
                                     <option value="suspendu" <?= (isset($filters['statut']) && $filters['statut'] === 'suspendu') ? 'selected' : '' ?>><?= _('Suspendu') ?></option>
@@ -84,15 +144,154 @@
                                     <option value="termine" <?= (isset($filters['statut']) && $filters['statut'] === 'termine') ? 'selected' : '' ?>><?= _('Terminé') ?></option>
                                 </select>
                             </div>
-                            <div class="col-md-3 text-end">
-                                <button type="submit" class="btn btn-sm btn-secondary"><?= _('Filtrer') ?></button>
-                                <a href="/affectations-pedagogiques" class="btn btn-sm btn-link-secondary"><?= _('Réinitialiser') ?></a>
+
+                            <div class="col-md-2 text-end ms-auto">
+                                <button type="submit" class="btn btn-sm btn-primary me-1"><i class="ph-duotone ph-funnel me-1"></i><?= _('Filtrer') ?></button>
+                                <a href="/affectations-pedagogiques" class="btn btn-sm btn-outline-secondary"><?= _('Réinitialiser') ?></a>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterCycle = document.getElementById('filter_cycle');
+    const filterNiveau = document.getElementById('filter_niveau');
+    const groupSerie = document.getElementById('group_filter_serie');
+    const filterSerie = document.getElementById('filter_serie');
+    const filterNumero = document.getElementById('filter_numero');
+    const filterClasseId = document.getElementById('filter_classe_id');
+    const filterMatiere = document.getElementById('filter_matiere');
+    const filterEnseignant = document.getElementById('filter_enseignant');
+
+    function resetSelect(selectEl, defaultText) {
+        selectEl.innerHTML = `<option value="">${defaultText}</option>`;
+        selectEl.disabled = true;
+    }
+
+    // 1. Cycle Change -> Load Niveaux & Teachers
+    filterCycle.addEventListener('change', function() {
+        const cycleId = this.value;
+        resetSelect(filterNiveau, '-- Tous les niveaux --');
+        resetSelect(filterSerie, '-- Toutes les séries --');
+        resetSelect(filterNumero, '-- Tous --');
+        filterClasseId.value = '';
+
+        if (!cycleId) {
+            groupSerie.style.display = 'none';
+            // Fetch all levels for lycee
+            fetch(`/affectations-pedagogiques/get-niveaux`)
+                .then(res => res.json())
+                .then(data => {
+                    filterNiveau.disabled = false;
+                    data.forEach(niv => {
+                        filterNiveau.innerHTML += `<option value="${niv}">${niv}</option>`;
+                    });
+                });
+            return;
+        }
+
+        fetch(`/affectations-pedagogiques/get-niveaux?cycle_id=${cycleId}`)
+            .then(res => res.json())
+            .then(data => {
+                filterNiveau.disabled = false;
+                data.forEach(niv => {
+                    filterNiveau.innerHTML += `<option value="${niv}">${niv}</option>`;
+                });
+            });
+
+        fetch(`/affectations-pedagogiques/get-enseignants?cycle_id=${cycleId}`)
+            .then(res => res.json())
+            .then(teachers => {
+                filterEnseignant.innerHTML = '<option value="">-- Tous les enseignants --</option>';
+                teachers.forEach(t => {
+                    filterEnseignant.innerHTML += `<option value="${t.id_user}">${t.prenom} ${t.nom}</option>`;
+                });
+            });
+    });
+
+    // 2. Niveau Change -> Load Series or Numeros
+    filterNiveau.addEventListener('change', function() {
+        const niveau = this.value;
+        const cycleId = filterCycle.value;
+        resetSelect(filterSerie, '-- Toutes les séries --');
+        resetSelect(filterNumero, '-- Tous --');
+        filterClasseId.value = '';
+
+        if (!niveau) return;
+
+        fetch(`/affectations-pedagogiques/get-series?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}`)
+            .then(res => res.json())
+            .then(series => {
+                if (series && series.length > 0) {
+                    groupSerie.style.display = 'block';
+                    filterSerie.disabled = false;
+                    series.forEach(s => {
+                        filterSerie.innerHTML += `<option value="${s}">${s}</option>`;
+                    });
+                } else {
+                    groupSerie.style.display = 'none';
+                    fetch(`/affectations-pedagogiques/get-numeros?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}`)
+                        .then(res => res.json())
+                        .then(numeros => {
+                            filterNumero.disabled = false;
+                            numeros.forEach(n => {
+                                filterNumero.innerHTML += `<option value="${n}">${n}</option>`;
+                            });
+                        });
+                }
+            });
+    });
+
+    // 3. Serie Change -> Load Numeros
+    filterSerie.addEventListener('change', function() {
+        const niveau = filterNiveau.value;
+        const cycleId = filterCycle.value;
+        const serie = this.value;
+        resetSelect(filterNumero, '-- Tous --');
+        filterClasseId.value = '';
+
+        if (!serie) return;
+
+        fetch(`/affectations-pedagogiques/get-numeros?niveau=${encodeURIComponent(niveau)}&serie=${encodeURIComponent(serie)}&cycle_id=${cycleId}`)
+            .then(res => res.json())
+            .then(data => {
+                filterNumero.disabled = false;
+                data.forEach(n => {
+                    filterNumero.innerHTML += `<option value="${n}">${n}</option>`;
+                });
+            });
+    });
+
+    // 4. Numero Change -> Resolve Class ID & Load Subjects
+    filterNumero.addEventListener('change', function() {
+        const cycleId = filterCycle.value;
+        const niveau = filterNiveau.value;
+        const serie = (groupSerie.style.display !== 'none') ? filterSerie.value : '';
+        const numero = this.value;
+
+        if (!numero) return;
+
+        fetch(`/affectations-pedagogiques/get-classe-id?niveau=${encodeURIComponent(niveau)}&serie=${encodeURIComponent(serie)}&numero=${encodeURIComponent(numero)}&cycle_id=${cycleId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.id_classe) {
+                    filterClasseId.value = data.id_classe;
+                    fetch(`/affectations-pedagogiques/get-matieres?classe_id=${data.id_classe}`)
+                        .then(res => res.json())
+                        .then(matieres => {
+                            filterMatiere.innerHTML = '<option value="">-- Toutes les matières --</option>';
+                            matieres.forEach(m => {
+                                filterMatiere.innerHTML += `<option value="${m.id_matiere}">${m.nom_matiere}</option>`;
+                            });
+                        });
+                }
+            });
+    });
+});
+</script>
 
         <!-- [ Main Content ] start -->
         <div class="row">
