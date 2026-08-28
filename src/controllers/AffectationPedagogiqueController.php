@@ -30,15 +30,29 @@ class AffectationPedagogiqueController {
 
     public function index() {
         $this->checkViewAccess();
-        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::getLyceeId() : null;
+        $user_lycee_id = Auth::getLyceeId();
+        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? $user_lycee_id : null;
         $user_id = Auth::getUserId();
 
         $filters = [
             'lycee_id' => $lycee_id,
-            'classe_id' => $_GET['classe_id'] ?? null,
-            'enseignant_id' => $_GET['enseignant_id'] ?? null,
+            'cycle_id' => !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null,
+            'niveau' => $_GET['niveau'] ?? null,
+            'serie' => $_GET['serie'] ?? null,
+            'numero' => $_GET['numero'] ?? null,
+            'classe_id' => !empty($_GET['classe_id']) ? (int)$_GET['classe_id'] : null,
+            'matiere_id' => !empty($_GET['matiere_id']) ? (int)$_GET['matiere_id'] : null,
+            'enseignant_id' => !empty($_GET['enseignant_id']) ? (int)$_GET['enseignant_id'] : null,
             'statut' => $_GET['statut'] ?? null,
         ];
+
+        // Security assertion: if classe_id is given, verify it belongs to user's school
+        if (!empty($filters['classe_id']) && $filters['lycee_id']) {
+            $checkClass = Classe::findById($filters['classe_id']);
+            if (!$checkClass || (int)$checkClass['lycee_id'] !== (int)$filters['lycee_id']) {
+                $filters['classe_id'] = null;
+            }
+        }
 
         // If user is teacher only (view_my_affectations), constrain to their own user_id
         if (!Auth::can('view_affectations', 'pedagogy') && !Auth::can('manage_affectations', 'pedagogy') && Auth::can('view_my_affectations', 'pedagogy')) {
@@ -51,13 +65,16 @@ class AffectationPedagogiqueController {
         }
 
         $affectations = AffectationPedagogique::findAll($filters);
-        $classes = Classe::findAll($lycee_id);
-        $enseignants = User::findTeachers($lycee_id);
+
+        require_once __DIR__ . '/../models/Cycle.php';
+        $cycles = Cycle::findByLycee($user_lycee_id);
+        if (empty($cycles)) {
+            $cycles = Cycle::findAll();
+        }
 
         View::render('affectations_pedagogiques/index', [
             'affectations' => $affectations,
-            'classes' => $classes,
-            'enseignants' => $enseignants,
+            'cycles' => $cycles,
             'active_year' => $active_year,
             'filters' => $filters,
             'title' => _('Affectations Pédagogiques')
@@ -309,7 +326,19 @@ class AffectationPedagogiqueController {
         header('Content-Type: application/json');
         $classe_id = (int)($_GET['classe_id'] ?? 0);
         $exclude_id = !empty($_GET['exclude_assignment_id']) ? (int)$_GET['exclude_assignment_id'] : null;
-        $matieres = AffectationPedagogique::findAvailableSubjectsForClass($classe_id, $exclude_id);
+        $include_all = isset($_GET['include_all']) ? (bool)$_GET['include_all'] : false;
+
+        // Multi-tenant security check on class
+        $user_lycee_id = Auth::getLyceeId();
+        if ($classe_id && !Auth::can('view_all_lycees', 'lycee')) {
+            $classe = Classe::findById($classe_id);
+            if (!$classe || (int)$classe['lycee_id'] !== (int)$user_lycee_id) {
+                echo json_encode([]);
+                if (!defined('TEST_MODE')) exit(); return;
+            }
+        }
+
+        $matieres = AffectationPedagogique::findAvailableSubjectsForClass($classe_id, $exclude_id, $include_all);
         echo json_encode(array_values($matieres));
         if (!defined('TEST_MODE')) exit(); return;
     }
@@ -318,6 +347,17 @@ class AffectationPedagogiqueController {
         header('Content-Type: application/json');
         $lycee_id = Auth::getLyceeId();
         $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
+
+        // Multi-tenant check on cycle if provided
+        if ($cycle_id && !Auth::can('view_all_lycees', 'lycee')) {
+            require_once __DIR__ . '/../models/Cycle.php';
+            $cycle = Cycle::findById($cycle_id);
+            if (!$cycle || ($cycle['lycee_id'] !== null && (int)$cycle['lycee_id'] !== (int)$lycee_id)) {
+                echo json_encode([]);
+                if (!defined('TEST_MODE')) exit(); return;
+            }
+        }
+
         $teachers = AffectationPedagogique::findEligibleTeachers($lycee_id, $cycle_id);
         echo json_encode(array_values($teachers));
         if (!defined('TEST_MODE')) exit(); return;
