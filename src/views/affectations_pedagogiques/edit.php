@@ -10,13 +10,13 @@
                 <div class="row align-items-center">
                     <div class="col-md-8">
                         <div class="page-header-title">
-                            <h2 class="mb-0"><?= _('Nouvelle Affectation Pédagogique') ?></h2>
+                            <h2 class="mb-0"><?= _('Modifier / Corriger l\'Affectation Pédagogique') ?></h2>
                         </div>
                     </div>
                     <div class="col-md-4 text-md-end">
                         <a href="/affectations-pedagogiques" class="btn btn-outline-secondary">
                             <i class="ph-duotone ph-arrow-left me-1"></i>
-                            <?= _('Retour à la liste') ?>
+                            <?= _('Retour au registre') ?>
                         </a>
                     </div>
                 </div>
@@ -29,7 +29,7 @@
             <div class="col-lg-9 mx-auto">
                 <div class="card">
                     <div class="card-header">
-                        <h5><?= _('Sélection Hiérarchique de l\'Affectation') ?> (<?= htmlspecialchars($active_year['libelle'] ?? '') ?>)</h5>
+                        <h5><?= _('Édition de l\'Affectation #') . htmlspecialchars($affectation['id']) ?> (<?= htmlspecialchars($affectation['annee_libelle'] ?? '') ?>)</h5>
                     </div>
                     <div class="card-body">
                         <?php if (isset($_SESSION['error_message'])): ?>
@@ -40,9 +40,15 @@
                             </div>
                         <?php endif; ?>
 
-                        <form action="/affectations-pedagogiques/store" method="POST" id="affectationForm">
+                        <div class="alert alert-info py-2 mb-3">
+                            <i class="ph-duotone ph-info me-2"></i>
+                            <?= _('Règle d\'historisation : Si vous modifiez l\'enseignant, la classe ou la matière, l\'ancienne affectation sera clôturée dans l\'historique et une nouvelle affectation sera créée.') ?>
+                        </div>
+
+                        <form action="/affectations-pedagogiques/update" method="POST" id="editAffectationForm">
+                            <input type="hidden" name="id" value="<?= htmlspecialchars($affectation['id']) ?>">
                             <!-- Hidden resolved Class ID -->
-                            <input type="hidden" name="classe_id" id="classe_id" value="">
+                            <input type="hidden" name="classe_id" id="classe_id" value="<?= htmlspecialchars($affectation['classe_id']) ?>">
 
                             <div class="card bg-light mb-3">
                                 <div class="card-body">
@@ -55,7 +61,7 @@
                                             <select id="select_cycle" class="form-select" required>
                                                 <option value=""><?= _('-- Choisir --') ?></option>
                                                 <?php foreach ($cycles as $cy): ?>
-                                                    <option value="<?= $cy['id_cycle'] ?>" data-nom="<?= htmlspecialchars(strtolower($cy['nom_cycle'])) ?>">
+                                                    <option value="<?= $cy['id_cycle'] ?>" data-nom="<?= htmlspecialchars(strtolower($cy['nom_cycle'])) ?>" <?= ((int)($affectation['cycle_id'] ?? 0) === (int)$cy['id_cycle']) ? 'selected' : '' ?>>
                                                         <?= htmlspecialchars($cy['nom_cycle']) ?>
                                                     </option>
                                                 <?php endforeach; ?>
@@ -65,31 +71,35 @@
                                         <!-- Niveau -->
                                         <div class="col-md-3 mb-3">
                                             <label for="select_niveau" class="form-label"><?= _('Niveau') ?> <span class="text-danger">*</span></label>
-                                            <select id="select_niveau" class="form-select" disabled required>
-                                                <option value=""><?= _('-- Choisir Cycle --') ?></option>
+                                            <select id="select_niveau" class="form-select" required>
+                                                <option value="<?= htmlspecialchars($affectation['niveau']) ?>" selected><?= htmlspecialchars($affectation['niveau']) ?></option>
                                             </select>
                                         </div>
 
-                                        <!-- Série (Lycée only) -->
-                                        <div class="col-md-3 mb-3" id="group_serie" style="display: none;">
-                                            <label for="select_serie" class="form-label"><?= _('Série') ?> <span class="text-danger">*</span></label>
-                                            <select id="select_serie" class="form-select" disabled>
-                                                <option value=""><?= _('-- Choisir Niveau --') ?></option>
+                                        <!-- Série -->
+                                        <div class="col-md-3 mb-3" id="group_serie" style="<?= !empty($affectation['serie']) ? '' : 'display: none;' ?>">
+                                            <label for="select_serie" class="form-label"><?= _('Série') ?></label>
+                                            <select id="select_serie" class="form-select">
+                                                <?php if (!empty($affectation['serie'])): ?>
+                                                    <option value="<?= htmlspecialchars($affectation['serie']) ?>" selected><?= htmlspecialchars($affectation['serie']) ?></option>
+                                                <?php else: ?>
+                                                    <option value=""><?= _('-- Aucune --') ?></option>
+                                                <?php endif; ?>
                                             </select>
                                         </div>
 
                                         <!-- Numéro -->
                                         <div class="col-md-3 mb-3">
                                             <label for="select_numero" class="form-label"><?= _('Numéro / Division') ?> <span class="text-danger">*</span></label>
-                                            <select id="select_numero" class="form-select" disabled required>
-                                                <option value=""><?= _('-- Choisir Etape --') ?></option>
+                                            <select id="select_numero" class="form-select" required>
+                                                <option value="<?= htmlspecialchars($affectation['numero']) ?>" selected><?= htmlspecialchars($affectation['numero']) ?></option>
                                             </select>
                                         </div>
                                     </div>
 
-                                    <div id="classe_status_badge" class="alert alert-secondary py-2 mb-0 d-flex align-items-center">
-                                        <i class="ph-duotone ph-info me-2 fs-5"></i>
-                                        <span id="classe_status_text"><?= _('Veuillez sélectionner le cycle et le niveau pour déterminer la classe.') ?></span>
+                                    <div id="classe_status_badge" class="alert alert-success py-2 mb-0 d-flex align-items-center">
+                                        <i class="ph-duotone ph-check-circle me-2 fs-5"></i>
+                                        <span id="classe_status_text"><strong>Classe actuelle :</strong> <?= htmlspecialchars($affectation['niveau'] . ' ' . ($affectation['serie'] ?? '') . ' ' . $affectation['numero']) ?> (ID #<?= htmlspecialchars($affectation['classe_id']) ?>)</span>
                                     </div>
                                 </div>
                             </div>
@@ -97,34 +107,42 @@
                             <div class="row">
                                 <!-- Matière -->
                                 <div class="col-md-6 mb-3">
-                                    <label for="matiere_id" class="form-label"><?= _('Matière Disponible') ?> <span class="text-danger">*</span></label>
-                                    <select name="matiere_id" id="matiere_id" class="form-select" disabled required>
-                                        <option value=""><?= _('-- Déterminer d\'abord la classe --') ?></option>
+                                    <label for="matiere_id" class="form-label"><?= _('Matière') ?> <span class="text-danger">*</span></label>
+                                    <select name="matiere_id" id="matiere_id" class="form-select" required>
+                                        <?php foreach ($matieres as $m): ?>
+                                            <option value="<?= $m['id_matiere'] ?>" <?= ((int)$m['id_matiere'] === (int)$affectation['matiere_id']) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($m['nom_matiere']) ?>
+                                            </option>
+                                        <?php endforeach; ?>
                                     </select>
-                                    <small class="form-text text-muted"><?= _('Seules les matières inscrites au programme et NON ENCORE attribuées (actives) apparaissent.') ?></small>
                                 </div>
 
                                 <!-- Enseignant -->
                                 <div class="col-md-6 mb-3">
-                                    <label for="enseignant_id" class="form-label"><?= _('Enseignant Éligible') ?> <span class="text-danger">*</span></label>
-                                    <select name="enseignant_id" id="enseignant_id" class="form-select" disabled required>
-                                        <option value=""><?= _('-- Choisir d\'abord la matière --') ?></option>
+                                    <label for="enseignant_id" class="form-label"><?= _('Enseignant Titulaire') ?> <span class="text-danger">*</span></label>
+                                    <select name="enseignant_id" id="enseignant_id" class="form-select" required>
+                                        <?php foreach ($enseignants as $t): ?>
+                                            <option value="<?= $t['id_user'] ?>" <?= ((int)$t['id_user'] === (int)$affectation['enseignant_id']) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($t['prenom'] . ' ' . $t['nom'] . ' (' . ($t['identifiant_public'] ?? 'ENS') . ')') ?>
+                                            </option>
+                                        <?php endforeach; ?>
                                     </select>
-                                    <small class="form-text text-muted"><?= _('Filtre les enseignants autorisés sur le cycle et statut actif.') ?></small>
                                 </div>
                             </div>
 
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="volume_horaire_hebdo" class="form-label"><?= _('Volume Horaire Hebdomadaire (heures)') ?></label>
-                                    <input type="number" step="0.5" min="0" name="volume_horaire_hebdo" id="volume_horaire_hebdo" class="form-control" value="2.0">
+                                    <input type="number" step="0.5" min="0" name="volume_horaire_hebdo" id="volume_horaire_hebdo" class="form-control" value="<?= htmlspecialchars($affectation['volume_horaire_hebdo']) ?>">
                                 </div>
 
                                 <div class="col-md-6 mb-3">
-                                    <label for="statut" class="form-label"><?= _('Statut Initial') ?></label>
+                                    <label for="statut" class="form-label"><?= _('Statut') ?></label>
                                     <select name="statut" id="statut" class="form-select">
-                                        <option value="actif" selected><?= _('Actif (Titulaire en poste - Bloque le créneau)') ?></option>
-                                        <option value="provisoire"><?= _('Provisoire (En attente validation - Non bloquant)') ?></option>
+                                        <option value="actif" <?= ($affectation['statut'] === 'actif') ? 'selected' : '' ?>><?= _('Actif') ?></option>
+                                        <option value="suspendu" <?= ($affectation['statut'] === 'suspendu') ? 'selected' : '' ?>><?= _('Suspendu') ?></option>
+                                        <option value="provisoire" <?= ($affectation['statut'] === 'provisoire') ? 'selected' : '' ?>><?= _('Provisoire') ?></option>
+                                        <option value="termine" <?= ($affectation['statut'] === 'termine') ? 'selected' : '' ?>><?= _('Terminé') ?></option>
                                     </select>
                                 </div>
                             </div>
@@ -132,23 +150,23 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="date_debut" class="form-label"><?= _('Date d\'effet / Début') ?> <span class="text-danger">*</span></label>
-                                    <input type="date" name="date_debut" id="date_debut" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                                    <input type="date" name="date_debut" id="date_debut" class="form-control" value="<?= htmlspecialchars($affectation['date_debut']) ?>" required>
                                 </div>
 
                                 <div class="col-md-6 mb-3">
-                                    <label for="date_fin" class="form-label"><?= _('Date de fin (Optionnelle / Remplacement)') ?></label>
-                                    <input type="date" name="date_fin" id="date_fin" class="form-control">
+                                    <label for="date_fin" class="form-label"><?= _('Date de fin (Optionnelle)') ?></label>
+                                    <input type="date" name="date_fin" id="date_fin" class="form-control" value="<?= htmlspecialchars($affectation['date_fin'] ?? '') ?>">
                                 </div>
                             </div>
 
                             <div class="mb-3">
-                                <label for="motif_changement" class="form-label"><?= _('Commentaire / Motif') ?></label>
-                                <textarea name="motif_changement" id="motif_changement" class="form-control" rows="2" placeholder="<?= _('Titulariat initial, remplacement, etc.') ?>"></textarea>
+                                <label for="motif_changement" class="form-label"><?= _('Commentaire / Motif de la modification') ?></label>
+                                <textarea name="motif_changement" id="motif_changement" class="form-control" rows="2" placeholder="<?= _('Raison de la correction ou de la réaffectation...') ?>"><?= htmlspecialchars($affectation['motif_changement'] ?? '') ?></textarea>
                             </div>
 
                             <div class="text-end">
                                 <a href="/affectations-pedagogiques" class="btn btn-link-secondary me-2"><?= _('Annuler') ?></a>
-                                <button type="submit" id="btn_submit" class="btn btn-primary" disabled><?= _('Enregistrer l\'affectation') ?></button>
+                                <button type="submit" id="btn_submit" class="btn btn-primary"><?= _('Enregistrer la modification') ?></button>
                             </div>
                         </form>
                     </div>
@@ -172,8 +190,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const statusText = document.getElementById('classe_status_text');
     const statusBadge = document.getElementById('classe_status_badge');
     const btnSubmit = document.getElementById('btn_submit');
+    const currentAssignmentId = "<?= htmlspecialchars($affectation['id']) ?>";
 
-    // Reset dependent dropdown
     function resetSelect(selectEl, defaultText) {
         selectEl.innerHTML = `<option value="">${defaultText}</option>`;
         selectEl.disabled = true;
@@ -182,9 +200,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // 1. Cycle Change -> Load Niveaux
     selectCycle.addEventListener('change', function() {
         const cycleId = this.value;
-        const selectedOpt = this.options[this.selectedIndex];
-        const cycleNom = selectedOpt ? (selectedOpt.getAttribute('data-nom') || '').toLowerCase() : '';
-
         resetSelect(selectNiveau, '-- Choisir Niveau --');
         resetSelect(selectSerie, '-- Choisir Série --');
         resetSelect(selectNumero, '-- Choisir Numéro --');
@@ -209,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     });
 
-    // 2. Niveau Change -> Check Series & Load Series or Numeros
+    // 2. Niveau Change -> Load Series or Numeros
     selectNiveau.addEventListener('change', function() {
         const niveau = this.value;
         const cycleId = selectCycle.value;
@@ -222,7 +237,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!niveau) return;
 
-        // Fetch available series for this level/cycle first to determine if Serie dropdown should be shown
         fetch(`/affectations-pedagogiques/get-series?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}`)
             .then(res => res.json())
             .then(series => {
@@ -234,7 +248,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         selectSerie.innerHTML += `<option value="${s}">${s}</option>`;
                     });
                 } else {
-                    // No series for this level -> hide series and fetch numeros directly
                     groupSerie.style.display = 'none';
                     selectSerie.required = false;
                     fetch(`/affectations-pedagogiques/get-numeros?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}`)
@@ -293,8 +306,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     statusBadge.className = 'alert alert-success py-2 mb-0 d-flex align-items-center';
                     statusText.innerHTML = `<strong>Classe identifiée :</strong> ${niveau} ${serie ? serie + ' ' : ''} - ${numero} (ID #${data.id_classe})`;
 
-                    // Load Available Subjects for this Class
-                    fetch(`/affectations-pedagogiques/get-matieres?classe_id=${data.id_classe}`)
+                    // Load Available Subjects for this Class (excluding current assignment ID so its subject remains available)
+                    fetch(`/affectations-pedagogiques/get-matieres?classe_id=${data.id_classe}&exclude_assignment_id=${currentAssignmentId}`)
                         .then(res => res.json())
                         .then(matieres => {
                             selectMatiere.innerHTML = '<option value="">-- Choisir une matière disponible --</option>';

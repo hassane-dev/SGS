@@ -288,8 +288,9 @@ class AffectationPedagogique {
     /**
      * Find subjects in a class that are available for a new assignment
      * (i.e. not currently occupied by an 'actif' or 'suspendu' assignment).
+     * Optionally exclude a specific assignment ID (e.g., when editing).
      */
-    public static function findAvailableSubjectsForClass(int $classeId): array {
+    public static function findAvailableSubjectsForClass(int $classeId, ?int $excludeAssignmentId = null): array {
         $db = Database::getInstance();
         $active_year = AnneeAcademique::findActive();
         if (!$active_year) return [];
@@ -305,16 +306,25 @@ class AffectationPedagogique {
                 WHERE ap.classe_id = :classe_id2
                 AND ap.annee_academique_id = :annee_id
                 AND ap.statut IN ('actif', 'suspendu')
+        ";
+        $params = [
+            'classe_id' => $classeId,
+            'classe_id2' => $classeId,
+            'annee_id' => $active_year['id']
+        ];
+
+        if ($excludeAssignmentId) {
+            $sql .= " AND ap.id != :exclude_id";
+            $params['exclude_id'] = $excludeAssignmentId;
+        }
+
+        $sql .= "
             )
             ORDER BY m.nom_matiere ASC
         ";
         try {
             $stmt = $db->prepare($sql);
-            $stmt->execute([
-                'classe_id' => $classeId,
-                'classe_id2' => $classeId,
-                'annee_id' => $active_year['id']
-            ]);
+            $stmt->execute($params);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Error in AffectationPedagogique::findAvailableSubjectsForClass: " . $e->getMessage());

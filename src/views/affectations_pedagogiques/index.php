@@ -153,6 +153,9 @@
                                                 </td>
                                                 <td class="text-end">
                                                     <?php if (Auth::can('manage_affectations', 'pedagogy')): ?>
+                                                        <a href="/affectations-pedagogiques/edit?id=<?= $aff['id'] ?>" class="btn btn-sm btn-outline-primary me-1" title="<?= _('Modifier / Corriger l\'affectation') ?>">
+                                                            <i class="ph-duotone ph-pencil me-1"></i><?= _('Modifier') ?>
+                                                        </a>
                                                         <?php if ($aff['statut'] === 'actif'): ?>
                                                             <form action="/affectations-pedagogiques/suspend" method="POST" class="d-inline-block" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir suspendre cette affectation ?') ?>');">
                                                                 <input type="hidden" name="id" value="<?= $aff['id'] ?>">
@@ -167,8 +170,6 @@
                                                                 <input type="hidden" name="id" value="<?= $aff['id'] ?>">
                                                                 <button type="submit" class="btn btn-sm btn-success me-1" title="<?= _('Réactiver l\'affectation') ?>"><?= _('Réactiver') ?></button>
                                                             </form>
-                                                        <?php else: ?>
-                                                            <span class="text-muted small">-</span>
                                                         <?php endif; ?>
                                                     <?php else: ?>
                                                         <span class="text-muted small">-</span>

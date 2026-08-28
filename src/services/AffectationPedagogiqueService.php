@@ -302,6 +302,162 @@ class AffectationPedagogiqueService {
     }
 
     /**
+     * Update/Modify an assignment respecting historization rules.
+     * If structural data (enseignant_id, classe_id, matiere_id) changes:
+     *   - The old assignment is closed ('termine', date_fin = new date_debut - 1 day)
+     *   - A new assignment is created with the updated structural data.
+     * If non-structural data changes (volume_horaire, dates, statut, motif):
+     *   - Updated in place after verifying all invariant and overlap checks.
+     */
+    public static function updateAssignment(int $assignment_id, array $data, int $author_id): int {
+        $db = Database::getInstance();
+        $old = AffectationPedagogique::findById($assignment_id);
+        if (!$old) {
+            throw new InvalidArgumentException(_("Affectation à modifier introuvable."));
+        }
+
+        AuthorizationScopeService::assertAccessToObject($old['lycee_id']);
+
+        $new_enseignant_id = !empty($data['enseignant_id']) ? (int)$data['enseignant_id'] : (int)$old['enseignant_id'];
+        $new_classe_id = !empty($data['classe_id']) ? (int)$data['classe_id'] : (int)$old['classe_id'];
+        $new_matiere_id = !empty($data['matiere_id']) ? (int)$data['matiere_id'] : (int)$old['matiere_id'];
+
+        $is_structural_change = ($new_enseignant_id !== (int)$old['enseignant_id'])
+                             || ($new_classe_id !== (int)$old['classe_id'])
+                             || ($new_matiere_id !== (int)$old['matiere_id']);
+
+        $in_existing_transaction = $db->inTransaction();
+
+        try {
+            if (!$in_existing_transaction) {
+                $db->beginTransaction();
+            }
+
+            if ($is_structural_change) {
+                // Historization: Close existing assignment and create new assignment
+                $new_start_date = !empty($data['date_debut']) ? $data['date_debut'] : date('Y-m-d');
+                $effective_end_date = date('Y-m-d', strtotime($new_start_date . ' -1 day'));
+
+                $close_motif = $data['motif_changement'] ?? 'Modification structurante de l\'affectation (clôture de l\'historique)';
+                self::updateStatus($assignment_id, 'termine', $close_motif, $effective_end_date, $author_id);
+
+                $create_data = array_merge($data, [
+                    'enseignant_id' => $new_enseignant_id,
+                    'classe_id' => $new_classe_id,
+                    'matiere_id' => $new_matiere_id,
+                    'date_debut' => $new_start_date,
+                    'statut' => !empty($data['statut']) ? $data['statut'] : 'actif',
+                ]);
+
+                $new_id = self::createAssignment($create_data, $author_id);
+
+                if (!$in_existing_transaction) {
+                    $db->commit();
+                }
+                return $new_id;
+
+            } else {
+                // Non-structural update in place with full validation and overlap lock
+                $volume_horaire = isset($data['volume_horaire_hebdo']) ? (float)$data['volume_horaire_hebdo'] : (float)$old['volume_horaire_hebdo'];
+                $statut = !empty($data['statut']) ? $data['statut'] : $old['statut'];
+                $date_debut = !empty($data['date_debut']) ? $data['date_debut'] : $old['date_debut'];
+                $date_fin = array_key_exists('date_fin', $data) ? ($data['date_fin'] ?: null) : $old['date_fin'];
+                $motif = $data['motif_changement'] ?? $old['motif_changement'];
+
+                if ($date_fin && strtotime($date_fin) < strtotime($date_debut)) {
+                    throw new InvalidArgumentException(_("La date de fin ne peut pas être antérieure à la date de début."));
+                }
+
+                // Verify cycle assignment coverage if date_debut/date_fin changed
+                $classe = Classe::findById($new_classe_id);
+                if ($classe && $classe['cycle_id']) {
+                    $end_date_comp = $date_fin ?: '2099-12-31';
+                    $stmt_cycle = $db->prepare("
+                        SELECT COUNT(*) FROM personnel_cycles_assignments
+                        WHERE personnel_id = :p AND cycle_id = :c AND actif = 1
+                        AND date_debut <= :start_date
+                        AND (date_fin IS NULL OR date_fin >= :end_date)
+                    ");
+                    $stmt_cycle->execute([
+                        'p' => $new_enseignant_id,
+                        'c' => $classe['cycle_id'],
+                        'start_date' => $date_debut,
+                        'end_date' => $end_date_comp
+                    ]);
+                    if ((int)$stmt_cycle->fetchColumn() === 0) {
+                        throw new InvalidArgumentException(_("L'enseignant n'a pas d'affectation de cycle valide couvrant la période demandée pour cette classe."));
+                    }
+                }
+
+                // Check overlap against other assignments (excluding current ID)
+                if ($statut === 'actif' || $statut === 'suspendu') {
+                    $lock_sql = "
+                        SELECT * FROM affectations_pedagogiques
+                        WHERE classe_id = :c AND matiere_id = :m AND annee_academique_id = :a
+                        AND id != :id AND statut IN ('actif', 'suspendu')
+                    ";
+                    if ($db->getAttribute(PDO::ATTR_DRIVER_NAME) !== 'sqlite') {
+                        $lock_sql .= " FOR UPDATE";
+                    }
+                    $stmt_lock = $db->prepare($lock_sql);
+                    $stmt_lock->execute([
+                        'c' => $new_classe_id,
+                        'm' => $new_matiere_id,
+                        'a' => $old['annee_academique_id'],
+                        'id' => $assignment_id
+                    ]);
+                    $existing_assignments = $stmt_lock->fetchAll(PDO::FETCH_ASSOC);
+
+                    foreach ($existing_assignments as $existing) {
+                        $ex_start = $existing['date_debut'] ?? '1970-01-01';
+                        $ex_end = $existing['date_fin'] ?? '2099-12-31';
+                        $new_start = $date_debut;
+                        $new_end = $date_fin ?: '2099-12-31';
+
+                        if (max($new_start, $ex_start) <= min($new_end, $ex_end)) {
+                            if (!$in_existing_transaction) {
+                                $db->rollBack();
+                            }
+                            throw new InvalidArgumentException(_("Conflit de chevauchement : Un enseignant actif/suspendu est déjà affecté à ce cours sur cette période."));
+                        }
+                    }
+                }
+
+                $update_sql = "
+                    UPDATE affectations_pedagogiques SET
+                        volume_horaire_hebdo = :vol,
+                        date_debut = :date_debut,
+                        date_fin = :date_fin,
+                        statut = :statut,
+                        motif_changement = :motif,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = :id
+                ";
+                $stmt_upd = $db->prepare($update_sql);
+                $stmt_upd->execute([
+                    'vol' => $volume_horaire,
+                    'date_debut' => $date_debut,
+                    'date_fin' => $date_fin,
+                    'statut' => $statut,
+                    'motif' => $motif,
+                    'id' => $assignment_id
+                ]);
+
+                if (!$in_existing_transaction) {
+                    $db->commit();
+                }
+                return $assignment_id;
+            }
+
+        } catch (Exception $e) {
+            if (!$in_existing_transaction && $db->inTransaction()) {
+                $db->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    /**
      * Replace an active teacher with a new teacher without overwriting history.
      */
     public static function replaceAssignment(int $old_assignment_id, array $new_data, int $author_id): int {

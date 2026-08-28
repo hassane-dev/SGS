@@ -259,6 +259,62 @@ try {
     exit(1);
 }
 
+// --- TEST 10: Edit/Update Assignment with Historization vs In-place ---
+echo "
+TEST 10: Édition / Modification avec historization vs modification en place
+";
+try {
+    // Non-structural update (volume_horaire) on $replaced_id -> in-place update
+    $updated_same_id = AffectationPedagogiqueService::updateAssignment($replaced_id, [
+        'volume_horaire_hebdo' => 5.5,
+        'date_debut' => '2024-12-01',
+        'statut' => 'actif',
+        'motif_changement' => 'Ajustement horaire'
+    ], 1);
+
+    if ($updated_same_id === $replaced_id) {
+        $check = AffectationPedagogique::findById($replaced_id);
+        if ((float)$check['volume_horaire_hebdo'] === 5.5) {
+            echo "  -> Modification non-structurante réussie en place (ID #$replaced_id, 5.5h) | PASS
+";
+        } else {
+            echo "  -> ECHEC de la mise à jour du volume horaire
+";
+            exit(1);
+        }
+    } else {
+        echo "  -> ECHEC: L'ID aurait dû rester identique
+";
+        exit(1);
+    }
+
+    // Structural update (Teacher change from Alpha 9901 to Beta 9902) -> historization
+    $new_edited_id = AffectationPedagogiqueService::updateAssignment($replaced_id, [
+        'enseignant_id' => 9902,
+        'volume_horaire_hebdo' => 5.5,
+        'date_debut' => '2024-12-15',
+        'statut' => 'actif',
+        'motif_changement' => 'Correction titulaire via édition'
+    ], 1);
+
+    $old_edited = AffectationPedagogique::findById($replaced_id);
+    $new_edited = AffectationPedagogique::findById($new_edited_id);
+
+    if ($new_edited_id !== $replaced_id && $old_edited['statut'] === 'termine' && $new_edited['statut'] === 'actif' && $new_edited['enseignant_id'] == 9902) {
+        echo "  -> Modification structurante historisée avec succès (Ancienne #$replaced_id terminée, nouvelle #$new_edited_id créée) | PASS
+";
+    } else {
+        echo "  -> ECHEC de l'historisation lors d'une modification structurante via edit
+";
+        exit(1);
+    }
+
+} catch (Exception $e) {
+    echo "  -> ECHEC: " . $e->getMessage() . "
+";
+    exit(1);
+}
+
 // Cleanup mock test data
 $db->exec("DELETE FROM affectations_pedagogiques WHERE classe_id >= 9900");
 $db->exec("DELETE FROM classe_matieres WHERE classe_id >= 9900");

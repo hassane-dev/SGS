@@ -452,6 +452,8 @@ $router->register('/param-composition/update', 'ParamCompositionController', 'up
 $router->register('/affectations-pedagogiques', 'AffectationPedagogiqueController', 'index');
 $router->register('/affectations-pedagogiques/create', 'AffectationPedagogiqueController', 'create');
 $router->register('/affectations-pedagogiques/store', 'AffectationPedagogiqueController', 'store');
+$router->register('/affectations-pedagogiques/edit', 'AffectationPedagogiqueController', 'edit');
+$router->register('/affectations-pedagogiques/update', 'AffectationPedagogiqueController', 'update');
 $router->register('/affectations-pedagogiques/suspend', 'AffectationPedagogiqueController', 'suspend');
 $router->register('/affectations-pedagogiques/terminate', 'AffectationPedagogiqueController', 'terminate');
 $router->register('/affectations-pedagogiques/history', 'AffectationPedagogiqueController', 'history');
