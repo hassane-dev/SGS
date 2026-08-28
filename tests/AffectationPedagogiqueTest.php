@@ -186,6 +186,79 @@ if (count($alpha_assignments) === 0 && count($beta_assignments) === 1 && $beta_a
     exit(1);
 }
 
+
+// --- TEST 7: Filtering Available Subjects for Class ---
+echo "
+TEST 7: Filtrage des matières disponibles (Math99 affectée à Prof Beta -> exclue)
+";
+$avail_matieres = AffectationPedagogique::findAvailableSubjectsForClass(9910);
+$avail_ids = array_column($avail_matieres, 'id_matiere');
+if (!in_array(9901, $avail_ids)) {
+    echo "  -> Attendu: Math99 (9901) est exclue car déjà affectée à Prof Beta | PASS
+";
+} else {
+    echo "  -> ECHEC: Math99 est restée dans la liste des matières disponibles
+";
+    exit(1);
+}
+
+// --- TEST 8: Suspension and Reactivation Workflow ---
+echo "
+TEST 8: Suspension puis réactivation de l'affectation de Prof Beta
+";
+try {
+    // Suspend
+    AffectationPedagogiqueService::updateStatus($new_aff_id, 'suspendu', 'Absence maladie', null, 1);
+
+    // Attempt reactivation
+    AffectationPedagogiqueService::reactivateAssignment($new_aff_id, 1);
+
+    $reloaded = AffectationPedagogique::findById($new_aff_id);
+    if ($reloaded['statut'] === 'actif') {
+        echo "  -> Réactivation réussie avec statut 'actif' | PASS
+";
+    } else {
+        echo "  -> ECHEC de la réactivation
+";
+        exit(1);
+    }
+} catch (Exception $e) {
+    echo "  -> ECHEC: " . $e->getMessage() . "
+";
+    exit(1);
+}
+
+// --- TEST 9: Replacement Workflow without History Loss ---
+echo "
+TEST 9: Remplacement de Prof Beta par Prof Alpha sans perte d'historique
+";
+try {
+    // Replace Beta (9902) with Alpha (9901) starting 2024-12-01
+    $replaced_id = AffectationPedagogiqueService::replaceAssignment($new_aff_id, [
+        'enseignant_id' => 9901,
+        'volume_horaire_hebdo' => 4.0,
+        'date_debut' => '2024-12-01',
+        'statut' => 'actif',
+        'motif_changement' => 'Remplacement définitif'
+    ], 1);
+
+    $old_aff = AffectationPedagogique::findById($new_aff_id);
+    $new_aff = AffectationPedagogique::findById($replaced_id);
+
+    if ($old_aff['statut'] === 'termine' && $new_aff['statut'] === 'actif' && $new_aff['enseignant_id'] == 9901) {
+        echo "  -> Remplacement réussi : Ancienne affectation terminée le {$old_aff['date_fin']}, nouvelle créée (#$replaced_id) | PASS
+";
+    } else {
+        echo "  -> ECHEC du remplacement historisé
+";
+        exit(1);
+    }
+} catch (Exception $e) {
+    echo "  -> ECHEC: " . $e->getMessage() . "
+";
+    exit(1);
+}
+
 // Cleanup mock test data
 $db->exec("DELETE FROM affectations_pedagogiques WHERE classe_id >= 9900");
 $db->exec("DELETE FROM classe_matieres WHERE classe_id >= 9900");

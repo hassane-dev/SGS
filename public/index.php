@@ -455,6 +455,14 @@ $router->register('/affectations-pedagogiques/store', 'AffectationPedagogiqueCon
 $router->register('/affectations-pedagogiques/suspend', 'AffectationPedagogiqueController', 'suspend');
 $router->register('/affectations-pedagogiques/terminate', 'AffectationPedagogiqueController', 'terminate');
 $router->register('/affectations-pedagogiques/history', 'AffectationPedagogiqueController', 'history');
+$router->register('/affectations-pedagogiques/get-niveaux', 'AffectationPedagogiqueController', 'getNiveaux');
+$router->register('/affectations-pedagogiques/get-series', 'AffectationPedagogiqueController', 'getSeries');
+$router->register('/affectations-pedagogiques/get-numeros', 'AffectationPedagogiqueController', 'getNumeros');
+$router->register('/affectations-pedagogiques/get-classe-id', 'AffectationPedagogiqueController', 'getClasseId');
+$router->register('/affectations-pedagogiques/get-matieres', 'AffectationPedagogiqueController', 'getMatieres');
+$router->register('/affectations-pedagogiques/get-enseignants', 'AffectationPedagogiqueController', 'getEnseignants');
+$router->register('/affectations-pedagogiques/reactivate', 'AffectationPedagogiqueController', 'reactivate');
+$router->register('/affectations-pedagogiques/replace', 'AffectationPedagogiqueController', 'replace');
 
 // DRH - Direction des Ressources Humaines
 $router->register('/drh', 'PersonnelController', 'index');

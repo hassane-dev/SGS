@@ -15,10 +15,10 @@
                     </div>
                     <div class="col-md-4 text-md-end">
                         <?php if (Auth::can('manage_affectations', 'pedagogy')): ?>
-                        <a href="/affectations-pedagogiques/create" class="btn btn-primary">
-                            <i class="ph-duotone ph-plus-circle me-1"></i>
-                            <?= _('Nouvelle Affectation') ?>
-                        </a>
+                            <a href="/affectations-pedagogiques/create" class="btn btn-primary">
+                                <i class="ph-duotone ph-plus-circle me-1"></i>
+                                <?= _('Nouvelle Affectation') ?>
+                            </a>
                         <?php endif; ?>
                         <a href="/affectations-pedagogiques/history" class="btn btn-outline-secondary ms-2">
                             <i class="ph-duotone ph-clock-counter-clockwise me-1"></i>
@@ -29,6 +29,22 @@
             </div>
         </div>
         <!-- [ breadcrumb ] end -->
+
+        <!-- Alerts -->
+        <?php if (isset($_SESSION['success_message'])): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <?= htmlspecialchars($_SESSION['success_message']) ?>
+                <?php unset($_SESSION['success_message']); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+        <?php if (isset($_SESSION['error_message'])): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <?= htmlspecialchars($_SESSION['error_message']) ?>
+                <?php unset($_SESSION['error_message']); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
 
         <!-- [ Filter Card ] -->
         <div class="row">
@@ -136,15 +152,24 @@
                                                     <span class="badge <?= $badge_class ?>"><?= _(ucfirst(htmlspecialchars($aff['statut']))) ?></span>
                                                 </td>
                                                 <td class="text-end">
-                                                    <?php if (Auth::can('manage_affectations', 'pedagogy') && $aff['statut'] === 'actif'): ?>
-                                                        <form action="/affectations-pedagogiques/suspend" method="POST" class="d-inline-block" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir suspendre cette affectation ?') ?>');">
-                                                            <input type="hidden" name="id" value="<?= $aff['id'] ?>">
-                                                            <button type="submit" class="btn btn-sm btn-outline-warning me-1"><?= _('Suspendre') ?></button>
-                                                        </form>
-                                                        <form action="/affectations-pedagogiques/terminate" method="POST" class="d-inline-block" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir clôturer cette affectation ?') ?>');">
-                                                            <input type="hidden" name="id" value="<?= $aff['id'] ?>">
-                                                            <button type="submit" class="btn btn-sm btn-outline-danger"><?= _('Clôturer') ?></button>
-                                                        </form>
+                                                    <?php if (Auth::can('manage_affectations', 'pedagogy')): ?>
+                                                        <?php if ($aff['statut'] === 'actif'): ?>
+                                                            <form action="/affectations-pedagogiques/suspend" method="POST" class="d-inline-block" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir suspendre cette affectation ?') ?>');">
+                                                                <input type="hidden" name="id" value="<?= $aff['id'] ?>">
+                                                                <button type="submit" class="btn btn-sm btn-outline-warning me-1" title="<?= _('Suspendre l\'affectation') ?>"><?= _('Suspendre') ?></button>
+                                                            </form>
+                                                            <form action="/affectations-pedagogiques/terminate" method="POST" class="d-inline-block" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir clôturer cette affectation ?') ?>');">
+                                                                <input type="hidden" name="id" value="<?= $aff['id'] ?>">
+                                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="<?= _('Clôturer l\'affectation') ?>"><?= _('Clôturer') ?></button>
+                                                            </form>
+                                                        <?php elseif ($aff['statut'] === 'suspendu'): ?>
+                                                            <form action="/affectations-pedagogiques/reactivate" method="POST" class="d-inline-block" onsubmit="return confirm('<?= _('Voulez-vous réactiver cette affectation suspendue ?') ?>');">
+                                                                <input type="hidden" name="id" value="<?= $aff['id'] ?>">
+                                                                <button type="submit" class="btn btn-sm btn-success me-1" title="<?= _('Réactiver l\'affectation') ?>"><?= _('Réactiver') ?></button>
+                                                            </form>
+                                                        <?php else: ?>
+                                                            <span class="text-muted small">-</span>
+                                                        <?php endif; ?>
                                                     <?php else: ?>
                                                         <span class="text-muted small">-</span>
                                                     <?php endif; ?>

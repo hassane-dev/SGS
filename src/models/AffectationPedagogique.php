@@ -283,4 +283,77 @@ class AffectationPedagogique {
         }
     }
 
+
+
+    /**
+     * Find subjects in a class that are available for a new assignment
+     * (i.e. not currently occupied by an 'actif' or 'suspendu' assignment).
+     */
+    public static function findAvailableSubjectsForClass(int $classeId): array {
+        $db = Database::getInstance();
+        $active_year = AnneeAcademique::findActive();
+        if (!$active_year) return [];
+
+        $sql = "
+            SELECT DISTINCT m.id_matiere, m.nom_matiere, cm.coefficient
+            FROM classe_matieres cm
+            JOIN matieres m ON cm.matiere_id = m.id_matiere
+            WHERE cm.classe_id = :classe_id
+            AND cm.matiere_id NOT IN (
+                SELECT ap.matiere_id
+                FROM affectations_pedagogiques ap
+                WHERE ap.classe_id = :classe_id2
+                AND ap.annee_academique_id = :annee_id
+                AND ap.statut IN ('actif', 'suspendu')
+            )
+            ORDER BY m.nom_matiere ASC
+        ";
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->execute([
+                'classe_id' => $classeId,
+                'classe_id2' => $classeId,
+                'annee_id' => $active_year['id']
+            ]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error in AffectationPedagogique::findAvailableSubjectsForClass: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Find teachers eligible for a class/cycle assignment.
+     */
+    public static function findEligibleTeachers(int $lyceeId, ?int $cycleId = null): array {
+        $db = Database::getInstance();
+        $sql = "
+            SELECT DISTINCT u.id_user, u.nom, u.prenom, u.identifiant_public, u.fonction
+            FROM utilisateurs u
+            JOIN roles r ON u.role_id = r.id_role
+            WHERE u.lycee_id = :lycee_id AND u.actif = 1
+            AND (LOWER(r.nom_role) LIKE '%enseignant%' OR LOWER(u.fonction) LIKE '%enseignant%' OR r.nom_role IN ('proviseur', 'censeur', 'surveillant', 'directeur', 'admin_local', 'super_admin_createur'))
+        ";
+        $params = ['lycee_id' => $lyceeId];
+
+        if ($cycleId) {
+            $sql .= " AND EXISTS (
+                SELECT 1 FROM personnel_cycles_assignments pca
+                WHERE pca.personnel_id = u.id_user AND pca.cycle_id = :cycle_id AND pca.actif = 1
+            )";
+            $params['cycle_id'] = $cycleId;
+        }
+
+        $sql .= " ORDER BY u.nom ASC, u.prenom ASC";
+
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error in AffectationPedagogique::findEligibleTeachers: " . $e->getMessage());
+            return [];
+        }
+    }
+
 }
