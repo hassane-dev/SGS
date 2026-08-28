@@ -87,7 +87,7 @@ class AffectationPedagogique {
         $sql = "
             SELECT ap.*,
                    CONCAT(u.prenom, ' ', u.nom) as enseignant_nom, u.identifiant_public as enseignant_matricule,
-                   c.niveau, c.serie, c.numero, c.lycee_id,
+                   c.niveau, c.serie, c.numero, c.lycee_id, c.cycle_id,
                    m.nom_matiere,
                    aa.libelle as annee_libelle
             FROM affectations_pedagogiques ap
@@ -106,6 +106,26 @@ class AffectationPedagogique {
         if (!empty($filters['annee_id'])) {
             $sql .= " AND ap.annee_academique_id = :annee_id";
             $params['annee_id'] = $filters['annee_id'];
+        }
+        if (!empty($filters['cycle_id'])) {
+            $sql .= " AND c.cycle_id = :cycle_id";
+            $params['cycle_id'] = $filters['cycle_id'];
+        }
+        if (!empty($filters['niveau'])) {
+            $sql .= " AND c.niveau = :niveau";
+            $params['niveau'] = $filters['niveau'];
+        }
+        if (isset($filters['serie']) && $filters['serie'] !== '') {
+            if ($filters['serie'] === 'none' || $filters['serie'] === 'empty' || $filters['serie'] === 'sans_serie') {
+                $sql .= " AND (c.serie IS NULL OR c.serie = '')";
+            } else {
+                $sql .= " AND c.serie = :serie";
+                $params['serie'] = $filters['serie'];
+            }
+        }
+        if (isset($filters['numero']) && $filters['numero'] !== '') {
+            $sql .= " AND c.numero = :numero";
+            $params['numero'] = $filters['numero'];
         }
         if (!empty($filters['classe_id'])) {
             $sql .= " AND ap.classe_id = :classe_id";
@@ -289,39 +309,52 @@ class AffectationPedagogique {
      * Find subjects in a class that are available for a new assignment
      * (i.e. not currently occupied by an 'actif' or 'suspendu' assignment).
      * Optionally exclude a specific assignment ID (e.g., when editing).
+     * If $includeAll is true, returns all subjects of the class (for index searching).
      */
-    public static function findAvailableSubjectsForClass(int $classeId, ?int $excludeAssignmentId = null): array {
+    public static function findAvailableSubjectsForClass(int $classeId, ?int $excludeAssignmentId = null, bool $includeAll = false): array {
         $db = Database::getInstance();
         $active_year = AnneeAcademique::findActive();
-        if (!$active_year) return [];
+        if (!$active_year && !$includeAll) return [];
 
-        $sql = "
-            SELECT DISTINCT m.id_matiere, m.nom_matiere, cm.coefficient
-            FROM classe_matieres cm
-            JOIN matieres m ON cm.matiere_id = m.id_matiere
-            WHERE cm.classe_id = :classe_id
-            AND cm.matiere_id NOT IN (
-                SELECT ap.matiere_id
-                FROM affectations_pedagogiques ap
-                WHERE ap.classe_id = :classe_id2
-                AND ap.annee_academique_id = :annee_id
-                AND ap.statut IN ('actif', 'suspendu')
-        ";
-        $params = [
-            'classe_id' => $classeId,
-            'classe_id2' => $classeId,
-            'annee_id' => $active_year['id']
-        ];
+        if ($includeAll) {
+            $sql = "
+                SELECT DISTINCT m.id_matiere, m.nom_matiere, cm.coefficient
+                FROM classe_matieres cm
+                JOIN matieres m ON cm.matiere_id = m.id_matiere
+                WHERE cm.classe_id = :classe_id
+                ORDER BY m.nom_matiere ASC
+            ";
+            $params = ['classe_id' => $classeId];
+        } else {
+            $sql = "
+                SELECT DISTINCT m.id_matiere, m.nom_matiere, cm.coefficient
+                FROM classe_matieres cm
+                JOIN matieres m ON cm.matiere_id = m.id_matiere
+                WHERE cm.classe_id = :classe_id
+                AND cm.matiere_id NOT IN (
+                    SELECT ap.matiere_id
+                    FROM affectations_pedagogiques ap
+                    WHERE ap.classe_id = :classe_id2
+                    AND ap.annee_academique_id = :annee_id
+                    AND ap.statut IN ('actif', 'suspendu')
+            ";
+            $params = [
+                'classe_id' => $classeId,
+                'classe_id2' => $classeId,
+                'annee_id' => $active_year['id']
+            ];
 
-        if ($excludeAssignmentId) {
-            $sql .= " AND ap.id != :exclude_id";
-            $params['exclude_id'] = $excludeAssignmentId;
+            if ($excludeAssignmentId) {
+                $sql .= " AND ap.id != :exclude_id";
+                $params['exclude_id'] = $excludeAssignmentId;
+            }
+
+            $sql .= "
+                )
+                ORDER BY m.nom_matiere ASC
+            ";
         }
 
-        $sql .= "
-            )
-            ORDER BY m.nom_matiere ASC
-        ";
         try {
             $stmt = $db->prepare($sql);
             $stmt->execute($params);

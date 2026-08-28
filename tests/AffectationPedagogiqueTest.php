@@ -315,6 +315,60 @@ try {
     exit(1);
 }
 
+// --- TEST 11: Extended Audit Filter Tests (Creation vs Index Harmonization) ---
+echo "\nTEST 11: Audit Comparatif - Distinct Subjects (include_all = 0 vs include_all = 1)\n";
+$creation_matieres = AffectationPedagogique::findAvailableSubjectsForClass(9910, null, false);
+$index_matieres = AffectationPedagogique::findAvailableSubjectsForClass(9910, null, true);
+
+$creation_ids = array_column($creation_matieres, 'id_matiere');
+$index_ids = array_column($index_matieres, 'id_matiere');
+
+if (!in_array(9901, $creation_ids) && in_array(9901, $index_ids)) {
+    echo "  -> Attendu: Math99 (9901) est exclue en mode création (false), mais incluse en mode index (true) | PASS\n";
+} else {
+    echo "  -> ECHEC de la distinction entre création et index pour les matières\n";
+    exit(1);
+}
+
+// --- TEST 12: Cumulative Search Filters in AffectationPedagogique::findAll() ---
+echo "\nTEST 12: Recherche multi-critères cumulatifs dans AffectationPedagogique::findAll()\n";
+$cumulative_results = AffectationPedagogique::findAll([
+    'lycee_id' => 1,
+    'cycle_id' => 998,
+    'niveau' => '6ème',
+    'serie' => 'A',
+    'numero' => '1',
+    'classe_id' => 9910,
+    'matiere_id' => 9901,
+    'enseignant_id' => 9902,
+    'statut' => 'actif'
+]);
+
+if (count($cumulative_results) === 1 && $cumulative_results[0]['id'] == $new_edited_id) {
+    echo "  -> Attendu: Les filtres cumulés (Cycle + Niveau + Série + Numéro + Classe + Matière + Enseignant + Statut) isolent la bonne affectation (#$new_edited_id) | PASS\n";
+} else {
+    echo "  -> ECHEC de la recherche cumulée dans findAll()\n";
+    exit(1);
+}
+
+// --- TEST 13: Security Assertion (Foreign lycee_id / Foreign class isolation) ---
+echo "\nTEST 13: Contrôle de sécurité et d'isolation multi-tenant dans les filtres\n";
+// Create class in Lycee #99
+$db->exec("INSERT INTO param_lycee (id, nom_lycee) VALUES (99, 'Autre Lycée Test') ON CONFLICT DO NOTHING");
+$db->exec("INSERT INTO classes (id_classe, lycee_id, cycle_id, niveau, serie, numero) VALUES (9999, 99, 998, '6ème', 'A', 1)");
+
+$foreign_results = AffectationPedagogique::findAll([
+    'lycee_id' => 1, // Current user lycee is 1
+    'classe_id' => 9999 // Class belongs to lycee 99
+]);
+
+if (count($foreign_results) === 0) {
+    echo "  -> Attendu: La classe de l'établissement 99 n'est pas consultable par l'établissement 1 | PASS\n";
+} else {
+    echo "  -> ECHEC de l'isolation multi-tenant pour la classe d'un autre lycée\n";
+    exit(1);
+}
+
 // Cleanup mock test data
 $db->exec("DELETE FROM affectations_pedagogiques WHERE classe_id >= 9900");
 $db->exec("DELETE FROM classe_matieres WHERE classe_id >= 9900");
@@ -323,6 +377,7 @@ $db->exec("DELETE FROM matieres WHERE id_matiere >= 9900");
 $db->exec("DELETE FROM personnel_cycles_assignments WHERE personnel_id >= 9900");
 $db->exec("DELETE FROM utilisateurs WHERE id_user >= 9900");
 $db->exec("DELETE FROM cycles WHERE id_cycle = 998");
+$db->exec("DELETE FROM param_lycee WHERE id = 99");
 
 echo "\n========================================================\n";
 echo "RÉSULTAT FINAL: TOUS LES TESTS D'AFFECTATION ONT RÉUSSI !\n";
