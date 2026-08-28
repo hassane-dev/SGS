@@ -80,14 +80,14 @@ class AffectationPedagogique {
     }
 
     /**
-     * Find all assignments with optional filters.
+     * Find all assignments with optional filters including hierarchy (cycle, niveau, serie, numero).
      */
     public static function findAll($filters = []) {
         $db = Database::getInstance();
         $sql = "
             SELECT ap.*,
                    CONCAT(u.prenom, ' ', u.nom) as enseignant_nom, u.identifiant_public as enseignant_matricule,
-                   c.niveau, c.serie, c.numero, c.lycee_id,
+                   c.niveau, c.serie, c.numero, c.lycee_id, c.cycle_id,
                    m.nom_matiere,
                    aa.libelle as annee_libelle
             FROM affectations_pedagogiques ap
@@ -106,6 +106,22 @@ class AffectationPedagogique {
         if (!empty($filters['annee_id'])) {
             $sql .= " AND ap.annee_academique_id = :annee_id";
             $params['annee_id'] = $filters['annee_id'];
+        }
+        if (!empty($filters['cycle_id'])) {
+            $sql .= " AND c.cycle_id = :cycle_id";
+            $params['cycle_id'] = $filters['cycle_id'];
+        }
+        if (!empty($filters['niveau'])) {
+            $sql .= " AND c.niveau = :niveau";
+            $params['niveau'] = $filters['niveau'];
+        }
+        if (!empty($filters['serie'])) {
+            $sql .= " AND c.serie = :serie";
+            $params['serie'] = $filters['serie'];
+        }
+        if (isset($filters['numero']) && $filters['numero'] !== '') {
+            $sql .= " AND c.numero = :numero";
+            $params['numero'] = $filters['numero'];
         }
         if (!empty($filters['classe_id'])) {
             $sql .= " AND ap.classe_id = :classe_id";
