@@ -231,7 +231,7 @@ class PaieCahierTexteController {
                 SELECT DISTINCT m.*
                 FROM matieres m
                 JOIN affectations_pedagogiques ap ON m.id_matiere = ap.matiere_id AND ap.statut = 'actif'
-                JOIN classes c ON em.classe_id = c.id_classe
+                JOIN classes c ON ap.classe_id = c.id_classe
                 WHERE c.lycee_id = :lycee_id
                 ORDER BY m.nom_matiere ASC
             ");
