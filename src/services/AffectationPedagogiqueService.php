@@ -106,8 +106,12 @@ class AffectationPedagogiqueService {
         AuthorizationScopeService::assertAccessToObject($classe['lycee_id']);
 
         // 8. Transactional Overlap Lock & Save (Invariant 7)
+        $in_existing_transaction = $db->inTransaction();
+
         try {
-            $db->beginTransaction();
+            if (!$in_existing_transaction) {
+                $db->beginTransaction();
+            }
 
             // Broad lock on ALL assignments for this class + subject + year to prevent concurrent overlaps
             $lock_sql = "
@@ -137,7 +141,9 @@ class AffectationPedagogiqueService {
 
                         // Check temporal intersection
                         if (max($new_start, $ex_start) <= min($new_end, $ex_end)) {
-                            $db->rollBack();
+                            if (!$in_existing_transaction) {
+                                $db->rollBack();
+                            }
                             throw new InvalidArgumentException(_("Conflit de chevauchement : Un enseignant actif/suspendu est déjà affecté à ce cours sur cette période."));
                         }
                     }
@@ -171,12 +177,14 @@ class AffectationPedagogiqueService {
             ]);
 
             $assignment_id = (int)$db->lastInsertId();
-            $db->commit();
+            if (!$in_existing_transaction) {
+                $db->commit();
+            }
 
             return $assignment_id;
 
         } catch (Exception $e) {
-            if ($db->inTransaction()) {
+            if (!$in_existing_transaction && $db->inTransaction()) {
                 $db->rollBack();
             }
             throw $e;
@@ -219,4 +227,118 @@ class AffectationPedagogiqueService {
             'id' => $assignment_id
         ]);
     }
+
+
+    /**
+     * Reactivate a suspended assignment after verifying all 8 invariant checks.
+     */
+    public static function reactivateAssignment(int $assignment_id, int $author_id): bool {
+        $db = Database::getInstance();
+        $assignment = AffectationPedagogique::findById($assignment_id);
+        if (!$assignment) {
+            throw new InvalidArgumentException(_("Affectation introuvable."));
+        }
+
+        if ($assignment['statut'] !== 'suspendu') {
+            throw new InvalidArgumentException(_("Seule une affectation suspendue peut être réactivée."));
+        }
+
+        AuthorizationScopeService::assertAccessToObject($assignment['lycee_id']);
+
+        // Execute overlap lock test within transaction
+        try {
+            $db->beginTransaction();
+
+            $lock_sql = "
+                SELECT * FROM affectations_pedagogiques
+                WHERE classe_id = :c AND matiere_id = :m AND annee_academique_id = :a
+                AND id != :id AND statut IN ('actif', 'suspendu')
+            ";
+            if ($db->getAttribute(PDO::ATTR_DRIVER_NAME) !== 'sqlite') {
+                $lock_sql .= " FOR UPDATE";
+            }
+            $stmt_lock = $db->prepare($lock_sql);
+            $stmt_lock->execute([
+                'c' => $assignment['classe_id'],
+                'm' => $assignment['matiere_id'],
+                'a' => $assignment['annee_academique_id'],
+                'id' => $assignment_id
+            ]);
+            $existing_assignments = $stmt_lock->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($existing_assignments as $existing) {
+                $ex_start = $existing['date_debut'] ?? '1970-01-01';
+                $ex_end = $existing['date_fin'] ?? '2099-12-31';
+                $new_start = $assignment['date_debut'];
+                $new_end = $assignment['date_fin'] ?: '2099-12-31';
+
+                if (max($new_start, $ex_start) <= min($new_end, $ex_end)) {
+                    $db->rollBack();
+                    throw new InvalidArgumentException(_("Conflit de chevauchement : Un autre enseignant actif/suspendu est déjà affecté à ce cours sur cette période."));
+                }
+            }
+
+            $stmt_upd = $db->prepare("
+                UPDATE affectations_pedagogiques SET
+                    statut = 'actif',
+                    motif_changement = :motif,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = :id
+            ");
+            $stmt_upd->execute([
+                'motif' => "Réactivation de l'affectation suspendue",
+                'id' => $assignment_id
+            ]);
+
+            $db->commit();
+            return true;
+
+        } catch (Exception $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    /**
+     * Replace an active teacher with a new teacher without overwriting history.
+     */
+    public static function replaceAssignment(int $old_assignment_id, array $new_data, int $author_id): int {
+        $db = Database::getInstance();
+        $old_assignment = AffectationPedagogique::findById($old_assignment_id);
+        if (!$old_assignment) {
+            throw new InvalidArgumentException(_("Affectation d'origine introuvable."));
+        }
+
+        $effective_end_date = !empty($new_data['date_debut']) ? date('Y-m-d', strtotime($new_data['date_debut'] . ' -1 day')) : date('Y-m-d');
+
+        $in_existing_transaction = $db->inTransaction();
+
+        try {
+            if (!$in_existing_transaction) {
+                $db->beginTransaction();
+            }
+
+            // 1. Close old assignment on date before new start date
+            self::updateStatus($old_assignment_id, 'termine', $new_data['motif_changement'] ?? 'Remplacement par un nouvel enseignant', $effective_end_date, $author_id);
+
+            // 2. Create new assignment
+            $new_data['classe_id'] = $old_assignment['classe_id'];
+            $new_data['matiere_id'] = $old_assignment['matiere_id'];
+            $new_assignment_id = self::createAssignment($new_data, $author_id);
+
+            if (!$in_existing_transaction) {
+                $db->commit();
+            }
+            return $new_assignment_id;
+
+        } catch (Exception $e) {
+            if (!$in_existing_transaction && $db->inTransaction()) {
+                $db->rollBack();
+            }
+            throw $e;
+        }
+    }
+
 }

@@ -181,4 +181,105 @@ class AffectationPedagogiqueController {
             'title' => _('Historique des Affectations Pédagogiques')
         ]);
     }
+
+
+    // --- AJAX endpoints for dynamic hierarchical selection ---
+
+    public function getNiveaux() {
+        header('Content-Type: application/json');
+        $cycle_id = ['cycle_id'] ?? null;
+        $lycee_id = Auth::getLyceeId();
+        $niveaux = Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id);
+        echo json_encode($niveaux);
+        if (!defined('TEST_MODE')) exit(); return;
+    }
+
+    public function getSeries() {
+        header('Content-Type: application/json');
+        $niveau = ['niveau'] ?? null;
+        $lycee_id = Auth::getLyceeId();
+        $series = Classe::findDistinctSeriesByNiveau($niveau, $lycee_id);
+        echo json_encode($series);
+        if (!defined('TEST_MODE')) exit(); return;
+    }
+
+    public function getNumeros() {
+        header('Content-Type: application/json');
+        $niveau = ['niveau'] ?? null;
+        $serie = ['serie'] ?? null;
+        $lycee_id = Auth::getLyceeId();
+        $numeros = Classe::findAvailableNumeros($niveau, $serie, $lycee_id);
+        echo json_encode($numeros);
+        if (!defined('TEST_MODE')) exit(); return;
+    }
+
+    public function getClasseId() {
+        header('Content-Type: application/json');
+        $lycee_id = Auth::getLyceeId();
+        $niveau = ['niveau'] ?? null;
+        $serie = ['serie'] ?? null;
+        $numero = ['numero'] ?? null;
+        $id = Classe::findIdByDetails($lycee_id, $niveau, $serie, $numero);
+        echo json_encode(['id_classe' => $id]);
+        if (!defined('TEST_MODE')) exit(); return;
+    }
+
+    public function getMatieres() {
+        header('Content-Type: application/json');
+        $classe_id = (int)(['classe_id'] ?? 0);
+        $matieres = AffectationPedagogique::findAvailableSubjectsForClass($classe_id);
+        echo json_encode($matieres);
+        if (!defined('TEST_MODE')) exit(); return;
+    }
+
+    public function getEnseignants() {
+        header('Content-Type: application/json');
+        $lycee_id = Auth::getLyceeId();
+        $cycle_id = !empty(['cycle_id']) ? (int)['cycle_id'] : null;
+        $teachers = AffectationPedagogique::findEligibleTeachers($lycee_id, $cycle_id);
+        echo json_encode($teachers);
+        if (!defined('TEST_MODE')) exit(); return;
+    }
+
+
+
+    public function reactivate() {
+        $this->checkManageAccess();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+            $author_id = Auth::getUserId();
+
+            try {
+                AffectationPedagogiqueService::reactivateAssignment($id, $author_id);
+                $_SESSION['success_message'] = _("Affectation réactivée avec succès.");
+            } catch (Exception $e) {
+                $_SESSION['error_message'] = $e->getMessage();
+            }
+
+            header('Location: /affectations-pedagogiques');
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+    }
+
+    public function replace() {
+        $this->checkManageAccess();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = Validator::sanitize($_POST);
+            $old_id = isset($data['old_id']) ? (int)$data['old_id'] : 0;
+            $author_id = Auth::getUserId();
+
+            try {
+                AffectationPedagogiqueService::replaceAssignment($old_id, $data, $author_id);
+                $_SESSION['success_message'] = _("Enseignant remplacé avec succès (l'historique a été conservé).");
+            } catch (Exception $e) {
+                $_SESSION['error_message'] = $e->getMessage();
+            }
+
+            header('Location: /affectations-pedagogiques');
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+    }
+
 }
