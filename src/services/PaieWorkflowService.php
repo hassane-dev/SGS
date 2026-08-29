@@ -217,8 +217,9 @@ class PaieWorkflowService {
         // 5. Fetch pending regularisations
         $pendingRegularisations = PaieRegularisation::findPendingForEmployeeAndPeriod($personnelId, $periodePaieId);
 
-        // 6. Compute Bulletin
-        $computed = PaieCalculationEngine::computeBulletin($c, $cahierValidations, $components, 'DEFAULT', $periode['date_fin'], $pendingRegularisations);
+        // 6. Resolve establishment jurisdiction and compute bulletin
+        $juridictionCode = PaieRuleRepository::resolveJurisdictionForLycee((int)$periode['lycee_id']);
+        $computed = PaieCalculationEngine::computeBulletin($c, $cahierValidations, $components, $juridictionCode, $periode['date_fin'], $pendingRegularisations);
 
         // 7. Create PaieBulletin V1
         $bulletinId = PaieBulletin::create([
@@ -339,8 +340,9 @@ class PaieWorkflowService {
             // Fetch pending regularisations (read-only)
             $pendingRegs = PaieRegularisation::findPendingForEmployeeAndPeriod($personnelId, $periodePaieId);
 
-            // Run dry-run computation
-            $computed = PaieCalculationEngine::computeBulletin($c, $cahierValidations, $components, 'DEFAULT', $periode['date_fin'], $pendingRegs);
+            // Run dry-run computation with resolved establishment jurisdiction
+            $juridictionCode = PaieRuleRepository::resolveJurisdictionForLycee((int)$periode['lycee_id']);
+            $computed = PaieCalculationEngine::computeBulletin($c, $cahierValidations, $components, $juridictionCode, $periode['date_fin'], $pendingRegs);
 
             $results[] = [
                 'personnel_id' => $personnelId,
@@ -499,7 +501,8 @@ class PaieWorkflowService {
             $cahierValidations = PaieCahierTexteValidation::findValidatedForTeacherAndDates((int)$currentB['personnel_id'], $locks['periode']['date_debut'], $locks['periode']['date_fin']);
             $pendingRegularisations = PaieRegularisation::findPendingForEmployeeAndPeriod((int)$currentB['personnel_id'], (int)$currentB['periode_id']);
 
-            $computed = PaieCalculationEngine::computeBulletin($contract, $cahierValidations, $components, 'DEFAULT', $locks['periode']['date_fin'], $pendingRegularisations);
+            $juridictionCode = PaieRuleRepository::resolveJurisdictionForLycee((int)$locks['periode']['lycee_id']);
+            $computed = PaieCalculationEngine::computeBulletin($contract, $cahierValidations, $components, $juridictionCode, $locks['periode']['date_fin'], $pendingRegularisations);
 
             $newBulletinId = PaieBulletin::create([
                 'periode_id' => $currentB['periode_id'],

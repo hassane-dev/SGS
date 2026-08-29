@@ -11,26 +11,20 @@ class PaieCalculationEngine {
         array $contract,
         array $cahierValidations = [],
         array $components = [],
-        string $juridictionCode = 'DEFAULT',
+        string $juridictionCode = 'RCA',
         ?string $asOfDate = null,
         array $regularisations = []
     ): array {
-        PaieRuleRepository::seedDefaultRulesIfNeeded();
         $rules = PaieRuleRepository::getActiveRulesWithTiers($juridictionCode, $asOfDate);
 
-        // Sort rules into deterministic calculation phases:
-        // Phase 1: Cotisations salariales
-        // Phase 2: Impôts / IUTS
-        // Phase 3: Cotisations patronales
+        // Sort rules dynamically by explicit order_application first, then id
         usort($rules, function($a, $b) {
-            $orderMap = [
-                'cotisation_salariale' => 1,
-                'impot' => 2,
-                'cotisation_patronale' => 3
-            ];
-            $orderA = $orderMap[$a['categorie']] ?? 4;
-            $orderB = $orderMap[$b['categorie']] ?? 4;
-            return $orderA <=> $orderB;
+            $ordA = (int)($a['ordre_application'] ?? 100);
+            $ordB = (int)($b['ordre_application'] ?? 100);
+            if ($ordA === $ordB) {
+                return (int)$a['id'] <=> (int)$b['id'];
+            }
+            return $ordA <=> $ordB;
         });
 
         // 1. Calculate Base Salary & Pedagogical Hours respecting Contract Mode
@@ -150,7 +144,7 @@ class PaieCalculationEngine {
         // 4. Gross Total (incorporating REGUL_BRUT / REGUL_RETENUE)
         $totalBrut = max(0.00, round($salaireBase + $totalHeuresMontant + $totalPrimes + $totalIndemnites + $regulBrutDelta, 4));
 
-        // 5. Cotisations & Taxes Breakdown
+        // 5. Initialise Accumulators for Dynamic Breakdown
         $totalCotisationsSalariales = 0.00;
         $totalCotisationsPatronales = 0.00;
         $totalImpots = 0.00;
@@ -188,7 +182,6 @@ class PaieCalculationEngine {
             ];
         }
 
-        // Add component lines to rubriques
         $ordre = 30;
         foreach ($componentLines as $cline) {
             $cline['ordre_affichage'] = $ordre;
@@ -196,54 +189,113 @@ class PaieCalculationEngine {
             $ordre += 10;
         }
 
-        // Add regularisation lines to rubriques
         foreach ($regulLines as $rline) {
             $rline['ordre_affichage'] = $ordre;
             $rubriqueLines[] = $rline;
             $ordre += 10;
         }
 
-        // Apply Jurisdiction Rules
+        // Filter rules by Contract Type if specified on rule
+        $contractTypeId = (int)($contract['type_contrat_id'] ?? 0);
+
+        // 6. Execute Dynamic Rules Engine
         foreach ($rules as $rule) {
+            if (!empty($rule['type_contrat_id']) && (int)$rule['type_contrat_id'] !== $contractTypeId) {
+                continue; // Skip rules limited to a different contract type
+            }
+
             $code = $rule['code_regle'];
             $cat = $rule['categorie'];
             $mode = $rule['mode_calcul'];
+            $baseType = strtolower($rule['base_calcul_type'] ?? 'brut_total');
+
+            // Determine raw calculation base
+            if ($baseType === 'salaire_base') {
+                $rawAssiette = $salaireBase;
+            } elseif ($baseType === 'net_imposable' || $baseType === 'net_imposable_provisoire') {
+                $rawAssiette = max(0.00, $totalBrut - $totalCotisationsSalariales);
+            } elseif ($baseType === 'heures_validees') {
+                $rawAssiette = $totalHeuresMontant;
+            } else { // 'brut_total' or default
+                $rawAssiette = $totalBrut;
+            }
+
+            // Apply Abattements if configured
+            $abattementForfaitaire = (float)($rule['abattement_forfaitaire'] ?? 0.00);
+            $abattementPourcentage = (float)($rule['abattement_pourcentage'] ?? 0.00);
+
+            $assietteApresAbattement = max(0.00, $rawAssiette - $abattementForfaitaire);
+            if ($abattementPourcentage > 0) {
+                $assietteApresAbattement = max(0.00, $assietteApresAbattement * (1.0 - ($abattementPourcentage / 100.0)));
+            }
+
+            // Apply Seuil Minimum and Plafond Maximum
+            $seuilMin = isset($rule['seuil_minimum']) && $rule['seuil_minimum'] !== null ? (float)$rule['seuil_minimum'] : null;
+            $plafondMax = isset($rule['plafond_maximum']) && $rule['plafond_maximum'] !== null ? (float)$rule['plafond_maximum'] : null;
+
+            if ($seuilMin !== null && $assietteApresAbattement < $seuilMin) {
+                $assietteCalcul = 0.00;
+            } else {
+                $assietteCalcul = $assietteApresAbattement;
+                if ($plafondMax !== null && $assietteCalcul > $plafondMax) {
+                    $assietteCalcul = $plafondMax;
+                }
+            }
+
             $mSal = 0.00;
             $mPat = 0.00;
+            $tauxSal = (float)($rule['taux_par_defaut'] ?? 0.00);
+            $tauxPat = (float)($rule['taux_patronal'] ?? 0.00);
+            $fixedSal = (float)($rule['montant_fixe_salarial'] ?? 0.00);
+            $fixedPat = (float)($rule['montant_fixe_patronal'] ?? 0.00);
+
             $ruleSnapshot = [
                 'regle_id' => $rule['id'],
                 'code_regle' => $code,
                 'libelle' => $rule['libelle'],
                 'categorie' => $cat,
                 'mode_calcul' => $mode,
-                'taux_applique' => (float)$rule['taux_par_defaut'],
+                'taux_applique' => $tauxSal,
                 'tranches_snapshot' => [],
                 'raw_json_snapshot' => $rule
             ];
 
-            if ($mode === 'pourcentage') {
-                $taux = (float)$rule['taux_par_defaut'];
+            if ($mode === 'pourcentage' || $mode === 'montant_fixe') {
+                if ($assietteCalcul > 0 || $fixedSal > 0 || $fixedPat > 0) {
+                    if ($tauxSal > 0) {
+                        $mSal += round(($assietteCalcul * $tauxSal) / 100.0, 4);
+                    }
+                    $mSal += $fixedSal;
+
+                    if ($tauxPat > 0) {
+                        $mPat += round(($assietteCalcul * $tauxPat) / 100.0, 4);
+                    }
+                    $mPat += $fixedPat;
+                }
+
                 if ($cat === 'cotisation_salariale') {
-                    $mSal = round(($totalBrut * $taux) / 100.0, 4);
                     $totalCotisationsSalariales += $mSal;
                 } elseif ($cat === 'cotisation_patronale') {
-                    $mPat = round(($totalBrut * $taux) / 100.0, 4);
                     $totalCotisationsPatronales += $mPat;
+                } elseif ($cat === 'impot') {
+                    $totalImpots += $mSal;
+                } elseif ($cat === 'retenue') {
+                    $totalRetenues += $mSal;
                 }
+
                 $rubriqueLines[] = [
                     'code_rubrique' => $code,
                     'libelle' => $rule['libelle'],
                     'categorie' => $cat,
-                    'base_calcul' => $totalBrut,
-                    'taux' => $taux,
+                    'base_calcul' => $assietteCalcul,
+                    'taux' => $tauxSal,
                     'montant_salarial' => $mSal,
                     'montant_patronal' => $mPat,
-                    'ordre_affichage' => 100 + $ordre,
+                    'ordre_affichage' => (int)($rule['ordre_application'] ?? (100 + $ordre)),
                     'est_imposable' => 0,
                     'est_cotisable' => 0
                 ];
             } elseif ($mode === 'bareme_progressif') {
-                $netImposableProvisoire = max(0.00, $totalBrut - $totalCotisationsSalariales);
                 $cumulImpot = 0.00;
                 $tiers = $rule['tiers'] ?? [];
 
@@ -251,10 +303,11 @@ class PaieCalculationEngine {
                     $limInf = (float)$t['limite_inferieure'];
                     $limSup = $t['limite_superieure'] !== null ? (float)$t['limite_superieure'] : null;
                     $tauxT = (float)$t['taux'];
+                    $fixedT = (float)($t['montant_fixe'] ?? 0.00);
 
-                    if ($netImposableProvisoire > $limInf) {
-                        $assietteTranche = ($limSup !== null) ? min($netImposableProvisoire - $limInf, $limSup - $limInf) : ($netImposableProvisoire - $limInf);
-                        $montantTranche = round(($assietteTranche * $tauxT) / 100.0, 4);
+                    if ($assietteCalcul > $limInf) {
+                        $assietteTranche = ($limSup !== null) ? min($assietteCalcul - $limInf, $limSup - $limInf) : ($assietteCalcul - $limInf);
+                        $montantTranche = round(($assietteTranche * $tauxT) / 100.0, 4) + $fixedT;
                         $cumulImpot += $montantTranche;
 
                         $ruleSnapshot['tranches_snapshot'][] = [
@@ -269,16 +322,26 @@ class PaieCalculationEngine {
                 }
 
                 $mSal = round($cumulImpot, 4);
-                $totalImpots += $mSal;
+
+                if ($cat === 'impot') {
+                    $totalImpots += $mSal;
+                } elseif ($cat === 'cotisation_salariale') {
+                    $totalCotisationsSalariales += $mSal;
+                } elseif ($cat === 'cotisation_patronale') {
+                    $totalCotisationsPatronales += $mSal;
+                } else {
+                    $totalRetenues += $mSal;
+                }
+
                 $rubriqueLines[] = [
                     'code_rubrique' => $code,
                     'libelle' => $rule['libelle'],
                     'categorie' => $cat,
-                    'base_calcul' => $netImposableProvisoire,
+                    'base_calcul' => $assietteCalcul,
                     'taux' => 0.00,
                     'montant_salarial' => $mSal,
                     'montant_patronal' => 0.00,
-                    'ordre_affichage' => 200 + $ordre,
+                    'ordre_affichage' => (int)($rule['ordre_application'] ?? (200 + $ordre)),
                     'est_imposable' => 0,
                     'est_cotisable' => 0
                 ];

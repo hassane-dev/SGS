@@ -529,6 +529,15 @@ $router->register('/paie/historique', 'PaieBulletinsController', 'historique');
 $router->register('/paie/regularisations', 'PaieRegularisationsController', 'index');
 $router->register('/paie/regularisations/store', 'PaieRegularisationsController', 'store');
 
+$router->register('/paie/regles', 'PaieReglesController', 'index');
+$router->register('/paie/regles/create', 'PaieReglesController', 'create');
+$router->register('/paie/regles/store', 'PaieReglesController', 'store');
+$router->register('/paie/regles/edit', 'PaieReglesController', 'edit');
+$router->register('/paie/regles/update', 'PaieReglesController', 'update');
+$router->register('/paie/regles/toggle', 'PaieReglesController', 'toggle');
+$router->register('/paie/regles/{id}/edit', 'PaieReglesController', 'edit');
+$router->register('/paie/regles/{id}/update', 'PaieReglesController', 'update');
+
 $router->register('/paie/cloture/process', 'PaieClotureController', 'process');
 
 // Cahier de Texte
