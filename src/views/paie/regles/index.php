@@ -22,7 +22,7 @@ require_once __DIR__ . '/../../layouts/header_able.php';
             </ul>
           </div>
           <div class="col-md-4 text-md-end mt-3 mt-md-0">
-            <?php if (Auth::hasPermission('paie', 'config')): ?>
+            <?php if (Auth::can('config', 'paie')): ?>
               <a href="/paie/regles/create" class="btn btn-primary d-inline-flex align-items-center gap-2">
                 <i class="ph-duotone ph-plus-circle fs-5"></i>
                 <span><?= _("Nouvelle Règle de Paie") ?></span>
@@ -149,17 +149,19 @@ require_once __DIR__ . '/../../layouts/header_able.php';
                     <?php endif; ?>
                   </td>
                   <td class="text-end">
-                    <div class="btn-group btn-group-sm">
-                      <a href="/paie/regles/<?= $r['id'] ?>/edit" class="btn btn-light-primary" title="<?= _("Modifier") ?>">
-                        <i class="ph-duotone ph-pencil"></i>
-                      </a>
-                      <form action="/paie/regles/toggle" method="POST" class="d-inline">
-                        <input type="hidden" name="id" value="<?= $r['id'] ?>">
-                        <button type="submit" class="btn btn-light-<?= $r['actif'] ? 'warning' : 'success' ?>" title="<?= $r['actif'] ? _("Désactiver") : _("Activer") ?>">
-                          <i class="ph-duotone ph-power"></i>
-                        </button>
-                      </form>
-                    </div>
+                    <?php if (Auth::can('config', 'paie')): ?>
+                      <div class="btn-group btn-group-sm">
+                        <a href="/paie/regles/<?= $r['id'] ?>/edit" class="btn btn-light-primary" title="<?= _("Modifier") ?>">
+                          <i class="ph-duotone ph-pencil"></i>
+                        </a>
+                        <form action="/paie/regles/toggle" method="POST" class="d-inline">
+                          <input type="hidden" name="id" value="<?= $r['id'] ?>">
+                          <button type="submit" class="btn btn-light-<?= $r['actif'] ? 'warning' : 'success' ?>" title="<?= $r['actif'] ? _("Désactiver") : _("Activer") ?>">
+                            <i class="ph-duotone ph-power"></i>
+                          </button>
+                        </form>
+                      </div>
+                    <?php endif; ?>
                   </td>
                 </tr>
               <?php endforeach; ?>
