@@ -25,7 +25,7 @@
                     <div class="card-header">
                         <div class="d-flex justify-content-end">
                              <a href="/annees-academiques/create" class="btn btn-primary">
-                                <i class="ti ti-plus"></i> <?= _('Ajouter une année') ?>
+                                <i class="ph-duotone ph-plus"></i> <?= _('Ajouter une année') ?>
                             </a>
                         </div>
                     </div>
@@ -68,7 +68,7 @@
                                                         <span class="badge bg-light-secondary"><?= _('Inactive') ?></span>
                                                     <?php endif; ?>
                                                     <?php if (!empty($annee['cloturee'])): ?>
-                                                        <span class="badge bg-light-danger"><i class="ti ti-lock"></i> <?= _('Clôturée') ?></span>
+                                                        <span class="badge bg-light-danger"><i class="ph-duotone ph-lock"></i> <?= _('Clôturée') ?></span>
                                                     <?php endif; ?>
                                                 </td>
                                                 <td class="text-end">
@@ -80,7 +80,7 @@
                                                         <form action="/annees-academiques/toggle-cloture" method="POST" class="d-inline" onsubmit="return confirm('<?= $annee['cloturee'] ? _('Êtes-vous sûr de vouloir réouvrir cette année ?') : _('Êtes-vous sûr de vouloir clôturer cette année ?') ?>');">
                                                             <input type="hidden" name="id" value="<?= $annee['id'] ?>">
                                                             <button type="submit" class="btn btn-sm btn-<?= $annee['cloturee'] ? 'warning' : 'danger' ?>" title="<?= $annee['cloturee'] ? _('Réouvrir') : _('Clôturer') ?>">
-                                                                <i class="ti ti-<?= $annee['cloturee'] ? 'lock-open' : 'lock' ?>"></i>
+                                                                <i class="ph-duotone ph-<?= $annee['cloturee'] ? 'lock-key-open' : 'lock' ?>"></i>
                                                             </button>
                                                         </form>
                                                     <?php endif; ?>
@@ -88,17 +88,17 @@
                                                         <form action="/annees-academiques/activate" method="POST" class="d-inline">
                                                             <input type="hidden" name="id" value="<?= $annee['id'] ?>">
                                                             <button type="submit" class="btn btn-sm btn-success" title="<?= _('Activer cette année') ?>">
-                                                                <i class="ti ti-check"></i>
+                                                                <i class="ph-duotone ph-check-circle"></i>
                                                             </button>
                                                         </form>
                                                     <?php endif; ?>
                                                     <a href="/annees-academiques/edit?id=<?= $annee['id'] ?>" class="btn btn-sm btn-primary" title="<?= _('Modifier') ?>">
-                                                        <i class="ti ti-pencil"></i>
+                                                        <i class="ph-duotone ph-pencil"></i>
                                                     </a>
                                                     <form action="/annees-academiques/destroy" method="POST" class="d-inline" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer cette année ?') ?>');">
                                                         <input type="hidden" name="id" value="<?= $annee['id'] ?>">
                                                         <button type="submit" class="btn btn-sm btn-danger" title="<?= _('Supprimer') ?>">
-                                                            <i class="ti ti-trash"></i>
+                                                            <i class="ph-duotone ph-trash"></i>
                                                         </button>
                                                     </form>
                                                 </td>
