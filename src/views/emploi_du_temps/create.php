@@ -49,38 +49,30 @@
                                             <select id="cascade_cycle_id" class="form-select" required>
                                                 <option value=""><?= _('-- Choisir Cycle --') ?></option>
                                                 <?php foreach ($data['cycles'] as $cyc): ?>
-                                                    <option value="<?= $cyc['id'] ?>" data-nom="<?= htmlspecialchars($cyc['nom']) ?>"><?= htmlspecialchars($cyc['nom']) ?></option>
+                                                    <option value="<?= $cyc['id_cycle'] ?>"><?= htmlspecialchars($cyc['nom_cycle']) ?></option>
                                                 <?php endforeach; ?>
                                             </select>
                                         </div>
                                         <div class="col-md-3">
                                             <label for="cascade_niveau" class="form-label fw-bold"><?= _('Niveau') ?> <span class="text-danger">*</span></label>
-                                            <select id="cascade_niveau" class="form-select" disabled required>
+                                            <select id="cascade_niveau" class="form-select" required>
                                                 <option value=""><?= _('-- Choisir d\'abord le cycle --') ?></option>
                                             </select>
                                         </div>
                                         <div class="col-md-3" id="group_serie" style="display: none;">
                                             <label for="cascade_serie" class="form-label fw-bold"><?= _('Série') ?></label>
-                                            <select id="cascade_serie" class="form-select" disabled>
+                                            <select id="cascade_serie" class="form-select">
                                                 <option value=""><?= _('-- Choisir Série --') ?></option>
                                             </select>
                                         </div>
                                         <div class="col-md-3">
                                             <label for="cascade_numero" class="form-label fw-bold"><?= _('Numéro / Classe') ?> <span class="text-danger">*</span></label>
-                                            <select id="cascade_numero" class="form-select" disabled required>
+                                            <select id="cascade_numero" class="form-select" required>
                                                 <option value=""><?= _('-- Choisir d\'abord le niveau --') ?></option>
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="mt-3">
-                                        <label for="classe_id" class="form-label fw-bold"><?= _('Classe Sélectionnée') ?> <span class="text-danger">*</span></label>
-                                        <select id="classe_id" name="classe_id" class="form-select" required>
-                                            <option value=""><?= _('-- Sélectionner la classe --') ?></option>
-                                            <?php foreach ($data['classes'] as $classe): ?>
-                                                <option value="<?= $classe['id_classe'] ?>"><?= htmlspecialchars(Classe::getFormattedName($classe)) ?></option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </div>
+                                    <input type="hidden" id="classe_id" name="classe_id" required>
                                 </div>
                             </div>
 
@@ -88,19 +80,13 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="matiere_id" class="form-label fw-bold"><?= _('Matière') ?> <span class="text-danger">*</span></label>
                                     <select id="matiere_id" name="matiere_id" class="form-select" required>
-                                        <option value=""><?= _('Sélectionner une matière') ?></option>
-                                        <?php foreach ($data['matieres'] as $matiere): ?>
-                                            <option value="<?= $matiere['id_matiere'] ?>"><?= htmlspecialchars($matiere['nom_matiere']) ?></option>
-                                        <?php endforeach; ?>
+                                        <option value=""><?= _('-- Sélectionner d\'abord la classe --') ?></option>
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="professeur_id" class="form-label fw-bold"><?= _('Enseignant') ?> <span class="text-danger">*</span></label>
                                     <select id="professeur_id" name="professeur_id" class="form-select" required>
-                                        <option value=""><?= _('Sélectionner un enseignant') ?></option>
-                                        <?php foreach ($data['professeurs'] as $prof): ?>
-                                            <option value="<?= $prof['id_user'] ?>"><?= htmlspecialchars($prof['prenom'] . ' ' . $prof['nom']) ?></option>
-                                        <?php endforeach; ?>
+                                        <option value=""><?= _('-- Sélectionner d\'abord un cycle --') ?></option>
                                     </select>
                                 </div>
                             </div>
@@ -150,103 +136,19 @@
     </div>
 </div>
 
+<script src="/assets/js/sgs-pedagogical-cascade.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const cycleSelect = document.getElementById('cascade_cycle_id');
-    const niveauSelect = document.getElementById('cascade_niveau');
-    const groupSerie = document.getElementById('group_serie');
-    const serieSelect = document.getElementById('cascade_serie');
-    const numeroSelect = document.getElementById('cascade_numero');
-    const classeSelect = document.getElementById('classe_id');
-
-    function resetSelect(el, defaultText) {
-        el.innerHTML = `<option value="">${defaultText}</option>`;
-        el.disabled = true;
-    }
-
-    cycleSelect.addEventListener('change', function() {
-        const cycleId = this.value;
-        resetSelect(niveauSelect, '-- Choisir Niveau --');
-        resetSelect(serieSelect, '-- Choisir Série --');
-        resetSelect(numeroSelect, '-- Choisir Numéro --');
-        groupSerie.style.display = 'none';
-
-        if (!cycleId) return;
-
-        fetch(`/affectations-pedagogiques/get-niveaux?cycle_id=${cycleId}`)
-            .then(res => res.json())
-            .then(data => {
-                niveauSelect.disabled = false;
-                data.forEach(niv => {
-                    niveauSelect.innerHTML += `<option value="${niv}">${niv}</option>`;
-                });
-            });
-    });
-
-    niveauSelect.addEventListener('change', function() {
-        const niveau = this.value;
-        const cycleId = cycleSelect.value;
-        resetSelect(serieSelect, '-- Choisir Série --');
-        resetSelect(numeroSelect, '-- Choisir Numéro --');
-
-        if (!niveau) return;
-
-        fetch(`/affectations-pedagogiques/get-series?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}`)
-            .then(res => res.json())
-            .then(series => {
-                if (series && series.length > 0) {
-                    groupSerie.style.display = 'block';
-                    serieSelect.disabled = false;
-                    series.forEach(s => {
-                        serieSelect.innerHTML += `<option value="${s}">${s}</option>`;
-                    });
-                } else {
-                    groupSerie.style.display = 'none';
-                    fetch(`/affectations-pedagogiques/get-numeros?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}`)
-                        .then(res => res.json())
-                        .then(numeros => {
-                            numeroSelect.disabled = false;
-                            numeros.forEach(n => {
-                                numeroSelect.innerHTML += `<option value="${n}">${n}</option>`;
-                            });
-                        });
-                }
-            });
-    });
-
-    serieSelect.addEventListener('change', function() {
-        const niveau = niveauSelect.value;
-        const cycleId = cycleSelect.value;
-        const serie = this.value;
-        resetSelect(numeroSelect, '-- Choisir Numéro --');
-
-        if (!serie) return;
-
-        fetch(`/affectations-pedagogiques/get-numeros?niveau=${encodeURIComponent(niveau)}&serie=${encodeURIComponent(serie)}&cycle_id=${cycleId}`)
-            .then(res => res.json())
-            .then(data => {
-                numeroSelect.disabled = false;
-                data.forEach(n => {
-                    numeroSelect.innerHTML += `<option value="${n}">${n}</option>`;
-                });
-            });
-    });
-
-    numeroSelect.addEventListener('change', function() {
-        const cycleId = cycleSelect.value;
-        const niveau = niveauSelect.value;
-        const serie = (groupSerie.style.display !== 'none') ? serieSelect.value : '';
-        const numero = this.value;
-
-        if (!numero) return;
-
-        fetch(`/affectations-pedagogiques/get-classe-id?niveau=${encodeURIComponent(niveau)}&serie=${encodeURIComponent(serie)}&numero=${encodeURIComponent(numero)}&cycle_id=${cycleId}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.id_classe) {
-                    classeSelect.value = data.id_classe;
-                }
-            });
+    new SGSPedagogicalCascade({
+        cycleId: 'cascade_cycle_id',
+        niveauId: 'cascade_niveau',
+        groupSerieId: 'group_serie',
+        serieId: 'cascade_serie',
+        numeroId: 'cascade_numero',
+        classeId: 'classe_id',
+        matiereId: 'matiere_id',
+        teacherId: 'professeur_id',
+        includeAllSubjects: true
     });
 });
 </script>
