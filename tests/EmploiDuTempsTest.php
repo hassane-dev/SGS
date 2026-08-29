@@ -222,7 +222,7 @@ try {
     ];
     assertCondition(EmploiDuTemps::save($cOverlapProf, 901) === false, "Chevauchement enseignant refusé.");
 
-    // SCÉNARIO 8: Une modification ne peut pas introduire de chevauchement
+    // SCÉNARIO 8: Une modification ne peut pas introduire de chevauchement mais permet la modification de son propre cours sans faux conflit
     echo "\n8. SCÉNARIO 8: Protection anti-chevauchement lors d'une modification (UPDATE)...\n";
     $cToEdit = [
         'classe_id' => $classeId2,
@@ -237,6 +237,20 @@ try {
     assertCondition(EmploiDuTemps::save($cToEdit, 901), "Second cours créé Jeudi 14:00-16:00.");
     $entriesJeudi = EmploiDuTemps::getByContext($anneeId1, $classeId2, null, null, 901);
     $editId = $entriesJeudi[0]['id'];
+
+    // Modification légitime de son propre cours (ex: changer d'heure vers 14:30 sans conflit)
+    $selfUpdate = [
+        'id' => $editId,
+        'classe_id' => $classeId2,
+        'matiere_id' => $matiereId1,
+        'professeur_id' => $profId2,
+        'salle_id' => $salleId2,
+        'annee_academique_id' => $anneeId1,
+        'jour' => 'Jeudi',
+        'heure_debut' => '14:30',
+        'heure_fin' => '16:30',
+    ];
+    assertCondition(EmploiDuTemps::save($selfUpdate, 901), "Modification légitime du propre cours réussie sans faux conflit.");
 
     $badUpdate = [
         'id' => $editId,
@@ -301,6 +315,44 @@ try {
         'heure_fin' => '15:00',
     ];
     assertCondition(EmploiDuTemps::save($pBadSubject, 901) === false, "Enregistrement refusé pour matière non rattachée à la classe.");
+
+    // SCÉNARIO 12: Validation de la non-émission d'exceptions HY093 sous PDO préparé nativement
+    echo "\n12. SCÉNARIO 12: Absence totale d'erreurs HY093 sous PDO::ATTR_EMULATE_PREPARES = false...\n";
+    $pStoreNative = [
+        'classe_id' => $classeId1,
+        'matiere_id' => $matiereId1,
+        'professeur_id' => $profId1,
+        'salle_id' => $salleId1,
+        'annee_academique_id' => $anneeId1,
+        'jour' => 'Vendredi',
+        'heure_debut' => '10:00',
+        'heure_fin' => '11:00',
+    ];
+    assertCondition(EmploiDuTemps::save($pStoreNative, 901), "Enregistrement store() sous PDO native sans erreur HY093.");
+
+    $storedNativeEntries = EmploiDuTemps::getByContext($anneeId1, $classeId1, null, null, 901);
+    $lastEntryId = null;
+    foreach ($storedNativeEntries as $sne) {
+        if ($sne['jour'] === 'Vendredi' && substr($sne['heure_debut'], 0, 5) === '10:00') {
+            $lastEntryId = $sne['id'];
+            break;
+        }
+    }
+
+    assertCondition($lastEntryId !== null, "Cours inséré sous PDO native retrouvé.");
+
+    $pUpdateNative = [
+        'id' => $lastEntryId,
+        'classe_id' => $classeId1,
+        'matiere_id' => $matiereId1,
+        'professeur_id' => $profId1,
+        'salle_id' => $salleId1,
+        'annee_academique_id' => $anneeId1,
+        'jour' => 'Vendredi',
+        'heure_debut' => '10:30',
+        'heure_fin' => '11:30',
+    ];
+    assertCondition(EmploiDuTemps::save($pUpdateNative, 901), "Mise à jour update() sous PDO native sans erreur HY093.");
 
     // Cleanup
     $db->exec("DELETE FROM emploi_du_temps WHERE lycee_id IN (901, 902)");

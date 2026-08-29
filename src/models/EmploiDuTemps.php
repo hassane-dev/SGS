@@ -138,18 +138,20 @@ class EmploiDuTemps {
         }
 
         // Verify Teacher belongs to tenant & has active cycle assignment matching class cycle
+        $cycleIdParam = $classeRow['cycle_id'] ?? null;
         $stmt = $db->prepare("
             SELECT u.id_user
             FROM utilisateurs u
             LEFT JOIN personnel_cycles_assignments pca ON u.id_user = pca.personnel_id AND (pca.actif = 1 OR pca.actif IS NULL)
             WHERE u.id_user = :id AND u.lycee_id = :lycee_id
-              AND (pca.cycle_id = :cycle_id OR pca.cycle_id IS NULL OR :cycle_id IS NULL)
+              AND (pca.cycle_id = :cycle_id OR pca.cycle_id IS NULL OR :cycle_id_check IS NULL)
             LIMIT 1
         ");
         $stmt->execute([
             'id' => $data['professeur_id'],
             'lycee_id' => $lycee_id,
-            'cycle_id' => $classeRow['cycle_id'] ?? null
+            'cycle_id' => $cycleIdParam,
+            'cycle_id_check' => $cycleIdParam
         ]);
         if (!$stmt->fetch()) {
             return "Le professeur sélectionné n'existe pas, n'appartient pas à votre établissement ou n'est pas éligible pour ce cycle.";
@@ -272,7 +274,7 @@ class EmploiDuTemps {
             }
 
             $sql = $isUpdate
-                ? "UPDATE emploi_du_temps SET classe_id = :classe_id, matiere_id = :matiere_id, professeur_id = :professeur_id, lycee_id = :lycee_id, jour = :jour, heure_debut = :heure_debut, heure_fin = :heure_fin, salle_id = :salle_id, annee_academique_id = :annee_academique_id WHERE id = :id AND lycee_id = :lycee_id"
+                ? "UPDATE emploi_du_temps SET classe_id = :classe_id, matiere_id = :matiere_id, professeur_id = :professeur_id, lycee_id = :lycee_id, jour = :jour, heure_debut = :heure_debut, heure_fin = :heure_fin, salle_id = :salle_id, annee_academique_id = :annee_academique_id WHERE id = :id AND lycee_id = :lycee_id_where"
                 : "INSERT INTO emploi_du_temps (classe_id, matiere_id, professeur_id, lycee_id, jour, heure_debut, heure_fin, salle_id, annee_academique_id) VALUES (:classe_id, :matiere_id, :professeur_id, :lycee_id, :jour, :heure_debut, :heure_fin, :salle_id, :annee_academique_id)";
 
             $stmt = $db->prepare($sql);
@@ -290,6 +292,7 @@ class EmploiDuTemps {
 
             if ($isUpdate) {
                 $params['id'] = $data['id'];
+                $params['lycee_id_where'] = $targetLyceeId;
             }
 
             $success = $stmt->execute($params);
