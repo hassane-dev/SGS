@@ -19,6 +19,7 @@ class SGSPedagogicalCascade {
         this.form = config.formId ? document.getElementById(config.formId) : null;
 
         this.initialValues = config.initialValues || {};
+        this.isRehydrating = false;
 
         this.init();
     }
@@ -163,7 +164,7 @@ class SGSPedagogicalCascade {
                     });
                 }
 
-                if (this.autoSubmitOnClassChange && this.form) {
+                if (this.autoSubmitOnClassChange && this.form && !this.isRehydrating) {
                     this.form.submit();
                 }
             }
@@ -211,18 +212,23 @@ class SGSPedagogicalCascade {
         // Rehydrate initial values if provided
         (async () => {
             if (this.initialValues.cycleId) {
-                await this.loadNiveaux(this.initialValues.cycleId, this.initialValues.niveau);
-                if (this.initialValues.niveau) {
-                    await this.loadSeriesOrNumeros(this.initialValues.cycleId, this.initialValues.niveau, this.initialValues.serie, this.initialValues.numero);
-                    if (this.initialValues.numero) {
-                        await this.resolveClasseAndLoadMatieres(
-                            this.initialValues.cycleId,
-                            this.initialValues.niveau,
-                            this.initialValues.serie,
-                            this.initialValues.numero,
-                            this.initialValues.matiereId
-                        );
+                this.isRehydrating = true;
+                try {
+                    await this.loadNiveaux(this.initialValues.cycleId, this.initialValues.niveau);
+                    if (this.initialValues.niveau) {
+                        await this.loadSeriesOrNumeros(this.initialValues.cycleId, this.initialValues.niveau, this.initialValues.serie, this.initialValues.numero);
+                        if (this.initialValues.numero) {
+                            await this.resolveClasseAndLoadMatieres(
+                                this.initialValues.cycleId,
+                                this.initialValues.niveau,
+                                this.initialValues.serie,
+                                this.initialValues.numero,
+                                this.initialValues.matiereId
+                            );
+                        }
                     }
+                } finally {
+                    this.isRehydrating = false;
                 }
             }
         })();
