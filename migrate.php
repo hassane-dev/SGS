@@ -1045,6 +1045,7 @@ try {
     $paie_perms = [
         ['paie', 'view', 'Consulter les périodes, bulletins et registres de paie'],
         ['paie', 'create', 'Créer une nouvelle période de paie ou importer les salaires'],
+        ['paie', 'edit', 'Modifier une période de paie non engagée'],
         ['paie', 'calculate', 'Lancer le calcul automatisé des bulletins de paie'],
         ['paie', 'validate', 'Valider les bulletins de paie et heures pédagogiques'],
         ['paie', 'redraw', 'Exécuter un re-tirage atomique de bulletin (V1 vers V2)'],

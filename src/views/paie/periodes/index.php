@@ -98,6 +98,12 @@ require_once __DIR__ . '/../../layouts/header_able.php';
                               <i class="ph-duotone ph-eye fs-6"></i>
                               <span class="d-none d-md-inline ms-1"><?= _("Voir") ?></span>
                             </a>
+                            <?php if ((Auth::can('edit', 'paie') || Auth::can('create', 'paie')) && PaiePeriode::getLockReason($p) === null): ?>
+                              <a href="/paie/periodes/<?= $p['id'] ?>/edit" class="btn btn-light-warning" title="<?= _('Modifier') ?>">
+                                <i class="ph-duotone ph-pencil-simple fs-6"></i>
+                                <span class="d-none d-md-inline ms-1"><?= _("Modifier") ?></span>
+                              </a>
+                            <?php endif; ?>
                             <a href="/paie/bulletins?periode_id=<?= $p['id'] ?>" class="btn btn-light-secondary" title="<?= _('Bulletins') ?>">
                               <i class="ph-duotone ph-receipt fs-6"></i>
                               <span class="d-none d-md-inline ms-1"><?= _("Bulletins") ?></span>
