@@ -7,9 +7,14 @@ class CahierTexte {
     public static function findAllByPersonnel($personnel_id, $lycee_id, $filters = []) {
         $db = Database::getInstance();
         $sql = "
-            SELECT ct.*, c.niveau, c.serie, c.numero, m.nom_matiere, u.nom as nom_personnel, u.prenom as prenom_personnel
+            SELECT ct.*,
+                   c.niveau, c.serie, c.numero, c.cycle_id,
+                   cy.nom_cycle,
+                   m.nom_matiere,
+                   u.nom as nom_personnel, u.prenom as prenom_personnel, u.identifiant_public as matricule_personnel
             FROM cahier_texte ct
             LEFT JOIN classes c ON ct.classe_id = c.id_classe
+            LEFT JOIN cycles cy ON c.cycle_id = cy.id_cycle
             LEFT JOIN matieres m ON ct.matiere_id = m.id_matiere
             LEFT JOIN utilisateurs u ON ct.personnel_id = u.id_user
             WHERE ct.lycee_id = :lycee_id
@@ -21,14 +26,34 @@ class CahierTexte {
             $params['personnel_id'] = $personnel_id;
         }
 
-        // Admin filters
+        // Dynamic hierarchical and attribute filters
         if (!empty($filters['personnel_id_filter'])) {
             $sql .= " AND ct.personnel_id = :personnel_id_filter";
-            $params['personnel_id_filter'] = $filters['personnel_id_filter'];
+            $params['personnel_id_filter'] = (int)$filters['personnel_id_filter'];
         }
-        if (!empty($filters['classe_id_filter'])) {
-            $sql .= " AND ct.classe_id = :classe_id_filter";
-            $params['classe_id_filter'] = $filters['classe_id_filter'];
+        if (!empty($filters['cycle_id'])) {
+            $sql .= " AND c.cycle_id = :cycle_id";
+            $params['cycle_id'] = (int)$filters['cycle_id'];
+        }
+        if (!empty($filters['niveau'])) {
+            $sql .= " AND c.niveau = :niveau";
+            $params['niveau'] = $filters['niveau'];
+        }
+        if (isset($filters['serie']) && $filters['serie'] !== null && $filters['serie'] !== '') {
+            $sql .= " AND c.serie = :serie";
+            $params['serie'] = $filters['serie'];
+        }
+        if (isset($filters['numero']) && $filters['numero'] !== null && $filters['numero'] !== '') {
+            $sql .= " AND c.numero = :numero";
+            $params['numero'] = $filters['numero'];
+        }
+        if (!empty($filters['classe_id'])) {
+            $sql .= " AND ct.classe_id = :classe_id";
+            $params['classe_id'] = (int)$filters['classe_id'];
+        }
+        if (!empty($filters['matiere_id'])) {
+            $sql .= " AND ct.matiere_id = :matiere_id";
+            $params['matiere_id'] = (int)$filters['matiere_id'];
         }
         if (!empty($filters['date_filter'])) {
             $sql .= " AND ct.date_cours = :date_filter";
@@ -47,6 +72,58 @@ class CahierTexte {
         $stmt = $db->prepare("SELECT * FROM cahier_texte WHERE cahier_id = :id");
         $stmt->execute(['id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public static function findDetailsById($id, $lycee_id = null) {
+        $db = Database::getInstance();
+        $sql = "
+            SELECT ct.*,
+                   c.niveau, c.serie, c.numero, c.cycle_id,
+                   cy.nom_cycle,
+                   m.nom_matiere,
+                   u.nom as nom_personnel, u.prenom as prenom_personnel, u.identifiant_public as matricule_personnel,
+                   a.libelle as annee_academique_libelle
+            FROM cahier_texte ct
+            LEFT JOIN classes c ON ct.classe_id = c.id_classe
+            LEFT JOIN cycles cy ON c.cycle_id = cy.id_cycle
+            LEFT JOIN matieres m ON ct.matiere_id = m.id_matiere
+            LEFT JOIN utilisateurs u ON ct.personnel_id = u.id_user
+            LEFT JOIN annees_academiques a ON ct.annee_id = a.id
+            WHERE ct.cahier_id = :id
+        ";
+        $params = ['id' => $id];
+
+        if ($lycee_id !== null) {
+            $sql .= " AND ct.lycee_id = :lycee_id";
+            $params['lycee_id'] = (int)$lycee_id;
+        }
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($result && !empty($result['heure_debut']) && !empty($result['heure_fin'])) {
+            $ts1 = strtotime($result['heure_debut']);
+            $ts2 = strtotime($result['heure_fin']);
+            if ($ts2 > $ts1) {
+                $diffSec = $ts2 - $ts1;
+                $hours = floor($diffSec / 3600);
+                $minutes = floor(($diffSec % 3600) / 60);
+                $result['duree_minutes'] = floor($diffSec / 60);
+                $result['duree_heures'] = round($diffSec / 3600, 2);
+                $result['duree_formatee'] = ($hours > 0 ? "{$hours}h " : "") . sprintf("%02dmin", $minutes);
+            } else {
+                $result['duree_minutes'] = 0;
+                $result['duree_heures'] = 0;
+                $result['duree_formatee'] = "0 min";
+            }
+        } else {
+            $result['duree_minutes'] = 0;
+            $result['duree_heures'] = 0;
+            $result['duree_formatee'] = "N/A";
+        }
+
+        return $result;
     }
 
     public static function save($data) {
