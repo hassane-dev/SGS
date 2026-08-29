@@ -141,6 +141,47 @@
                             </div>
                         </form>
 
+                        <!-- Context Header Banner -->
+                        <?php
+                        $headerTitle = "EMPLOI DU TEMPS";
+                        $headerSub = "Année Académique : " . htmlspecialchars($active_year['nom'] ?? '2026-2027');
+
+                        if ($view_mode === 'classe' && $view_classe_id) {
+                            $selClass = null;
+                            foreach ($classes as $c) {
+                                if ($c['id_classe'] == $view_classe_id) { $selClass = $c; break; }
+                            }
+                            if ($selClass) {
+                                $headerTitle = "EMPLOI DU TEMPS — " . htmlspecialchars(Classe::getFormattedName($selClass));
+                                $headerSub = "Niveau : " . htmlspecialchars($selClass['niveau'] ?? 'N/A');
+                                if (!empty($selClass['serie'])) $headerSub .= " — Série : " . htmlspecialchars($selClass['serie']);
+                                if (!empty($selClass['numero'])) $headerSub .= " — N° " . htmlspecialchars($selClass['numero']);
+                                $headerSub .= " | " . htmlspecialchars($active_year['nom'] ?? '2026-2027');
+                            }
+                        } elseif ($view_mode === 'professeur' && $view_professeur_id) {
+                            $selProf = null;
+                            foreach ($professeurs as $p) {
+                                if ($p['id_user'] == $view_professeur_id) { $selProf = $p; break; }
+                            }
+                            if ($selProf) {
+                                $headerTitle = "EMPLOI DU TEMPS — Enseignant " . htmlspecialchars($selProf['prenom'] . ' ' . $selProf['nom']);
+                            }
+                        } elseif ($view_mode === 'salle' && $view_salle_id) {
+                            $selSalle = null;
+                            foreach ($salles as $s) {
+                                if ($s['id_salle'] == $view_salle_id) { $selSalle = $s; break; }
+                            }
+                            if ($selSalle) {
+                                $headerTitle = "EMPLOI DU TEMPS — Salle " . htmlspecialchars($selSalle['nom_salle']);
+                            }
+                        }
+                        ?>
+
+                        <div class="text-center p-3 mb-4 bg-primary-subtle border border-primary-subtle rounded-3 shadow-sm">
+                            <h5 class="fw-bold mb-1 text-primary"><?= $headerTitle ?></h5>
+                            <small class="text-muted fw-semibold"><?= $headerSub ?></small>
+                        </div>
+
                         <!-- Timetable Grid Driven Strictly By Recorded Time Intervals -->
                         <?php if (empty($timetable_grid['intervals'])): ?>
                             <div class="alert alert-info text-center my-4" role="alert">
@@ -168,19 +209,33 @@
                                                     <td>
                                                         <?php if (!empty($timetable_grid['grid'][$slotKey][$day])): ?>
                                                             <?php foreach ($timetable_grid['grid'][$slotKey][$day] as $entry): ?>
-                                                                <div class="alert alert-primary p-2 mb-2 text-start position-relative shadow-sm" role="alert">
-                                                                    <div class="fw-bold mb-1 text-primary">
+                                                                <?php
+                                                                // Prepare hover popover text depending on view_mode
+                                                                $tooltipLines = [];
+                                                                if ($view_mode !== 'professeur') {
+                                                                    $tooltipLines[] = "👤 Enseignant : " . $entry['prof_prenom'] . " " . $entry['prof_nom'];
+                                                                }
+                                                                if ($view_mode !== 'classe') {
+                                                                    $tooltipLines[] = "🎓 Classe : " . Classe::getFormattedName($entry);
+                                                                }
+                                                                if (!empty($entry['nom_salle']) && $view_mode !== 'salle') {
+                                                                    $tooltipLines[] = "🏫 Salle : " . $entry['nom_salle'];
+                                                                }
+                                                                $tooltipText = implode(" | ", $tooltipLines);
+                                                                ?>
+
+                                                                <div class="alert alert-primary p-2 mb-2 text-start position-relative shadow-sm" role="alert"
+                                                                     data-bs-toggle="tooltip" data-bs-placement="top" title="<?= htmlspecialchars($tooltipText) ?>">
+                                                                    <div class="fw-bold text-primary">
                                                                         <i class="ti ti-book me-1"></i><?= htmlspecialchars($entry['nom_matiere']) ?>
                                                                     </div>
-                                                                    <div class="small">
-                                                                        <strong>Classe :</strong> <?= htmlspecialchars(Classe::getFormattedName($entry)) ?><br>
-                                                                        <strong>Enseignant :</strong> <?= htmlspecialchars($entry['prof_prenom'] . ' ' . $entry['prof_nom']) ?><br>
-                                                                        <?php if (!empty($entry['nom_salle'])): ?>
-                                                                            <span class="badge bg-light-dark text-dark mt-1">
-                                                                                <i class="ti ti-building me-1"></i><?= htmlspecialchars($entry['nom_salle']) ?>
-                                                                            </span>
-                                                                        <?php endif; ?>
-                                                                    </div>
+
+                                                                    <?php if ($view_mode !== 'classe'): ?>
+                                                                        <div class="small text-muted mt-1">
+                                                                            <strong><?= htmlspecialchars(Classe::getFormattedName($entry)) ?></strong>
+                                                                        </div>
+                                                                    <?php endif; ?>
+
                                                                     <div class="mt-2 d-flex justify-content-end gap-1">
                                                                         <a href="/emploi-du-temps/edit?id=<?= $entry['id'] ?>" class="btn btn-sm btn-outline-primary py-0 px-1" title="<?= _('Modifier') ?>">
                                                                             <i class="ti ti-edit"></i>
@@ -256,11 +311,16 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
     const cycleSelect = document.getElementById('cycle_id');
     const niveauSelect = document.getElementById('niveau');
     const groupSerie = document.getElementById('group_serie_index');
     const serieSelect = document.getElementById('serie');
-    const classeSelect = document.getElementById('classe_id');
 
     if (cycleSelect && niveauSelect) {
         cycleSelect.addEventListener('change', function() {

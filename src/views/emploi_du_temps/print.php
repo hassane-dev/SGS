@@ -28,7 +28,7 @@
         }
         .header h3 {
             margin: 0;
-            font-size: 13pt;
+            font-size: 12pt;
             color: #444;
             font-weight: normal;
         }
@@ -65,7 +65,7 @@
             background-color: #f0f4f8;
             border: 1px solid #a3b8cc;
             border-radius: 4px;
-            padding: 4px;
+            padding: 5px;
             text-align: left;
             font-size: 9pt;
             margin-bottom: 4px;
@@ -100,11 +100,11 @@
 
     <div class="header">
         <h2><?= htmlspecialchars($context_title) ?></h2>
-        <h3>Année Académique : <?= htmlspecialchars($active_year['nom'] ?? 'N/A') ?></h3>
+        <h3>Année Académique : <?= htmlspecialchars($active_year['nom'] ?? '2026-2027') ?></h3>
     </div>
 
     <div class="meta-info">
-        <div><strong>Établissement :</strong> SGS School Management</div>
+        <div><strong>SGS School Management System</strong></div>
         <div><strong>Date d'impression :</strong> <?= date('d/m/Y H:i') ?></div>
     </div>
 
@@ -132,9 +132,13 @@
                                         <div class="course-box">
                                             <div class="course-title"><?= htmlspecialchars($entry['nom_matiere']) ?></div>
                                             <div class="course-details">
-                                                <strong>Classe :</strong> <?= htmlspecialchars(Classe::getFormattedName($entry)) ?><br>
-                                                <strong>Ens. :</strong> <?= htmlspecialchars($entry['prof_prenom'] . ' ' . $entry['prof_nom']) ?><br>
-                                                <?php if (!empty($entry['nom_salle'])): ?>
+                                                <?php if ($view_mode !== 'classe'): ?>
+                                                    <strong>Classe :</strong> <?= htmlspecialchars(Classe::getFormattedName($entry)) ?><br>
+                                                <?php endif; ?>
+                                                <?php if ($view_mode !== 'professeur'): ?>
+                                                    <strong>Ens. :</strong> <?= htmlspecialchars($entry['prof_prenom'] . ' ' . $entry['prof_nom']) ?><br>
+                                                <?php endif; ?>
+                                                <?php if (!empty($entry['nom_salle']) && $view_mode !== 'salle'): ?>
                                                     <strong>Salle :</strong> <?= htmlspecialchars($entry['nom_salle']) ?>
                                                 <?php endif; ?>
                                             </div>
