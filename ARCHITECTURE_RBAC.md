@@ -73,6 +73,8 @@ L'utilisation de paramètres par défaut pouvant conduire à une ressource autre
 | **Catégories** | `depense` | `manage` | `/depenses/categories` | `DepenseController::categories` | `src/views/depenses/categories.php` |
 | **Centres de coûts**| `depense` | `manage` | `/depenses/centres-couts` | `DepenseController::centresCouts` | `src/views/depenses/centres_couts.php` |
 | **Bénéficiaires** | `depense` | `manage` | `/depenses/beneficiaires` | `DepenseController::beneficiaires` | `src/views/depenses/beneficiaires.php` |
+| **Périodes Paie** | `paie` | `view` | `/paie/periodes` | `PaiePeriodesController::index` | `src/views/paie/periodes/index.php` |
+| **Édition Période**| `paie` | `edit` | `/paie/periodes/{id}/edit` | `PaiePeriodesController::edit` | `src/views/paie/periodes/edit.php` |
 
 ---
 

@@ -205,6 +205,7 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 -- Module Paie (Lot 2.1)
 (200, 'paie', 'view', 'Consulter les périodes, bulletins et registres de paie'),
 (201, 'paie', 'create', 'Créer une nouvelle période de paie ou importer les salaires'),
+(211, 'paie', 'edit', 'Modifier une période de paie non engagée'),
 (202, 'paie', 'calculate', 'Lancer le calcul automatisé des bulletins de paie'),
 (203, 'paie', 'validate', 'Valider les bulletins de paie et heures pédagogiques'),
 (204, 'paie', 'redraw', 'Exécuter un re-tirage atomique de bulletin (V1 vers V2)'),
@@ -277,7 +278,7 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Module DRH
 (3, 170), (3, 171), (3, 172), (3, 173), (3, 175), (3, 180), (3, 181),
 -- Module Paie
-(3, 200), (3, 201), (3, 202), (3, 203), (3, 204), (3, 205), (3, 206), (3, 207), (3, 208), (3, 209), (3, 210),
+(3, 200), (3, 201), (3, 211), (3, 202), (3, 203), (3, 204), (3, 205), (3, 206), (3, 207), (3, 208), (3, 209), (3, 210),
 -- Reporting
 (3, 220), (3, 221), (3, 222), (3, 223), (3, 224), (3, 225), (3, 226), (3, 227), (3, 228), (3, 229), (3, 240), (3, 241);
 
@@ -325,7 +326,7 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Module DRH
 (9, 170), (9, 171), (9, 176), (9, 179), (9, 181),
 -- Module Paie (Complet)
-(9, 200), (9, 201), (9, 202), (9, 203), (9, 204), (9, 205), (9, 206), (9, 207), (9, 208), (9, 209), (9, 210);
+(9, 200), (9, 201), (9, 211), (9, 202), (9, 203), (9, 204), (9, 205), (9, 206), (9, 207), (9, 208), (9, 209), (9, 210);
 
 -- Caissier (Cashier)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES

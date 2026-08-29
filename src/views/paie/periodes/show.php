@@ -76,6 +76,24 @@ require_once __DIR__ . '/../../layouts/header_able.php';
 
             <hr/>
 
+            <?php
+            $lockReason = PaiePeriode::getLockReason($periode);
+            ?>
+
+            <?php if ((Auth::can('edit', 'paie') || Auth::can('create', 'paie'))): ?>
+              <?php if ($lockReason === null): ?>
+                <a href="/paie/periodes/<?= $periode['id'] ?>/edit" class="btn btn-outline-primary w-100 mb-2 d-inline-flex align-items-center justify-content-center gap-1">
+                  <i class="ph-duotone ph-pencil-simple fs-5"></i>
+                  <span><?= _("Modifier la Période") ?></span>
+                </a>
+              <?php else: ?>
+                <div class="alert alert-light-warning border-warning p-2 mb-2 small">
+                  <i class="ph-duotone ph-lock-key me-1 align-middle text-warning fs-6"></i>
+                  <strong><?= _("Édition verrouillée :") ?></strong> <?= htmlspecialchars($lockReason) ?>
+                </div>
+              <?php endif; ?>
+            <?php endif; ?>
+
             <?php if ($periode['statut'] !== 'cloture'): ?>
               <?php if (Auth::can('calculate', 'paie')): ?>
                 <form action="/paie/periodes/calculate" method="POST" class="mb-2">

@@ -497,9 +497,13 @@ $router->register('/salaires/fiche', 'SalaireController', 'genererFiche');
 $router->register('/paie/periodes', 'PaiePeriodesController', 'index');
 $router->register('/paie/periodes/create', 'PaiePeriodesController', 'create');
 $router->register('/paie/periodes/store', 'PaiePeriodesController', 'store');
+$router->register('/paie/periodes/edit', 'PaiePeriodesController', 'edit');
+$router->register('/paie/periodes/update', 'PaiePeriodesController', 'update');
 $router->register('/paie/periodes/calculate', 'PaiePeriodesController', 'calculate');
 $router->register('/paie/periodes/close', 'PaiePeriodesController', 'close');
 $router->register('/paie/periodes/show', 'PaiePeriodesController', 'show');
+$router->register('/paie/periodes/{id}/edit', 'PaiePeriodesController', 'edit');
+$router->register('/paie/periodes/{id}/update', 'PaiePeriodesController', 'update');
 $router->register('/paie/periodes/{id}/cloture', 'PaiePeriodesController', 'close');
 $router->register('/paie/periodes/{id}', 'PaiePeriodesController', 'show');
 

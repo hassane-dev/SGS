@@ -288,6 +288,11 @@ class PaieWorkflowService {
 
         PaieAuditLog::log('paie_bulletins', $bulletinId, 'create_v1', $userId, null, $computed);
 
+            // Transition period status from 'brouillon' to 'valide' upon effective bulletin generation
+            if ($locks['periode']['statut'] === 'brouillon') {
+                PaiePeriode::updateStatus($periodePaieId, 'valide', $userId);
+            }
+
         return $bulletinId;
     }
 
@@ -425,6 +430,11 @@ class PaieWorkflowService {
                     $idempotencyKey
                 );
                 $createdBulletinIds[] = $bulletinId;
+            }
+
+            // Ensure period status is 'valide' when bulletins exist
+            if ($periode['statut'] === 'brouillon' && (!empty($createdBulletinIds) || PaiePeriode::hasBulletins($periodePaieId))) {
+                PaiePeriode::updateStatus($periodePaieId, 'valide', $userId);
             }
 
             $db->commit();
