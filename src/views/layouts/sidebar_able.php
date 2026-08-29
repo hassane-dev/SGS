@@ -463,14 +463,12 @@ $navItems = [
                 'text' => _('Reprises historiques'),
                 'condition' => Auth::can('create', 'paie') || Auth::can('audit', 'paie'),
             ],
+            [
+                'url' => '/paie/historique',
+                'text' => _('Historique des salaires'),
+                'condition' => Auth::can('view', 'paie'),
+            ],
         ],
-    ],
-    [
-        'url' => '/salaires',
-        'icon' => 'ph-duotone ph-wallet',
-        'text' => _('Salaires (Historique)'),
-        'title' => _('Gérer la paie des employés.'),
-        'condition' => Auth::can('manage', 'salaire'),
     ],
     [
         'url' => '/frais',

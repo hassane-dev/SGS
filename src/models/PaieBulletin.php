@@ -95,6 +95,78 @@ class PaieBulletin {
         return $res ?: null;
     }
 
+    public static function findHistory(int $lyceeId, array $filters = []): array {
+        $db = Database::getInstance();
+        $sql = "
+            SELECT b.*,
+                   u.nom, u.prenom, u.identifiant_public,
+                   p.code_periode, p.mois, p.annee, p.date_debut AS periode_date_debut, p.date_fin AS periode_date_fin,
+                   tc.libelle AS type_contrat_libelle,
+                   c.mode_calcul_principal, c.volume_horaire_mensuel,
+                   aa.libelle AS annee_academique_libelle
+            FROM paie_bulletins b
+            JOIN paie_periodes p ON b.periode_id = p.id
+            JOIN utilisateurs u ON b.personnel_id = u.id_user
+            LEFT JOIN personnel_contrats_historique c ON b.contrat_id = c.id
+            LEFT JOIN type_contrat tc ON c.type_contrat_id = tc.id_contrat
+            LEFT JOIN annees_academiques aa ON (
+                aa.date_debut <= p.date_fin AND aa.date_fin >= p.date_debut
+            )
+            WHERE p.lycee_id = :lycee_id_p AND u.lycee_id = :lycee_id_u
+        ";
+
+        $params = [
+            'lycee_id_p' => $lyceeId,
+            'lycee_id_u' => $lyceeId,
+        ];
+
+        if (!empty($filters['personnel_id'])) {
+            $sql .= " AND b.personnel_id = :personnel_id";
+            $params['personnel_id'] = (int)$filters['personnel_id'];
+        }
+
+        if (!empty($filters['periode_id'])) {
+            $sql .= " AND b.periode_id = :periode_id";
+            $params['periode_id'] = (int)$filters['periode_id'];
+        }
+
+        if (!empty($filters['annee_academique_id'])) {
+            $sql .= " AND aa.id = :annee_academique_id";
+            $params['annee_academique_id'] = (int)$filters['annee_academique_id'];
+        }
+
+        if (!empty($filters['type_contrat_id'])) {
+            $sql .= " AND c.type_contrat_id = :type_contrat_id";
+            $params['type_contrat_id'] = (int)$filters['type_contrat_id'];
+        }
+
+        if (!empty($filters['statut_bulletin'])) {
+            $sql .= " AND b.statut_bulletin = :statut_bulletin";
+            $params['statut_bulletin'] = $filters['statut_bulletin'];
+        }
+
+        if (!empty($filters['statut_reglement'])) {
+            $sql .= " AND b.statut_reglement = :statut_reglement";
+            $params['statut_reglement'] = $filters['statut_reglement'];
+        }
+
+        if (!empty($filters['date_debut'])) {
+            $sql .= " AND p.date_debut >= :date_debut";
+            $params['date_debut'] = $filters['date_debut'];
+        }
+
+        if (!empty($filters['date_fin'])) {
+            $sql .= " AND p.date_fin <= :date_fin";
+            $params['date_fin'] = $filters['date_fin'];
+        }
+
+        $sql .= " ORDER BY p.annee DESC, p.mois DESC, u.nom ASC, u.prenom ASC, b.version_num DESC";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public static function update(int $id, array $data): bool {
         $db = Database::getInstance();
         $fields = [];

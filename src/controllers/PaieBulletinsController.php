@@ -212,6 +212,42 @@ class PaieBulletinsController {
         }
     }
 
+    public function historique() {
+        Auth::requirePermission('paie', 'view');
+        $lyceeId = Auth::getLyceeId() ?: 1;
+
+        $filters = [
+            'personnel_id' => !empty($_GET['personnel_id']) ? (int)$_GET['personnel_id'] : null,
+            'periode_id' => !empty($_GET['periode_id']) ? (int)$_GET['periode_id'] : null,
+            'annee_academique_id' => !empty($_GET['annee_academique_id']) ? (int)$_GET['annee_academique_id'] : null,
+            'type_contrat_id' => !empty($_GET['type_contrat_id']) ? (int)$_GET['type_contrat_id'] : null,
+            'statut_bulletin' => !empty($_GET['statut_bulletin']) ? trim($_GET['statut_bulletin']) : null,
+            'statut_reglement' => !empty($_GET['statut_reglement']) ? trim($_GET['statut_reglement']) : null,
+            'date_debut' => !empty($_GET['date_debut']) ? trim($_GET['date_debut']) : null,
+            'date_fin' => !empty($_GET['date_fin']) ? trim($_GET['date_fin']) : null,
+        ];
+
+        $bulletins = PaieBulletin::findHistory($lyceeId, array_filter($filters, fn($v) => $v !== null));
+
+        // Fetch dropdown options scoped to lycee_id
+        $db = Database::getInstance();
+
+        $stmtP = $db->prepare("SELECT id_user, nom, prenom, identifiant_public FROM utilisateurs WHERE lycee_id = :lycee_id AND actif = 1 ORDER BY nom ASC, prenom ASC");
+        $stmtP->execute(['lycee_id' => $lyceeId]);
+        $personnelsOptions = $stmtP->fetchAll(PDO::FETCH_ASSOC);
+
+        $periodesOptions = PaiePeriode::findAllForLycee($lyceeId);
+
+        $stmtAA = $db->query("SELECT id, libelle FROM annees_academiques ORDER BY date_debut DESC");
+        $anneesOptions = $stmtAA->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmtTC = $db->prepare("SELECT id_contrat, libelle FROM type_contrat WHERE lycee_id = :lycee_id OR lycee_id IS NULL ORDER BY libelle ASC");
+        $stmtTC->execute(['lycee_id' => $lyceeId]);
+        $typesContratOptions = $stmtTC->fetchAll(PDO::FETCH_ASSOC);
+
+        include __DIR__ . '/../views/paie/historique.php';
+    }
+
     public function show($id = null) {
         Auth::requirePermission('paie', 'view');
         $id = (int)($id ?: ($_GET['id'] ?? 0));
@@ -220,6 +256,16 @@ class PaieBulletinsController {
         if (!$bulletin) {
             $_SESSION['error_message'] = _("Bulletin de paie introuvable.");
             header('Location: /paie/periodes');
+            exit();
+        }
+
+        // Multi-tenant isolation check via paie_periodes
+        $lyceeId = Auth::getLyceeId() ?: 1;
+        $periode = PaiePeriode::findById($bulletin['periode_id']);
+        if (!$periode || (int)$periode['lycee_id'] !== (int)$lyceeId) {
+            http_response_code(403);
+            require_once __DIR__ . '/../core/View.php';
+            View::render('errors/403');
             exit();
         }
 
