@@ -1053,7 +1053,8 @@ try {
         ['paie', 'settle', 'Payer et régler les bulletins de paie'],
         ['paie', 'regularize', 'Créer une régularisation de paie sur la période N+1'],
         ['paie', 'close', 'Clôturer définitivement une période de paie'],
-        ['paie', 'audit', 'Consulter le journal d\'audit complet de la paie']
+        ['paie', 'audit', 'Consulter le journal d\'audit complet de la paie'],
+        ['paie', 'config', 'Gérer les règles de paie, barèmes d\'impôts et cotisations']
     ];
 
     foreach ($paie_perms as $perm) {

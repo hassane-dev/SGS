@@ -215,6 +215,7 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (208, 'paie', 'close', 'Clôturer définitivement une période de paie'),
 (209, 'paie', 'audit', 'Consulter le journal d''audit complet de la paie'),
 (210, 'paie', '*', 'Wildcard paie'),
+(212, 'paie', 'config', 'Gérer les règles de paie, barèmes d\'impôts et cotisations'),
 
 -- Phase 9 (Reporting Décisionnel)
 (220, 'reporting', 'view', 'Consulter le tableau de bord décisionnel général'),

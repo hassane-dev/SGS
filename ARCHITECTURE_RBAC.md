@@ -75,6 +75,7 @@ L'utilisation de paramètres par défaut pouvant conduire à une ressource autre
 | **Bénéficiaires** | `depense` | `manage` | `/depenses/beneficiaires` | `DepenseController::beneficiaires` | `src/views/depenses/beneficiaires.php` |
 | **Périodes Paie** | `paie` | `view` | `/paie/periodes` | `PaiePeriodesController::index` | `src/views/paie/periodes/index.php` |
 | **Édition Période**| `paie` | `edit` | `/paie/periodes/{id}/edit` | `PaiePeriodesController::edit` | `src/views/paie/periodes/edit.php` |
+| **Règles de Paie**| `paie` | `config` | `/paie/regles` | `PaieReglesController::index` | `src/views/paie/regles/index.php` |
 
 ---
 

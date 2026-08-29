@@ -468,6 +468,11 @@ $navItems = [
                 'text' => _('Historique des salaires'),
                 'condition' => Auth::can('view', 'paie'),
             ],
+            [
+                'url' => '/paie/regles',
+                'text' => _('Configuration des règles'),
+                'condition' => Auth::can('config', 'paie'),
+            ],
         ],
     ],
     [
