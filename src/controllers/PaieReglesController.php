@@ -144,6 +144,15 @@ class PaieReglesController {
             if ($createNewVersion) {
                 // Non-retroactivity guarantee: close existing version's end date and create a new version record
                 $newStartDate = $_POST['date_debut_validite'];
+
+                if ($newStartDate === $existingRule['date_debut_validite']) {
+                    throw new InvalidArgumentException(sprintf(
+                        _("Pour créer une nouvelle version de la règle '%s', vous devez sélectionner une nouvelle date d'effet (date de début de validité) différente de l'existante (%s)."),
+                        $existingRule['code_regle'],
+                        $existingRule['date_debut_validite']
+                    ));
+                }
+
                 $oldEndDate = date('Y-m-d', strtotime($newStartDate . ' -1 day'));
 
                 // Close current version
