@@ -18,6 +18,7 @@ class PaieReglesController {
             $r['tiers'] = PaieBaremeTranche::findByRegleId((int)$r['id']);
             $r['is_used'] = PaieRegleCalcul::isRuleUsedInBulletins((int)$r['id']);
         }
+        unset($r);
 
         include __DIR__ . '/../views/paie/regles/index.php';
     }

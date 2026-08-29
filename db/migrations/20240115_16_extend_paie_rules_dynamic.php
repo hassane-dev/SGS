@@ -45,10 +45,11 @@ function migrate_16($db) {
     $addColumnIfMissing('paie_regles_calcul', 'type_contrat_id', "INT NULL");
 
     // Backfill default values for existing system rules if needed
-    $db->exec("UPDATE paie_regles_calcul SET pays_code = 'RCA' WHERE pays_code IS NULL OR pays_code = ''");
-    $db->exec("UPDATE paie_regles_calcul SET ordre_application = 100 WHERE code_regle = 'CNSS_SALARIALE'");
-    $db->exec("UPDATE paie_regles_calcul SET ordre_application = 300 WHERE code_regle = 'CNSS_PATRONALE'");
-    $db->exec("UPDATE paie_regles_calcul SET ordre_application = 200, base_calcul_type = 'net_imposable_provisoire' WHERE code_regle = 'IUTS_IMPOT'");
+    $db->exec("UPDATE paie_regles_calcul SET pays_code = 'RCA' WHERE (pays_code IS NULL OR pays_code = '') AND est_systeme = 1");
+    $db->exec("UPDATE paie_regles_calcul SET juridiction_code = 'RCA' WHERE juridiction_code = 'DEFAULT' AND est_systeme = 1");
+    $db->exec("UPDATE paie_regles_calcul SET ordre_application = 100 WHERE code_regle = 'CNSS_SALARIALE' AND est_systeme = 1");
+    $db->exec("UPDATE paie_regles_calcul SET ordre_application = 300 WHERE code_regle = 'CNSS_PATRONALE' AND est_systeme = 1");
+    $db->exec("UPDATE paie_regles_calcul SET ordre_application = 200, base_calcul_type = 'net_imposable_provisoire' WHERE code_regle = 'IUTS_IMPOT' AND est_systeme = 1");
 
     echo "Migration 16: Extended paie_regles_calcul table OK.\n";
 }
