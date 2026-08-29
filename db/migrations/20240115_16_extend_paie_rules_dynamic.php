@@ -8,9 +8,8 @@ function migrate_16($db) {
     // Helper to add column if missing
     $addColumnIfMissing = function($table, $column, $definition) use ($db, $isSqlite) {
         if ($isSqlite) {
-            $stmt = $db->prepare("PRAGMA table_info($table)");
-            $stmt->execute();
-            $cols = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt = $db->query("PRAGMA table_info($table)");
+            $cols = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
             $colNames = array_column($cols, 'name');
             if (!in_array($column, $colNames, true)) {
                 $db->exec("ALTER TABLE {$table} ADD COLUMN {$column} {$definition}");
