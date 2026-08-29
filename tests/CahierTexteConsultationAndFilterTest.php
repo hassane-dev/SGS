@@ -340,6 +340,69 @@ if (!$deleted) {
     exit(1);
 }
 
+// -------------------------------------------------------------
+// SCÉNARIO 9 : Décodage et Échappement Sécurisé (Apostrophes, Caractères Spéciaux, XSS)
+// -------------------------------------------------------------
+echo "\nSCÉNARIO 9 : Rendu des apostrophes, caractères spéciaux et protection XSS\n";
+mockSession(9951, 1, 'enseignant', ['cahier_texte' => ['create_own', 'edit_own']]);
+
+$specialContent = "Exercice d'application : l'élève doit résoudre l'équation x < 10 & vérifier son résultat.";
+$xssContent = "<script>alert('xss')</script>";
+
+$_SERVER['REQUEST_METHOD'] = 'POST';
+$_POST = [
+    'class_subject' => '9951-9951',
+    'date_cours' => '2024-10-18',
+    'heure_debut' => '08:00',
+    'heure_fin' => '10:00',
+    'contenu_cours' => $specialContent,
+    'travail_donne' => "Travail : d'accord & " . $xssContent,
+    'observation' => "L'observation avec accent & é, è, à."
+];
+
+ob_start();
+$controller->store();
+ob_get_clean();
+
+$specEntry = $db->query("SELECT * FROM cahier_texte WHERE personnel_id = 9951 AND date_cours = '2024-10-18' ORDER BY cahier_id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+$specId = $specEntry['cahier_id'];
+
+// Test model fetch normalization
+$fetchedDetails = CahierTexte::findDetailsById($specId, 1);
+
+if ($fetchedDetails['contenu_cours'] === $specialContent) {
+    echo "  -> 9.1 Modèle : Le texte avec apostrophes et '&' est correctement restitué | PASS\n";
+} else {
+    echo "  -> ECHEC Modèle : Restitution incorrecte '{$fetchedDetails['contenu_cours']}'\n";
+    exit(1);
+}
+
+// Render show view and verify output
+mockSession(1, 1, 'super_admin_createur', ['cahier_texte' => ['manage', 'view_all']]);
+$_GET = ['id' => $specId];
+
+ob_start();
+$controller->show();
+$renderedHtml = ob_get_clean();
+
+if (strpos($renderedHtml, "exo d&#039;app") === false && strpos($renderedHtml, "Exercice d&#039;application : l&#039;élève doit résoudre l&#039;équation x &lt; 10 &amp; vérifier son résultat.") !== false) {
+    echo "  -> 9.2 Rendu Vue : Les apostrophes (d'application) et la comparaison (x &lt; 10 &amp; vérifier) s'affichent proprement sans entités '&#039;' brutes | PASS\n";
+} else {
+    echo "  -> ECHEC Rendu Vue : Affichage anormal des apostrophes ou entités brutes\n";
+    echo $renderedHtml;
+    exit(1);
+}
+
+if (strpos($renderedHtml, "<script>alert") === false && strpos($renderedHtml, "&lt;script&gt;alert") !== false) {
+    echo "  -> 9.3 Sécurité XSS : La balise script est correctement échappée (&lt;script&gt;) | PASS\n";
+} else {
+    echo "  -> ECHEC Sécurité XSS : Faille d'injection XSS détectée dans le HTML généré !\n";
+    exit(1);
+}
+
+// Clean up scenario 9 entry
+$db->exec("DELETE FROM cahier_texte WHERE cahier_id = {$specId}");
+
 // Final Cleanup
 $db->exec("DELETE FROM cahier_texte WHERE classe_id >= 9950 OR lycee_id = 99");
 $db->exec("DELETE FROM classe_matieres WHERE classe_id >= 9950");

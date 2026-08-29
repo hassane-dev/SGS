@@ -64,14 +64,22 @@ class CahierTexte {
 
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($entries as &$entry) {
+            self::normalizeTextFields($entry);
+        }
+        return $entries;
     }
 
     public static function findById($id) {
         $db = Database::getInstance();
         $stmt = $db->prepare("SELECT * FROM cahier_texte WHERE cahier_id = :id");
         $stmt->execute(['id' => $id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $entry = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($entry) {
+            self::normalizeTextFields($entry);
+        }
+        return $entry;
     }
 
     public static function findDetailsById($id, $lycee_id = null) {
@@ -101,6 +109,10 @@ class CahierTexte {
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($result) {
+            self::normalizeTextFields($result);
+        }
 
         if ($result && !empty($result['heure_debut']) && !empty($result['heure_fin'])) {
             $ts1 = strtotime($result['heure_debut']);
@@ -168,6 +180,17 @@ class CahierTexte {
         }
 
         return $stmt->execute($params);
+    }
+
+    public static function normalizeTextFields(&$row) {
+        if (!is_array($row)) return $row;
+        $fields = ['contenu_cours', 'travail_donne', 'observation'];
+        foreach ($fields as $field) {
+            if (isset($row[$field]) && is_string($row[$field])) {
+                $row[$field] = html_entity_decode($row[$field], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            }
+        }
+        return $row;
     }
 
     public static function delete($id) {
