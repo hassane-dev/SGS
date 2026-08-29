@@ -122,18 +122,37 @@ class EmploiDuTemps {
 
         $db = Database::getInstance();
 
-        // Verify Class
-        $stmt = $db->prepare("SELECT id_classe FROM classes WHERE id_classe = :id AND lycee_id = :lycee_id");
+        // Verify Class & Tenant Ownership
+        $stmt = $db->prepare("SELECT id_classe, cycle_id FROM classes WHERE id_classe = :id AND lycee_id = :lycee_id");
         $stmt->execute(['id' => $data['classe_id'], 'lycee_id' => $lycee_id]);
-        if (!$stmt->fetch()) {
+        $classeRow = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$classeRow) {
             return "La classe sélectionnée n'existe pas ou ne vous appartient pas.";
         }
 
-        // Verify Teacher
-        $stmt = $db->prepare("SELECT id_user FROM utilisateurs WHERE id_user = :id AND lycee_id = :lycee_id");
-        $stmt->execute(['id' => $data['professeur_id'], 'lycee_id' => $lycee_id]);
+        // Verify Subject exists in class curriculum (classe_matieres)
+        $stmt = $db->prepare("SELECT id FROM classe_matieres WHERE classe_id = :classe_id AND matiere_id = :matiere_id");
+        $stmt->execute(['classe_id' => $data['classe_id'], 'matiere_id' => $data['matiere_id']]);
         if (!$stmt->fetch()) {
-            return "Le professeur sélectionné n'existe pas ou ne vous appartient pas.";
+            return "La matière sélectionnée ne fait pas partie du programme de cette classe.";
+        }
+
+        // Verify Teacher belongs to tenant & has active cycle assignment matching class cycle
+        $stmt = $db->prepare("
+            SELECT u.id_user
+            FROM utilisateurs u
+            LEFT JOIN personnel_cycles_assignments pca ON u.id_user = pca.personnel_id AND (pca.actif = 1 OR pca.actif IS NULL)
+            WHERE u.id_user = :id AND u.lycee_id = :lycee_id
+              AND (pca.cycle_id = :cycle_id OR pca.cycle_id IS NULL OR :cycle_id IS NULL)
+            LIMIT 1
+        ");
+        $stmt->execute([
+            'id' => $data['professeur_id'],
+            'lycee_id' => $lycee_id,
+            'cycle_id' => $classeRow['cycle_id'] ?? null
+        ]);
+        if (!$stmt->fetch()) {
+            return "Le professeur sélectionné n'existe pas, n'appartient pas à votre établissement ou n'est pas éligible pour ce cycle.";
         }
 
         // Verify Room if specified

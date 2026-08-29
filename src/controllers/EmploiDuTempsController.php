@@ -124,6 +124,9 @@ class EmploiDuTempsController {
         }
 
         require_once __DIR__ . '/../models/Cycle.php';
+        $selClass = Classe::findById($cours['classe_id']);
+        $selected_cycle_id = $selClass ? $selClass['cycle_id'] : null;
+
         $data = [
             'cours' => $cours,
             'cycles' => Cycle::findAll($lycee_id),
@@ -131,6 +134,7 @@ class EmploiDuTempsController {
             'matieres' => Matiere::findAll(),
             'professeurs' => User::findAll($lycee_id),
             'salles' => Salle::findAll($lycee_id),
+            'selected_cycle_id' => $selected_cycle_id,
             'annee_academique_id' => $cours['annee_academique_id'],
         ];
         require_once __DIR__ . '/../views/emploi_du_temps/edit.php';

@@ -59,6 +59,7 @@
                     <div class="card-body">
                         <!-- Dynamic Multi-Criteria Filter Bar using Unified SGS Convention -->
                         <form action="/emploi-du-temps" method="GET" class="card p-3 mb-4 bg-light border-0" id="form-filter-edt">
+                            <input type="hidden" name="classe_id" id="classe_id" value="<?= htmlspecialchars($view_classe_id ?? '') ?>">
                             <div class="row g-3 align-items-end">
                                 <div class="col-md-3">
                                     <label for="view_mode" class="form-label fw-bold"><?= _('Mode de vue :') ?></label>
@@ -73,46 +74,28 @@
                                     <div class="col-md-2">
                                         <label for="cycle_id" class="form-label fw-bold"><?= _('Cycle :') ?></label>
                                         <select name="cycle_id" id="cycle_id" class="form-select form-select-sm">
-                                            <option value=""><?= _('Tous les cycles') ?></option>
+                                            <option value=""><?= _('-- Choisir un cycle --') ?></option>
                                             <?php foreach ($cycles as $cyc): ?>
-                                                <option value="<?= $cyc['id'] ?>" <?= ($cycle_id == $cyc['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cyc['nom']) ?></option>
+                                                <option value="<?= $cyc['id_cycle'] ?>" <?= ($cycle_id == $cyc['id_cycle']) ? 'selected' : '' ?>><?= htmlspecialchars($cyc['nom_cycle']) ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
                                     <div class="col-md-2">
                                         <label for="niveau" class="form-label fw-bold"><?= _('Niveau :') ?></label>
-                                        <select name="niveau" id="niveau" class="form-select form-select-sm">
-                                            <option value=""><?= _('Tous les niveaux') ?></option>
-                                            <?php
-                                            $niveauxList = array_unique(array_filter(array_column($classes, 'niveau')));
-                                            sort($niveauxList);
-                                            foreach ($niveauxList as $niv): ?>
-                                                <option value="<?= htmlspecialchars($niv) ?>" <?= ($niveau === $niv) ? 'selected' : '' ?>><?= htmlspecialchars($niv) ?></option>
-                                            <?php endforeach; ?>
+                                        <select name="niveau" id="niveau" class="form-select form-select-sm" disabled>
+                                            <option value=""><?= _('-- Choisir d\'abord un cycle --') ?></option>
                                         </select>
                                     </div>
                                     <div class="col-md-2" id="group_serie_index" style="display: none;">
                                         <label for="serie" class="form-label fw-bold"><?= _('Série :') ?></label>
-                                        <select name="serie" id="serie" class="form-select form-select-sm">
-                                            <option value=""><?= _('Toutes les séries') ?></option>
+                                        <select name="serie" id="serie" class="form-select form-select-sm" disabled>
+                                            <option value=""><?= _('-- Toutes les séries --') ?></option>
                                         </select>
                                     </div>
-                                    <div class="col-md-3">
-                                        <label for="classe_id" class="form-label fw-bold"><?= _('Classe :') ?></label>
-                                        <select name="classe_id" id="classe_id" onchange="this.form.submit()" class="form-select form-select-sm">
-                                            <?php if (empty($classes)): ?>
-                                                <option value=""><?= _('Aucune classe trouvée') ?></option>
-                                            <?php else: ?>
-                                                <?php foreach ($classes as $classe): ?>
-                                                    <?php
-                                                    if ($cycle_id && !empty($classe['cycle_id']) && $classe['cycle_id'] != $cycle_id) continue;
-                                                    if ($niveau && $classe['niveau'] !== $niveau) continue;
-                                                    ?>
-                                                    <option value="<?= $classe['id_classe'] ?>" <?= ($view_classe_id == $classe['id_classe']) ? 'selected' : '' ?>>
-                                                        <?= htmlspecialchars(Classe::getFormattedName($classe)) ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            <?php endif; ?>
+                                    <div class="col-md-2">
+                                        <label for="numero" class="form-label fw-bold"><?= _('Numéro / Classe :') ?></label>
+                                        <select name="numero" id="numero" class="form-select form-select-sm" disabled>
+                                            <option value=""><?= _('-- Tous les numéros --') ?></option>
                                         </select>
                                     </div>
                                 <?php elseif ($view_mode === 'professeur'): ?>
@@ -238,7 +221,7 @@
 
                                                                     <div class="mt-2 d-flex justify-content-end gap-1">
                                                                         <a href="/emploi-du-temps/edit?id=<?= $entry['id'] ?>" class="btn btn-sm btn-outline-primary py-0 px-1" title="<?= _('Modifier') ?>">
-                                                                            <i class="ti ti-edit"></i>
+                                                                            <i class="ph-duotone ph-pencil"></i>
                                                                         </a>
                                                                         <form action="/emploi-du-temps/destroy" method="POST" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer ce cours ?') ?>');" class="d-inline">
                                                                             <input type="hidden" name="id" value="<?= $entry['id'] ?>">
@@ -309,6 +292,7 @@
     </div>
 </div>
 
+<script src="/assets/js/sgs-pedagogical-cascade.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize Tooltips
@@ -317,52 +301,24 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 
-    const cycleSelect = document.getElementById('cycle_id');
-    const niveauSelect = document.getElementById('niveau');
-    const groupSerie = document.getElementById('group_serie_index');
-    const serieSelect = document.getElementById('serie');
-
-    if (cycleSelect && niveauSelect) {
-        cycleSelect.addEventListener('change', function() {
-            const cycleId = this.value;
-            if (!cycleId) {
-                this.form.submit();
-                return;
-            }
-            fetch(`/affectations-pedagogiques/get-niveaux?cycle_id=${cycleId}`)
-                .then(res => res.json())
-                .then(data => {
-                    niveauSelect.innerHTML = '<option value="">Tous les niveaux</option>';
-                    data.forEach(niv => {
-                        niveauSelect.innerHTML += `<option value="${niv}">${niv}</option>`;
-                    });
-                });
-        });
-    }
-
-    if (niveauSelect) {
-        niveauSelect.addEventListener('change', function() {
-            const niveau = this.value;
-            const cycleId = cycleSelect ? cycleSelect.value : '';
-            if (!niveau) {
-                this.form.submit();
-                return;
-            }
-            fetch(`/affectations-pedagogiques/get-series?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}`)
-                .then(res => res.json())
-                .then(series => {
-                    if (groupSerie && series && series.length > 0) {
-                        groupSerie.style.display = 'block';
-                        serieSelect.innerHTML = '<option value="">Toutes les séries</option>';
-                        series.forEach(s => {
-                            serieSelect.innerHTML += `<option value="${s}">${s}</option>`;
-                        });
-                    } else if (groupSerie) {
-                        groupSerie.style.display = 'none';
-                    }
-                });
-        });
-    }
+    <?php if ($view_mode === 'classe'): ?>
+    new SGSPedagogicalCascade({
+        cycleId: 'cycle_id',
+        niveauId: 'niveau',
+        groupSerieId: 'group_serie_index',
+        serieId: 'serie',
+        numeroId: 'numero',
+        classeId: 'classe_id',
+        autoSubmitOnClassChange: true,
+        formId: 'form-filter-edt',
+        initialValues: {
+            cycleId: "<?= htmlspecialchars($cycle_id ?? '') ?>",
+            niveau: "<?= htmlspecialchars($niveau ?? '') ?>",
+            serie: "<?= htmlspecialchars($serie ?? '') ?>",
+            numero: "<?= htmlspecialchars($numero ?? '') ?>"
+        }
+    });
+    <?php endif; ?>
 });
 </script>
 

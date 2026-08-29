@@ -12,6 +12,7 @@ require_once __DIR__ . '/../src/models/Classe.php';
 require_once __DIR__ . '/../src/models/Matiere.php';
 require_once __DIR__ . '/../src/models/User.php';
 require_once __DIR__ . '/../src/models/Salle.php';
+require_once __DIR__ . '/../src/models/Cycle.php';
 require_once __DIR__ . '/../src/models/AnneeAcademique.php';
 require_once __DIR__ . '/../src/controllers/EmploiDuTempsController.php';
 
@@ -55,6 +56,16 @@ if ($cRow) {
     $cycleIdTest = (int)$db->lastInsertId();
 }
 
+// Matiere
+$stmtM = $db->query("SELECT id_matiere FROM matieres LIMIT 1");
+$mRow = $stmtM->fetch();
+if ($mRow) {
+    $matiereId1 = (int)$mRow['id_matiere'];
+} else {
+    $db->exec("INSERT INTO matieres (nom_matiere, code_matiere) VALUES ('Mathématiques', 'MATH')");
+    $matiereId1 = (int)$db->lastInsertId();
+}
+
 // Classes
 $db->exec("INSERT INTO classes (niveau, serie, numero, cycle_id, lycee_id) VALUES ('6eme', 'A', 1, $cycleIdTest, 901)");
 $classeId1 = (int)$db->lastInsertId();
@@ -65,6 +76,10 @@ $classeId2 = (int)$db->lastInsertId();
 $db->exec("INSERT INTO classes (niveau, serie, numero, cycle_id, lycee_id) VALUES ('4eme', 'A', 1, $cycleIdTest, 902)");
 $classeIdTenant2 = (int)$db->lastInsertId();
 
+// Link matieres to classes
+$db->exec("INSERT INTO classe_matieres (classe_id, matiere_id, coefficient, statut) VALUES ($classeId1, $matiereId1, 2, 'actif')");
+$db->exec("INSERT INTO classe_matieres (classe_id, matiere_id, coefficient, statut) VALUES ($classeId2, $matiereId1, 2, 'actif')");
+
 // Teachers
 $db->exec("INSERT INTO utilisateurs (nom, prenom, email, mot_de_passe, role_id, lycee_id, actif) VALUES ('Prof1', 'Jean', 'prof1@edt.test', 'secret', 6, 901, 1)");
 $profId1 = (int)$db->lastInsertId();
@@ -74,16 +89,6 @@ $profId2 = (int)$db->lastInsertId();
 
 $db->exec("INSERT INTO utilisateurs (nom, prenom, email, mot_de_passe, role_id, lycee_id, actif) VALUES ('ProfTenant2', 'Pierre', 'prof_t2@edt.test', 'secret', 6, 902, 1)");
 $profIdTenant2 = (int)$db->lastInsertId();
-
-// Matiere
-$stmtM = $db->query("SELECT id_matiere FROM matieres LIMIT 1");
-$mRow = $stmtM->fetch();
-if ($mRow) {
-    $matiereId1 = (int)$mRow['id_matiere'];
-} else {
-    $db->exec("INSERT INTO matieres (nom_matiere, code_matiere) VALUES ('Mathématiques', 'MATH')");
-    $matiereId1 = (int)$db->lastInsertId();
-}
 
 // Salles
 $db->exec("INSERT INTO salles (nom_salle, capacite, lycee_id) VALUES ('Salle 101', 30, 901)");
@@ -176,8 +181,10 @@ try {
     $grid2 = $refMethod->invoke($controller, $entries2);
     assertCondition(!empty($grid2['grid']['14:00 - 16:00']['Vendredi']), "'vendredi ' normalisé et placé sous la colonne Vendredi.");
 
-    // SCÉNARIO 5: Convention des filtres pédagogiques unifiée SGS
+    // SCÉNARIO 5: Convention des filtres pédagogiques unifiée SGS et clés de Cycle
     echo "\n5. SCÉNARIO 5: Validation de la convention des filtres Cycle->Niveau->Série->Numéro...\n";
+    $cyclesFound = Cycle::findAll($lycee_id = 901);
+    assertCondition(isset($cyclesFound[0]['id_cycle']) && isset($cyclesFound[0]['nom_cycle']), "Cycle::findAll() contient les clés exactes id_cycle et nom_cycle.");
     $numeros = Classe::findAvailableNumeros('6eme', 'A', 901, $cycleIdTest);
     assertCondition(!empty($numeros), "Classe::findAvailableNumeros retourne la structure unifiée SGS.");
 
@@ -280,6 +287,20 @@ try {
     echo "\n10. SCÉNARIO 10: Isolation lycee_id stricte...\n";
     $entriesT2 = EmploiDuTemps::getByContext($anneeId1, null, null, null, 902);
     assertCondition(count($entriesT2) === 0, "Aucun cours du lycée 901 n'est visible par le lycée 902.");
+
+    // SCÉNARIO 11: Validation stricte des relations pédagogiques côté serveur
+    echo "\n11. SCÉNARIO 11: Validation stricte des relations pédagogiques côté serveur...\n";
+    $pBadSubject = [
+        'classe_id' => $classeId1,
+        'matiere_id' => 99999, // Inexistent or unassigned subject
+        'professeur_id' => $profId1,
+        'salle_id' => $salleId1,
+        'annee_academique_id' => $anneeId1,
+        'jour' => 'Mardi',
+        'heure_debut' => '14:00',
+        'heure_fin' => '15:00',
+    ];
+    assertCondition(EmploiDuTemps::save($pBadSubject, 901) === false, "Enregistrement refusé pour matière non rattachée à la classe.");
 
     // Cleanup
     $db->exec("DELETE FROM emploi_du_temps WHERE lycee_id IN (901, 902)");
