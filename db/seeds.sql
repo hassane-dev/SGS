@@ -327,7 +327,7 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Module DRH
 (9, 170), (9, 171), (9, 176), (9, 179), (9, 181),
 -- Module Paie (Complet)
-(9, 200), (9, 201), (9, 211), (9, 202), (9, 203), (9, 204), (9, 205), (9, 206), (9, 207), (9, 208), (9, 209), (9, 210);
+(9, 200), (9, 201), (9, 211), (9, 202), (9, 203), (9, 204), (9, 205), (9, 206), (9, 207), (9, 208), (9, 209), (9, 210), (9, 212);
 
 -- Caissier (Cashier)
 INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES

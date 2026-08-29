@@ -916,6 +916,10 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_15_rename_and_extend_enseignant_matieres.php';
     migrate_15($db);
 
+    // --- PHASE RÈGLES DE PAIE DYNAMIQUES ---
+    require_once __DIR__ . '/db/migrations/20240115_16_extend_paie_rules_dynamic.php';
+    migrate_16($db);
+
     // Provision DRH role if not present
     $stmt_drh_role = $db->query("SELECT id_role FROM roles WHERE nom_role = 'drh'");
     if (!$stmt_drh_role->fetch()) {
