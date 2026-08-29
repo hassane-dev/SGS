@@ -16,13 +16,8 @@ class SalaireController {
     }
 
     public function index() {
-        $this->checkAccess();
-        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::get('lycee_id') : null;
-        $salaires = Salaire::findAll($lycee_id);
-        View::render('salaires/index', [
-            'salaires' => $salaires,
-            'title' => 'Gestion des Salaires'
-        ]);
+        header('Location: /paie/historique', true, 302);
+        exit();
     }
 
     public function create() {

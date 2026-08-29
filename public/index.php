@@ -520,6 +520,7 @@ $router->register('/paie/cahier-texte/bulk-validate', 'PaieCahierTexteController
 
 $router->register('/paie/legacy/import', 'PaieLegacyController', 'import');
 $router->register('/paie/legacy/conflits', 'PaieLegacyController', 'conflits');
+$router->register('/paie/historique', 'PaieBulletinsController', 'historique');
 
 $router->register('/paie/regularisations', 'PaieRegularisationsController', 'index');
 $router->register('/paie/regularisations/store', 'PaieRegularisationsController', 'store');
