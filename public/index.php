@@ -418,6 +418,10 @@ $router->register('/contrats/edit', 'TypeContratController', 'edit');
 $router->register('/contrats/update', 'TypeContratController', 'update');
 $router->register('/contrats/destroy', 'TypeContratController', 'destroy');
 $router->register('/emploi-du-temps/store', 'EmploiDuTempsController', 'store');
+$router->register('/emploi-du-temps/edit', 'EmploiDuTempsController', 'edit');
+$router->register('/emploi-du-temps/update', 'EmploiDuTempsController', 'update');
+$router->register('/emploi-du-temps/swap', 'EmploiDuTempsController', 'swap');
+$router->register('/emploi-du-temps/print', 'EmploiDuTempsController', 'print');
 $router->register('/emploi-du-temps/destroy', 'EmploiDuTempsController', 'destroy');
 
 // Presence

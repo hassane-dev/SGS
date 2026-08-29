@@ -12,7 +12,7 @@ class Matiere {
             if (!$lycee_id) {
                 return [];
             }
-            $stmt = $db->prepare("SELECT * FROM matieres WHERE lycee_id = :lycee_id ORDER BY nom_matiere ASC");
+            $stmt = $db->prepare("SELECT * FROM matieres WHERE lycee_id = :lycee_id OR lycee_id IS NULL ORDER BY nom_matiere ASC");
             $stmt->execute(['lycee_id' => $lycee_id]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
