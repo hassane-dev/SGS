@@ -528,6 +528,7 @@ $router->register('/paie/cloture/process', 'PaieClotureController', 'process');
 
 // Cahier de Texte
 $router->register('/cahier-texte', 'CahierTexteController', 'index');
+$router->register('/cahier-texte/show', 'CahierTexteController', 'show');
 $router->register('/cahier-texte/create', 'CahierTexteController', 'create');
 $router->register('/cahier-texte/store', 'CahierTexteController', 'store');
 $router->register('/cahier-texte/edit', 'CahierTexteController', 'edit');

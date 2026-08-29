@@ -24,27 +24,89 @@ class CahierTexteController {
         $is_admin = Auth::can('manage', 'cahier_texte') || Auth::can('view_all', 'cahier_texte');
 
         $filters = [
-            'personnel_id_filter' => $_GET['personnel_id'] ?? null,
-            'classe_id_filter' => $_GET['classe_id'] ?? null,
+            'cycle_id' => !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null,
+            'niveau' => $_GET['niveau'] ?? null,
+            'serie' => $_GET['serie'] ?? null,
+            'numero' => $_GET['numero'] ?? null,
+            'classe_id' => !empty($_GET['classe_id']) ? (int)$_GET['classe_id'] : null,
+            'matiere_id' => !empty($_GET['matiere_id']) ? (int)$_GET['matiere_id'] : null,
+            'personnel_id_filter' => !empty($_GET['personnel_id']) ? (int)$_GET['personnel_id'] : null,
             'date_filter' => $_GET['date'] ?? null,
         ];
 
-        $entries = [];
-        $teachers = [];
-        $classes = [];
+        // Security assertion on classe_id to prevent multi-tenant manipulation
+        if (!empty($filters['classe_id'])) {
+            $checkClass = Classe::findById($filters['classe_id']);
+            if (!$checkClass || (int)$checkClass['lycee_id'] !== (int)$lycee_id) {
+                $filters['classe_id'] = null;
+            }
+        }
 
+        // Server-side filter consistency validation:
+        // Ensure classe_id matches cycle_id/niveau/serie/numero if provided
+        if (!empty($filters['classe_id'])) {
+            $checkClass = Classe::findById($filters['classe_id']);
+            if ($checkClass) {
+                if (!empty($filters['cycle_id']) && (int)$checkClass['cycle_id'] !== (int)$filters['cycle_id']) {
+                    $filters['classe_id'] = null;
+                }
+                if (!empty($filters['niveau']) && $checkClass['niveau'] !== $filters['niveau']) {
+                    $filters['classe_id'] = null;
+                }
+                if (isset($filters['serie']) && $filters['serie'] !== '' && $checkClass['serie'] !== $filters['serie']) {
+                    $filters['classe_id'] = null;
+                }
+                if (isset($filters['numero']) && $filters['numero'] !== '' && (string)$checkClass['numero'] !== (string)$filters['numero']) {
+                    $filters['classe_id'] = null;
+                }
+            }
+        }
+
+        require_once __DIR__ . '/../models/Cycle.php';
+        $cycles = Cycle::findByLycee($lycee_id);
+        if (empty($cycles)) {
+            $cycles = Cycle::findAll();
+        }
+
+        $entries = [];
         if ($is_admin) {
-            // Admin view: fetch all entries for the school with potential filters
+            // Admin / Supervisor view: fetch entries with active filters
             $entries = CahierTexte::findAllByPersonnel(null, $lycee_id, $filters);
-            // Fetch data for filters
-            $teachers = User::findAllByRoleName('enseignant', $lycee_id);
-            $classes = Classe::findAll($lycee_id);
         } else {
-            // Teacher view: fetch only their own entries
-            $entries = CahierTexte::findAllByPersonnel($user_id, $lycee_id);
+            // Teacher view: fetch only their own entries with active filters
+            $entries = CahierTexte::findAllByPersonnel($user_id, $lycee_id, $filters);
         }
 
         require_once __DIR__ . '/../views/cahier_texte/index.php';
+    }
+
+    public function show() {
+        $this->checkAccess();
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $lycee_id = Auth::getLyceeId();
+
+        if (!$id) {
+            header('Location: /cahier-texte');
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        $entry = CahierTexte::findDetailsById($id, $lycee_id);
+
+        if (!$entry) {
+            http_response_code(404);
+            echo "Séance introuvable ou accès non autorisé.";
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        // Security check: Teacher without global view permissions can only view their own entries
+        $is_admin = Auth::can('manage', 'cahier_texte') || Auth::can('view_all', 'cahier_texte');
+        if (!$is_admin && (int)$entry['personnel_id'] !== (int)Auth::getUserId()) {
+            http_response_code(403);
+            echo "Accès Interdit.";
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        require_once __DIR__ . '/../views/cahier_texte/show.php';
     }
 
     public function create() {
@@ -79,7 +141,7 @@ class CahierTexteController {
             }
         }
         header('Location: /cahier-texte');
-        exit();
+        if (!defined('TEST_MODE')) exit(); return;
     }
 
     public function edit() {
@@ -93,7 +155,7 @@ class CahierTexteController {
         if (Auth::get('role_name') === 'enseignant' && $entry['personnel_id'] != Auth::getUserId()) {
             http_response_code(403);
             echo "Accès Interdit.";
-            exit();
+            if (!defined('TEST_MODE')) exit(); return;
         }
 
         $professeur_id = $entry['personnel_id'];
@@ -112,7 +174,7 @@ class CahierTexteController {
             if (Auth::get('role_name') === 'enseignant' && $entry['personnel_id'] != Auth::getUserId()) {
                  http_response_code(403);
                  echo "Accès Interdit.";
-                 exit();
+                 if (!defined('TEST_MODE')) exit(); return;
             }
 
             // Preserve original author and school
@@ -141,12 +203,12 @@ class CahierTexteController {
             if (Auth::get('role_name') === 'enseignant' && $entry['personnel_id'] != Auth::getUserId()) {
                  http_response_code(403);
                  echo "Accès Interdit.";
-                 exit();
+                 if (!defined('TEST_MODE')) exit(); return;
             }
             CahierTexte::delete($id);
         }
         header('Location: /cahier-texte');
-        exit();
+        if (!defined('TEST_MODE')) exit(); return;
     }
 
     public function directCreate($classe_id, $matiere_id) {
