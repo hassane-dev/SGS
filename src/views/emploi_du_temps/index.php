@@ -57,8 +57,8 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <!-- Dynamic Multi-Criteria Filter Bar -->
-                        <form action="/emploi-du-temps" method="GET" class="card p-3 mb-4 bg-light border-0">
+                        <!-- Dynamic Multi-Criteria Filter Bar using Unified SGS Convention -->
+                        <form action="/emploi-du-temps" method="GET" class="card p-3 mb-4 bg-light border-0" id="form-filter-edt">
                             <div class="row g-3 align-items-end">
                                 <div class="col-md-3">
                                     <label for="view_mode" class="form-label fw-bold"><?= _('Mode de vue :') ?></label>
@@ -70,7 +70,7 @@
                                 </div>
 
                                 <?php if ($view_mode === 'classe'): ?>
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <label for="cycle_id" class="form-label fw-bold"><?= _('Cycle :') ?></label>
                                         <select name="cycle_id" id="cycle_id" class="form-select form-select-sm">
                                             <option value=""><?= _('Tous les cycles') ?></option>
@@ -79,7 +79,7 @@
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <label for="niveau" class="form-label fw-bold"><?= _('Niveau :') ?></label>
                                         <select name="niveau" id="niveau" class="form-select form-select-sm">
                                             <option value=""><?= _('Tous les niveaux') ?></option>
@@ -89,6 +89,12 @@
                                             foreach ($niveauxList as $niv): ?>
                                                 <option value="<?= htmlspecialchars($niv) ?>" <?= ($niveau === $niv) ? 'selected' : '' ?>><?= htmlspecialchars($niv) ?></option>
                                             <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2" id="group_serie_index" style="display: none;">
+                                        <label for="serie" class="form-label fw-bold"><?= _('Série :') ?></label>
+                                        <select name="serie" id="serie" class="form-select form-select-sm">
+                                            <option value=""><?= _('Toutes les séries') ?></option>
                                         </select>
                                     </div>
                                     <div class="col-md-3">
@@ -247,5 +253,57 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cycleSelect = document.getElementById('cycle_id');
+    const niveauSelect = document.getElementById('niveau');
+    const groupSerie = document.getElementById('group_serie_index');
+    const serieSelect = document.getElementById('serie');
+    const classeSelect = document.getElementById('classe_id');
+
+    if (cycleSelect && niveauSelect) {
+        cycleSelect.addEventListener('change', function() {
+            const cycleId = this.value;
+            if (!cycleId) {
+                this.form.submit();
+                return;
+            }
+            fetch(`/affectations-pedagogiques/get-niveaux?cycle_id=${cycleId}`)
+                .then(res => res.json())
+                .then(data => {
+                    niveauSelect.innerHTML = '<option value="">Tous les niveaux</option>';
+                    data.forEach(niv => {
+                        niveauSelect.innerHTML += `<option value="${niv}">${niv}</option>`;
+                    });
+                });
+        });
+    }
+
+    if (niveauSelect) {
+        niveauSelect.addEventListener('change', function() {
+            const niveau = this.value;
+            const cycleId = cycleSelect ? cycleSelect.value : '';
+            if (!niveau) {
+                this.form.submit();
+                return;
+            }
+            fetch(`/affectations-pedagogiques/get-series?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}`)
+                .then(res => res.json())
+                .then(series => {
+                    if (groupSerie && series && series.length > 0) {
+                        groupSerie.style.display = 'block';
+                        serieSelect.innerHTML = '<option value="">Toutes les séries</option>';
+                        series.forEach(s => {
+                            serieSelect.innerHTML += `<option value="${s}">${s}</option>`;
+                        });
+                    } else if (groupSerie) {
+                        groupSerie.style.display = 'none';
+                    }
+                });
+        });
+    }
+});
+</script>
 
 <?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>
