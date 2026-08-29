@@ -35,7 +35,7 @@
         <?php endif; ?>
 
         <div class="alert alert-info d-flex align-items-center gap-3 mb-4" role="alert">
-            <i class="ti ti-info-circle fs-3"></i>
+            <i class="ph-duotone ph-info fs-3"></i>
             <div>
                 <strong><?= _('Référentiel des Types de Contrat') ?> :</strong>
                 <?= _('Cette page permet de configurer les catégories de contrat (CDI, CDD, Vacataire...). Pour consulter ou gérer les contrats individuels, avenants et rémunérations du personnel, utilisez la') ?>
@@ -49,7 +49,7 @@
                     <div class="card-header">
                         <div class="d-flex justify-content-end">
                             <a href="/contrats/create" class="btn btn-primary">
-                                <i class="ti ti-plus"></i> <?= _('Ajouter un type de contrat') ?>
+                                <i class="ph-duotone ph-plus"></i> <?= _('Ajouter un type de contrat') ?>
                             </a>
                         </div>
                     </div>
@@ -81,12 +81,12 @@
                                                 <td><?= htmlspecialchars(_($contrat['prise_en_charge'] ?? '')) ?></td>
                                                 <td class="text-end">
                                                     <a href="/contrats/edit?id=<?= $contrat['id_contrat'] ?>" class="btn btn-sm btn-icon btn-light-primary" title="<?= _('Modifier') ?>">
-                                                        <i class="ti ti-edit"></i>
+                                                        <i class="ph-duotone ph-pencil"></i>
                                                     </a>
                                                     <form action="/contrats/destroy" method="POST" class="d-inline ms-2" onsubmit="return confirm('<?= _('Êtes-vous sûr ?') ?>');">
                                                         <input type="hidden" name="id" value="<?= $contrat['id_contrat'] ?>">
                                                         <button type="submit" class="btn btn-sm btn-icon btn-light-danger" title="<?= _('Supprimer') ?>">
-                                                            <i class="ti ti-trash"></i>
+                                                            <i class="ph-duotone ph-trash"></i>
                                                         </button>
                                                     </form>
                                                 </td>
