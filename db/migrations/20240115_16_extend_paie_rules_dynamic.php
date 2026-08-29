@@ -8,17 +8,25 @@ function migrate_16($db) {
     // Helper to add column if missing
     $addColumnIfMissing = function($table, $column, $definition) use ($db, $isSqlite) {
         if ($isSqlite) {
-            $stmt = $db->query("PRAGMA table_info($table)");
+            $stmt = $db->query("PRAGMA table_info({$table})");
             $cols = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
             $colNames = array_column($cols, 'name');
             if (!in_array($column, $colNames, true)) {
                 $db->exec("ALTER TABLE {$table} ADD COLUMN {$column} {$definition}");
             }
         } else {
-            $stmt = $db->prepare("SHOW COLUMNS FROM {$table} LIKE :col");
-            $stmt->execute(['col' => $column]);
-            if (!$stmt->fetch()) {
-                $db->exec("ALTER TABLE {$table} ADD COLUMN {$column} {$definition}");
+            $stmt = $db->prepare("
+                SELECT COUNT(*) FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = :table_name
+                  AND COLUMN_NAME = :col_name
+            ");
+            $stmt->execute([
+                'table_name' => $table,
+                'col_name' => $column
+            ]);
+            if ((int)$stmt->fetchColumn() === 0) {
+                $db->exec("ALTER TABLE `{$table}` ADD COLUMN `{$column}` {$definition}");
             }
         }
     };
