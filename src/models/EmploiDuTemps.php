@@ -67,9 +67,36 @@ class EmploiDuTemps {
     }
 
     /**
+     * Normalize day names to standard French capitalized day string.
+     */
+    public static function normalizeDay($dayStr) {
+        if (empty($dayStr)) return '';
+        $clean = mb_strtolower(trim($dayStr), 'UTF-8');
+        $clean = str_replace(['é', 'è', 'ê'], 'e', $clean);
+        $map = [
+            'lundi' => 'Lundi',
+            'mardi' => 'Mardi',
+            'mercredi' => 'Mercredi',
+            'jeudi' => 'Jeudi',
+            'vendredi' => 'Vendredi',
+            'samedi' => 'Samedi',
+            'dimanche' => 'Dimanche',
+            '1' => 'Lundi',
+            '2' => 'Mardi',
+            '3' => 'Mercredi',
+            '4' => 'Jeudi',
+            '5' => 'Vendredi',
+            '6' => 'Samedi',
+            '7' => 'Dimanche',
+        ];
+        return $map[$clean] ?? ucfirst(trim($dayStr));
+    }
+
+    /**
      * Validate payload integrity before conflict checking or persisting.
      */
-    public static function validatePayload($data, $lycee_id) {
+    public static function validatePayload(&$data, $lycee_id) {
+        $data['jour'] = self::normalizeDay($data['jour'] ?? '');
         $validDays = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
         if (empty($data['jour']) || !in_array($data['jour'], $validDays)) {
             return "Jour invalide.";

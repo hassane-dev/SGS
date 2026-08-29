@@ -29,6 +29,8 @@ class EmploiDuTempsController {
         $view_mode = $_GET['view_mode'] ?? 'classe'; // 'classe', 'professeur', 'salle'
         $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
         $niveau = !empty($_GET['niveau']) ? $_GET['niveau'] : null;
+        $serie = !empty($_GET['serie']) ? $_GET['serie'] : null;
+        $numero = !empty($_GET['numero']) ? $_GET['numero'] : null;
 
         $view_classe_id = !empty($_GET['classe_id']) ? (int)$_GET['classe_id'] : null;
         $view_professeur_id = !empty($_GET['professeur_id']) ? (int)$_GET['professeur_id'] : null;
@@ -76,7 +78,9 @@ class EmploiDuTempsController {
             exit();
         }
 
+        require_once __DIR__ . '/../models/Cycle.php';
         $data = [
+            'cycles' => Cycle::findAll($lycee_id),
             'classes' => Classe::findAll($lycee_id),
             'matieres' => Matiere::findAll(),
             'professeurs' => User::findAll($lycee_id),
@@ -119,8 +123,10 @@ class EmploiDuTempsController {
             exit();
         }
 
+        require_once __DIR__ . '/../models/Cycle.php';
         $data = [
             'cours' => $cours,
+            'cycles' => Cycle::findAll($lycee_id),
             'classes' => Classe::findAll($lycee_id),
             'matieres' => Matiere::findAll(),
             'professeurs' => User::findAll($lycee_id),
@@ -226,6 +232,32 @@ class EmploiDuTempsController {
     }
 
     /**
+     * Normalize day names to standard French capitalized day string.
+     */
+    public static function normalizeDay($dayStr) {
+        if (empty($dayStr)) return '';
+        $clean = mb_strtolower(trim($dayStr), 'UTF-8');
+        $clean = str_replace(['é', 'è', 'ê'], 'e', $clean);
+        $map = [
+            'lundi' => 'Lundi',
+            'mardi' => 'Mardi',
+            'mercredi' => 'Mercredi',
+            'jeudi' => 'Jeudi',
+            'vendredi' => 'Vendredi',
+            'samedi' => 'Samedi',
+            'dimanche' => 'Dimanche',
+            '1' => 'Lundi',
+            '2' => 'Mardi',
+            '3' => 'Mercredi',
+            '4' => 'Jeudi',
+            '5' => 'Vendredi',
+            '6' => 'Samedi',
+            '7' => 'Dimanche',
+        ];
+        return $map[$clean] ?? ucfirst(trim($dayStr));
+    }
+
+    /**
      * Build dynamic timetable grid driven strictly by recorded start/end time intervals.
      * Guarantees zero hardcoded time slots and renders arbitrary start times/durations.
      */
@@ -252,7 +284,8 @@ class EmploiDuTempsController {
         });
 
         $grid = [];
-        foreach ($intervalsMap as $slotKey => $slot) {
+        foreach ($intervalsMap as $slot) {
+            $slotKey = $slot['label'];
             foreach ($days as $day) {
                 $grid[$slotKey][$day] = [];
             }
@@ -262,8 +295,9 @@ class EmploiDuTempsController {
             $start = substr($e['heure_debut'], 0, 5);
             $end = substr($e['heure_fin'], 0, 5);
             $slotKey = $start . ' - ' . $end;
-            if (isset($grid[$slotKey][$e['jour']])) {
-                $grid[$slotKey][$e['jour']][] = $e;
+            $normDay = self::normalizeDay($e['jour']);
+            if (isset($grid[$slotKey][$normDay])) {
+                $grid[$slotKey][$normDay][] = $e;
             }
         }
 

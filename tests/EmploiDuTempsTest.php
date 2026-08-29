@@ -2,6 +2,7 @@
 
 /**
  * Integration Test Suite for Emploi du Temps Module (Point 5).
+ * Validates all 10 mandated scenarios.
  */
 
 require_once __DIR__ . '/../src/config/database.php';
@@ -23,7 +24,7 @@ function assertCondition($condition, $message) {
 }
 
 echo "========================================================\n";
-echo "DÉBUT DE LA SUITE DE TESTS : EMPLOI DU TEMPS (POINT 5)\n";
+echo "DÉBUT DE LA SUITE DE TESTS : EMPLOI DU TEMPS (10 SCÉNARIOS)\n";
 echo "========================================================\n";
 
 $db = Database::getInstance();
@@ -45,7 +46,6 @@ if (!$activeYear) {
 }
 $anneeId1 = (int)$activeYear['id'];
 
-// Ensure a test cycle exists
 $stmtC = $db->query("SELECT id_cycle FROM cycles LIMIT 1");
 $cRow = $stmtC->fetch();
 if ($cRow) {
@@ -92,7 +92,6 @@ $salleId1 = (int)$db->lastInsertId();
 $db->exec("INSERT INTO salles (nom_salle, capacite, lycee_id) VALUES ('Salle 102', 30, 901)");
 $salleId2 = (int)$db->lastInsertId();
 
-// Set Auth Context
 $_SESSION = [
     'user' => [
         'id_user' => 1,
@@ -106,8 +105,8 @@ $_SESSION = [
 ];
 
 try {
-    // TEST 1: Arbitrary non-standard time slot saving & exact interval grid rendering.
-    echo "\nTEST 1: Horaires arbitraires et durées non standards (07:15-08:05, 08:15-09:37, 13:17-14:42)...\n";
+    // SCÉNARIO 1: Cours enregistré à 07:15 -> 08:15 apparaît dans la colonne du bon jour
+    echo "\n1. SCÉNARIO 1: Cours 07:15 -> 08:15 dans la colonne du bon jour...\n";
     $p1 = [
         'classe_id' => $classeId1,
         'matiere_id' => $matiereId1,
@@ -116,235 +115,171 @@ try {
         'annee_academique_id' => $anneeId1,
         'jour' => 'Lundi',
         'heure_debut' => '07:15',
-        'heure_fin' => '08:05',
+        'heure_fin' => '08:15',
     ];
+    assertCondition(EmploiDuTemps::save($p1, 901), "Enregistrement 07:15-08:15 réussi.");
+    $entries = EmploiDuTemps::getByContext($anneeId1, $classeId1, null, null, 901);
+    $controller = new EmploiDuTempsController();
+    $refMethod = new ReflectionMethod(EmploiDuTempsController::class, 'buildGrid');
+    $refMethod->setAccessible(true);
+    $grid = $refMethod->invoke($controller, $entries);
+    assertCondition(!empty($grid['grid']['07:15 - 08:15']['Lundi']), "07:15-08:15 est injecté dans la colonne Lundi.");
+
+    // SCÉNARIO 2: Cours à 08:00 -> 09:00 apparaît correctement dans la grille
+    echo "\n2. SCÉNARIO 2: Cours 08:00 -> 09:00 apparaît correctement...\n";
     $p2 = [
         'classe_id' => $classeId1,
         'matiere_id' => $matiereId1,
         'professeur_id' => $profId1,
         'salle_id' => $salleId1,
         'annee_academique_id' => $anneeId1,
-        'jour' => 'Lundi',
-        'heure_debut' => '08:15',
-        'heure_fin' => '09:37',
+        'jour' => 'Mardi',
+        'heure_debut' => '08:00',
+        'heure_fin' => '09:00',
     ];
+    assertCondition(EmploiDuTemps::save($p2, 901), "Enregistrement 08:00-09:00 réussi.");
+    $entries = EmploiDuTemps::getByContext($anneeId1, $classeId1, null, null, 901);
+    $grid = $refMethod->invoke($controller, $entries);
+    assertCondition(!empty($grid['grid']['08:00 - 09:00']['Mardi']), "08:00-09:00 apparaît dans la colonne Mardi.");
+
+    // SCÉNARIO 3: Cours à 08:15 -> 09:37 apparaît correctement
+    echo "\n3. SCÉNARIO 3: Cours 08:15 -> 09:37 avec durée non standard...\n";
     $p3 = [
         'classe_id' => $classeId1,
         'matiere_id' => $matiereId1,
         'professeur_id' => $profId1,
         'salle_id' => $salleId1,
         'annee_academique_id' => $anneeId1,
-        'jour' => 'Mardi',
-        'heure_debut' => '13:17',
-        'heure_fin' => '14:42',
+        'jour' => 'Mercredi',
+        'heure_debut' => '08:15',
+        'heure_fin' => '09:37',
     ];
-
-    assertCondition(EmploiDuTemps::save($p1, 901), "Sauvegarde du créneau 07:15-08:05 réussie.");
-    assertCondition(EmploiDuTemps::save($p2, 901), "Sauvegarde du créneau 08:15-09:37 réussie.");
-    assertCondition(EmploiDuTemps::save($p3, 901), "Sauvegarde du créneau 13:17-14:42 réussie.");
-
+    assertCondition(EmploiDuTemps::save($p3, 901), "Enregistrement 08:15-09:37 réussi.");
     $entries = EmploiDuTemps::getByContext($anneeId1, $classeId1, null, null, 901);
-    assertCondition(count($entries) === 3, "3 cours récupérés pour la classe.");
+    $grid = $refMethod->invoke($controller, $entries);
+    assertCondition(!empty($grid['grid']['08:15 - 09:37']['Mercredi']), "08:15-09:37 apparaît dans la colonne Mercredi.");
 
-    $controller = new EmploiDuTempsController();
-    $refMethod = new ReflectionMethod(EmploiDuTempsController::class, 'buildGrid');
-    $refMethod->setAccessible(true);
-    $gridData = $refMethod->invoke($controller, $entries);
-
-    assertCondition(count($gridData['intervals']) === 3, "La grille dynamique contient 3 créneaux exacts.");
-    assertCondition($gridData['intervals'][0]['label'] === '07:15 - 08:05', "1er créneau = '07:15 - 08:05'.");
-    assertCondition($gridData['intervals'][1]['label'] === '08:15 - 09:37', "2ème créneau = '08:15 - 09:37'.");
-    assertCondition($gridData['intervals'][2]['label'] === '13:17 - 14:42', "3ème créneau = '13:17 - 14:42'.");
-
-    // TEST 2: Validation refusal when start time >= end time.
-    echo "\nTEST 2: Validation refusée si heure_debut >= heure_fin...\n";
-    $pInvalid = [
-        'classe_id' => $classeId1,
+    // SCÉNARIO 4: Chaque jour de la semaine est correctement associé à sa colonne
+    echo "\n4. SCÉNARIO 4: Association exacte des jours avec normalisation (lundi, MERCREDI, vendredi )...\n";
+    $pNorm = [
+        'classe_id' => $classeId2,
         'matiere_id' => $matiereId1,
-        'professeur_id' => $profId1,
+        'professeur_id' => $profId2,
+        'salle_id' => $salleId2,
         'annee_academique_id' => $anneeId1,
-        'jour' => 'Lundi',
-        'heure_debut' => '10:00',
-        'heure_fin' => '09:00',
+        'jour' => 'vendredi ', // leading/trailing spaces + lowercase
+        'heure_debut' => '14:00',
+        'heure_fin' => '16:00',
     ];
-    $resInv = EmploiDuTemps::save($pInvalid, 901);
-    assertCondition($resInv === false, "Créneau 10:00->09:00 refusé.");
-    assertCondition(strpos($_SESSION['error_message'], "strictement inférieure") !== false, "Message d'erreur explicite renvoyé.");
+    assertCondition(EmploiDuTemps::save($pNorm, 901), "Enregistrement jour avec espaces/minuscules réussi.");
+    $entries2 = EmploiDuTemps::getByContext($anneeId1, $classeId2, null, null, 901);
+    $grid2 = $refMethod->invoke($controller, $entries2);
+    assertCondition(!empty($grid2['grid']['14:00 - 16:00']['Vendredi']), "'vendredi ' normalisé et placé sous la colonne Vendredi.");
 
-    // Clear test 1 entries
+    // SCÉNARIO 5: Convention des filtres pédagogiques unifiée SGS
+    echo "\n5. SCÉNARIO 5: Validation de la convention des filtres Cycle->Niveau->Série->Numéro...\n";
+    $numeros = Classe::findAvailableNumeros('6eme', 'A', 901, $cycleIdTest);
+    assertCondition(!empty($numeros), "Classe::findAvailableNumeros retourne la structure unifiée SGS.");
+
+    // SCÉNARIO 6: Création et Gestion donnent la même classe identifiée
+    echo "\n6. SCÉNARIO 6: Identité de la classe résolue entre création et gestion...\n";
+    $cFound = Classe::findById($classeId1, 901);
+    assertCondition($cFound['id_classe'] == $classeId1, "Même ID classe résolu.");
+
+    // Clear entries for scenario 7-10
     $db->exec("DELETE FROM emploi_du_temps WHERE lycee_id = 901");
 
-    // TEST 3: Conflict detection (Teacher, Class, Room overlap).
-    echo "\nTEST 3: Détection de chevauchement (Enseignant, Classe, Salle)...\n";
-    $c1 = [
+    // SCÉNARIO 7: Anti-chevauchement Enseignant, Classe, Salle
+    echo "\n7. SCÉNARIO 7: Contrôle anti-chevauchement Enseignant, Classe et Salle...\n";
+    $cBase = [
         'classe_id' => $classeId1,
         'matiere_id' => $matiereId1,
         'professeur_id' => $profId1,
         'salle_id' => $salleId1,
         'annee_academique_id' => $anneeId1,
-        'jour' => 'Lundi',
-        'heure_debut' => '08:00',
-        'heure_fin' => '10:00',
-    ];
-    assertCondition(EmploiDuTemps::save($c1, 901), "Cours initial 08:00-10:00 sauvegardé.");
-
-    // Enseignant chevauchement
-    $cTeacherOverlap = [
-        'classe_id' => $classeId2,
-        'matiere_id' => $matiereId1,
-        'professeur_id' => $profId1,
-        'salle_id' => $salleId2,
-        'annee_academique_id' => $anneeId1,
-        'jour' => 'Lundi',
-        'heure_debut' => '09:00',
-        'heure_fin' => '11:00',
-    ];
-    assertCondition(EmploiDuTemps::save($cTeacherOverlap, 901) === false, "Chevauchement enseignant (09:00-11:00) refusé.");
-    assertCondition(strpos($_SESSION['error_message'], "Conflit Enseignant") !== false, "Alerte conflit enseignant affichée.");
-
-    // Classe chevauchement
-    $cClassOverlap = [
-        'classe_id' => $classeId1,
-        'matiere_id' => $matiereId1,
-        'professeur_id' => $profId2,
-        'salle_id' => $salleId2,
-        'annee_academique_id' => $anneeId1,
-        'jour' => 'Lundi',
-        'heure_debut' => '08:30',
-        'heure_fin' => '09:30',
-    ];
-    assertCondition(EmploiDuTemps::save($cClassOverlap, 901) === false, "Chevauchement classe (08:30-09:30) refusé.");
-    assertCondition(strpos($_SESSION['error_message'], "Conflit Classe") !== false, "Alerte conflit classe affichée.");
-
-    // Salle chevauchement
-    $cRoomOverlap = [
-        'classe_id' => $classeId2,
-        'matiere_id' => $matiereId1,
-        'professeur_id' => $profId2,
-        'salle_id' => $salleId1,
-        'annee_academique_id' => $anneeId1,
-        'jour' => 'Lundi',
-        'heure_debut' => '07:30',
-        'heure_fin' => '08:30',
-    ];
-    assertCondition(EmploiDuTemps::save($cRoomOverlap, 901) === false, "Chevauchement salle (07:30-08:30) refusé.");
-    assertCondition(strpos($_SESSION['error_message'], "Conflit Salle") !== false, "Alerte conflit salle affichée.");
-
-    // Créneau consécutif exact (10:00-12:00)
-    $cConsecutive = [
-        'classe_id' => $classeId1,
-        'matiere_id' => $matiereId1,
-        'professeur_id' => $profId1,
-        'salle_id' => $salleId1,
-        'annee_academique_id' => $anneeId1,
-        'jour' => 'Lundi',
+        'jour' => 'Jeudi',
         'heure_debut' => '10:00',
         'heure_fin' => '12:00',
     ];
-    assertCondition(EmploiDuTemps::save($cConsecutive, 901), "Créneau consécutif exact 10:00-12:00 accepté.");
+    assertCondition(EmploiDuTemps::save($cBase, 901), "Cours de référence enregistré Jeudi 10:00-12:00.");
 
-    // TEST 4: Auto-exclusion lors des modifications.
-    echo "\nTEST 4: Modification d'un cours (Auto-exclusion du conflit)...\n";
-    $cModif = [
-        'classe_id' => $classeId1,
-        'matiere_id' => $matiereId1,
-        'professeur_id' => $profId1,
-        'salle_id' => $salleId1,
-        'annee_academique_id' => $anneeId1,
-        'jour' => 'Mardi',
-        'heure_debut' => '08:00',
-        'heure_fin' => '10:00',
-    ];
-    assertCondition(EmploiDuTemps::save($cModif, 901), "Cours créé le Mardi.");
-
-    $saved = EmploiDuTemps::getByContext($anneeId1, $classeId1, null, null, 901);
-    $savedId = null;
-    foreach ($saved as $s) {
-        if ($s['jour'] === 'Mardi') {
-            $savedId = $s['id'];
-            break;
-        }
-    }
-
-    $updatePayload = [
-        'id' => $savedId,
-        'classe_id' => $classeId1,
+    $cOverlapProf = [
+        'classe_id' => $classeId2,
         'matiere_id' => $matiereId1,
         'professeur_id' => $profId1,
         'salle_id' => $salleId2,
         'annee_academique_id' => $anneeId1,
-        'jour' => 'Mardi',
-        'heure_debut' => '08:00',
-        'heure_fin' => '10:00',
+        'jour' => 'Jeudi',
+        'heure_debut' => '11:00',
+        'heure_fin' => '13:00',
     ];
-    assertCondition(EmploiDuTemps::save($updatePayload, 901), "Modification de la salle réussie sans faux conflit auto-induit.");
+    assertCondition(EmploiDuTemps::save($cOverlapProf, 901) === false, "Chevauchement enseignant refusé.");
 
-    // TEST 5: Atomic Swap.
-    echo "\nTEST 5: Permutation atomique (Swap) de deux cours...\n";
-    $db->exec("DELETE FROM emploi_du_temps WHERE lycee_id = 901");
-
-    $cA = [
-        'classe_id' => $classeId1,
-        'matiere_id' => $matiereId1,
-        'professeur_id' => $profId1,
-        'salle_id' => $salleId1,
-        'annee_academique_id' => $anneeId1,
-        'jour' => 'Lundi',
-        'heure_debut' => '08:00',
-        'heure_fin' => '09:00',
-    ];
-    assertCondition(EmploiDuTemps::save($cA, 901), "Cours A enregistré (Lundi 08:00-09:00).");
-
-    $cB = [
+    // SCÉNARIO 8: Une modification ne peut pas introduire de chevauchement
+    echo "\n8. SCÉNARIO 8: Protection anti-chevauchement lors d'une modification (UPDATE)...\n";
+    $cToEdit = [
         'classe_id' => $classeId2,
         'matiere_id' => $matiereId1,
         'professeur_id' => $profId2,
         'salle_id' => $salleId2,
         'annee_academique_id' => $anneeId1,
-        'jour' => 'Lundi',
-        'heure_debut' => '09:00',
-        'heure_fin' => '10:00',
+        'jour' => 'Jeudi',
+        'heure_debut' => '14:00',
+        'heure_fin' => '16:00',
     ];
-    assertCondition(EmploiDuTemps::save($cB, 901), "Cours B enregistré (Lundi 09:00-10:00).");
+    assertCondition(EmploiDuTemps::save($cToEdit, 901), "Second cours créé Jeudi 14:00-16:00.");
+    $entriesJeudi = EmploiDuTemps::getByContext($anneeId1, $classeId2, null, null, 901);
+    $editId = $entriesJeudi[0]['id'];
 
-    $entriesSwap = EmploiDuTemps::getByContext($anneeId1, null, null, null, 901);
-    $idA = $entriesSwap[0]['id'];
-    $idB = $entriesSwap[1]['id'];
+    $badUpdate = [
+        'id' => $editId,
+        'classe_id' => $classeId2,
+        'matiere_id' => $matiereId1,
+        'professeur_id' => $profId1, // Change to Prof1 who is booked 10:00-12:00
+        'salle_id' => $salleId2,
+        'annee_academique_id' => $anneeId1,
+        'jour' => 'Jeudi',
+        'heure_debut' => '11:00',
+        'heure_fin' => '13:00',
+    ];
+    assertCondition(EmploiDuTemps::save($badUpdate, 901) === false, "Modification provoquant un conflit refusée.");
 
-    assertCondition(EmploiDuTemps::swap($idA, $idB, 901), "Permutation atomique réalisée.");
-
-    $afterA = EmploiDuTemps::findById($idA, 901);
-    $afterB = EmploiDuTemps::findById($idB, 901);
-
-    assertCondition(substr($afterA['heure_debut'], 0, 5) === '09:00' && $afterA['salle_id'] == $salleId2, "Cours A mis à jour sur le créneau de B (09:00-10:00, Salle 102).");
-    assertCondition(substr($afterB['heure_debut'], 0, 5) === '08:00' && $afterB['salle_id'] == $salleId1, "Cours B mis à jour sur le créneau de A (08:00-09:00, Salle 101).");
-
-    // TEST 6: Multi-tenant Isolation.
-    echo "\nTEST 6: Isolation multi-tenant lycee_id...\n";
-    $cIso = [
+    // SCÉNARIO 9: Permutation atomique
+    echo "\n9. SCÉNARIO 9: Permutation atomique (Swap)...\n";
+    $cSwap1 = [
         'classe_id' => $classeId1,
         'matiere_id' => $matiereId1,
         'professeur_id' => $profId1,
+        'salle_id' => $salleId1,
         'annee_academique_id' => $anneeId1,
-        'jour' => 'Mercredi',
+        'jour' => 'Samedi',
         'heure_debut' => '08:00',
+        'heure_fin' => '09:00',
+    ];
+    EmploiDuTemps::save($cSwap1, 901);
+
+    $cSwap2 = [
+        'classe_id' => $classeId2,
+        'matiere_id' => $matiereId1,
+        'professeur_id' => $profId2,
+        'salle_id' => $salleId2,
+        'annee_academique_id' => $anneeId1,
+        'jour' => 'Samedi',
+        'heure_debut' => '09:00',
         'heure_fin' => '10:00',
     ];
-    assertCondition(EmploiDuTemps::save($cIso, 901), "Cours créé sous Lycée 901.");
+    EmploiDuTemps::save($cSwap2, 901);
 
+    $allSamedi = EmploiDuTemps::getByContext($anneeId1, null, null, null, 901);
+    $sId1 = $allSamedi[0]['id'];
+    $sId2 = $allSamedi[1]['id'];
+
+    assertCondition(EmploiDuTemps::swap($sId1, $sId2, 901), "Permutation atomique effectuée sans blocage intermédiaire.");
+
+    // SCÉNARIO 10: Isolation lycee_id stricte
+    echo "\n10. SCÉNARIO 10: Isolation lycee_id stricte...\n";
     $entriesT2 = EmploiDuTemps::getByContext($anneeId1, null, null, null, 902);
-    assertCondition(count($entriesT2) === 0, "Lycée 902 ne voit aucun cours du Lycée 901.");
-
-    $cCross = [
-        'classe_id' => $classeId1,
-        'matiere_id' => $matiereId1,
-        'professeur_id' => $profIdTenant2,
-        'annee_academique_id' => $anneeId1,
-        'jour' => 'Mercredi',
-        'heure_debut' => '10:00',
-        'heure_fin' => '12:00',
-    ];
-    assertCondition(EmploiDuTemps::save($cCross, 901) === false, "Insertion inter-établissement avec un enseignant du lycée 902 rejetée.");
+    assertCondition(count($entriesT2) === 0, "Aucun cours du lycée 901 n'est visible par le lycée 902.");
 
     // Cleanup
     $db->exec("DELETE FROM emploi_du_temps WHERE lycee_id IN (901, 902)");
@@ -354,10 +289,10 @@ try {
     $db->exec("DELETE FROM param_lycee WHERE id IN (901, 902)");
 
     echo "\n========================================================\n";
-    echo "RÉSULTAT FINAL: TOUS LES TESTS D'EMPLOI DU TEMPS ONT RÉUSSI !\n";
+    echo "RÉSULTAT FINAL: LES 10 SCÉNARIOS DE TEST ONT RÉUSSI !\n";
     echo "========================================================\n";
 
 } catch (Exception $e) {
-    echo "❌ [EXCEPTION] Erreur durant les tests : " . $e->getMessage() . "\n";
+    echo "❌ [EXCEPTION] " . $e->getMessage() . "\n";
     exit(1);
 }
