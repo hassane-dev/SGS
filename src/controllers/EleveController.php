@@ -498,5 +498,47 @@ class EleveController {
         header('Location: /eleves/parametres-financiers?id=' . $eleve_id);
         exit();
     }
+
+    /**
+     * Parcours Académique Longitudinal de l'Élève.
+     */
+    public function parcoursAcademique() {
+        if (!Auth::can('view_all', 'eleve') && !Auth::can('edit', 'eleve')) {
+            $this->forbidden();
+        }
+
+        $eleve_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+        if (!$eleve_id) {
+            header('Location: /eleves');
+            exit();
+        }
+
+        $eleve = Eleve::findById($eleve_id);
+        if (!$eleve) {
+            header('Location: /eleves');
+            exit();
+        }
+
+        // Contrôle de sécurité du périmètre multi-tenant et cycle
+        AuthorizationScopeService::assertAccessToObject($eleve['lycee_id'], $eleve['cycle_id'] ?? null);
+
+        require_once __DIR__ . '/../services/AcademicAnalysisService.php';
+
+        $timeline = AcademicAnalysisService::getStudentLongitudinalTimeline($eleve_id);
+        $subjectAverages = AcademicAnalysisService::getSubjectAnnualAverages($eleve_id);
+        $variations = AcademicAnalysisService::getInterannualVariations($eleve_id);
+        $performanceMetrics = AcademicAnalysisService::getRawPerformanceMetrics($eleve_id);
+        $bulletinSnapshots = AcademicAnalysisService::getOfficialBulletinSnapshots($eleve_id);
+
+        View::render('eleves/parcours_academique', [
+            'eleve' => $eleve,
+            'timeline' => $timeline,
+            'subjectAverages' => $subjectAverages,
+            'variations' => $variations,
+            'performanceMetrics' => $performanceMetrics,
+            'bulletinSnapshots' => $bulletinSnapshots,
+            'title' => 'Parcours Académique - ' . htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom'])
+        ]);
+    }
 }
 ?>

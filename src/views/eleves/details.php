@@ -45,6 +45,9 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="/eleves/parametres-financiers?id=<?= $eleve['id_eleve'] ?>"><i class="ph-duotone ph-currency-dollar me-2"></i>Paramètres Financiers</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/eleves/parcours-academique?id=<?= $eleve['id_eleve'] ?>"><i class="ph-duotone ph-chart-line-up me-2"></i>Parcours Académique</a>
+                            </li>
                         </ul>
                     </div>
                 </div>
