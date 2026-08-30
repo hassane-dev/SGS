@@ -46,6 +46,7 @@
             </div>
         <?php endif; ?>
 
+        <?php if (empty($is_teacher_only)): ?>
         <!-- [ Filter Card - Dynamic Hierarchy Cascade ] -->
         <div class="row">
             <div class="col-12">
@@ -132,12 +133,14 @@
             </div>
         </div>
 
+        <?php endif; ?>
+
         <!-- [ Main Content ] start -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5><?= _('Registre des Affectations Pédagogiques') ?> (<?= htmlspecialchars($active_year['libelle'] ?? 'En cours') ?>)</h5>
+                        <h5><?= !empty($is_teacher_only) ? _('Mes Affectations Pédagogiques Actives') : _('Registre des Affectations Pédagogiques') ?> (<?= htmlspecialchars($active_year['libelle'] ?? 'En cours') ?>)</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">

@@ -17,6 +17,30 @@ class CahierTexteController {
         exit();
     }
 
+    private function isTeacherAssignedToClassAndSubject($teacher_id, $classe_id, $matiere_id) {
+        if (!$teacher_id || !$classe_id || !$matiere_id) {
+            return false;
+        }
+        $db = Database::getInstance();
+        $stmt = $db->prepare("
+            SELECT COUNT(*)
+            FROM affectations_pedagogiques ap
+            JOIN classes c ON ap.classe_id = c.id_classe
+            WHERE ap.enseignant_id = :teacher_id
+              AND ap.classe_id = :classe_id
+              AND ap.matiere_id = :matiere_id
+              AND ap.statut = 'actif'
+              AND c.lycee_id = :lycee_id
+        ");
+        $stmt->execute([
+            'teacher_id' => (int)$teacher_id,
+            'classe_id' => (int)$classe_id,
+            'matiere_id' => (int)$matiere_id,
+            'lycee_id' => (int)Auth::getLyceeId()
+        ]);
+        return ((int)$stmt->fetchColumn()) > 0;
+    }
+
     public function index() {
         $this->checkAccess();
         $user_id = Auth::getUserId();
@@ -62,19 +86,33 @@ class CahierTexteController {
             }
         }
 
-        require_once __DIR__ . '/../models/Cycle.php';
-        $cycles = Cycle::findByLycee($lycee_id);
-        if (empty($cycles)) {
-            $cycles = Cycle::findAll();
-        }
-
         $entries = [];
+        $teacher_assignments = [];
+
         if ($is_admin) {
             // Admin / Supervisor view: fetch entries with active filters
             $entries = CahierTexte::findAllByPersonnel(null, $lycee_id, $filters);
+            require_once __DIR__ . '/../models/Cycle.php';
+            $cycles = Cycle::findByLycee($lycee_id);
+            if (empty($cycles)) {
+                $cycles = Cycle::findAll();
+            }
         } else {
             // Teacher view: fetch only their own entries with active filters
             $entries = CahierTexte::findAllByPersonnel($user_id, $lycee_id, $filters);
+            $teacher_assignments = User::getTeacherAssignments($user_id);
+
+            // Extract distinct cycles from teacher's active assignments
+            $cycles_map = [];
+            foreach ($teacher_assignments as $ta) {
+                if (!empty($ta['cycle_id']) && !isset($cycles_map[$ta['cycle_id']])) {
+                    $cycles_map[$ta['cycle_id']] = [
+                        'id_cycle' => (int)$ta['cycle_id'],
+                        'nom_cycle' => $ta['nom_cycle'] ?? ('Cycle ' . $ta['cycle_id'])
+                    ];
+                }
+            }
+            $cycles = array_values($cycles_map);
         }
 
         require_once __DIR__ . '/../views/cahier_texte/index.php';
@@ -134,6 +172,16 @@ class CahierTexteController {
                 unset($data['class_subject']);
             }
 
+            // Server-side perimeter security check
+            $is_admin = Auth::can('manage', 'cahier_texte') || Auth::can('view_all', 'cahier_texte');
+            if (!$is_admin) {
+                if (!$this->isTeacherAssignedToClassAndSubject(Auth::getUserId(), (int)($data['classe_id'] ?? 0), (int)($data['matiere_id'] ?? 0))) {
+                    http_response_code(403);
+                    echo "Accès Interdit : Vous n'êtes pas affecté à cette classe et cette matière.";
+                    if (!defined('TEST_MODE')) exit(); return;
+                }
+            }
+
             try {
                 CahierTexte::save($data);
             } catch (Exception $e) {
@@ -186,6 +234,16 @@ class CahierTexteController {
             if (!empty($data['class_subject'])) {
                 list($data['classe_id'], $data['matiere_id']) = explode('-', $data['class_subject']);
                 unset($data['class_subject']);
+            }
+
+            // Server-side perimeter security check
+            $is_admin = Auth::can('manage', 'cahier_texte') || Auth::can('view_all', 'cahier_texte');
+            if (!$is_admin) {
+                if (!$this->isTeacherAssignedToClassAndSubject(Auth::getUserId(), (int)($data['classe_id'] ?? 0), (int)($data['matiere_id'] ?? 0))) {
+                    http_response_code(403);
+                    echo "Accès Interdit : Vous n'êtes pas affecté à cette classe et cette matière.";
+                    if (!defined('TEST_MODE')) exit(); return;
+                }
             }
 
             CahierTexte::save($data);

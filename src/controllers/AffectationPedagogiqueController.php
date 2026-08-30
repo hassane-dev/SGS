@@ -55,7 +55,8 @@ class AffectationPedagogiqueController {
         }
 
         // If user is teacher only (view_my_affectations), constrain to their own user_id
-        if (!Auth::can('view_affectations', 'pedagogy') && !Auth::can('manage_affectations', 'pedagogy') && Auth::can('view_my_affectations', 'pedagogy')) {
+        $is_teacher_only = (!Auth::can('view_affectations', 'pedagogy') && !Auth::can('manage_affectations', 'pedagogy') && Auth::can('view_my_affectations', 'pedagogy'));
+        if ($is_teacher_only) {
             $filters['enseignant_id'] = $user_id;
         }
 
@@ -77,7 +78,8 @@ class AffectationPedagogiqueController {
             'cycles' => $cycles,
             'active_year' => $active_year,
             'filters' => $filters,
-            'title' => _('Affectations Pédagogiques')
+            'is_teacher_only' => $is_teacher_only,
+            'title' => $is_teacher_only ? _('Mes Affectations Pédagogiques') : _('Affectations Pédagogiques')
         ]);
     }
 
