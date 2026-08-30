@@ -175,6 +175,7 @@ $router->register('/eleves/assign-class', 'EleveController', 'assignClass');
 $router->register('/eleves/process-assignment', 'EleveController', 'processAssignment');
 $router->register('/eleves/parametres-financiers', 'EleveController', 'parametresFinanciers');
 $router->register('/eleves/parametres-financiers/update', 'EleveController', 'updateParametresFinanciers');
+$router->register('/eleves/parcours-academique', 'EleveController', 'parcoursAcademique');
 
 // Inscriptions / Reinscriptions redirects to student creation flow
 $router->register('/inscriptions', 'EleveController', 'create');
