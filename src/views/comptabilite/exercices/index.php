@@ -105,6 +105,11 @@ require_once __DIR__ . '/../../layouts/header_able.php';
                         <a href="/comptabilite/periodes?exercice_id=<?= $ex['id'] ?>" class="btn btn-sm btn-light-primary" title="<?= _('Voir Périodes') ?>">
                           <i class="ph-duotone ph-clock"></i> <?= _("Périodes") ?>
                         </a>
+                        <?php if (empty($ex['cloture']) && Auth::can('edit', 'comptabilite')): ?>
+                          <a href="/comptabilite/exercices/<?= $ex['id'] ?>/edit" class="btn btn-sm btn-light-warning" title="<?= _('Modifier') ?>">
+                            <i class="ph-duotone ph-pencil"></i>
+                          </a>
+                        <?php endif; ?>
                         <?php if (empty($ex['cloture']) && empty($ex['est_actif']) && Auth::can('edit', 'comptabilite')): ?>
                           <a href="/comptabilite/exercices/<?= $ex['id'] ?>/activate" class="btn btn-sm btn-light-success" title="<?= _('Activer') ?>">
                             <i class="ph-duotone ph-check"></i>

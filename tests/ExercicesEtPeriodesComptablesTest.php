@@ -142,6 +142,82 @@ assert_test(!Auth::can('close', 'comptabilite'), "Comptable ne peut PAS clôture
 mockSessionForTest(6, 'enseignant');
 assert_test(!Auth::can('view', 'comptabilite'), "Enseignant ne peut PAS voir la comptabilité");
 
+echo "\n--- TEST 10: Tests d'édition et de mise à jour des exercices financiers ---\n";
+
+// Exercice 2027 vierge (sans données rattachées)
+$ex2027Id = ExerciceFinancier::create([
+    'lycee_id' => 99,
+    'libelle' => 'Exercice 2027 Vierge',
+    'date_debut' => '2027-01-01',
+    'date_fin' => '2027-12-31',
+    'est_actif' => 0
+]);
+assert_test($ex2027Id > 0, "Exercice 2027 créé pour tests d'édition");
+
+// 10.1 Modification nominale d'un exercice vierge (libellé et dates modifiables)
+ExerciceFinancier::update($ex2027Id, 99, [
+    'libelle' => 'Exercice 2027 Modifié',
+    'date_debut' => '2027-02-01',
+    'date_fin' => '2027-11-30',
+    'type_exercice' => 'normal'
+]);
+$ex2027Updated = ExerciceFinancier::findById($ex2027Id);
+assert_test($ex2027Updated['libelle'] === 'Exercice 2027 Modifié', "Libellé de l'exercice 2027 vierge mis à jour avec succès");
+assert_test($ex2027Updated['date_debut'] === '2027-02-01', "Date de début de l'exercice 2027 vierge mise à jour avec succès");
+
+// 10.2 Refus d'accès multi-tenant (tentative de modification avec un mauvais lycee_id)
+$crossTenantSuccess = false;
+try {
+    ExerciceFinancier::update($ex2027Id, 88, [
+        'libelle' => 'Tentative Piratage Tenant'
+    ]);
+} catch (InvalidArgumentException $e) {
+    $crossTenantSuccess = true;
+    echo "   -> Refus isolation tenant confirmé : " . $e->getMessage() . "\n";
+}
+assert_test($crossTenantSuccess, "Tentative de modification sur un autre lycée rejetée par isolation multi-tenant");
+
+// 10.3 Refus de modification de dates si l'exercice a des données dépendantes
+// Rattachons une période comptable à l'exercice 2026 ($exId)
+$hasDataBefore = ExerciceFinancier::hasDependentData($exId);
+assert_test($hasDataBefore === true, "L'exercice 2026 possède des données rattachées (périodes comptables)");
+
+$dateChangeDenied = false;
+try {
+    ExerciceFinancier::update($exId, 99, [
+        'libelle' => 'Exercice 2026 avec Libellé Corrigé',
+        'date_debut' => '2026-01-15', // Tentative de modification de date
+        'date_fin' => '2026-12-31'
+    ]);
+} catch (LogicException $e) {
+    $dateChangeDenied = true;
+    echo "   -> Refus modification dates avec données dépendantes : " . $e->getMessage() . "\n";
+}
+assert_test($dateChangeDenied, "Modification des dates d'un exercice avec données rattachées refusée");
+
+// 10.4 Autorisation de modification du libellé seul d'un exercice non clôturé avec données dépendantes
+ExerciceFinancier::update($exId, 99, [
+    'libelle' => 'Exercice 2026 Libellé Rectifié',
+    'date_debut' => '2026-01-01',
+    'date_fin' => '2026-12-31',
+    'type_exercice' => 'normal'
+]);
+$ex2026Updated = ExerciceFinancier::findById($exId);
+assert_test($ex2026Updated['libelle'] === 'Exercice 2026 Libellé Rectifié', "Modification du libellé d'un exercice avec données dépendantes autorisée");
+
+// 10.5 Refus de modification de tout champ sur un exercice clôturé
+ExerciceFinancier::close($ex2027Id);
+$closedChangeDenied = false;
+try {
+    ExerciceFinancier::update($ex2027Id, 99, [
+        'libelle' => 'Tentative Modif Exercice Clôturé'
+    ]);
+} catch (LogicException $e) {
+    $closedChangeDenied = true;
+    echo "   -> Refus modification exercice clôturé : " . $e->getMessage() . "\n";
+}
+assert_test($closedChangeDenied, "Toute modification sur un exercice clôturé est rejetée");
+
 // Cleanup test data
 $db->exec("DELETE FROM paie_periodes WHERE lycee_id = 99");
 $db->exec("DELETE FROM comptabilite_periodes WHERE lycee_id = 99");
