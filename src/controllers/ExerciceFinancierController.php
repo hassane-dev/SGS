@@ -85,4 +85,57 @@ class ExerciceFinancierController {
         header('Location: /comptabilite/exercices');
         exit();
     }
+
+    public function edit($id = null) {
+        Auth::requirePermission('comptabilite', 'edit');
+        $lyceeId = Auth::getLyceeId() ?: 1;
+        $id = (int)($id ?: ($_GET['id'] ?? 0));
+
+        $exercice = ExerciceFinancier::findById($id);
+
+        if (!$exercice || (int)$exercice['lycee_id'] !== (int)$lyceeId) {
+            $_SESSION['error_message'] = _("Exercice financier introuvable.");
+            header('Location: /comptabilite/exercices');
+            exit();
+        }
+
+        if (!empty($exercice['cloture'])) {
+            $_SESSION['error_message'] = _("Impossible de modifier un exercice financier clôturé.");
+            header('Location: /comptabilite/exercices');
+            exit();
+        }
+
+        $hasDependentData = ExerciceFinancier::hasDependentData($id);
+
+        include __DIR__ . '/../views/comptabilite/exercices/edit.php';
+    }
+
+    public function update($id = null) {
+        Auth::requirePermission('comptabilite', 'edit');
+        $lyceeId = Auth::getLyceeId() ?: 1;
+        $id = (int)($id ?: ($_GET['id'] ?? $_POST['id'] ?? 0));
+
+        if (!$id) {
+            $_SESSION['error_message'] = _("Identifiant d'exercice invalide.");
+            header('Location: /comptabilite/exercices');
+            exit();
+        }
+
+        try {
+            ExerciceFinancier::update($id, $lyceeId, [
+                'libelle' => trim($_POST['libelle'] ?? ''),
+                'date_debut' => $_POST['date_debut'] ?? null,
+                'date_fin' => $_POST['date_fin'] ?? null,
+                'type_exercice' => $_POST['type_exercice'] ?? 'normal'
+            ]);
+
+            $_SESSION['success_message'] = _("Exercice financier mis à jour avec succès.");
+            header('Location: /comptabilite/exercices');
+            exit();
+        } catch (Exception $e) {
+            $_SESSION['error_message'] = $e->getMessage();
+            header('Location: /comptabilite/exercices/' . $id . '/edit');
+            exit();
+        }
+    }
 }

@@ -185,6 +185,8 @@ $router->register('/reinscription', 'EleveController', 'archives');
 $router->register('/comptabilite/exercices', 'ExerciceFinancierController', 'index');
 $router->register('/comptabilite/exercices/create', 'ExerciceFinancierController', 'create');
 $router->register('/comptabilite/exercices/store', 'ExerciceFinancierController', 'store');
+$router->register('/comptabilite/exercices/{id}/edit', 'ExerciceFinancierController', 'edit');
+$router->register('/comptabilite/exercices/{id}/update', 'ExerciceFinancierController', 'update');
 $router->register('/comptabilite/exercices/{id}/activate', 'ExerciceFinancierController', 'activate');
 $router->register('/comptabilite/exercices/{id}/close', 'ExerciceFinancierController', 'close');
 
