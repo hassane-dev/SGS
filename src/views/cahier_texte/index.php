@@ -196,6 +196,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterMatiere = document.getElementById('filter_matiere');
     const filterEnseignant = document.getElementById('filter_enseignant');
 
+    const isAdmin = <?= !empty($is_admin) ? 'true' : 'false' ?>;
+    const teacherAssignments = <?= json_encode($teacher_assignments ?? []) ?>;
+
     // Values passed from server GET request for initial state reconstruction
     const initialValues = {
         cycle_id: "<?= htmlspecialchars($filters['cycle_id'] ?? '') ?>",
@@ -224,32 +227,43 @@ document.addEventListener('DOMContentLoaded', function() {
         filterClasseId.value = '';
         groupFilterSerie.style.display = 'none';
 
-        if (!cycleId) return;
+        if (!cycleId && isAdmin) return;
 
-        // Load Teachers eligible for this Cycle (if admin filter is visible)
-        if (filterEnseignant) {
-            fetch(`/affectations-pedagogiques/get-enseignants?cycle_id=${cycleId}`)
-                .then(res => res.json())
-                .then(teachers => {
-                    filterEnseignant.innerHTML = '<option value="">-- Tous les enseignants éligibles --</option>';
-                    filterEnseignant.disabled = false;
-                    teachers.forEach(t => {
-                        const sel = (initialValues.personnel_id && String(initialValues.personnel_id) === String(t.id_user)) ? 'selected' : '';
-                        filterEnseignant.innerHTML += `<option value="${t.id_user}" ${sel}>${t.prenom} ${t.nom} (${t.identifiant_public || 'ENS'})</option>`;
+        if (isAdmin) {
+            if (filterEnseignant) {
+                fetch(`/affectations-pedagogiques/get-enseignants?cycle_id=${cycleId}`)
+                    .then(res => res.json())
+                    .then(teachers => {
+                        filterEnseignant.innerHTML = '<option value="">-- Tous les enseignants éligibles --</option>';
+                        filterEnseignant.disabled = false;
+                        teachers.forEach(t => {
+                            const sel = (initialValues.personnel_id && String(initialValues.personnel_id) === String(t.id_user)) ? 'selected' : '';
+                            filterEnseignant.innerHTML += `<option value="${t.id_user}" ${sel}>${t.prenom} ${t.nom} (${t.identifiant_public || 'ENS'})</option>`;
+                        });
                     });
-                });
+            }
+
+            const res = await fetch(`/affectations-pedagogiques/get-niveaux?cycle_id=${cycleId}`);
+            const niveaux = await res.json();
+
+            filterNiveau.disabled = false;
+            filterNiveau.innerHTML = '<option value="">-- Tous les niveaux --</option>';
+            niveaux.forEach(n => {
+                const sel = (selectedNiveau && selectedNiveau === n) ? 'selected' : '';
+                filterNiveau.innerHTML += `<option value="${n}" ${sel}>${n}</option>`;
+            });
+        } else {
+            // Teacher scoping: derive distinct niveles from teacherAssignments
+            const matching = teacherAssignments.filter(ta => !cycleId || String(ta.cycle_id) === String(cycleId));
+            const niveaux = [...new Set(matching.map(ta => ta.niveau).filter(Boolean))];
+
+            filterNiveau.disabled = false;
+            filterNiveau.innerHTML = '<option value="">-- Tous mes niveaux --</option>';
+            niveaux.forEach(n => {
+                const sel = (selectedNiveau && selectedNiveau === n) ? 'selected' : '';
+                filterNiveau.innerHTML += `<option value="${n}" ${sel}>${n}</option>`;
+            });
         }
-
-        // Load Niveaux for this Cycle
-        const res = await fetch(`/affectations-pedagogiques/get-niveaux?cycle_id=${cycleId}`);
-        const niveaux = await res.json();
-
-        filterNiveau.disabled = false;
-        filterNiveau.innerHTML = '<option value="">-- Tous les niveaux --</option>';
-        niveaux.forEach(n => {
-            const sel = (selectedNiveau && selectedNiveau === n) ? 'selected' : '';
-            filterNiveau.innerHTML += `<option value="${n}" ${sel}>${n}</option>`;
-        });
     }
 
     async function loadSeriesOrNumeros(cycleId, niveau, selectedSerie = '', selectedNumero = '') {
@@ -258,26 +272,52 @@ document.addEventListener('DOMContentLoaded', function() {
         resetSelect(filterMatiere, '-- Déterminer classe --');
         filterClasseId.value = '';
 
-        if (!niveau || !cycleId) return;
+        if (!niveau && isAdmin) return;
 
-        const resSeries = await fetch(`/affectations-pedagogiques/get-series?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}`);
-        const series = await resSeries.json();
+        if (isAdmin) {
+            const resSeries = await fetch(`/affectations-pedagogiques/get-series?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}`);
+            const series = await resSeries.json();
 
-        if (series && series.length > 0) {
-            groupFilterSerie.style.display = 'block';
-            filterSerie.disabled = false;
-            filterSerie.innerHTML = '<option value="">-- Toutes les séries --</option>';
-            series.forEach(s => {
-                const sel = (selectedSerie && selectedSerie === s) ? 'selected' : '';
-                filterSerie.innerHTML += `<option value="${s}" ${sel}>${s}</option>`;
-            });
+            if (series && series.length > 0) {
+                groupFilterSerie.style.display = 'block';
+                filterSerie.disabled = false;
+                filterSerie.innerHTML = '<option value="">-- Toutes les séries --</option>';
+                series.forEach(s => {
+                    const sel = (selectedSerie && selectedSerie === s) ? 'selected' : '';
+                    filterSerie.innerHTML += `<option value="${s}" ${sel}>${s}</option>`;
+                });
 
-            if (selectedSerie) {
-                await loadNumeros(cycleId, niveau, selectedSerie, selectedNumero);
+                if (selectedSerie) {
+                    await loadNumeros(cycleId, niveau, selectedSerie, selectedNumero);
+                }
+            } else {
+                groupFilterSerie.style.display = 'none';
+                await loadNumeros(cycleId, niveau, '', selectedNumero);
             }
         } else {
-            groupFilterSerie.style.display = 'none';
-            await loadNumeros(cycleId, niveau, '', selectedNumero);
+            // Teacher scoping
+            const matching = teacherAssignments.filter(ta =>
+                (!cycleId || String(ta.cycle_id) === String(cycleId)) &&
+                (!niveau || String(ta.niveau) === String(niveau))
+            );
+            const series = [...new Set(matching.map(ta => ta.serie).filter(s => s !== null && s !== ''))];
+
+            if (series && series.length > 0) {
+                groupFilterSerie.style.display = 'block';
+                filterSerie.disabled = false;
+                filterSerie.innerHTML = '<option value="">-- Toutes mes séries --</option>';
+                series.forEach(s => {
+                    const sel = (selectedSerie && selectedSerie === s) ? 'selected' : '';
+                    filterSerie.innerHTML += `<option value="${s}" ${sel}>${s}</option>`;
+                });
+
+                if (selectedSerie) {
+                    await loadNumeros(cycleId, niveau, selectedSerie, selectedNumero);
+                }
+            } else {
+                groupFilterSerie.style.display = 'none';
+                await loadNumeros(cycleId, niveau, '', selectedNumero);
+            }
         }
     }
 
@@ -286,41 +326,85 @@ document.addEventListener('DOMContentLoaded', function() {
         resetSelect(filterMatiere, '-- Déterminer classe --');
         filterClasseId.value = '';
 
-        if (!niveau || !cycleId) return;
+        if (!niveau && isAdmin) return;
 
-        const res = await fetch(`/affectations-pedagogiques/get-numeros?niveau=${encodeURIComponent(niveau)}&serie=${encodeURIComponent(serie)}&cycle_id=${cycleId}`);
-        const numeros = await res.json();
+        if (isAdmin) {
+            const res = await fetch(`/affectations-pedagogiques/get-numeros?niveau=${encodeURIComponent(niveau)}&serie=${encodeURIComponent(serie)}&cycle_id=${cycleId}`);
+            const numeros = await res.json();
 
-        filterNumero.disabled = false;
-        filterNumero.innerHTML = '<option value="">-- Tous les numéros --</option>';
-        numeros.forEach(num => {
-            const sel = (selectedNumero && String(selectedNumero) === String(num)) ? 'selected' : '';
-            filterNumero.innerHTML += `<option value="${num}" ${sel}>${num}</option>`;
-        });
+            filterNumero.disabled = false;
+            filterNumero.innerHTML = '<option value="">-- Tous les numéros --</option>';
+            numeros.forEach(num => {
+                const sel = (selectedNumero && String(selectedNumero) === String(num)) ? 'selected' : '';
+                filterNumero.innerHTML += `<option value="${num}" ${sel}>${num}</option>`;
+            });
+        } else {
+            // Teacher scoping
+            const matching = teacherAssignments.filter(ta =>
+                (!cycleId || String(ta.cycle_id) === String(cycleId)) &&
+                (!niveau || String(ta.niveau) === String(niveau)) &&
+                (!serie || String(ta.serie) === String(serie))
+            );
+            const numeros = [...new Set(matching.map(ta => ta.numero).filter(n => n !== null && n !== ''))];
+
+            filterNumero.disabled = false;
+            filterNumero.innerHTML = '<option value="">-- Tous mes numéros --</option>';
+            numeros.forEach(num => {
+                const sel = (selectedNumero && String(selectedNumero) === String(num)) ? 'selected' : '';
+                filterNumero.innerHTML += `<option value="${num}" ${sel}>${num}</option>`;
+            });
+        }
     }
 
     async function resolveClasseAndLoadMatieres(cycleId, niveau, serie = '', numero = '', selectedMatiere = '') {
         resetSelect(filterMatiere, '-- Déterminer classe --');
         filterClasseId.value = '';
 
-        if (!cycleId || !niveau || !numero) return;
+        if (isAdmin) {
+            if (!cycleId || !niveau || !numero) return;
+            const resClass = await fetch(`/affectations-pedagogiques/get-classe-id?niveau=${encodeURIComponent(niveau)}&serie=${encodeURIComponent(serie)}&numero=${encodeURIComponent(numero)}&cycle_id=${cycleId}`);
+            const dataClass = await resClass.json();
 
-        const resClass = await fetch(`/affectations-pedagogiques/get-classe-id?niveau=${encodeURIComponent(niveau)}&serie=${encodeURIComponent(serie)}&numero=${encodeURIComponent(numero)}&cycle_id=${cycleId}`);
-        const dataClass = await resClass.json();
+            if (dataClass.id_classe) {
+                filterClasseId.value = dataClass.id_classe;
 
-        if (dataClass.id_classe) {
-            filterClasseId.value = dataClass.id_classe;
+                const resMatieres = await fetch(`/affectations-pedagogiques/get-matieres?classe_id=${dataClass.id_classe}&include_all=1`);
+                const matieres = await resMatieres.json();
 
-            // Load all subjects of this class (include_all=1 for inclusive subject listing)
-            const resMatieres = await fetch(`/affectations-pedagogiques/get-matieres?classe_id=${dataClass.id_classe}&include_all=1`);
-            const matieres = await resMatieres.json();
+                filterMatiere.disabled = false;
+                filterMatiere.innerHTML = '<option value="">-- Toutes les matières --</option>';
+                matieres.forEach(m => {
+                    const sel = (selectedMatiere && String(selectedMatiere) === String(m.id_matiere)) ? 'selected' : '';
+                    filterMatiere.innerHTML += `<option value="${m.id_matiere}" ${sel}>${m.nom_matiere}</option>`;
+                });
+            }
+        } else {
+            // Teacher scoping
+            const matching = teacherAssignments.filter(ta =>
+                (!cycleId || String(ta.cycle_id) === String(cycleId)) &&
+                (!niveau || String(ta.niveau) === String(niveau)) &&
+                (!serie || String(ta.serie) === String(serie)) &&
+                (!numero || String(ta.numero) === String(numero))
+            );
 
-            filterMatiere.disabled = false;
-            filterMatiere.innerHTML = '<option value="">-- Toutes les matières --</option>';
-            matieres.forEach(m => {
-                const sel = (selectedMatiere && String(selectedMatiere) === String(m.id_matiere)) ? 'selected' : '';
-                filterMatiere.innerHTML += `<option value="${m.id_matiere}" ${sel}>${m.nom_matiere}</option>`;
-            });
+            if (matching.length > 0) {
+                filterClasseId.value = matching[0].id_classe;
+
+                // Extract unique subjects taught by teacher in this class context
+                const subjectMap = {};
+                matching.forEach(m => {
+                    if (m.id_matiere) {
+                        subjectMap[m.id_matiere] = m.nom_matiere;
+                    }
+                });
+
+                filterMatiere.disabled = false;
+                filterMatiere.innerHTML = '<option value="">-- Toutes mes matières --</option>';
+                Object.keys(subjectMap).forEach(id => {
+                    const sel = (selectedMatiere && String(selectedMatiere) === String(id)) ? 'selected' : '';
+                    filterMatiere.innerHTML += `<option value="${id}" ${sel}>${subjectMap[id]}</option>`;
+                });
+            }
         }
     }
 

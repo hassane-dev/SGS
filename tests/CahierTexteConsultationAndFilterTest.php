@@ -24,6 +24,7 @@ $db = Database::getInstance();
 
 // Cleanup prior test data
 $db->exec("DELETE FROM cahier_texte WHERE classe_id >= 9950 OR lycee_id = 99");
+$db->exec("DELETE FROM affectations_pedagogiques WHERE classe_id >= 9950 OR enseignant_id >= 9950");
 $db->exec("DELETE FROM classe_matieres WHERE classe_id >= 9950");
 $db->exec("DELETE FROM classes WHERE id_classe >= 9950 OR lycee_id = 99");
 $db->exec("DELETE FROM matieres WHERE id_matiere >= 9950");
@@ -58,14 +59,16 @@ $db->exec("INSERT INTO matieres (id_matiere, lycee_id, nom_matiere) VALUES (9961
 $db->exec("INSERT INTO classe_matieres (classe_id, matiere_id, coefficient) VALUES (9951, 9951, 2.0)");
 $db->exec("INSERT INTO classe_matieres (classe_id, matiere_id, coefficient) VALUES (9961, 9961, 5.0)");
 
-// 4. Setup Teachers
+// 4. Setup Teachers & Active Pedagogical Assignments
 // Teacher CEG (9951)
 $db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, email, role_id, fonction, actif, identifiant_public) VALUES (9951, 1, 'Tchou', 'Jean', 'jean.ceg@test.com', 6, 'Enseignant', 1, 'ENS-9951')");
 $db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, actif) VALUES (9951, 995, '2024-09-01', 1)");
+$db->exec("INSERT INTO affectations_pedagogiques (enseignant_id, classe_id, matiere_id, annee_academique_id, volume_horaire_hebdo, date_debut, statut) VALUES (9951, 9951, 9951, {$active_annee_id}, 4, '2024-09-01', 'actif')");
 
 // Teacher Lycée (9961)
 $db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, email, role_id, fonction, actif, identifiant_public) VALUES (9961, 1, 'Kouassi', 'Marie', 'marie.lycee@test.com', 6, 'Enseignant', 1, 'ENS-9961')");
 $db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, actif) VALUES (9961, 996, '2024-09-01', 1)");
+$db->exec("INSERT INTO affectations_pedagogiques (enseignant_id, classe_id, matiere_id, annee_academique_id, volume_horaire_hebdo, date_debut, statut) VALUES (9961, 9961, 9961, {$active_annee_id}, 5, '2024-09-01', 'actif')");
 
 // 5. Setup Foreign Lycée (ID 99)
 $db->exec("INSERT INTO param_lycee (id, nom_lycee) VALUES (99, 'Lycée Distant Test') ON CONFLICT DO NOTHING");
@@ -403,8 +406,40 @@ if (strpos($renderedHtml, "<script>alert") === false && strpos($renderedHtml, "&
 // Clean up scenario 9 entry
 $db->exec("DELETE FROM cahier_texte WHERE cahier_id = {$specId}");
 
+// -------------------------------------------------------------
+// SCÉNARIO 10 : Protection Sécurité contre la falsification POST (Perimeter Enforcement)
+// -------------------------------------------------------------
+echo "\nSCÉNARIO 10 : Blocage serveur des tentatives de création sur une classe/matière non affectée\n";
+// Teacher Jean (9951) attempts to submit a Cahier de texte entry for Class 9961 & Subject 9961 (Marie's class!)
+mockSession(9951, 1, 'enseignant', ['cahier_texte' => ['create_own', 'edit_own']]);
+
+$_SERVER['REQUEST_METHOD'] = 'POST';
+$_POST = [
+    'class_subject' => '9961-9961', // Unauthorized class and subject for Jean!
+    'date_cours' => '2024-10-20',
+    'heure_debut' => '08:00',
+    'heure_fin' => '10:00',
+    'contenu_cours' => 'Tentative d\'injection dans la classe d\'un collègue',
+    'travail_donne' => 'Fraude',
+    'observation' => 'Sec test'
+];
+
+ob_start();
+$controller->store();
+$unauthOutput = ob_get_clean();
+
+$unauthEntry = $db->query("SELECT * FROM cahier_texte WHERE personnel_id = 9951 AND classe_id = 9961 AND date_cours = '2024-10-20'")->fetch(PDO::FETCH_ASSOC);
+
+if (!$unauthEntry && strpos($unauthOutput, "Accès Interdit") !== false) {
+    echo "  -> 10.1 POST Store Falsifié : Rejeté par le serveur avec 'Accès Interdit' | PASS\n";
+} else {
+    echo "  -> ECHEC de la sécurité : Le serveur a accepté une entrée sur une classe/matière non affectée !\n";
+    exit(1);
+}
+
 // Final Cleanup
 $db->exec("DELETE FROM cahier_texte WHERE classe_id >= 9950 OR lycee_id = 99");
+$db->exec("DELETE FROM affectations_pedagogiques WHERE classe_id >= 9950 OR enseignant_id >= 9950");
 $db->exec("DELETE FROM classe_matieres WHERE classe_id >= 9950");
 $db->exec("DELETE FROM classes WHERE id_classe >= 9950 OR lycee_id = 99");
 $db->exec("DELETE FROM matieres WHERE id_matiere >= 9950");
