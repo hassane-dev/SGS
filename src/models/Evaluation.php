@@ -124,10 +124,21 @@ class Evaluation {
 
     /**
      * Before saving grades, we must verify the grading window is open.
+     * Enforces strict 4-level hierarchy:
+     * 1. Sequence status check: If sequence is closed ('fermee'), normal grading is blocked (unless unlocked by exception).
+     * 2. Exceptional unlock (deblocage_notes): Overrides closed sequences or expired settings.
+     * 3. Explicit evaluation settings (parametres_evaluations): If explicit rules exist for the target, their active dates determine authorization.
+     * 4. Default fallback: If sequence is open ('ouverte') and no explicit rules exist for the target, grading is allowed by default.
      */
     public static function isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, $type = 'devoir') {
         $active_year = AnneeAcademique::findActive();
         if (!$active_year) return false;
+
+        require_once __DIR__ . '/../models/Sequence.php';
+        $sequence = Sequence::findById($sequence_id);
+        if (!$sequence) return false;
+
+        $is_sequence_open = (isset($sequence['statut']) && $sequence['statut'] === 'ouverte');
 
         $lycee_id = Auth::getLyceeId();
         $db = Database::getInstance();
@@ -137,12 +148,29 @@ class Evaluation {
         $assignments = AffectationPedagogique::findAssignmentsForClass($classe_id);
         $enseignant_id = $assignments[$matiere_id]['enseignant_id'] ?? null;
 
-        // 1. Check standard evaluation settings (harmonized logic)
-        $sql = "SELECT id FROM parametres_evaluations
+        // Level 2: Check exceptional unlocks (Deblocage) - overrides closed sequence or expired parameters
+        if (Deblocage::isUnlocked($classe_id, $matiere_id, $sequence_id, $enseignant_id, $type)) {
+            return true;
+        }
+
+        // Level 1 Enforcement: If sequence is closed and no exceptional unlock exists -> BLOCKED
+        if (!$is_sequence_open) {
+            return false;
+        }
+
+        // Level 3: Check explicit evaluation settings (parametres_evaluations)
+        $sql = "SELECT id, date_ouverture_saisie, date_fermeture_saisie,
+                       (CASE
+                           WHEN type = 'enseignant' THEN 5
+                           WHEN type = 'classe_matiere' THEN 4
+                           WHEN type = 'classe' THEN 3
+                           WHEN type = 'matiere' THEN 2
+                           ELSE 1
+                       END) as specificity
+                FROM parametres_evaluations
                 WHERE lycee_id = :lycee_id
                 AND annee_academique_id = :annee_id
                 AND (type_evaluation = :type_eval OR type_evaluation = 'tous')
-                AND NOW() BETWEEN date_ouverture_saisie AND date_fermeture_saisie
                 AND (sequence_id IS NULL OR sequence_id = :sequence_id)
                 AND (
                     type = 'global'
@@ -150,7 +178,8 @@ class Evaluation {
                     OR (type = 'matiere' AND matiere_id = :matiere_id)
                     OR (type = 'classe_matiere' AND classe_id = :classe_id AND matiere_id = :matiere_id)
                     OR (type = 'enseignant' AND classe_id = :classe_id AND matiere_id = :matiere_id AND enseignant_id = :enseignant_id)
-                )";
+                )
+                ORDER BY specificity DESC";
 
         try {
             $stmt = $db->prepare($sql);
@@ -163,15 +192,30 @@ class Evaluation {
                 'enseignant_id' => $enseignant_id,
                 'sequence_id' => $sequence_id
             ]);
-            if ($stmt->fetchColumn() !== false) {
-                return true;
+            $matching_rules = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (!empty($matching_rules)) {
+                // Explicit rules exist for this target. Filter by highest specificity level present.
+                $max_specificity = $matching_rules[0]['specificity'];
+                $target_rules = array_filter($matching_rules, function($r) use ($max_specificity) {
+                    return (int)$r['specificity'] === (int)$max_specificity;
+                });
+
+                $now = date('Y-m-d H:i:s');
+                foreach ($target_rules as $rule) {
+                    if ($now >= $rule['date_ouverture_saisie'] && $now <= $rule['date_fermeture_saisie']) {
+                        return true;
+                    }
+                }
+                // Explicit rules exist for this target, but none are active at NOW -> EXPLICITLY BLOCKED
+                return false;
             }
         } catch (PDOException $e) {
             error_log("Error in Evaluation::isGradingWindowOpen: " . $e->getMessage());
         }
 
-        // 2. Check exceptional unlocks (Deblocage)
-        return Deblocage::isUnlocked($classe_id, $matiere_id, $sequence_id, $enseignant_id, $type);
+        // Level 4: Fallback by default - If sequence is open and NO explicit rules exist for this target -> ALLOWED BY DEFAULT
+        return true;
     }
 }
 ?>

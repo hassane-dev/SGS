@@ -121,20 +121,15 @@ class Deblocage {
                 WHERE lycee_id = :lycee_id
                 AND annee_academique_id = :annee_id
                 AND (type_evaluation = :type_eval OR type_evaluation = 'tous')
-                AND NOW() BETWEEN date_debut AND date_fin
+                AND :now_time BETWEEN date_debut AND date_fin
                 AND (
                     type = 'global'
                     OR (type = 'classe' AND classe_id = :classe_id)
                     OR (type = 'matiere' AND matiere_id = :matiere_id)
                     OR (type = 'classe_matiere' AND classe_id = :classe_id AND matiere_id = :matiere_id)
                     OR (type = 'enseignant' AND classe_id = :classe_id AND matiere_id = :matiere_id AND enseignant_id = :enseignant_id)
-                )";
-
-        // We also want to check sequence_id if it was specified in the unlock,
-        // but the requirements say "all subjects of this class", "all classes of this subject", etc.
-        // If sequence_id is NULL in deblocages_notes, it means all sequences are unlocked.
-
-        $sql .= " AND (sequence_id IS NULL OR sequence_id = :sequence_id)";
+                )
+                AND (sequence_id IS NULL OR sequence_id = :sequence_id)";
 
         try {
             $stmt = $db->prepare($sql);
@@ -142,6 +137,7 @@ class Deblocage {
                 'lycee_id' => $lycee_id,
                 'annee_id' => $active_year['id'],
                 'type_eval' => $type_evaluation,
+                'now_time' => date('Y-m-d H:i:s'),
                 'classe_id' => $classe_id,
                 'matiere_id' => $matiere_id,
                 'enseignant_id' => $enseignant_id,
