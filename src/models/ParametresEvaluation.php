@@ -119,6 +119,77 @@ class ParametresEvaluation {
         }
     }
 
+    public static function update($id, $data) {
+        $db = Database::getInstance();
+        self::ensureTypeColumn($db);
+        $lycee_id = Auth::getLyceeId();
+        if (!$lycee_id) {
+            return false;
+        }
+
+        // Verify the record exists and belongs to the current lycee
+        $existing = self::findById($id);
+        if (!$existing) {
+            return false;
+        }
+
+        $type = $data['type'] ?? 'global';
+        $type_evaluation = $data['type_evaluation'] ?? 'tous';
+        $sequence_id = !empty($data['sequence_id']) ? (int)$data['sequence_id'] : null;
+
+        // Clean obsolete target fields based on scope type
+        $classe_id = null;
+        $matiere_id = null;
+        $enseignant_id = null;
+
+        if ($type === 'classe') {
+            $classe_id = !empty($data['classe_id']) ? (int)$data['classe_id'] : null;
+        } elseif ($type === 'matiere') {
+            $matiere_id = !empty($data['matiere_id']) ? (int)$data['matiere_id'] : null;
+        } elseif ($type === 'classe_matiere') {
+            $classe_id = !empty($data['classe_id']) ? (int)$data['classe_id'] : null;
+            $matiere_id = !empty($data['matiere_id']) ? (int)$data['matiere_id'] : null;
+        } elseif ($type === 'enseignant') {
+            $classe_id = !empty($data['classe_id']) ? (int)$data['classe_id'] : null;
+            $matiere_id = !empty($data['matiere_id']) ? (int)$data['matiere_id'] : null;
+            $enseignant_id = !empty($data['enseignant_id']) ? (int)$data['enseignant_id'] : null;
+        }
+
+        $sql = "UPDATE parametres_evaluations SET
+                    type = :type,
+                    classe_id = :classe_id,
+                    matiere_id = :matiere_id,
+                    enseignant_id = :enseignant_id,
+                    sequence_id = :sequence_id,
+                    type_evaluation = :type_eval,
+                    date_ouverture_saisie = :date_ouverture,
+                    date_fermeture_saisie = :date_fermeture,
+                    commentaire = :commentaire
+                WHERE id = :id AND lycee_id = :lycee_id";
+
+        $params = [
+            'type' => $type,
+            'classe_id' => $classe_id,
+            'matiere_id' => $matiere_id,
+            'enseignant_id' => $enseignant_id,
+            'sequence_id' => $sequence_id,
+            'type_eval' => $type_evaluation,
+            'date_ouverture' => $data['date_ouverture_saisie'] ?? $data['date_ouverture'] ?? null,
+            'date_fermeture' => $data['date_fermeture_saisie'] ?? $data['date_fermeture'] ?? null,
+            'commentaire' => $data['commentaire'] ?? null,
+            'id' => (int)$id,
+            'lycee_id' => $lycee_id
+        ];
+
+        try {
+            $stmt = $db->prepare($sql);
+            return $stmt->execute($params);
+        } catch (PDOException $e) {
+            error_log("Error in ParametresEvaluation::update: " . $e->getMessage());
+            return false;
+        }
+    }
+
     public static function findAll($lycee_id = null) {
         $db = Database::getInstance();
         $lycee_id = $lycee_id ?? Auth::getLyceeId();

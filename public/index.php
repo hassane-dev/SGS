@@ -142,6 +142,8 @@ $router->register('/sequences/destroy', 'SequenceController', 'destroy');
 $router->register('/evaluations/settings', 'ParametresEvaluationController', 'index');
 $router->register('/evaluations/settings/create', 'ParametresEvaluationController', 'create');
 $router->register('/evaluations/settings/store', 'ParametresEvaluationController', 'store');
+$router->register('/evaluations/settings/edit', 'ParametresEvaluationController', 'edit');
+$router->register('/evaluations/settings/update', 'ParametresEvaluationController', 'update');
 $router->register('/evaluations/settings/delete', 'ParametresEvaluationController', 'delete');
 $router->register('/evaluations/settings/legacy', 'ParametresEvaluationController', 'legacySettings');
 $router->register('/evaluations/settings/save-legacy', 'ParametresEvaluationController', 'saveLegacy');
