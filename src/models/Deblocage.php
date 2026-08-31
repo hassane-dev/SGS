@@ -11,26 +11,35 @@ class Deblocage {
         $lycee_id = Auth::getLyceeId();
         $active_year = AnneeAcademique::findActive();
 
-        // Check for existing record to avoid duplicates manually since NULLs in unique keys are tricky
+        // Check for existing record to avoid duplicates manually since NULLs in unique keys are tricky (with strictly unique named parameters)
         $sql_check = "SELECT id FROM deblocages_notes
                       WHERE lycee_id = :lycee_id
                       AND annee_academique_id = :annee_id
                       AND type = :type
-                      AND (classe_id = :classe_id OR (classe_id IS NULL AND :classe_id IS NULL))
-                      AND (matiere_id = :matiere_id OR (matiere_id IS NULL AND :matiere_id IS NULL))
-                      AND (enseignant_id = :enseignant_id OR (enseignant_id IS NULL AND :enseignant_id IS NULL))
-                      AND (sequence_id = :sequence_id OR (sequence_id IS NULL AND :sequence_id IS NULL))
+                      AND (classe_id = :classe_id1 OR (classe_id IS NULL AND :classe_id2 IS NULL))
+                      AND (matiere_id = :matiere_id1 OR (matiere_id IS NULL AND :matiere_id2 IS NULL))
+                      AND (enseignant_id = :enseignant_id1 OR (enseignant_id IS NULL AND :enseignant_id2 IS NULL))
+                      AND (sequence_id = :sequence_id1 OR (sequence_id IS NULL AND :sequence_id2 IS NULL))
                       AND type_evaluation = :type_eval";
+
+        $classe_id_val = $data['classe_id'] ?? null;
+        $matiere_id_val = $data['matiere_id'] ?? null;
+        $enseignant_id_val = $data['enseignant_id'] ?? null;
+        $sequence_id_val = $data['sequence_id'] ?? null;
 
         $stmt_check = $db->prepare($sql_check);
         $stmt_check->execute([
             'lycee_id' => $lycee_id,
             'annee_id' => $active_year['id'],
             'type' => $data['type'],
-            'classe_id' => $data['classe_id'] ?? null,
-            'matiere_id' => $data['matiere_id'] ?? null,
-            'enseignant_id' => $data['enseignant_id'] ?? null,
-            'sequence_id' => $data['sequence_id'] ?? null,
+            'classe_id1' => $classe_id_val,
+            'classe_id2' => $classe_id_val,
+            'matiere_id1' => $matiere_id_val,
+            'matiere_id2' => $matiere_id_val,
+            'enseignant_id1' => $enseignant_id_val,
+            'enseignant_id2' => $enseignant_id_val,
+            'sequence_id1' => $sequence_id_val,
+            'sequence_id2' => $sequence_id_val,
             'type_eval' => $data['type_evaluation'] ?? 'tous'
         ]);
         $existing_id = $stmt_check->fetchColumn();

@@ -15,6 +15,7 @@ function run_test() {
     echo "Running test: Evaluation Grading Window 4-Level Hierarchy Test Suite...\n";
 
     $db = Database::getInstance();
+    $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
     $db->beginTransaction();
 
     try {
@@ -201,22 +202,55 @@ function run_test() {
         }
         echo "    [PASS] Targeted expired rule took precedence over active global rule.\n";
 
-        // --- Scenario 9: RBAC & Sidebar Menu rendering test for /evaluations/settings ---
-        echo "  Scenario 9: Sidebar menu contains /evaluations/settings for authorized users\n";
+        // --- Scenario 9: Native PDO prepare statement check for ParametresEvaluation::save and Deblocage::save ---
+        echo "  Scenario 9: Save operation with NULL parameters under native PDO prepares (PDO::ATTR_EMULATE_PREPARES=false)\n";
+        $save_param_res = ParametresEvaluation::save([
+            'type' => 'global',
+            'classe_id' => null,
+            'matiere_id' => null,
+            'enseignant_id' => null,
+            'sequence_id' => null,
+            'type_evaluation' => 'tous',
+            'date_ouverture_saisie' => $start,
+            'date_fermeture_saisie' => $end,
+            'commentaire' => 'Native prepare test'
+        ]);
+        if (!$save_param_res) {
+            throw new Exception("Scenario 9 failed: ParametresEvaluation::save() failed under native PDO prepares.");
+        }
+
+        $save_deblocage_res = Deblocage::save([
+            'type' => 'global',
+            'classe_id' => null,
+            'matiere_id' => null,
+            'enseignant_id' => null,
+            'sequence_id' => null,
+            'type_evaluation' => 'tous',
+            'date_debut' => $start,
+            'date_fin' => $end,
+            'motif' => 'Native prepare test unlock'
+        ]);
+        if (!$save_deblocage_res) {
+            throw new Exception("Scenario 9 failed: Deblocage::save() failed under native PDO prepares.");
+        }
+        echo "    [PASS] ParametresEvaluation::save() and Deblocage::save() executed cleanly without SQLSTATE[HY093].\n";
+
+        // --- Scenario 10: RBAC & Sidebar Menu rendering test for /evaluations/settings ---
+        echo "  Scenario 10: Sidebar menu contains /evaluations/settings for authorized users\n";
         $_SERVER['REQUEST_URI'] = '/evaluations/settings';
         ob_start();
         include __DIR__ . '/../src/views/layouts/sidebar_able.php';
         $sidebar_output = ob_get_clean();
 
         if (strpos($sidebar_output, '/evaluations/settings') === false) {
-            throw new Exception("Scenario 9 failed: /evaluations/settings link not found in rendered sidebar.");
+            throw new Exception("Scenario 10 failed: /evaluations/settings link not found in rendered sidebar.");
         }
         if (strpos($sidebar_output, 'Périodes de Saisie') === false) {
-            throw new Exception("Scenario 9 failed: 'Périodes de Saisie' menu text not found in rendered sidebar.");
+            throw new Exception("Scenario 10 failed: 'Périodes de Saisie' menu text not found in rendered sidebar.");
         }
         echo "    [PASS] Sidebar contains 'Périodes de Saisie' menu item.\n";
 
-        echo "\nAll 9 scenarios passed successfully!\n";
+        echo "\nAll 10 scenarios passed successfully!\n";
 
     } catch (Exception $e) {
         echo "    [FAIL] Test failed: " . $e->getMessage() . "\n";
