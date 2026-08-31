@@ -160,10 +160,10 @@ class Evaluation {
 
         // Level 3: Check explicit evaluation settings (parametres_evaluations)
         $teacherCondition = ($enseignant_id !== null)
-            ? "(type = 'enseignant' AND classe_id = :classe_id AND matiere_id = :matiere_id AND enseignant_id = :enseignant_id)"
+            ? "(type = 'enseignant' AND classe_id = :classe_id5 AND matiere_id = :matiere_id5 AND enseignant_id = :enseignant_id)"
             : "(1 = 0)";
 
-        $sql = "SELECT id, date_ouverture_saisie, date_fermeture_saisie,
+        $sql = "SELECT id, type_evaluation, date_ouverture_saisie, date_fermeture_saisie,
                        (CASE
                            WHEN type = 'enseignant' THEN 5
                            WHEN type = 'classe_matiere' THEN 4
@@ -174,13 +174,12 @@ class Evaluation {
                 FROM parametres_evaluations
                 WHERE lycee_id = :lycee_id
                 AND annee_academique_id = :annee_id
-                AND (type_evaluation = :type_eval OR type_evaluation = 'tous')
                 AND (sequence_id IS NULL OR sequence_id = :sequence_id)
                 AND (
                     type = 'global'
-                    OR (type = 'classe' AND classe_id = :classe_id)
-                    OR (type = 'matiere' AND matiere_id = :matiere_id)
-                    OR (type = 'classe_matiere' AND classe_id = :classe_id AND matiere_id = :matiere_id)
+                    OR (type = 'classe' AND classe_id = :classe_id3)
+                    OR (type = 'matiere' AND matiere_id = :matiere_id2)
+                    OR (type = 'classe_matiere' AND classe_id = :classe_id4 AND matiere_id = :matiere_id4)
                     OR {$teacherCondition}
                 )
                 ORDER BY specificity DESC";
@@ -190,12 +189,15 @@ class Evaluation {
             $params = [
                 'lycee_id' => $lycee_id,
                 'annee_id' => $active_year['id'],
-                'type_eval' => $type,
-                'classe_id' => $classe_id,
-                'matiere_id' => $matiere_id,
-                'sequence_id' => $sequence_id
+                'sequence_id' => $sequence_id,
+                'classe_id3' => $classe_id,
+                'matiere_id2' => $matiere_id,
+                'classe_id4' => $classe_id,
+                'matiere_id4' => $matiere_id
             ];
             if ($enseignant_id !== null) {
+                $params['classe_id5'] = $classe_id;
+                $params['matiere_id5'] = $matiere_id;
                 $params['enseignant_id'] = $enseignant_id;
             }
             $stmt->execute($params);
@@ -203,18 +205,22 @@ class Evaluation {
 
             if (!empty($matching_rules)) {
                 // Explicit rules exist for this target. Filter by highest specificity level present.
-                $max_specificity = $matching_rules[0]['specificity'];
+                $max_specificity = (int)$matching_rules[0]['specificity'];
                 $target_rules = array_filter($matching_rules, function($r) use ($max_specificity) {
-                    return (int)$r['specificity'] === (int)$max_specificity;
+                    return (int)$r['specificity'] === $max_specificity;
                 });
 
                 $now = date('Y-m-d H:i:s');
                 foreach ($target_rules as $rule) {
-                    if ($now >= $rule['date_ouverture_saisie'] && $now <= $rule['date_fermeture_saisie']) {
-                        return true;
+                    $rule_type = $rule['type_evaluation'] ?? 'tous';
+                    if ($rule_type === 'tous' || $rule_type === $type) {
+                        if ($now >= $rule['date_ouverture_saisie'] && $now <= $rule['date_fermeture_saisie']) {
+                            return true;
+                        }
                     }
                 }
-                // Explicit rules exist for this target, but none are active at NOW -> EXPLICITLY BLOCKED
+                // Explicit rules exist for this target at the highest specificity level,
+                // but none cover the requested type OR those that do are not active at NOW -> EXPLICITLY BLOCKED
                 return false;
             }
         } catch (PDOException $e) {

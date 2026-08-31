@@ -36,10 +36,43 @@
                         </a>
                     </div>
                     <div class="card-body">
+                        <?php if (isset($is_devoir_open) && isset($is_composition_open)): ?>
+                            <div class="d-flex flex-wrap gap-2 mb-4">
+                                <?php $selUrl = "/evaluations/select_evaluation?classe_id=" . $classe['id_classe'] . "&matiere_id=" . $matiere['id_matiere']; ?>
+                                <?php if ($is_devoir_open): ?>
+                                    <a href="<?= $selUrl ?>&type=devoir" class="btn <?= $type === 'devoir' ? 'btn-primary' : 'btn-outline-primary' ?> d-inline-flex align-items-center">
+                                        <i class="ph-duotone ph-notebook me-2"></i>
+                                        <span><?= _('Devoirs') ?></span>
+                                        <span class="badge bg-success ms-2"><?= _('Ouvert') ?></span>
+                                    </a>
+                                <?php else: ?>
+                                    <button type="button" class="btn btn-outline-secondary opacity-75 d-inline-flex align-items-center" disabled>
+                                        <i class="ph-duotone ph-notebook me-2"></i>
+                                        <span><?= _('Devoirs') ?></span>
+                                        <span class="badge bg-light-danger text-danger ms-2"><i class="ph-duotone ph-lock me-1"></i><?= _('Fermé') ?></span>
+                                    </button>
+                                <?php endif; ?>
+
+                                <?php if ($is_composition_open): ?>
+                                    <a href="<?= $selUrl ?>&type=composition" class="btn <?= $type === 'composition' ? 'btn-primary' : 'btn-outline-primary' ?> d-inline-flex align-items-center">
+                                        <i class="ph-duotone ph-exam me-2"></i>
+                                        <span><?= _('Compositions') ?></span>
+                                        <span class="badge bg-success ms-2"><?= _('Ouvert') ?></span>
+                                    </a>
+                                <?php else: ?>
+                                    <button type="button" class="btn btn-outline-secondary opacity-75 d-inline-flex align-items-center" disabled>
+                                        <i class="ph-duotone ph-exam me-2"></i>
+                                        <span><?= _('Compositions') ?></span>
+                                        <span class="badge bg-light-danger text-danger ms-2"><i class="ph-duotone ph-lock me-1"></i><?= _('Fermé') ?></span>
+                                    </button>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+
                         <?php if (empty($evaluations)): ?>
                             <div class="alert alert-warning mb-3" role="alert">
                                 <i class="ph-duotone ph-warning me-2 fs-5 align-middle"></i>
-                                <?= _('Aucune période de saisie n\'est actuellement ouverte pour cette matière. Veuillez contacter l\'administration pour configurer les paramètres d\'évaluation.') ?>
+                                <?= _('Aucune période de saisie n\'est actuellement ouverte pour cette matière et cette nature d\'évaluation. Veuillez contacter l\'administration pour configurer les paramètres d\'évaluation.') ?>
                             </div>
                             <a href="/evaluations/select_class" class="btn btn-secondary"><?= _('Retour à la sélection') ?></a>
                         <?php else: ?>

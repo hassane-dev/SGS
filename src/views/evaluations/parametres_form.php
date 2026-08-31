@@ -97,15 +97,42 @@ $typeEval = $isEdit ? ($param['type_evaluation'] ?? 'tous') : 'tous';
                                 </div>
                             </div>
 
-                            <div class="row mb-3 d-none" id="field-classe">
-                                <div class="col-12">
-                                    <label class="form-label" for="classe_id"><?= _('Sélectionner la classe') ?></label>
-                                    <select class="form-select" id="classe_id" name="classe_id">
-                                        <option value=""><?= _('Choisir une classe...') ?></option>
-                                        <?php foreach ($classes as $c): ?>
-                                            <option value="<?= $c['id_classe'] ?>" <?= ($isEdit && isset($param['classe_id']) && $param['classe_id'] == $c['id_classe']) ? 'selected' : '' ?>><?= htmlspecialchars(Classe::getFormattedName($c)) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
+                            <!-- Cascade Selection Container -->
+                            <div class="card mb-3 bg-light border-0 d-none" id="field-cascade">
+                                <div class="card-body">
+                                    <h6 class="fw-bold mb-3 text-primary"><i class="ph-duotone ph-tree-structure me-1"></i><?= _("Sélection Pédagogique (Cascade SGS)") ?></h6>
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <label for="cascade_cycle_id" class="form-label fw-bold"><?= _('Cycle') ?></label>
+                                            <select id="cascade_cycle_id" class="form-select">
+                                                <option value=""><?= _('-- Choisir Cycle --') ?></option>
+                                                <?php if (!empty($cycles)): ?>
+                                                    <?php foreach ($cycles as $cyc): ?>
+                                                        <option value="<?= $cyc['id_cycle'] ?>"><?= htmlspecialchars($cyc['nom_cycle']) ?></option>
+                                                    <?php endforeach; ?>
+                                                <?php endif; ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="cascade_niveau" class="form-label fw-bold"><?= _('Niveau') ?></label>
+                                            <select id="cascade_niveau" class="form-select">
+                                                <option value=""><?= _('-- Choisir d\'abord le cycle --') ?></option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3" id="group_serie" style="display: none;">
+                                            <label for="cascade_serie" class="form-label fw-bold"><?= _('Série') ?></label>
+                                            <select id="cascade_serie" class="form-select">
+                                                <option value=""><?= _('-- Toutes les séries --') ?></option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="cascade_numero" class="form-label fw-bold"><?= _('Numéro / Classe') ?></label>
+                                            <select id="cascade_numero" class="form-select">
+                                                <option value=""><?= _('-- Choisir d\'abord le niveau --') ?></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="classe_id" name="classe_id" value="<?= ($isEdit && !empty($param['classe_id'])) ? htmlspecialchars($param['classe_id']) : '' ?>">
                                 </div>
                             </div>
 
@@ -165,30 +192,64 @@ $typeEval = $isEdit ? ($param['type_evaluation'] ?? 'tous') : 'tous';
     </div>
 </div>
 
+<script src="/assets/js/sgs-pedagogical-cascade.js"></script>
 <script>
 function toggleFields() {
     const type = document.getElementById('type').value;
 
-    document.getElementById('field-classe').classList.add('d-none');
-    document.getElementById('field-matiere').classList.add('d-none');
-    document.getElementById('field-enseignant').classList.add('d-none');
+    const cascadeEl = document.getElementById('field-cascade');
+    const matiereEl = document.getElementById('field-matiere');
+    const enseignantEl = document.getElementById('field-enseignant');
+
+    if (cascadeEl) cascadeEl.classList.add('d-none');
+    if (matiereEl) matiereEl.classList.add('d-none');
+    if (enseignantEl) enseignantEl.classList.add('d-none');
 
     if (type === 'classe') {
-        document.getElementById('field-classe').classList.remove('d-none');
+        if (cascadeEl) cascadeEl.classList.remove('d-none');
     } else if (type === 'matiere') {
-        document.getElementById('field-matiere').classList.remove('d-none');
+        if (matiereEl) matiereEl.classList.remove('d-none');
     } else if (type === 'classe_matiere') {
-        document.getElementById('field-classe').classList.remove('d-none');
-        document.getElementById('field-matiere').classList.remove('d-none');
+        if (cascadeEl) cascadeEl.classList.remove('d-none');
+        if (matiereEl) matiereEl.classList.remove('d-none');
     } else if (type === 'enseignant') {
-        document.getElementById('field-classe').classList.remove('d-none');
-        document.getElementById('field-matiere').classList.remove('d-none');
-        document.getElementById('field-enseignant').classList.remove('d-none');
+        if (cascadeEl) cascadeEl.classList.remove('d-none');
+        if (matiereEl) matiereEl.classList.remove('d-none');
+        if (enseignantEl) enseignantEl.classList.remove('d-none');
     }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     toggleFields();
+
+    <?php
+    $initCycle = $selectedClasseDetails['cycle_id'] ?? '';
+    $initNiveau = $selectedClasseDetails['niveau'] ?? '';
+    $initSerie = $selectedClasseDetails['serie'] ?? '';
+    $initNumero = $selectedClasseDetails['numero'] ?? '';
+    $initMatiere = $param['matiere_id'] ?? '';
+    $initTeacher = $param['enseignant_id'] ?? '';
+    ?>
+
+    new SGSPedagogicalCascade({
+        cycleId: 'cascade_cycle_id',
+        niveauId: 'cascade_niveau',
+        groupSerieId: 'group_serie',
+        serieId: 'cascade_serie',
+        numeroId: 'cascade_numero',
+        classeId: 'classe_id',
+        matiereId: 'matiere_id',
+        teacherId: 'enseignant_id',
+        includeAllSubjects: true,
+        initialValues: {
+            cycleId: '<?= htmlspecialchars($initCycle) ?>',
+            niveau: '<?= htmlspecialchars($initNiveau) ?>',
+            serie: '<?= htmlspecialchars($initSerie) ?>',
+            numero: '<?= htmlspecialchars($initNumero) ?>',
+            matiereId: '<?= htmlspecialchars($initMatiere) ?>',
+            teacherId: '<?= htmlspecialchars($initTeacher) ?>'
+        }
+    });
 });
 </script>
 

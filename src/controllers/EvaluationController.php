@@ -40,7 +40,7 @@ class EvaluationController {
         $this->checkAccess();
         $classe_id = $_POST['classe_id'] ?? $_GET['classe_id'] ?? null;
         $matiere_id = $_POST['matiere_id'] ?? $_GET['matiere_id'] ?? null;
-        $type = $_POST['type'] ?? $_GET['type'] ?? 'devoir';
+        $requested_type = $_POST['type'] ?? $_GET['type'] ?? null;
 
         if (!$classe_id || !$matiere_id) {
             header('Location: /evaluations/select_class');
@@ -62,12 +62,31 @@ class EvaluationController {
             exit();
         }
 
+        $active_sequence = Sequence::findActive();
+        $sequence_id = $active_sequence ? $active_sequence['id'] : null;
+
+        $is_devoir_open = $sequence_id ? Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, 'devoir') : false;
+        $is_composition_open = $sequence_id ? Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, 'composition') : false;
+
+        $type = $requested_type;
+        if (!in_array($type, ['devoir', 'composition'])) {
+            if ($is_devoir_open) {
+                $type = 'devoir';
+            } elseif ($is_composition_open) {
+                $type = 'composition';
+            } else {
+                $type = 'devoir';
+            }
+        }
+
         $available_evaluations = Evaluation::getAvailableEvaluations($classe_id, $matiere_id, $type);
 
         View::render('evaluations/select_evaluation', [
             'classe' => Classe::findById($classe_id),
             'matiere' => Matiere::findById($matiere_id),
             'type' => $type,
+            'is_devoir_open' => $is_devoir_open,
+            'is_composition_open' => $is_composition_open,
             'evaluations' => $available_evaluations,
             'title' => 'Saisie des Notes - ' . ucfirst($type)
         ]);
@@ -101,6 +120,10 @@ class EvaluationController {
             http_response_code(403);
             View::render('errors/403');
             exit();
+        }
+
+        if (!in_array($type, ['devoir', 'composition'])) {
+            $type = 'devoir';
         }
 
         // Security check: Verify the grading window status for both types
@@ -160,6 +183,14 @@ class EvaluationController {
             if (!$is_authorized && !$has_global_write) {
                 http_response_code(403);
                 View::render('errors/403');
+                exit();
+            }
+
+            if (!in_array($type, ['devoir', 'composition'])) {
+                View::render('evaluations/error', [
+                    'message' => "Nature d'évaluation invalide.",
+                    'title' => 'Accès Refusé'
+                ]);
                 exit();
             }
 
@@ -242,17 +273,26 @@ class EvaluationController {
             exit();
         }
 
-        // Determine type and redirect/show form
-        $type = 'devoir'; // Default
-        if ($is_composition_open && !$is_devoir_open) {
-            $type = 'composition';
+        $req_type = $_GET['type'] ?? $_POST['type'] ?? null;
+
+        if ($req_type === 'devoir' && $is_devoir_open) {
+            header("Location: /evaluations/form?classe_id=$classe_id&matiere_id=$matiere_id&sequence_id=$sequence_id&type=devoir");
+            exit();
         }
 
-        // If both are open, we might need a choice, but the prompt says "direct opening"
-        // Most common logic is 'devoir' first or both are available.
-        // If we want to strictly avoid select_evaluation, we can force a redirect or check if a specific one was requested.
-        // For now, let's redirect to showForm with the determined type.
+        if ($req_type === 'composition' && $is_composition_open) {
+            header("Location: /evaluations/form?classe_id=$classe_id&matiere_id=$matiere_id&sequence_id=$sequence_id&type=composition");
+            exit();
+        }
 
+        // If both are open and no valid specific type was requested, go to sequence & type selection
+        if ($is_devoir_open && $is_composition_open) {
+            header("Location: /evaluations/select_evaluation?classe_id=$classe_id&matiere_id=$matiere_id");
+            exit();
+        }
+
+        // Otherwise, exactly one type is open
+        $type = $is_composition_open ? 'composition' : 'devoir';
         header("Location: /evaluations/form?classe_id=$classe_id&matiere_id=$matiere_id&sequence_id=$sequence_id&type=$type");
         exit();
     }

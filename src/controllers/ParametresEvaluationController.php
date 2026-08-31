@@ -4,6 +4,7 @@ require_once __DIR__ . '/../models/ParametresEvaluation.php';
 require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Matiere.php';
 require_once __DIR__ . '/../models/Sequence.php';
+require_once __DIR__ . '/../models/Cycle.php';
 require_once __DIR__ . '/../models/AffectationPedagogique.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
@@ -33,16 +34,22 @@ class ParametresEvaluationController {
     public function create() {
         $this->checkAccess();
 
-        $classes = Classe::findAll(Auth::getLyceeId());
+        $lycee_id = Auth::getLyceeId();
+        $classes = Classe::findAll($lycee_id);
         $matieres = Matiere::findAll();
-        $enseignants = User::findTeachers(Auth::getLyceeId());
+        $enseignants = User::findTeachers($lycee_id);
         $sequences = Sequence::findAll();
+        $cycles = Cycle::findByLycee($lycee_id);
+        if (empty($cycles)) {
+            $cycles = Cycle::findAll();
+        }
 
         View::render('evaluations/parametres_form', [
             'classes' => $classes,
             'matieres' => $matieres,
             'enseignants' => $enseignants,
             'sequences' => $sequences,
+            'cycles' => $cycles,
             'title' => 'Nouveaux Paramètres de Saisie'
         ]);
     }
@@ -113,17 +120,30 @@ class ParametresEvaluationController {
             exit();
         }
 
-        $classes = Classe::findAll(Auth::getLyceeId());
+        $lycee_id = Auth::getLyceeId();
+        $classes = Classe::findAll($lycee_id);
         $matieres = Matiere::findAll();
-        $enseignants = User::findTeachers(Auth::getLyceeId());
+        $enseignants = User::findTeachers($lycee_id);
         $sequences = Sequence::findAll();
+        $cycles = Cycle::findByLycee($lycee_id);
+        if (empty($cycles)) {
+            $cycles = Cycle::findAll();
+        }
+
+        // If a class is associated, load its cycle, niveau, serie, numero for cascade rehydration
+        $selectedClasseDetails = null;
+        if (!empty($param['classe_id'])) {
+            $selectedClasseDetails = Classe::findById($param['classe_id']);
+        }
 
         View::render('evaluations/parametres_form', [
             'param' => $param,
+            'selectedClasseDetails' => $selectedClasseDetails,
             'classes' => $classes,
             'matieres' => $matieres,
             'enseignants' => $enseignants,
             'sequences' => $sequences,
+            'cycles' => $cycles,
             'title' => 'Modifier la Période de Saisie'
         ]);
     }
