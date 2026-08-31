@@ -51,13 +51,16 @@ class EvaluationTypeAndWindowRulesRunner {
             $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, statut) VALUES (500, 500, {$anneeId}, 'Séquence Open 500', 'ouverte')");
             $db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, role_id) VALUES (500, 500, 'Professeur', 'Test', 6)");
 
-            // Setup test class, matiere, student using unique IDs
+            // Setup test class A & B, matiere, student using unique IDs
             $db->exec("INSERT INTO classes (id_classe, lycee_id, niveau, serie, numero) VALUES (50010, 500, '6ème', 'A', '1')");
+            $db->exec("INSERT INTO classes (id_classe, lycee_id, niveau, serie, numero) VALUES (50011, 500, '6ème', 'B', '2')");
             $db->exec("INSERT INTO matieres (id_matiere, lycee_id, nom_matiere) VALUES (50020, 500, 'Mathématiques')");
             $db->exec("INSERT INTO classe_matieres (classe_id, matiere_id, coefficient) VALUES (50010, 50020, 2)");
+            $db->exec("INSERT INTO classe_matieres (classe_id, matiere_id, coefficient) VALUES (50011, 50020, 2)");
             $db->exec("INSERT INTO eleves (id_eleve, lycee_id, nom, prenom, date_naissance) VALUES (50030, 500, 'Dupont', 'Jean', '2012-01-01')");
             $db->exec("INSERT INTO etudes (eleve_id, classe_id, is_active, annee_academique_id) VALUES (50030, 50010, 1, {$anneeId})");
             $db->exec("INSERT INTO affectations_pedagogiques (enseignant_id, classe_id, matiere_id, annee_academique_id, statut, date_debut) VALUES (500, 50010, 50020, {$anneeId}, 'actif', '2024-09-01')");
+            $db->exec("INSERT INTO affectations_pedagogiques (enseignant_id, classe_id, matiere_id, annee_academique_id, statut, date_debut) VALUES (500, 50011, 50020, {$anneeId}, 'actif', '2024-09-01')");
 
             $_SESSION['user'] = [
                 'id' => 500,
@@ -128,7 +131,7 @@ class EvaluationTypeAndWindowRulesRunner {
             self::assertTrue(Evaluation::isGradingWindowOpen(50010, 50020, 500, 'composition'), "Cas 3: Composition window MUST be open under 'tous'.");
 
             // -------------------------------------------------------------
-            // CAS 4: Règle globale vs classe (Global -> devoir, Classe -> composition)
+            // CAS 4: Règle globale vs classe (Global -> devoir, Classe A -> composition, Classe B -> fallback sur Global)
             // -------------------------------------------------------------
             echo "Testing Matrix Cas 4: Règle globale (devoir) vs règle classe (composition)...\n";
             $db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = 500");
@@ -148,8 +151,43 @@ class EvaluationTypeAndWindowRulesRunner {
                 'date_fermeture_saisie' => $now_end
             ]);
 
-            self::assertFalse(Evaluation::isGradingWindowOpen(50010, 50020, 500, 'devoir'), "Cas 4: Targeted class rule (composition) MUST override global rule (devoir).");
-            self::assertTrue(Evaluation::isGradingWindowOpen(50010, 50020, 500, 'composition'), "Cas 4: Targeted class rule (composition) MUST be open.");
+            // Class A (50010): Specific class rule (composition) MUST override global rule
+            self::assertFalse(Evaluation::isGradingWindowOpen(50010, 50020, 500, 'devoir'), "Cas 4: Class A targeted rule (composition) MUST override global rule (devoir).");
+            self::assertTrue(Evaluation::isGradingWindowOpen(50010, 50020, 500, 'composition'), "Cas 4: Class A targeted rule (composition) MUST be open.");
+
+            // Class B (50011): No class rule exists, so Global rule (devoir) MUST apply
+            self::assertTrue(Evaluation::isGradingWindowOpen(50011, 50020, 500, 'devoir'), "Cas 4b: Class B (untargeted) MUST continue using Global rule (devoir).");
+            self::assertFalse(Evaluation::isGradingWindowOpen(50011, 50020, 500, 'composition'), "Cas 4b: Class B MUST block composition under Global rule (devoir).");
+
+            // -------------------------------------------------------------
+            // CAS 4c: Validation des 3 instants temporels (10/11 AVANT, 15/11 PENDANT, 12/12 APRÈS)
+            // Règle: Global + Trimestre 1 + Devoir + 11/11/2025 07:30 -> 11/12/2025 16:00
+            // -------------------------------------------------------------
+            echo "Testing Matrix Cas 4c: Validation des 3 moments simulés (AVANT, PENDANT, APRÈS)...\n";
+            $db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = 500");
+            ParametresEvaluation::save([
+                'type' => 'global',
+                'sequence_id' => 500,
+                'type_evaluation' => 'devoir',
+                'date_ouverture_saisie' => '2025-11-11 07:30:00',
+                'date_fermeture_saisie' => '2025-12-11 16:00:00'
+            ]);
+
+            $t1_before = '2025-11-10 07:00:00';
+            $t2_during = '2025-11-15 10:00:00';
+            $t3_after  = '2025-12-12 10:00:00';
+
+            // Moment 1: 10/11/2025 07:00 -> Both closed
+            self::assertFalse(Evaluation::isGradingWindowOpen(50010, 50020, 500, 'devoir', $t1_before), "Cas 4c (10/11): Devoir MUST be closed before opening date.");
+            self::assertFalse(Evaluation::isGradingWindowOpen(50010, 50020, 500, 'composition', $t1_before), "Cas 4c (10/11): Composition MUST be closed before opening date.");
+
+            // Moment 2: 15/11/2025 10:00 -> Devoir open, Composition closed
+            self::assertTrue(Evaluation::isGradingWindowOpen(50010, 50020, 500, 'devoir', $t2_during), "Cas 4c (15/11): Devoir MUST be open during window.");
+            self::assertFalse(Evaluation::isGradingWindowOpen(50010, 50020, 500, 'composition', $t2_during), "Cas 4c (15/11): Composition MUST be closed during devoir-only window.");
+
+            // Moment 3: 12/12/2025 10:00 -> Both closed (Expired rule MUST NOT fall back)
+            self::assertFalse(Evaluation::isGradingWindowOpen(50010, 50020, 500, 'devoir', $t3_after), "Cas 4c (12/12): Devoir MUST be closed after closing date.");
+            self::assertFalse(Evaluation::isGradingWindowOpen(50010, 50020, 500, 'composition', $t3_after), "Cas 4c (12/12): Composition MUST be closed after closing date (NO FALLBACK).");
 
             // -------------------------------------------------------------
             // CAS 5: Règle portée classe

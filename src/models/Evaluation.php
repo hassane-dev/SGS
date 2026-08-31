@@ -130,7 +130,7 @@ class Evaluation {
      * 3. Explicit evaluation settings (parametres_evaluations): If explicit rules exist for the target, their active dates determine authorization.
      * 4. Default fallback: If sequence is open ('ouverte') and no explicit rules exist for the target, grading is allowed by default.
      */
-    public static function isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, $type = 'devoir') {
+    public static function isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, $type = 'devoir', $simulatedNow = null) {
         $active_year = AnneeAcademique::findActive();
         if (!$active_year) return false;
 
@@ -216,7 +216,7 @@ class Evaluation {
                     return false;
                 }
 
-                $now = date('Y-m-d H:i:s');
+                $now = $simulatedNow ?? date('Y-m-d H:i:s');
                 foreach ($covering_rules as $rule) {
                     if ($now >= $rule['date_ouverture_saisie'] && $now <= $rule['date_fermeture_saisie']) {
                         return true;
