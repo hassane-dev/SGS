@@ -161,6 +161,20 @@ try {
     addColumnIfNeeded($db, 'mensualite_details', 'statut', "ENUM('en_attente', 'valide', 'annule', 'rembourse') NOT NULL DEFAULT 'valide'");
     addColumnIfNeeded($db, 'annees_academiques', 'cloturee', 'TINYINT(1) NOT NULL DEFAULT 0');
 
+    // Update parametres_evaluations schema
+    addColumnIfNeeded($db, 'parametres_evaluations', 'type', "ENUM('global', 'classe', 'matiere', 'classe_matiere', 'enseignant') NOT NULL DEFAULT 'enseignant'");
+    addColumnIfNeeded($db, 'parametres_evaluations', 'type_evaluation', "ENUM('devoir', 'composition', 'tous') NOT NULL DEFAULT 'tous'");
+
+    if (!$isSqlite) {
+        try {
+            $db->exec("ALTER TABLE parametres_evaluations MODIFY COLUMN classe_id INT DEFAULT NULL");
+            $db->exec("ALTER TABLE parametres_evaluations MODIFY COLUMN matiere_id INT DEFAULT NULL");
+            $db->exec("ALTER TABLE parametres_evaluations MODIFY COLUMN sequence_id INT DEFAULT NULL");
+        } catch (Exception $e) {
+            // Ignore if already nullable or index mismatch
+        }
+    }
+
     // Create journal_comptable table
     $createTable($db, 'journal_comptable', "
         CREATE TABLE IF NOT EXISTS journal_comptable (
