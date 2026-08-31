@@ -15,6 +15,12 @@ class AffectationPedagogique {
             return [];
         }
 
+        $db = Database::getInstance();
+        $isSqlite = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
+        $concatName = $isSqlite
+            ? "(u.prenom || ' ' || u.nom) as enseignant_nom"
+            : "CONCAT(u.prenom, ' ', u.nom) as enseignant_nom";
+
         $sql = "
             SELECT
                 ap.id,
@@ -24,7 +30,7 @@ class AffectationPedagogique {
                 ap.date_fin,
                 ap.statut,
                 u.id_user as enseignant_id,
-                CONCAT(u.prenom, ' ', u.nom) as enseignant_nom
+                {$concatName}
             FROM affectations_pedagogiques ap
             JOIN utilisateurs u ON ap.enseignant_id = u.id_user
             WHERE ap.classe_id = :classe_id

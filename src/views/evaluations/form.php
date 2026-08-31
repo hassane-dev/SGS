@@ -66,52 +66,53 @@
         </div>
 
         <!-- Type Evaluation Selector Tabs -->
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header pb-0 border-bottom-0">
-                        <h5><i class="ph-duotone ph-sliders me-2 text-primary"></i><?= _('Nature de l\'évaluation à saisir') ?></h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex flex-wrap gap-2">
-                            <?php
-                            $baseUrl = "/evaluations/form?classe_id=" . $classe['id_classe'] . "&matiere_id=" . $matiere['id_matiere'] . "&sequence_id=" . $sequence_id;
-                            ?>
-
-                            <!-- Devoir Selector -->
-                            <?php if ($is_devoir_open): ?>
+        <?php if ($is_devoir_open && $is_composition_open): ?>
+            <!-- Both Devoir and Composition are open: Allow teacher to toggle -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header pb-0 border-bottom-0">
+                            <h5><i class="ph-duotone ph-sliders me-2 text-primary"></i><?= _('Nature de l\'évaluation à saisir') ?></h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex flex-wrap gap-2">
+                                <?php
+                                $baseUrl = "/evaluations/form?classe_id=" . $classe['id_classe'] . "&matiere_id=" . $matiere['id_matiere'] . "&sequence_id=" . $sequence_id;
+                                ?>
                                 <a href="<?= $baseUrl ?>&type=devoir" class="btn <?= $type === 'devoir' ? 'btn-primary' : 'btn-outline-primary' ?> d-inline-flex align-items-center px-4 py-2">
                                     <i class="ph-duotone ph-notebook me-2 fs-5"></i>
                                     <span class="fw-bold"><?= _('Devoir') ?></span>
                                     <span class="badge bg-success ms-2"><?= _('Ouvert') ?></span>
                                 </a>
-                            <?php else: ?>
-                                <button type="button" class="btn btn-outline-secondary d-inline-flex align-items-center px-4 py-2 opacity-75" disabled title="<?= _('Période fermée pour les devoirs') ?>">
-                                    <i class="ph-duotone ph-notebook me-2 fs-5"></i>
-                                    <span><?= _('Devoir') ?></span>
-                                    <span class="badge bg-light-danger text-danger ms-2"><i class="ph-duotone ph-lock me-1"></i><?= _('Fermé') ?></span>
-                                </button>
-                            <?php endif; ?>
-
-                            <!-- Composition Selector -->
-                            <?php if ($is_composition_open): ?>
                                 <a href="<?= $baseUrl ?>&type=composition" class="btn <?= $type === 'composition' ? 'btn-primary' : 'btn-outline-primary' ?> d-inline-flex align-items-center px-4 py-2">
                                     <i class="ph-duotone ph-exam me-2 fs-5"></i>
                                     <span class="fw-bold"><?= _('Composition') ?></span>
                                     <span class="badge bg-success ms-2"><?= _('Ouvert') ?></span>
                                 </a>
-                            <?php else: ?>
-                                <button type="button" class="btn btn-outline-secondary d-inline-flex align-items-center px-4 py-2 opacity-75" disabled title="<?= _('Période fermée pour les compositions') ?>">
-                                    <i class="ph-duotone ph-exam me-2 fs-5"></i>
-                                    <span><?= _('Composition') ?></span>
-                                    <span class="badge bg-light-danger text-danger ms-2"><i class="ph-duotone ph-lock me-1"></i><?= _('Fermé') ?></span>
-                                </button>
-                            <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        <?php else: ?>
+            <!-- Single evaluation type authorized: Display only the authorized nature -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card bg-light-primary border-primary border-start border-3">
+                        <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between">
+                            <span class="text-muted small fw-bold">
+                                <i class="ph-duotone ph-info me-1 text-primary"></i>
+                                <?= _('Nature imposée par le paramètre d\'évaluation') ?> :
+                            </span>
+                            <span class="badge bg-primary fs-6 px-3 py-2">
+                                <i class="ph-duotone <?= $type === 'composition' ? 'ph-exam' : 'ph-notebook' ?> me-1"></i>
+                                <?= htmlspecialchars(ucfirst($type)) ?>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
 
         <!-- Grade Entry Table Card -->
         <div class="row">
