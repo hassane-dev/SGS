@@ -772,11 +772,12 @@ CREATE TABLE `presences` (
 CREATE TABLE `parametres_evaluations` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `lycee_id` INT NOT NULL,
-    `classe_id` INT NOT NULL,
-    `matiere_id` INT NOT NULL,
-    `sequence_id` INT NOT NULL,
-    `enseignant_id` INT,
+    `classe_id` INT DEFAULT NULL,
+    `matiere_id` INT DEFAULT NULL,
+    `sequence_id` INT DEFAULT NULL,
+    `enseignant_id` INT DEFAULT NULL,
     `annee_academique_id` INT NOT NULL,
+    `type` ENUM('global', 'classe', 'matiere', 'classe_matiere', 'enseignant') NOT NULL DEFAULT 'enseignant',
     `type_evaluation` ENUM('devoir', 'composition', 'tous') NOT NULL DEFAULT 'tous',
     `date_ouverture_saisie` DATETIME NOT NULL,
     `date_fermeture_saisie` DATETIME NOT NULL,
@@ -786,8 +787,7 @@ CREATE TABLE `parametres_evaluations` (
     FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
     FOREIGN KEY (`sequence_id`) REFERENCES `sequences`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL,
-    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
-    UNIQUE KEY `unique_param_eval` (`classe_id`, `matiere_id`, `sequence_id`, `annee_academique_id`, `type_evaluation`)
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `deblocages_notes` (

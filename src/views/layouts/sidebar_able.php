@@ -87,6 +87,12 @@ $navItems = [
                 'condition' => Auth::can('view_all', 'note'),
             ],
             [
+                'url' => '/evaluations/settings',
+                'text' => _('Périodes de Saisie'),
+                'title' => _('Configurer les périodes de saisie des notes et des compositions.'),
+                'condition' => Auth::can('manage_settings', 'evaluation'),
+            ],
+            [
                 'url' => '/evaluations/deblocage',
                 'text' => _('Déblocage Notes'),
                 'title' => _('Gérer les déblocages exceptionnels pour la saisie des notes.'),
