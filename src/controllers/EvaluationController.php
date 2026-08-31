@@ -40,7 +40,7 @@ class EvaluationController {
         $this->checkAccess();
         $classe_id = $_POST['classe_id'] ?? $_GET['classe_id'] ?? null;
         $matiere_id = $_POST['matiere_id'] ?? $_GET['matiere_id'] ?? null;
-        $type = $_POST['type'] ?? $_GET['type'] ?? 'devoir';
+        $requested_type = $_POST['type'] ?? $_GET['type'] ?? null;
 
         if (!$classe_id || !$matiere_id) {
             header('Location: /evaluations/select_class');
@@ -62,12 +62,29 @@ class EvaluationController {
             exit();
         }
 
-        $available_evaluations = Evaluation::getAvailableEvaluations($classe_id, $matiere_id, $type);
+        $evals_devoir = Evaluation::getAvailableEvaluations($classe_id, $matiere_id, 'devoir');
+        $evals_comp = Evaluation::getAvailableEvaluations($classe_id, $matiere_id, 'composition');
+
+        $is_devoir_available = !empty($evals_devoir);
+        $is_comp_available = !empty($evals_comp);
+
+        if ($is_comp_available && !$is_devoir_available) {
+            $type = 'composition';
+            $available_evaluations = $evals_comp;
+        } elseif ($is_devoir_available && !$is_comp_available) {
+            $type = 'devoir';
+            $available_evaluations = $evals_devoir;
+        } else {
+            $type = ($requested_type === 'composition') ? 'composition' : 'devoir';
+            $available_evaluations = ($type === 'composition') ? $evals_comp : $evals_devoir;
+        }
 
         View::render('evaluations/select_evaluation', [
             'classe' => Classe::findById($classe_id),
             'matiere' => Matiere::findById($matiere_id),
             'type' => $type,
+            'is_devoir_open' => $is_devoir_available,
+            'is_composition_open' => $is_comp_available,
             'evaluations' => $available_evaluations,
             'title' => 'Saisie des Notes - ' . ucfirst($type)
         ]);

@@ -36,6 +36,16 @@
                         </a>
                     </div>
                     <div class="card-body">
+                        <?php if (isset($is_devoir_open) && isset($is_composition_open) && $is_devoir_open && $is_composition_open): ?>
+                            <div class="mb-3 d-flex gap-2">
+                                <a href="/evaluations/select_evaluation?classe_id=<?= $classe['id_classe'] ?>&matiere_id=<?= $matiere['id_matiere'] ?>&type=devoir" class="btn btn-sm <?= $type === 'devoir' ? 'btn-primary' : 'btn-outline-primary' ?>">
+                                    <i class="ph-duotone ph-notebook me-1"></i><?= _('Devoir') ?>
+                                </a>
+                                <a href="/evaluations/select_evaluation?classe_id=<?= $classe['id_classe'] ?>&matiere_id=<?= $matiere['id_matiere'] ?>&type=composition" class="btn btn-sm <?= $type === 'composition' ? 'btn-primary' : 'btn-outline-primary' ?>">
+                                    <i class="ph-duotone ph-exam me-1"></i><?= _('Composition') ?>
+                                </a>
+                            </div>
+                        <?php endif; ?>
                         <?php if (empty($evaluations)): ?>
                             <div class="alert alert-warning mb-3" role="alert">
                                 <i class="ph-duotone ph-warning me-2 fs-5 align-middle"></i>
