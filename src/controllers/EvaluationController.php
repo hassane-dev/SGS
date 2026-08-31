@@ -86,10 +86,31 @@ class EvaluationController {
             exit();
         }
 
-        // Security check: Verify the grading window is still open
-        if (!Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, $type)) {
+        // Security check: ensure teacher is assigned to this class/subject OR possesses global write authorization
+        $enseignant_id = Auth::getUserId();
+        $subjects_taught = User::findSubjectsTaughtByTeacher($enseignant_id);
+        $is_authorized = false;
+        foreach ($subjects_taught as $sub) {
+            if ($sub['classe_id'] == $classe_id && $sub['matiere_id'] == $matiere_id) {
+                $is_authorized = true;
+                break;
+            }
+        }
+        $has_global_write = Auth::can('manage', 'note') || Auth::can('create', 'note') || Auth::can('edit', 'note');
+        if (!$is_authorized && !$has_global_write) {
+            http_response_code(403);
+            View::render('errors/403');
+            exit();
+        }
+
+        // Security check: Verify the grading window status for both types
+        $is_devoir_open = Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, 'devoir');
+        $is_composition_open = Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, 'composition');
+
+        $is_requested_open = ($type === 'composition') ? $is_composition_open : $is_devoir_open;
+        if (!$is_requested_open) {
             View::render('evaluations/error', [
-                'message' => "La période de saisie pour cette évaluation (" . $type . ") est fermée ou n'a pas encore commencé.",
+                'message' => "La période de saisie pour la " . ($type === 'composition' ? 'composition' : 'devoir') . " est fermée ou n'a pas encore commencé.",
                 'title' => 'Accès Refusé'
             ]);
             exit();
@@ -107,7 +128,9 @@ class EvaluationController {
             'sequence_id' => $sequence_id,
             'active_sequence' => Sequence::findById($sequence_id),
             'type' => $type,
-            'coefficient' => $classe_matiere_details['coefficient'],
+            'is_devoir_open' => $is_devoir_open,
+            'is_composition_open' => $is_composition_open,
+            'coefficient' => $classe_matiere_details['coefficient'] ?? 1,
             'eleves' => $eleves,
             'grades' => $existing_grades,
             'title' => 'Saisie des Notes - ' . ucfirst($type)
@@ -123,10 +146,27 @@ class EvaluationController {
             $sequence_id = $_POST['sequence_id'];
             $type = $_POST['type'] ?? 'devoir';
 
+            // Security check: ensure teacher is assigned to this class/subject OR possesses global write authorization
+            $enseignant_id = Auth::getUserId();
+            $subjects_taught = User::findSubjectsTaughtByTeacher($enseignant_id);
+            $is_authorized = false;
+            foreach ($subjects_taught as $sub) {
+                if ($sub['classe_id'] == $classe_id && $sub['matiere_id'] == $matiere_id) {
+                    $is_authorized = true;
+                    break;
+                }
+            }
+            $has_global_write = Auth::can('manage', 'note') || Auth::can('create', 'note') || Auth::can('edit', 'note');
+            if (!$is_authorized && !$has_global_write) {
+                http_response_code(403);
+                View::render('errors/403');
+                exit();
+            }
+
             // Security check before saving
             if (!Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, $type)) {
                  View::render('evaluations/error', [
-                    'message' => "La période de saisie pour cette évaluation est terminée. Les notes n'ont pas été enregistrées.",
+                    'message' => "La période de saisie pour cette évaluation (" . htmlspecialchars($type) . ") est fermée. Les notes n'ont pas été enregistrées.",
                     'title' => 'Accès Refusé'
                 ]);
                 exit();
@@ -139,7 +179,7 @@ class EvaluationController {
                 'type' => $type,
                 'coefficient' => $_POST['coefficient'],
                 'enseignant_id' => Auth::getUserId(),
-                'grades' => $_POST['grades']
+                'grades' => $_POST['grades'] ?? []
             ];
 
             Evaluation::saveGrades($data_to_save);

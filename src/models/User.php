@@ -375,10 +375,17 @@ class User {
         $active_year = AnneeAcademique::findActive();
         if (!$active_year) return [];
 
+        $db = Database::getInstance();
+        $isSqlite = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
+        $concatClasse = $isSqlite
+            ? "(c.niveau || CASE WHEN c.serie IS NOT NULL AND c.serie != '' THEN ' ' || c.serie ELSE '' END || CASE WHEN c.numero IS NOT NULL AND c.numero != '' THEN ' ' || c.numero ELSE '' END) as nom_classe"
+            : "CONCAT(c.niveau, IF(c.serie IS NOT NULL AND c.serie != '', CONCAT(' ', c.serie), ''), IF(c.numero IS NOT NULL AND c.numero != '', CONCAT(' ', c.numero), '')) as nom_classe";
+
         $sql = "
             SELECT
                 ap.classe_id,
                 ap.matiere_id,
+                {$concatClasse},
                 c.niveau,
                 c.serie,
                 c.numero,
