@@ -6,8 +6,37 @@ require_once __DIR__ . '/../models/AnneeAcademique.php';
 
 class ParametresEvaluation {
 
+    private static function ensureTypeColumn($db) {
+        try {
+            $isSqlite = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
+            if ($isSqlite) {
+                $stmt = $db->prepare("PRAGMA table_info(`parametres_evaluations`)");
+                $stmt->execute();
+                $cols = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $hasType = false;
+                foreach ($cols as $c) {
+                    if ($c['name'] === 'type') { $hasType = true; break; }
+                }
+                if (!$hasType) {
+                    $db->exec("ALTER TABLE parametres_evaluations ADD COLUMN type TEXT NOT NULL DEFAULT 'enseignant'");
+                }
+            } else {
+                $stmt = $db->query("SHOW COLUMNS FROM `parametres_evaluations` LIKE 'type'");
+                if (!$stmt->fetch()) {
+                    $db->exec("ALTER TABLE `parametres_evaluations` ADD COLUMN `type` ENUM('global', 'classe', 'matiere', 'classe_matiere', 'enseignant') NOT NULL DEFAULT 'enseignant'");
+                    $db->exec("ALTER TABLE `parametres_evaluations` MODIFY COLUMN `classe_id` INT DEFAULT NULL");
+                    $db->exec("ALTER TABLE `parametres_evaluations` MODIFY COLUMN `matiere_id` INT DEFAULT NULL");
+                    $db->exec("ALTER TABLE `parametres_evaluations` MODIFY COLUMN `sequence_id` INT DEFAULT NULL");
+                }
+            }
+        } catch (Exception $e) {
+            // Ignore if column check fails or exists
+        }
+    }
+
     public static function save($data) {
         $db = Database::getInstance();
+        self::ensureTypeColumn($db);
         $lycee_id = Auth::getLyceeId();
         $active_year = AnneeAcademique::findActive();
 

@@ -134,7 +134,7 @@ class Evaluation {
         $active_year = AnneeAcademique::findActive();
         if (!$active_year) return false;
 
-        require_once __DIR__ . '/../models/Sequence.php';
+        require_once __DIR__ . '/Sequence.php';
         $sequence = Sequence::findById($sequence_id);
         if (!$sequence) return false;
 
