@@ -31,7 +31,7 @@ $typeEval = $isEdit ? ($param['type_evaluation'] ?? 'tous') : 'tous';
             <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
                 <i class="ph-duotone ph-warning-circle me-2 fs-5 align-middle"></i>
                 <?php
-                if ($_GET['error'] === 'missing_classe') echo _('Veuillez sélectionner une classe.');
+                if ($_GET['error'] === 'missing_classe') echo _('Veuillez sélectionner une classe via la cascade.');
                 elseif ($_GET['error'] === 'missing_matiere') echo _('Veuillez sélectionner une matière.');
                 elseif ($_GET['error'] === 'missing_classe_or_matiere') echo _('Veuillez sélectionner la classe et la matière.');
                 elseif ($_GET['error'] === 'missing_enseignant') echo _('Veuillez sélectionner l\'enseignant.');
@@ -50,14 +50,17 @@ $typeEval = $isEdit ? ($param['type_evaluation'] ?? 'tous') : 'tous';
                         <h5><?= $isEdit ? _('Modification de la période #') . htmlspecialchars($param['id']) : _('Configuration de la période') ?></h5>
                     </div>
                     <div class="card-body">
-                        <form action="<?= $isEdit ? '/evaluations/settings/update' : '/evaluations/settings/store' ?>" method="POST">
+                        <form id="settings-form" action="<?= $isEdit ? '/evaluations/settings/update' : '/evaluations/settings/store' ?>" method="POST" onsubmit="prepareSubmission()">
                             <?php if ($isEdit): ?>
                                 <input type="hidden" name="id" value="<?= htmlspecialchars($param['id']) ?>">
                             <?php endif; ?>
 
+                            <!-- Hidden field for resolved classe_id from cascade -->
+                            <input type="hidden" name="classe_id" id="classe_id" value="<?= htmlspecialchars($param['classe_id'] ?? '') ?>">
+
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <label class="form-label" for="type"><?= _('Niveau de ciblage') ?></label>
+                                    <label class="form-label" for="type"><?= _('Niveau de ciblage (Portée)') ?></label>
                                     <select class="form-select" id="type" name="type" required onchange="toggleFields()">
                                         <option value="global" <?= $paramType === 'global' ? 'selected' : '' ?>><?= _('Global (Tout l\'établissement)') ?></option>
                                         <option value="classe" <?= $paramType === 'classe' ? 'selected' : '' ?>><?= _('Par classe') ?></option>
@@ -97,22 +100,45 @@ $typeEval = $isEdit ? ($param['type_evaluation'] ?? 'tous') : 'tous';
                                 </div>
                             </div>
 
-                            <div class="row mb-3 d-none" id="field-classe">
-                                <div class="col-12">
-                                    <label class="form-label" for="classe_id"><?= _('Sélectionner la classe') ?></label>
-                                    <select class="form-select" id="classe_id" name="classe_id">
-                                        <option value=""><?= _('Choisir une classe...') ?></option>
-                                        <?php foreach ($classes as $c): ?>
-                                            <option value="<?= $c['id_classe'] ?>" <?= ($isEdit && isset($param['classe_id']) && $param['classe_id'] == $c['id_classe']) ? 'selected' : '' ?>><?= htmlspecialchars(Classe::getFormattedName($c)) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
+                            <!-- SGS Pedagogical Cascade Container (Cycle -> Niveau -> Série -> Numéro -> Classe) -->
+                            <div id="cascade-container" class="card bg-light p-3 mb-3 border d-none">
+                                <h6 class="text-primary mb-3"><i class="ph-duotone ph-funnel me-2"></i><?= _('Sélection de la Classe via la Cascade Pédagogique') ?></h6>
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold" for="cycle_id"><?= _('Cycle') ?></label>
+                                        <select class="form-select form-select-sm" id="cycle_id">
+                                            <option value=""><?= _('-- Choisir un cycle --') ?></option>
+                                            <?php foreach ($cycles as $cy): ?>
+                                                <option value="<?= $cy['id_cycle'] ?>"><?= htmlspecialchars($cy['nom_cycle']) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold" for="niveau"><?= _('Niveau') ?></label>
+                                        <select class="form-select form-select-sm" id="niveau" disabled>
+                                            <option value=""><?= _('-- Choisir d\'abord un cycle --') ?></option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3" id="group-serie" style="display: none;">
+                                        <label class="form-label small fw-bold" for="serie"><?= _('Série') ?></label>
+                                        <select class="form-select form-select-sm" id="serie" disabled>
+                                            <option value=""><?= _('-- Toutes les séries --') ?></option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold" for="numero"><?= _('Numéro') ?></label>
+                                        <select class="form-select form-select-sm" id="numero" disabled>
+                                            <option value=""><?= _('-- Tous les numéros --') ?></option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="row mb-3 d-none" id="field-matiere">
+                            <!-- Direct Matière Select (Used when scope type === 'matiere') -->
+                            <div class="row mb-3 d-none" id="field-matiere-direct">
                                 <div class="col-12">
-                                    <label class="form-label" for="matiere_id"><?= _('Sélectionner la matière') ?></label>
-                                    <select class="form-select" id="matiere_id" name="matiere_id">
+                                    <label class="form-label" for="matiere_id_direct"><?= _('Sélectionner la matière (Etablissement)') ?></label>
+                                    <select class="form-select" id="matiere_id_direct">
                                         <option value=""><?= _('Choisir une matière...') ?></option>
                                         <?php foreach ($matieres as $m): ?>
                                             <option value="<?= $m['id_matiere'] ?>" <?= ($isEdit && isset($param['matiere_id']) && $param['matiere_id'] == $m['id_matiere']) ? 'selected' : '' ?>><?= htmlspecialchars($m['nom_matiere']) ?></option>
@@ -121,6 +147,22 @@ $typeEval = $isEdit ? ($param['type_evaluation'] ?? 'tous') : 'tous';
                                 </div>
                             </div>
 
+                            <!-- Cascade Matière Select (Used when scope type === 'classe_matiere' or 'enseignant') -->
+                            <div class="row mb-3 d-none" id="field-matiere-cascade">
+                                <div class="col-12">
+                                    <label class="form-label" for="matiere_id"><?= _('Sélectionner la matière de la classe') ?></label>
+                                    <select class="form-select" id="matiere_id" name="matiere_id" disabled>
+                                        <option value=""><?= _('-- Sélectionner d\'abord la classe dans la cascade --') ?></option>
+                                        <?php if ($isEdit && !empty($param['matiere_id'])): ?>
+                                            <?php foreach ($matieres as $m): ?>
+                                                <option value="<?= $m['id_matiere'] ?>" <?= $param['matiere_id'] == $m['id_matiere'] ? 'selected' : '' ?>><?= htmlspecialchars($m['nom_matiere']) ?></option>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Enseignant Select (Used when scope type === 'enseignant') -->
                             <div class="row mb-3 d-none" id="field-enseignant">
                                 <div class="col-12">
                                     <label class="form-label" for="enseignant_id"><?= _('Sélectionner l\'enseignant') ?></label>
@@ -165,30 +207,63 @@ $typeEval = $isEdit ? ($param['type_evaluation'] ?? 'tous') : 'tous';
     </div>
 </div>
 
+<script src="/assets/js/sgs-pedagogical-cascade.js"></script>
+
 <script>
 function toggleFields() {
     const type = document.getElementById('type').value;
 
-    document.getElementById('field-classe').classList.add('d-none');
-    document.getElementById('field-matiere').classList.add('d-none');
-    document.getElementById('field-enseignant').classList.add('d-none');
+    const cascadeContainer = document.getElementById('cascade-container');
+    const fieldMatiereDirect = document.getElementById('field-matiere-direct');
+    const fieldMatiereCascade = document.getElementById('field-matiere-cascade');
+    const fieldEnseignant = document.getElementById('field-enseignant');
+
+    cascadeContainer.classList.add('d-none');
+    fieldMatiereDirect.classList.add('d-none');
+    fieldMatiereCascade.classList.add('d-none');
+    fieldEnseignant.classList.add('d-none');
 
     if (type === 'classe') {
-        document.getElementById('field-classe').classList.remove('d-none');
+        cascadeContainer.classList.remove('d-none');
     } else if (type === 'matiere') {
-        document.getElementById('field-matiere').classList.remove('d-none');
+        fieldMatiereDirect.classList.remove('d-none');
     } else if (type === 'classe_matiere') {
-        document.getElementById('field-classe').classList.remove('d-none');
-        document.getElementById('field-matiere').classList.remove('d-none');
+        cascadeContainer.classList.remove('d-none');
+        fieldMatiereCascade.classList.remove('d-none');
     } else if (type === 'enseignant') {
-        document.getElementById('field-classe').classList.remove('d-none');
-        document.getElementById('field-matiere').classList.remove('d-none');
-        document.getElementById('field-enseignant').classList.remove('d-none');
+        cascadeContainer.classList.remove('d-none');
+        fieldMatiereCascade.classList.remove('d-none');
+        fieldEnseignant.classList.remove('d-none');
+    }
+}
+
+function prepareSubmission() {
+    const type = document.getElementById('type').value;
+    const matiereCascade = document.getElementById('matiere_id');
+    const matiereDirect = document.getElementById('matiere_id_direct');
+
+    if (type === 'matiere' && matiereDirect && matiereCascade) {
+        matiereCascade.value = matiereDirect.value;
     }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     toggleFields();
+
+    const initialValues = <?= json_encode($initialValues ?? []) ?>;
+
+    new SGSPedagogicalCascade({
+        cycleId: 'cycle_id',
+        niveauId: 'niveau',
+        groupSerieId: 'group-serie',
+        serieId: 'serie',
+        numeroId: 'numero',
+        classeId: 'classe_id',
+        matiereId: 'matiere_id',
+        teacherId: 'enseignant_id',
+        initialValues: initialValues,
+        includeAllSubjects: true
+    });
 });
 </script>
 
