@@ -22,13 +22,34 @@
         </div>
         <!-- [ breadcrumb ] end -->
 
+        <?php if (isset($_GET['success'])): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="ph-duotone ph-check-circle me-2 fs-5 align-middle"></i>
+                <?php
+                if ($_GET['success'] === 'settings_updated') echo _('La période de saisie a été mise à jour avec succès.');
+                elseif ($_GET['success'] === 'settings_created') echo _('La période de saisie a été créée avec succès.');
+                elseif ($_GET['success'] === 'settings_deleted') echo _('La période de saisie a été supprimée avec succès.');
+                else echo _('Opération effectuée avec succès.');
+                ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['error'])): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="ph-duotone ph-warning-circle me-2 fs-5 align-middle"></i>
+                <?= _('Une erreur est survenue lors du traitement de la requête.') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
         <!-- [ Main Content ] start -->
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5><?= _('Paramètres de Blocage de Saisie') ?></h5>
-                        <a href="/evaluations/settings/create" class="btn btn-primary d-inline-flex">
+                        <h5><i class="ph-duotone ph-calendar-blank me-2 text-primary"></i><?= _('Paramètres de Blocage de Saisie') ?></h5>
+                        <a href="/evaluations/settings/create" class="btn btn-primary d-inline-flex align-items-center">
                             <i class="ph-duotone ph-plus-circle me-2"></i> <?= _('Définir une période') ?>
                         </a>
                     </div>
@@ -79,8 +100,11 @@
                                             <td><?= date('d/m/Y H:i', strtotime($p['date_ouverture_saisie'])) ?></td>
                                             <td><?= date('d/m/Y H:i', strtotime($p['date_fermeture_saisie'])) ?></td>
                                             <td><?= htmlspecialchars($p['commentaire'] ?? '') ?></td>
-                                            <td>
-                                                <a href="/evaluations/settings/delete?id=<?= $p['id'] ?>" class="btn btn-sm btn-light-danger" onclick="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer ce paramètre ?') ?>')">
+                                            <td class="text-nowrap">
+                                                <a href="/evaluations/settings/edit?id=<?= $p['id'] ?>" class="btn btn-sm btn-light-primary me-1" title="<?= _('Modifier') ?>">
+                                                    <i class="ph-duotone ph-pencil"></i>
+                                                </a>
+                                                <a href="/evaluations/settings/delete?id=<?= $p['id'] ?>" class="btn btn-sm btn-light-danger" onclick="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer ce paramètre ?') ?>')" title="<?= _('Supprimer') ?>">
                                                     <i class="ph-duotone ph-trash"></i>
                                                 </a>
                                             </td>

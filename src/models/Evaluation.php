@@ -159,6 +159,10 @@ class Evaluation {
         }
 
         // Level 3: Check explicit evaluation settings (parametres_evaluations)
+        $teacherCondition = ($enseignant_id !== null)
+            ? "(type = 'enseignant' AND classe_id = :classe_id AND matiere_id = :matiere_id AND enseignant_id = :enseignant_id)"
+            : "(1 = 0)";
+
         $sql = "SELECT id, date_ouverture_saisie, date_fermeture_saisie,
                        (CASE
                            WHEN type = 'enseignant' THEN 5
@@ -177,21 +181,24 @@ class Evaluation {
                     OR (type = 'classe' AND classe_id = :classe_id)
                     OR (type = 'matiere' AND matiere_id = :matiere_id)
                     OR (type = 'classe_matiere' AND classe_id = :classe_id AND matiere_id = :matiere_id)
-                    OR (type = 'enseignant' AND classe_id = :classe_id AND matiere_id = :matiere_id AND enseignant_id = :enseignant_id)
+                    OR {$teacherCondition}
                 )
                 ORDER BY specificity DESC";
 
         try {
             $stmt = $db->prepare($sql);
-            $stmt->execute([
+            $params = [
                 'lycee_id' => $lycee_id,
                 'annee_id' => $active_year['id'],
                 'type_eval' => $type,
                 'classe_id' => $classe_id,
                 'matiere_id' => $matiere_id,
-                'enseignant_id' => $enseignant_id,
                 'sequence_id' => $sequence_id
-            ]);
+            ];
+            if ($enseignant_id !== null) {
+                $params['enseignant_id'] = $enseignant_id;
+            }
+            $stmt->execute($params);
             $matching_rules = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             if (!empty($matching_rules)) {

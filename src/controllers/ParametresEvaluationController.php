@@ -66,6 +66,15 @@ class ParametresEvaluationController {
                 header('Location: /evaluations/settings/create?error=missing_classe_or_matiere');
                 exit();
             }
+            if ($type === 'enseignant' && empty($_POST['enseignant_id'])) {
+                header('Location: /evaluations/settings/create?error=missing_enseignant');
+                exit();
+            }
+
+            if (strtotime($_POST['date_fermeture']) < strtotime($_POST['date_ouverture'])) {
+                header('Location: /evaluations/settings/create?error=invalid_dates');
+                exit();
+            }
 
             $data = [
                 'type' => $type,
@@ -76,13 +85,106 @@ class ParametresEvaluationController {
                 'type_evaluation' => $_POST['type_evaluation'] ?? 'tous',
                 'date_ouverture_saisie' => $_POST['date_ouverture'],
                 'date_fermeture_saisie' => $_POST['date_fermeture'],
-                'commentaire' => $_POST['commentaire']
+                'commentaire' => $_POST['commentaire'] ?? null
             ];
 
             if (ParametresEvaluation::save($data)) {
                 header('Location: /evaluations/settings?success=settings_created');
             } else {
                 header('Location: /evaluations/settings/create?error=settings_failed');
+            }
+            exit();
+        }
+    }
+
+    public function edit() {
+        $this->checkAccess();
+
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            header('Location: /evaluations/settings');
+            exit();
+        }
+
+        $param = ParametresEvaluation::findById($id);
+        if (!$param) {
+            http_response_code(404);
+            View::render('errors/404');
+            exit();
+        }
+
+        $classes = Classe::findAll(Auth::getLyceeId());
+        $matieres = Matiere::findAll();
+        $enseignants = User::findTeachers(Auth::getLyceeId());
+        $sequences = Sequence::findAll();
+
+        View::render('evaluations/parametres_form', [
+            'param' => $param,
+            'classes' => $classes,
+            'matieres' => $matieres,
+            'enseignants' => $enseignants,
+            'sequences' => $sequences,
+            'title' => 'Modifier la Période de Saisie'
+        ]);
+    }
+
+    public function update() {
+        $this->checkAccess();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['id'] ?? null;
+            if (!$id) {
+                header('Location: /evaluations/settings');
+                exit();
+            }
+
+            $param = ParametresEvaluation::findById($id);
+            if (!$param) {
+                http_response_code(404);
+                View::render('errors/404');
+                exit();
+            }
+
+            $type = $_POST['type'] ?? 'global';
+
+            if ($type === 'classe' && empty($_POST['classe_id'])) {
+                header('Location: /evaluations/settings/edit?id=' . $id . '&error=missing_classe');
+                exit();
+            }
+            if ($type === 'matiere' && empty($_POST['matiere_id'])) {
+                header('Location: /evaluations/settings/edit?id=' . $id . '&error=missing_matiere');
+                exit();
+            }
+            if (($type === 'classe_matiere' || $type === 'enseignant') && (empty($_POST['classe_id']) || empty($_POST['matiere_id']))) {
+                header('Location: /evaluations/settings/edit?id=' . $id . '&error=missing_classe_or_matiere');
+                exit();
+            }
+            if ($type === 'enseignant' && empty($_POST['enseignant_id'])) {
+                header('Location: /evaluations/settings/edit?id=' . $id . '&error=missing_enseignant');
+                exit();
+            }
+
+            if (strtotime($_POST['date_fermeture']) < strtotime($_POST['date_ouverture'])) {
+                header('Location: /evaluations/settings/edit?id=' . $id . '&error=invalid_dates');
+                exit();
+            }
+
+            $data = [
+                'type' => $type,
+                'classe_id' => !empty($_POST['classe_id']) ? $_POST['classe_id'] : null,
+                'matiere_id' => !empty($_POST['matiere_id']) ? $_POST['matiere_id'] : null,
+                'enseignant_id' => !empty($_POST['enseignant_id']) ? $_POST['enseignant_id'] : null,
+                'sequence_id' => !empty($_POST['sequence_id']) ? $_POST['sequence_id'] : null,
+                'type_evaluation' => $_POST['type_evaluation'] ?? 'tous',
+                'date_ouverture_saisie' => $_POST['date_ouverture'],
+                'date_fermeture_saisie' => $_POST['date_fermeture'],
+                'commentaire' => $_POST['commentaire'] ?? null
+            ];
+
+            if (ParametresEvaluation::update($id, $data)) {
+                header('Location: /evaluations/settings?success=settings_updated');
+            } else {
+                header('Location: /evaluations/settings/edit?id=' . $id . '&error=update_failed');
             }
             exit();
         }
