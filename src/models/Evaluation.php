@@ -163,7 +163,7 @@ class Evaluation {
             ? "(type = 'enseignant' AND classe_id = :classe_id AND matiere_id = :matiere_id AND enseignant_id = :enseignant_id)"
             : "(1 = 0)";
 
-        $sql = "SELECT id, date_ouverture_saisie, date_fermeture_saisie,
+        $sql = "SELECT id, type_evaluation, date_ouverture_saisie, date_fermeture_saisie,
                        (CASE
                            WHEN type = 'enseignant' THEN 5
                            WHEN type = 'classe_matiere' THEN 4
@@ -174,7 +174,6 @@ class Evaluation {
                 FROM parametres_evaluations
                 WHERE lycee_id = :lycee_id
                 AND annee_academique_id = :annee_id
-                AND (type_evaluation = :type_eval OR type_evaluation = 'tous')
                 AND (sequence_id IS NULL OR sequence_id = :sequence_id)
                 AND (
                     type = 'global'
@@ -190,7 +189,6 @@ class Evaluation {
             $params = [
                 'lycee_id' => $lycee_id,
                 'annee_id' => $active_year['id'],
-                'type_eval' => $type,
                 'classe_id' => $classe_id,
                 'matiere_id' => $matiere_id,
                 'sequence_id' => $sequence_id
@@ -208,13 +206,23 @@ class Evaluation {
                     return (int)$r['specificity'] === (int)$max_specificity;
                 });
 
+                // Filter rules at max_specificity that cover the requested evaluation type
+                $covering_rules = array_filter($target_rules, function($r) use ($type) {
+                    return $r['type_evaluation'] === $type || $r['type_evaluation'] === 'tous';
+                });
+
+                if (empty($covering_rules)) {
+                    // Explicit rule(s) exist at max_specificity, but none cover the requested type -> EXPLICITLY BLOCKED
+                    return false;
+                }
+
                 $now = date('Y-m-d H:i:s');
-                foreach ($target_rules as $rule) {
+                foreach ($covering_rules as $rule) {
                     if ($now >= $rule['date_ouverture_saisie'] && $now <= $rule['date_fermeture_saisie']) {
                         return true;
                     }
                 }
-                // Explicit rules exist for this target, but none are active at NOW -> EXPLICITLY BLOCKED
+                // Explicit covering rules exist for this target, but none are active at NOW -> EXPLICITLY BLOCKED
                 return false;
             }
         } catch (PDOException $e) {

@@ -107,6 +107,7 @@ class EvaluationController {
         $is_devoir_open = Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, 'devoir');
         $is_composition_open = Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, 'composition');
 
+        // Strict server-side check on the requested type to prevent parameter tampering
         $is_requested_open = ($type === 'composition') ? $is_composition_open : $is_devoir_open;
         if (!$is_requested_open) {
             View::render('evaluations/error', [
@@ -242,16 +243,18 @@ class EvaluationController {
             exit();
         }
 
-        // Determine type and redirect/show form
-        $type = 'devoir'; // Default
+        // Determine authorized type based on active windows:
+        // - If only composition is open -> composition
+        // - If only devoir is open -> devoir
+        // - If both are open -> default to devoir (or requested type if provided)
+        $requested_type = $_GET['type'] ?? $_POST['type'] ?? null;
         if ($is_composition_open && !$is_devoir_open) {
             $type = 'composition';
+        } elseif ($is_devoir_open && !$is_composition_open) {
+            $type = 'devoir';
+        } else { // Both are open
+            $type = ($requested_type === 'composition') ? 'composition' : 'devoir';
         }
-
-        // If both are open, we might need a choice, but the prompt says "direct opening"
-        // Most common logic is 'devoir' first or both are available.
-        // If we want to strictly avoid select_evaluation, we can force a redirect or check if a specific one was requested.
-        // For now, let's redirect to showForm with the determined type.
 
         header("Location: /evaluations/form?classe_id=$classe_id&matiere_id=$matiere_id&sequence_id=$sequence_id&type=$type");
         exit();
