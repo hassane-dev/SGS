@@ -95,7 +95,12 @@ class Deblocage {
         $db = Database::getInstance();
         $lycee_id = $lycee_id ?? Auth::getLyceeId();
 
-        $sql = "SELECT d.*, c.nom_classe, m.nom_matiere, u.nom as enseignant_nom, u.prenom as enseignant_prenom,
+        $isSqlite = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
+        $concatClasse = $isSqlite
+            ? "(c.niveau || CASE WHEN c.serie IS NOT NULL AND c.serie != '' THEN ' ' || c.serie ELSE '' END || CASE WHEN c.numero IS NOT NULL AND c.numero != '' THEN ' ' || c.numero ELSE '' END) as nom_classe"
+            : "CONCAT(c.niveau, IF(c.serie IS NOT NULL AND c.serie != '', CONCAT(' ', c.serie), ''), IF(c.numero IS NOT NULL AND c.numero != '', CONCAT(' ', c.numero), '')) as nom_classe";
+
+        $sql = "SELECT d.*, {$concatClasse}, m.nom_matiere, u.nom as enseignant_nom, u.prenom as enseignant_prenom,
                        s.nom as sequence_nom, creator.nom as creator_nom, creator.prenom as creator_prenom
                 FROM deblocages_notes d
                 LEFT JOIN classes c ON d.classe_id = c.id_classe

@@ -80,7 +80,7 @@
                                     <select class="form-select" id="classe_id" name="classe_id">
                                         <option value=""><?= _('Choisir une classe...') ?></option>
                                         <?php foreach ($classes as $c): ?>
-                                            <option value="<?= $c['id_classe'] ?>"><?= htmlspecialchars($c['nom_classe']) ?></option>
+                                            <option value="<?= $c['id_classe'] ?>"><?= htmlspecialchars(Classe::getFormattedName($c)) ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
