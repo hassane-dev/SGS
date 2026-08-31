@@ -33,16 +33,23 @@ class ParametresEvaluationController {
     public function create() {
         $this->checkAccess();
 
-        $classes = Classe::findAll(Auth::getLyceeId());
+        $lycee_id = Auth::getLyceeId();
+        require_once __DIR__ . '/../models/Cycle.php';
+        $cycles = Cycle::findByLycee($lycee_id);
+        if (empty($cycles)) {
+            $cycles = Cycle::findAll();
+        }
+
         $matieres = Matiere::findAll();
-        $enseignants = User::findTeachers(Auth::getLyceeId());
+        $enseignants = User::findTeachers($lycee_id);
         $sequences = Sequence::findAll();
 
         View::render('evaluations/parametres_form', [
-            'classes' => $classes,
+            'cycles' => $cycles,
             'matieres' => $matieres,
             'enseignants' => $enseignants,
             'sequences' => $sequences,
+            'initialValues' => [],
             'title' => 'Nouveaux Paramètres de Saisie'
         ]);
     }
@@ -113,17 +120,40 @@ class ParametresEvaluationController {
             exit();
         }
 
-        $classes = Classe::findAll(Auth::getLyceeId());
+        $lycee_id = Auth::getLyceeId();
+        require_once __DIR__ . '/../models/Cycle.php';
+        $cycles = Cycle::findByLycee($lycee_id);
+        if (empty($cycles)) {
+            $cycles = Cycle::findAll();
+        }
+
         $matieres = Matiere::findAll();
-        $enseignants = User::findTeachers(Auth::getLyceeId());
+        $enseignants = User::findTeachers($lycee_id);
         $sequences = Sequence::findAll();
+
+        $initialValues = [];
+        if (!empty($param['classe_id'])) {
+            $classe = Classe::findById($param['classe_id']);
+            if ($classe) {
+                $initialValues = [
+                    'cycleId' => $classe['cycle_id'],
+                    'niveau' => $classe['niveau'],
+                    'serie' => $classe['serie'] ?? '',
+                    'numero' => $classe['numero'] ?? '',
+                    'classeId' => $param['classe_id'],
+                    'matiereId' => $param['matiere_id'] ?? '',
+                    'teacherId' => $param['enseignant_id'] ?? ''
+                ];
+            }
+        }
 
         View::render('evaluations/parametres_form', [
             'param' => $param,
-            'classes' => $classes,
+            'cycles' => $cycles,
             'matieres' => $matieres,
             'enseignants' => $enseignants,
             'sequences' => $sequences,
+            'initialValues' => $initialValues,
             'title' => 'Modifier la Période de Saisie'
         ]);
     }
