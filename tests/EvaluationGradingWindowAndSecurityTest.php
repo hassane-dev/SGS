@@ -27,8 +27,8 @@ class EvaluationGradingWindowAndSecurityRunner {
             $activeYear = AnneeAcademique::findActive();
             $anneeId = $activeYear['id'];
 
-            $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, statut) VALUES (100, 100, {$anneeId}, 'Séquence 1', 'ouverte')");
-            $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, statut) VALUES (101, 100, {$anneeId}, 'Séquence 2 Fermée', 'fermee')");
+            $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (100, 100, {$anneeId}, 'Séquence 1', 'trimestrielle', '2020-01-01', '2099-12-31', 'ouverte')");
+            $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (101, 100, {$anneeId}, 'Séquence 2 Fermée', 'trimestrielle', '2020-01-01', '2099-12-31', 'fermee')");
 
             $_SESSION['user'] = [
                 'id' => 100,

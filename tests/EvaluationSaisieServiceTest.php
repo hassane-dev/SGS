@@ -50,7 +50,7 @@ function run_evaluation_saisie_service_tests() {
 
         // Insert test sequences
         $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut)
-                   VALUES (801, 1, {$active_year_id}, 'Seq 1 Open', 'trimestrielle', '2025-09-01', '2025-11-30', 'ouverte')");
+                   VALUES (801, 1, {$active_year_id}, 'Seq 1 Open', 'trimestrielle', '2025-09-01', '2026-12-31', 'ouverte')");
         $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut)
                    VALUES (802, 1, {$active_year_id}, 'Seq 2 Closed', 'trimestrielle', '2025-12-01', '2026-02-28', 'fermee')");
 

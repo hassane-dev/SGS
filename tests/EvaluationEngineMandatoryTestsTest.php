@@ -34,7 +34,7 @@ function run_real_engine_tests() {
         // Trimestre 2: closed (id = 2)
         // Trimestre 3: closed (id = 3)
         $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut)
-                   VALUES (1, 1, 1, 'Trimestre 1', 'trimestrielle', '2025-09-01', '2025-11-30', 'ouverte')");
+                   VALUES (1, 1, 1, 'Trimestre 1', 'trimestrielle', '2025-09-01', '2026-12-31', 'ouverte')");
         $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut)
                    VALUES (2, 1, 1, 'Trimestre 2', 'trimestrielle', '2025-12-01', '2026-02-28', 'fermee')");
         $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut)

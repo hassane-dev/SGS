@@ -141,7 +141,7 @@ class EvaluationSaisieService {
         // ------------------------------------------------------------------
         // Résolution de la séquence réellement ouverte pour l'année académique active
         // ------------------------------------------------------------------
-        $sequence = Sequence::findActiveForYear($resolvedLyceeId, (int)$active_year['id']);
+        $sequence = Sequence::findActiveForYear($resolvedLyceeId, (int)$active_year['id'], $nowNorm);
         if (!$sequence) {
             return self::buildDecision(
                 false,

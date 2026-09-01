@@ -33,11 +33,12 @@ class Sequence {
         }
     }
 
-    public static function findActiveForYear($lycee_id, $annee_id) {
+    public static function findActiveForYear($lycee_id, $annee_id, ?string $asOfDate = null) {
         try {
             if (!$lycee_id || !$annee_id) {
                 return false;
             }
+            $targetDate = $asOfDate ? date('Y-m-d', strtotime($asOfDate)) : date('Y-m-d');
             $db = Database::getInstance();
             $stmt = $db->prepare("
                 SELECT s.*
@@ -49,12 +50,16 @@ class Sequence {
                   AND a.est_active = 1
                   AND a.cloturee = 0
                   AND s.statut = 'ouverte'
+                  AND s.date_debut <= :as_of_date_start
+                  AND s.date_fin >= :as_of_date_end
                 ORDER BY s.date_debut ASC, s.id ASC
                 LIMIT 1
             ");
             $stmt->execute([
                 'lycee_id' => $lycee_id,
-                'annee_id' => $annee_id
+                'annee_id' => $annee_id,
+                'as_of_date_start' => $targetDate,
+                'as_of_date_end' => $targetDate
             ]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
@@ -79,9 +84,8 @@ class Sequence {
         }
     }
 
-    public static function findActive() {
+    public static function findActive(?string $asOfDate = null) {
         try {
-            $db = Database::getInstance();
             $lycee_id = Auth::getLyceeId();
             $active_year = AnneeAcademique::findActive();
 
@@ -89,19 +93,7 @@ class Sequence {
                 return false;
             }
 
-            $stmt = $db->prepare("
-                SELECT * FROM sequences
-                WHERE lycee_id = :lycee_id
-                AND annee_academique_id = :annee_academique_id
-                AND statut = 'ouverte'
-                ORDER BY date_debut ASC, id ASC
-                LIMIT 1
-            ");
-            $stmt->execute([
-                'lycee_id' => $lycee_id,
-                'annee_academique_id' => $active_year['id']
-            ]);
-            return $stmt->fetch(PDO::FETCH_ASSOC);
+            return self::findActiveForYear($lycee_id, $active_year['id'], $asOfDate);
         } catch (PDOException $e) {
             error_log("Error in Sequence::findActive: " . $e->getMessage());
             return false;
