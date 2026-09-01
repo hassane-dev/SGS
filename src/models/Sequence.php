@@ -64,6 +64,7 @@ class Sequence {
                 WHERE lycee_id = :lycee_id
                 AND annee_academique_id = :annee_academique_id
                 AND statut = 'ouverte'
+                ORDER BY date_debut ASC, id ASC
                 LIMIT 1
             ");
             $stmt->execute([
@@ -74,6 +75,34 @@ class Sequence {
         } catch (PDOException $e) {
             error_log("Error in Sequence::findActive: " . $e->getMessage());
             return false;
+        }
+    }
+
+    public static function findOpenSequences() {
+        try {
+            $db = Database::getInstance();
+            $lycee_id = Auth::getLyceeId();
+            $active_year = AnneeAcademique::findActive();
+
+            if (!$lycee_id || !$active_year) {
+                return [];
+            }
+
+            $stmt = $db->prepare("
+                SELECT * FROM sequences
+                WHERE lycee_id = :lycee_id
+                AND annee_academique_id = :annee_academique_id
+                AND statut = 'ouverte'
+                ORDER BY date_debut ASC, id ASC
+            ");
+            $stmt->execute([
+                'lycee_id' => $lycee_id,
+                'annee_academique_id' => $active_year['id']
+            ]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error in Sequence::findOpenSequences: " . $e->getMessage());
+            return [];
         }
     }
 

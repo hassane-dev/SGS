@@ -390,7 +390,78 @@ class EvaluationTypeAndWindowRulesRunner {
             self::assertTrue((float)$gradeRecord['note'] === 16.5, "Cas 14: Note value MUST match saved grade.");
 
 
-            echo "\n>>> ALL 14 TEST MATRIX SCENARIOS PASSED SUCCESSFULLY! <<<\n";
+            // -------------------------------------------------------------
+            // CAS 15: Deux séquences ouvertes simultanément (500 et 501) - Mismatch test
+            // -------------------------------------------------------------
+            echo "Testing Matrix Cas 15: Deux séquences ouvertes simultanément (500 = Trimestre 1, 501 = Séquence 2)...\n";
+            $db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = 500");
+            $db->exec("DELETE FROM sequences WHERE id = 501 AND lycee_id = 500");
+            $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, statut, date_debut) VALUES (501, 500, {$anneeId}, 'Séquence 2 Open', 'ouverte', '2024-11-01')");
+
+            ParametresEvaluation::save([
+                'type' => 'global',
+                'sequence_id' => 500,
+                'type_evaluation' => 'devoir',
+                'date_ouverture_saisie' => $now_start,
+                'date_fermeture_saisie' => $now_end
+            ]);
+
+            // Sequence 500 (matching rule): Devoir open, Composition closed
+            self::assertTrue(Evaluation::isGradingWindowOpen(50010, 50020, 500, 'devoir'), "Cas 15a: Sequence 500 Devoir MUST be open.");
+            self::assertFalse(Evaluation::isGradingWindowOpen(50010, 50020, 500, 'composition'), "Cas 15a: Sequence 500 Composition MUST be closed.");
+
+            // Sequence 501 (mismatched): BOTH Devoir and Composition MUST be closed (no implicit fallback!)
+            self::assertFalse(Evaluation::isGradingWindowOpen(50010, 50020, 501, 'devoir'), "Cas 15b: Mismatched Sequence 501 Devoir MUST be closed when rule is set on Sequence 500.");
+            self::assertFalse(Evaluation::isGradingWindowOpen(50010, 50020, 501, 'composition'), "Cas 15b: Mismatched Sequence 501 Composition MUST be closed when rule is set on Sequence 500.");
+
+            // -------------------------------------------------------------
+            // CAS 16: directSaisie() résolution dynamique de la séquence avec fenêtre active
+            // -------------------------------------------------------------
+            echo "Testing Matrix Cas 16: directSaisie() sélectionne la séquence avec fenêtre active...\n";
+            $_SERVER['REQUEST_METHOD'] = 'GET';
+            $_GET = [];
+
+            ob_start();
+            try {
+                $controller->directSaisie(50010, 50020);
+            } catch (Exception $e) {
+                // Ignore exit redirects
+            }
+            $directOutput = ob_get_clean();
+
+            // Should redirect to form with sequence_id=500 (which has active window), NOT sequence_id=501
+            self::assertTrue(strpos($_SERVER['HTTP_LOCATION'] ?? '', 'sequence_id=500') !== false, "Cas 16: directSaisie MUST redirect to sequence_id=500 (active window sequence).");
+
+            // -------------------------------------------------------------
+            // CAS 17: GET/POST Anti-Tampering sur Séquence 501
+            // -------------------------------------------------------------
+            echo "Testing Matrix Cas 17: Anti-tampering POST sur Séquence 501 non autorisée...\n";
+            $_SERVER['REQUEST_METHOD'] = 'POST';
+            $_POST = [
+                'classe_id' => 50010,
+                'matiere_id' => 50020,
+                'sequence_id' => 501,
+                'type' => 'devoir',
+                'coefficient' => 2,
+                'grades' => [50030 => ['note' => '15', 'appreciation' => 'Forbidden grade']]
+            ];
+
+            ob_start();
+            try {
+                $controller->save();
+            } catch (Exception $e) {
+                // Ignore exit redirects
+            }
+            $tamperPostOutput = ob_get_clean();
+
+            self::assertTrue(strpos($tamperPostOutput, 'Accès Refusé') !== false || strpos($tamperPostOutput, 'fermée') !== false, "Cas 17: POST on unconfigured sequence 501 MUST be refused.");
+
+            $stmtCheckTamper = $db->prepare("SELECT COUNT(*) FROM evaluations WHERE lycee_id = 500 AND sequence_id = 501");
+            $stmtCheckTamper->execute();
+            self::assertTrue((int)$stmtCheckTamper->fetchColumn() === 0, "Cas 17: No grade records MUST be created on unconfigured sequence 501.");
+
+
+            echo "\n>>> ALL 17 TEST MATRIX SCENARIOS PASSED SUCCESSFULLY! <<<\n";
 
         } finally {
             $db->rollBack();

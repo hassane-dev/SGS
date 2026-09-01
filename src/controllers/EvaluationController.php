@@ -237,8 +237,8 @@ class EvaluationController {
             exit();
         }
 
-        $active_sequence = Sequence::findActive();
-        if (!$active_sequence) {
+        $open_sequences = Sequence::findOpenSequences();
+        if (empty($open_sequences)) {
             View::render('evaluations/error', [
                 'message' => "Aucune séquence active n'est actuellement ouverte pour la saisie des notes. Veuillez contacter l'administration.",
                 'title' => 'Saisie Fermée'
@@ -246,19 +246,31 @@ class EvaluationController {
             exit();
         }
 
-        $sequence_id = $active_sequence['id'];
+        $target_sequence = null;
+        $is_devoir_open = false;
+        $is_composition_open = false;
 
-        // Check which evaluation types are open (devoir and/or composition)
-        $is_devoir_open = Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, 'devoir');
-        $is_composition_open = Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, 'composition');
+        foreach ($open_sequences as $seq) {
+            $dev_open = Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $seq['id'], 'devoir');
+            $comp_open = Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $seq['id'], 'composition');
+            if ($dev_open || $comp_open) {
+                $target_sequence = $seq;
+                $is_devoir_open = $dev_open;
+                $is_composition_open = $comp_open;
+                break;
+            }
+        }
 
-        if (!$is_devoir_open && !$is_composition_open) {
+        if (!$target_sequence) {
+            $target_sequence = $open_sequences[0];
             View::render('evaluations/error', [
-                'message' => "La période de saisie pour la séquence actuelle (" . htmlspecialchars($active_sequence['nom']) . ") est fermée ou n'a pas encore commencé.",
+                'message' => "La période de saisie pour la séquence actuelle (" . htmlspecialchars($target_sequence['nom']) . ") est fermée ou n'a pas encore commencé.",
                 'title' => 'Saisie Fermée'
             ]);
             exit();
         }
+
+        $sequence_id = $target_sequence['id'];
 
         // Determine authorized type based on active windows:
         // - If only composition is open -> composition
