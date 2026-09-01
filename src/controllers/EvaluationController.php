@@ -7,12 +7,13 @@ require_once __DIR__ . '/../models/Eleve.php';
 require_once __DIR__ . '/../models/AffectationPedagogique.php';
 require_once __DIR__ . '/../models/Sequence.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
+require_once __DIR__ . '/../services/EvaluationSaisieService.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
 
 class EvaluationController {
 
-    private function checkAccess($permission = 'note:create_own') { // Assuming a new permission
+    private function checkAccess($permission = 'note:create_own') {
         list($resource, $action) = explode(':', $permission);
         if (!Auth::can($action, $resource)) {
             http_response_code(403);
@@ -50,13 +51,13 @@ class EvaluationController {
         // Security check: ensure teacher is assigned to this class/subject
         $subjects_taught = User::findSubjectsTaughtByTeacher(Auth::getUserId());
         $is_authorized = false;
-        foreach($subjects_taught as $sub) {
-            if($sub['classe_id'] == $classe_id && $sub['matiere_id'] == $matiere_id) {
+        foreach ($subjects_taught as $sub) {
+            if ($sub['classe_id'] == $classe_id && $sub['matiere_id'] == $matiere_id) {
                 $is_authorized = true;
                 break;
             }
         }
-        if(!$is_authorized && !Auth::can('view_all', 'note')) {
+        if (!$is_authorized && !Auth::can('view_all', 'note')) {
             http_response_code(403);
             View::render('errors/403');
             exit();
@@ -103,32 +104,18 @@ class EvaluationController {
             exit();
         }
 
-        // Security check: ensure teacher is assigned to this class/subject OR possesses global write authorization
-        $enseignant_id = Auth::getUserId();
-        $subjects_taught = User::findSubjectsTaughtByTeacher($enseignant_id);
-        $is_authorized = false;
-        foreach ($subjects_taught as $sub) {
-            if ($sub['classe_id'] == $classe_id && $sub['matiere_id'] == $matiere_id) {
-                $is_authorized = true;
-                break;
-            }
-        }
-        $has_global_write = Auth::can('manage', 'note') || Auth::can('create', 'note') || Auth::can('edit', 'note');
-        if (!$is_authorized && !$has_global_write) {
-            http_response_code(403);
-            View::render('errors/403');
-            exit();
-        }
+        // Délégation centralisée à EvaluationSaisieService pour les deux types
+        $decisionDevoir = EvaluationSaisieService::canTeacherGradeContext((int)$classe_id, (int)$matiere_id, (int)$sequence_id, 'devoir');
+        $decisionComp = EvaluationSaisieService::canTeacherGradeContext((int)$classe_id, (int)$matiere_id, (int)$sequence_id, 'composition');
 
-        // Security check: Verify the grading window status for both types
-        $is_devoir_open = Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, 'devoir');
-        $is_composition_open = Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, 'composition');
+        $is_devoir_open = $decisionDevoir['allowed'];
+        $is_composition_open = $decisionComp['allowed'];
 
-        // Strict server-side check on the requested type to prevent parameter tampering
-        $is_requested_open = ($type === 'composition') ? $is_composition_open : $is_devoir_open;
-        if (!$is_requested_open) {
+        // Vérification stricte anti-tampering sur le type demandé
+        $requestedDecision = ($type === 'composition') ? $decisionComp : $decisionDevoir;
+        if (!$requestedDecision['allowed']) {
             View::render('evaluations/error', [
-                'message' => "La période de saisie pour la " . ($type === 'composition' ? 'composition' : 'devoir') . " est fermée ou n'a pas encore commencé.",
+                'message' => $requestedDecision['reason'],
                 'title' => 'Accès Refusé'
             ]);
             exit();
@@ -137,7 +124,6 @@ class EvaluationController {
         $eleves = Eleve::findByClass($classe_id);
         $existing_grades = Evaluation::getGradesForEvaluation($classe_id, $matiere_id, $sequence_id, $type);
 
-        // The coefficient is defined in the `classe_matieres` table
         $classe_matiere_details = Classe::findMatiereDetails($classe_id, $matiere_id);
 
         View::render('evaluations/form', [
@@ -159,32 +145,24 @@ class EvaluationController {
     public function save() {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $classe_id = $_POST['classe_id'];
-            $matiere_id = $_POST['matiere_id'];
-            $sequence_id = $_POST['sequence_id'];
+            $classe_id = $_POST['classe_id'] ?? null;
+            $matiere_id = $_POST['matiere_id'] ?? null;
+            $sequence_id = $_POST['sequence_id'] ?? null;
             $type = $_POST['type'] ?? 'devoir';
 
-            // Security check: ensure teacher is assigned to this class/subject OR possesses global write authorization
-            $enseignant_id = Auth::getUserId();
-            $subjects_taught = User::findSubjectsTaughtByTeacher($enseignant_id);
-            $is_authorized = false;
-            foreach ($subjects_taught as $sub) {
-                if ($sub['classe_id'] == $classe_id && $sub['matiere_id'] == $matiere_id) {
-                    $is_authorized = true;
-                    break;
-                }
-            }
-            $has_global_write = Auth::can('manage', 'note') || Auth::can('create', 'note') || Auth::can('edit', 'note');
-            if (!$is_authorized && !$has_global_write) {
-                http_response_code(403);
-                View::render('errors/403');
+            if (!$classe_id || !$matiere_id || !$sequence_id) {
+                View::render('evaluations/error', [
+                    'message' => _("Paramètres d'évaluation manquants."),
+                    'title' => 'Accès Refusé'
+                ]);
                 exit();
             }
 
-            // Security check before saving
-            if (!Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, $type)) {
-                 View::render('evaluations/error', [
-                    'message' => "La période de saisie pour cette évaluation (" . htmlspecialchars($type) . ") est fermée. Les notes n'ont pas été enregistrées.",
+            // Vérification centralisée anti-tampering avant sauvegarde
+            $decision = EvaluationSaisieService::canTeacherGradeContext((int)$classe_id, (int)$matiere_id, (int)$sequence_id, (string)$type);
+            if (!$decision['allowed']) {
+                View::render('evaluations/error', [
+                    'message' => $decision['reason'],
                     'title' => 'Accès Refusé'
                 ]);
                 exit();
@@ -195,7 +173,7 @@ class EvaluationController {
                 'matiere_id' => $matiere_id,
                 'sequence_id' => $sequence_id,
                 'type' => $type,
-                'coefficient' => $_POST['coefficient'],
+                'coefficient' => $_POST['coefficient'] ?? 1,
                 'enseignant_id' => Auth::getUserId(),
                 'grades' => $_POST['grades'] ?? []
             ];
@@ -210,28 +188,10 @@ class EvaluationController {
     public function directSaisie($classe_id, $matiere_id) {
         $this->checkAccess();
 
-        // Security check: ensure teacher is assigned to this class/subject
-        $enseignant_id = Auth::getUserId();
-        $subjects_taught = User::findSubjectsTaughtByTeacher($enseignant_id);
-        $is_authorized = false;
-        foreach($subjects_taught as $sub) {
-            if($sub['classe_id'] == $classe_id && $sub['matiere_id'] == $matiere_id) {
-                $is_authorized = true;
-                break;
-            }
-        }
-
-        if(!$is_authorized && !Auth::can('view_all', 'note')) {
-            http_response_code(403);
-            View::render('errors/403');
-            exit();
-        }
-
-        // Automatic discovery of active context
         $active_year = AnneeAcademique::findActive();
         if (!$active_year) {
             View::render('evaluations/error', [
-                'message' => "Aucune année académique n'est actuellement active. Veuillez contacter l'administration.",
+                'message' => _("Aucune année académique n'est actuellement active. Veuillez contacter l'administration."),
                 'title' => 'Erreur de Configuration'
             ]);
             exit();
@@ -240,7 +200,7 @@ class EvaluationController {
         $open_sequences = Sequence::findOpenSequences();
         if (empty($open_sequences)) {
             View::render('evaluations/error', [
-                'message' => "Aucune séquence active n'est actuellement ouverte pour la saisie des notes. Veuillez contacter l'administration.",
+                'message' => _("Aucune séquence active n'est actuellement ouverte pour la saisie des notes. Veuillez contacter l'administration."),
                 'title' => 'Saisie Fermée'
             ]);
             exit();
@@ -249,22 +209,30 @@ class EvaluationController {
         $target_sequence = null;
         $is_devoir_open = false;
         $is_composition_open = false;
+        $lastDecision = null;
 
         foreach ($open_sequences as $seq) {
-            $dev_open = Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $seq['id'], 'devoir');
-            $comp_open = Evaluation::isGradingWindowOpen($classe_id, $matiere_id, $seq['id'], 'composition');
+            $devDecision = EvaluationSaisieService::canTeacherGradeContext((int)$classe_id, (int)$matiere_id, (int)$seq['id'], 'devoir');
+            $compDecision = EvaluationSaisieService::canTeacherGradeContext((int)$classe_id, (int)$matiere_id, (int)$seq['id'], 'composition');
+
+            $dev_open = $devDecision['allowed'];
+            $comp_open = $compDecision['allowed'];
+
             if ($dev_open || $comp_open) {
                 $target_sequence = $seq;
                 $is_devoir_open = $dev_open;
                 $is_composition_open = $comp_open;
                 break;
+            } else {
+                $lastDecision = $devDecision;
             }
         }
 
         if (!$target_sequence) {
             $target_sequence = $open_sequences[0];
+            $errorMessage = $lastDecision['reason'] ?? sprintf(_("La période de saisie pour la séquence actuelle (%s) est fermée ou n'a pas encore commencé."), $target_sequence['nom']);
             View::render('evaluations/error', [
-                'message' => "La période de saisie pour la séquence actuelle (" . htmlspecialchars($target_sequence['nom']) . ") est fermée ou n'a pas encore commencé.",
+                'message' => $errorMessage,
                 'title' => 'Saisie Fermée'
             ]);
             exit();
@@ -272,16 +240,12 @@ class EvaluationController {
 
         $sequence_id = $target_sequence['id'];
 
-        // Determine authorized type based on active windows:
-        // - If only composition is open -> composition
-        // - If only devoir is open -> devoir
-        // - If both are open -> default to devoir (or requested type if provided)
         $requested_type = $_GET['type'] ?? $_POST['type'] ?? null;
         if ($is_composition_open && !$is_devoir_open) {
             $type = 'composition';
         } elseif ($is_devoir_open && !$is_composition_open) {
             $type = 'devoir';
-        } else { // Both are open
+        } else {
             $type = ($requested_type === 'composition') ? 'composition' : 'devoir';
         }
 

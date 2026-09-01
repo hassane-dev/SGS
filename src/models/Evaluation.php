@@ -130,126 +130,13 @@ class Evaluation {
      * 3. Explicit evaluation settings (parametres_evaluations): If explicit rules exist for the target, their active dates determine authorization.
      * 4. Default fallback: If sequence is open ('ouverte') and no explicit rules exist for the target, grading is allowed by default.
      */
+    /**
+     * Façade de compatibilité déléguant la vérification d'ouverture de la fenêtre de saisie
+     * au service centralisé EvaluationSaisieService.
+     */
     public static function isGradingWindowOpen($classe_id, $matiere_id, $sequence_id, $type = 'devoir', $simulatedNow = null) {
-        $active_year = AnneeAcademique::findActive();
-        if (!$active_year) return false;
-
-        require_once __DIR__ . '/Sequence.php';
-        $sequence = Sequence::findById($sequence_id);
-        if (!$sequence) return false;
-
-        $is_sequence_open = (isset($sequence['statut']) && $sequence['statut'] === 'ouverte');
-
-        $lycee_id = Auth::getLyceeId();
-        $db = Database::getInstance();
-
-        // Find teacher for this class/subject
-        require_once __DIR__ . '/../models/AffectationPedagogique.php';
-        $assignments = AffectationPedagogique::findAssignmentsForClass($classe_id);
-        $enseignant_id = $assignments[$matiere_id]['enseignant_id'] ?? null;
-
-        // Level 2: Check exceptional unlocks (Deblocage) - overrides closed sequence or expired parameters
-        if (Deblocage::isUnlocked($classe_id, $matiere_id, $sequence_id, $enseignant_id, $type)) {
-            return true;
-        }
-
-        // Level 1 Enforcement: If sequence is closed and no exceptional unlock exists -> BLOCKED
-        if (!$is_sequence_open) {
-            return false;
-        }
-
-        // Level 3: Check explicit evaluation settings (parametres_evaluations)
-        $teacherCondition = ($enseignant_id !== null)
-            ? "(type = 'enseignant' AND classe_id = :classe_id AND matiere_id = :matiere_id AND enseignant_id = :enseignant_id)"
-            : "(1 = 0)";
-
-        $sql = "SELECT id, type_evaluation, date_ouverture_saisie, date_fermeture_saisie,
-                       (CASE
-                           WHEN type = 'enseignant' THEN 5
-                           WHEN type = 'classe_matiere' THEN 4
-                           WHEN type = 'classe' THEN 3
-                           WHEN type = 'matiere' THEN 2
-                           ELSE 1
-                       END) as specificity
-                FROM parametres_evaluations
-                WHERE lycee_id = :lycee_id
-                AND annee_academique_id = :annee_id
-                AND (sequence_id IS NULL OR sequence_id = :sequence_id)
-                AND (
-                    type = 'global'
-                    OR (type = 'classe' AND classe_id = :classe_id)
-                    OR (type = 'matiere' AND matiere_id = :matiere_id)
-                    OR (type = 'classe_matiere' AND classe_id = :classe_id AND matiere_id = :matiere_id)
-                    OR {$teacherCondition}
-                )
-                ORDER BY specificity DESC";
-
-        try {
-            $stmt = $db->prepare($sql);
-            $params = [
-                'lycee_id' => $lycee_id,
-                'annee_id' => $active_year['id'],
-                'classe_id' => $classe_id,
-                'matiere_id' => $matiere_id,
-                'sequence_id' => $sequence_id
-            ];
-            if ($enseignant_id !== null) {
-                $params['enseignant_id'] = $enseignant_id;
-            }
-            $stmt->execute($params);
-            $matching_rules = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            if (!empty($matching_rules)) {
-                // Explicit rules exist for this target. Filter by highest specificity level present.
-                $max_specificity = $matching_rules[0]['specificity'];
-                $target_rules = array_filter($matching_rules, function($r) use ($max_specificity) {
-                    return (int)$r['specificity'] === (int)$max_specificity;
-                });
-
-                // Filter rules at max_specificity that cover the requested evaluation type
-                $covering_rules = array_filter($target_rules, function($r) use ($type) {
-                    return $r['type_evaluation'] === $type || $r['type_evaluation'] === 'tous';
-                });
-
-                if (empty($covering_rules)) {
-                    // Explicit rule(s) exist at max_specificity, but none cover the requested type -> EXPLICITLY BLOCKED
-                    return false;
-                }
-
-                $now = $simulatedNow ?? date('Y-m-d H:i:s');
-                foreach ($covering_rules as $rule) {
-                    if ($now >= $rule['date_ouverture_saisie'] && $now <= $rule['date_fermeture_saisie']) {
-                        return true;
-                    }
-                }
-                // Explicit covering rules exist for this target, but none are active at NOW -> EXPLICITLY BLOCKED
-                return false;
-            }
-        } catch (PDOException $e) {
-            error_log("Error in Evaluation::isGradingWindowOpen: " . $e->getMessage());
-        }
-
-        // Level 4: Fallback
-        // Check if ANY parameter rules exist in parametres_evaluations for this establishment & academic year.
-        // If the administration HAS configured grading rules for the establishment/year, but none match this sequence/target,
-        // then this sequence is NOT authorized by the administrative policy -> BLOCKED (return false).
-        // Default fallback (return true) applies ONLY when NO explicit rules exist at all in parametres_evaluations
-        // for the entire establishment and academic year.
-        try {
-            $stmtCount = $db->prepare("SELECT COUNT(*) FROM parametres_evaluations WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id");
-            $stmtCount->execute([
-                'lycee_id' => $lycee_id,
-                'annee_id' => $active_year['id']
-            ]);
-            $hasAnyRules = ((int)$stmtCount->fetchColumn()) > 0;
-            if ($hasAnyRules) {
-                return false;
-            }
-        } catch (PDOException $e) {
-            error_log("Error in Evaluation::isGradingWindowOpen Level 4 check: " . $e->getMessage());
-        }
-
-        return true;
+        require_once __DIR__ . '/../services/EvaluationSaisieService.php';
+        return EvaluationSaisieService::isAllowed((int)$classe_id, (int)$matiere_id, (int)$sequence_id, (string)$type, null, $simulatedNow);
     }
 }
 ?>
