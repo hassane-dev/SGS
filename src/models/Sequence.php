@@ -33,6 +33,36 @@ class Sequence {
         }
     }
 
+    public static function findActiveForYear($lycee_id, $annee_id) {
+        try {
+            if (!$lycee_id || !$annee_id) {
+                return false;
+            }
+            $db = Database::getInstance();
+            $stmt = $db->prepare("
+                SELECT s.*
+                FROM sequences s
+                INNER JOIN annees_academiques a
+                    ON s.annee_academique_id = a.id
+                WHERE s.lycee_id = :lycee_id
+                  AND a.id = :annee_id
+                  AND a.est_active = 1
+                  AND a.cloturee = 0
+                  AND s.statut = 'ouverte'
+                ORDER BY s.date_debut ASC, s.id ASC
+                LIMIT 1
+            ");
+            $stmt->execute([
+                'lycee_id' => $lycee_id,
+                'annee_id' => $annee_id
+            ]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error in Sequence::findActiveForYear: " . $e->getMessage());
+            return false;
+        }
+    }
+
     public static function findById($id) {
         try {
             $db = Database::getInstance();

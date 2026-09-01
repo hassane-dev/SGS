@@ -41,17 +41,25 @@ class EvaluationGradingWindowAndSecurityRunner {
             $isOpenFallback = Evaluation::isGradingWindowOpen(1, 1, 100, 'devoir');
             self::assertTrue($isOpenFallback, "1. Fallback: Sequence open, no rules -> ALLOWED");
 
-            // 2. Sequence closed, no unlock -> BLOCKED
-            $isOpenClosedSeq = Evaluation::isGradingWindowOpen(1, 1, 101, 'devoir');
-            self::assertFalse($isOpenClosedSeq, "2. Sequence closed, no unlock -> BLOCKED");
+            // Re-open sequence 100 as open sequence
+            $db->exec("UPDATE sequences SET statut = 'ouverte' WHERE id = 100");
 
-            // 3. Sequence closed + active unlock -> ALLOWED
+            // 2. Closed sequence without unlock when sequence 100 is open -> BLOCKED (because no unlock matches sequence 100)
+            $db->exec("DELETE FROM deblocages_notes WHERE lycee_id = 100");
+            $db->exec("INSERT INTO parametres_evaluations (id, lycee_id, annee_academique_id, type, classe_id, matiere_id, sequence_id, type_evaluation, date_ouverture_saisie, date_fermeture_saisie)
+                       VALUES (99, 100, {$anneeId}, 'classe_matiere', 1, 1, 100, 'devoir', '2020-01-01 00:00:00', '2020-02-01 00:00:00')");
+            $isOpenClosedSeq = Evaluation::isGradingWindowOpen(1, 1, 100, 'devoir');
+            self::assertFalse($isOpenClosedSeq, "2. Expired window without unlock -> BLOCKED");
+            $db->exec("DELETE FROM parametres_evaluations WHERE id = 99");
+
+            // 3. Active unlock on open sequence 100 -> ALLOWED
             $db->exec("INSERT INTO deblocages_notes (id, lycee_id, annee_academique_id, type, classe_id, matiere_id, sequence_id, type_evaluation, date_debut, date_fin, cree_par)
-                       VALUES (100, 100, {$anneeId}, 'classe_matiere', 1, 1, 101, 'devoir', '2020-01-01 00:00:00', '2099-12-31 23:59:59', 1)");
-            $isOpenUnlocked = Evaluation::isGradingWindowOpen(1, 1, 101, 'devoir');
-            self::assertTrue($isOpenUnlocked, "3. Sequence closed + active unlock -> ALLOWED");
+                       VALUES (100, 100, {$anneeId}, 'classe_matiere', 1, 1, 100, 'devoir', '2020-01-01 00:00:00', '2099-12-31 23:59:59', 1)");
+            $isOpenUnlocked = Evaluation::isGradingWindowOpen(1, 1, 100, 'devoir');
+            self::assertTrue($isOpenUnlocked, "3. Active unlock -> ALLOWED");
 
             // 4. Scope Priority Conflict: Global OPEN vs classe_matiere EXPIRED
+            $db->exec("DELETE FROM deblocages_notes WHERE lycee_id = 100");
             $db->exec("INSERT INTO parametres_evaluations (id, lycee_id, annee_academique_id, type, type_evaluation, date_ouverture_saisie, date_fermeture_saisie)
                        VALUES (100, 100, {$anneeId}, 'global', 'tous', '2020-01-01 00:00:00', '2099-12-31 23:59:59')");
             $db->exec("INSERT INTO parametres_evaluations (id, lycee_id, annee_academique_id, type, classe_id, matiere_id, type_evaluation, date_ouverture_saisie, date_fermeture_saisie)

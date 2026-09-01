@@ -139,12 +139,30 @@ class EvaluationSaisieService {
         }
 
         // ------------------------------------------------------------------
+        // Résolution de la séquence réellement ouverte pour l'année académique active
+        // ------------------------------------------------------------------
+        $sequence = Sequence::findActiveForYear($resolvedLyceeId, (int)$active_year['id']);
+        if (!$sequence) {
+            return self::buildDecision(
+                false,
+                'DENIED_NO_OPEN_SEQUENCE',
+                _("Aucune séquence n'est actuellement ouverte pour l'année académique active."),
+                'sequence',
+                $nowNorm,
+                $context
+            );
+        }
+
+        $sequence_id = (int)$sequence['id'];
+        $context['sequence_id'] = $sequence_id;
+
+        // ------------------------------------------------------------------
         // RÈGLE 3 & 4 : Recherche d'un déblocage exceptionnel (PRIORITÉ ABSOLUE)
         // ------------------------------------------------------------------
         $unlockRecord = self::findMatchingUnlock($db, $resolvedLyceeId, (int)$active_year['id'], $classe_id, $matiere_id, $sequence_id, $resolvedEnseignantId, $type, $nowNorm);
 
         if ($unlockRecord) {
-            // Déblocage valide et actif présent -> ACCÈS ACCORDÉ IMMÉDIATEMENT (même si la séquence est fermée)
+            // Déblocage valide et actif présent -> ACCÈS ACCORDÉ IMMÉDIATEMENT
             return self::buildDecision(
                 true,
                 'ALLOWED_DEBLOCAGE',
@@ -158,30 +176,10 @@ class EvaluationSaisieService {
         }
 
         // ------------------------------------------------------------------
-        // RÈGLE 5 : Vérification du statut de la séquence
-        // ------------------------------------------------------------------
-        $sequence = Sequence::findById($sequence_id);
-        if (!$sequence) {
-            return self::buildDecision(false, 'DENIED_SEQUENCE_NOT_FOUND', _("Séquence introuvable."), 'sequence', $nowNorm, $context);
-        }
-
-        $is_sequence_open = (isset($sequence['statut']) && $sequence['statut'] === 'ouverte');
-        if (!$is_sequence_open) {
-            return self::buildDecision(
-                false,
-                'DENIED_SEQUENCE_CLOSED',
-                sprintf(_("La séquence '%s' est fermée à la saisie."), $sequence['nom'] ?? ''),
-                'sequence',
-                $nowNorm,
-                $context
-            );
-        }
-
-        // ------------------------------------------------------------------
         // RÈGLE 6 & 7 : Vérification des règles de la période normale (parametres_evaluations)
         // ------------------------------------------------------------------
         $teacherCondition = ($resolvedEnseignantId !== null)
-            ? "(type = 'enseignant' AND classe_id = :classe_id AND matiere_id = :matiere_id AND enseignant_id = :enseignant_id)"
+            ? "(type = 'enseignant' AND classe_id = :classe_id_t AND matiere_id = :matiere_id_t AND enseignant_id = :enseignant_id)"
             : "(1 = 0)";
 
         $sqlRules = "SELECT id, type, type_evaluation, date_ouverture_saisie, date_fermeture_saisie, commentaire,
@@ -198,9 +196,9 @@ class EvaluationSaisieService {
                      AND (sequence_id IS NULL OR sequence_id = :sequence_id)
                      AND (
                          type = 'global'
-                         OR (type = 'classe' AND classe_id = :classe_id)
-                         OR (type = 'matiere' AND matiere_id = :matiere_id)
-                         OR (type = 'classe_matiere' AND classe_id = :classe_id AND matiere_id = :matiere_id)
+                         OR (type = 'classe' AND classe_id = :classe_id_c)
+                         OR (type = 'matiere' AND matiere_id = :matiere_id_m)
+                         OR (type = 'classe_matiere' AND classe_id = :classe_id_cm AND matiere_id = :matiere_id_cm)
                          OR {$teacherCondition}
                      )
                      ORDER BY specificity DESC";
@@ -210,11 +208,15 @@ class EvaluationSaisieService {
             $params = [
                 'lycee_id' => $resolvedLyceeId,
                 'annee_id' => $active_year['id'],
-                'classe_id' => $classe_id,
-                'matiere_id' => $matiere_id,
-                'sequence_id' => $sequence_id
+                'sequence_id' => $sequence_id,
+                'classe_id_c' => $classe_id,
+                'matiere_id_m' => $matiere_id,
+                'classe_id_cm' => $classe_id,
+                'matiere_id_cm' => $matiere_id
             ];
             if ($resolvedEnseignantId !== null) {
+                $params['classe_id_t'] = $classe_id;
+                $params['matiere_id_t'] = $matiere_id;
                 $params['enseignant_id'] = $resolvedEnseignantId;
             }
             $stmt->execute($params);
@@ -379,19 +381,19 @@ class EvaluationSaisieService {
         string $nowNorm
     ): ?array {
         $teacherCond = ($enseignantId !== null)
-            ? "(type = 'enseignant' AND classe_id = :classe_id AND matiere_id = :matiere_id AND enseignant_id = :enseignant_id)"
+            ? "(type = 'enseignant' AND classe_id = :classe_id_t AND matiere_id = :matiere_id_t AND enseignant_id = :enseignant_id)"
             : "(1 = 0)";
 
         $sql = "SELECT * FROM deblocages_notes
                 WHERE lycee_id = :lycee_id
                 AND annee_academique_id = :annee_id
                 AND (type_evaluation = :type_eval OR type_evaluation = 'tous')
-                AND (sequence_id IS NULL OR sequence_id = :sequence_id)
+                AND (sequence_id IS NULL OR sequence_id = :sequence_id_unlock)
                 AND (
                     type = 'global'
-                    OR (type = 'classe' AND classe_id = :classe_id)
-                    OR (type = 'matiere' AND matiere_id = :matiere_id)
-                    OR (type = 'classe_matiere' AND classe_id = :classe_id AND matiere_id = :matiere_id)
+                    OR (type = 'classe' AND classe_id = :classe_id_c)
+                    OR (type = 'matiere' AND matiere_id = :matiere_id_m)
+                    OR (type = 'classe_matiere' AND classe_id = :classe_id_cm AND matiere_id = :matiere_id_cm)
                     OR {$teacherCond}
                 )";
 
@@ -401,11 +403,15 @@ class EvaluationSaisieService {
                 'lycee_id' => $lyceeId,
                 'annee_id' => $anneeId,
                 'type_eval' => $typeEvaluation,
-                'sequence_id' => $sequenceId,
-                'classe_id' => $classeId,
-                'matiere_id' => $matiereId
+                'sequence_id_unlock' => $sequenceId,
+                'classe_id_c' => $classeId,
+                'matiere_id_m' => $matiereId,
+                'classe_id_cm' => $classeId,
+                'matiere_id_cm' => $matiereId
             ];
             if ($enseignantId !== null) {
+                $params['classe_id_t'] = $classeId;
+                $params['matiere_id_t'] = $matiereId;
                 $params['enseignant_id'] = $enseignantId;
             }
             $stmt->execute($params);

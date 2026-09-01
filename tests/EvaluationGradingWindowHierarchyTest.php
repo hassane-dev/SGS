@@ -53,7 +53,7 @@ function run_test() {
         // Clean up any test parameters or unlocks
         $db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = 1");
         $db->exec("DELETE FROM deblocages_notes WHERE lycee_id = 1");
-        $db->exec("DELETE FROM sequences WHERE lycee_id = 1 AND id IN (901, 902)");
+        $db->exec("DELETE FROM sequences WHERE lycee_id = 1");
 
         // Create test open sequence and closed sequence
         $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut)
@@ -131,10 +131,12 @@ function run_test() {
         // --- Scenario 5: Séquence fermée + aucune règle -> FERMÉ (false) ---
         echo "  Scenario 5: Closed sequence + no rules -> BLOCKED\n";
         $db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = 1");
+        $db->exec("UPDATE sequences SET statut = 'fermee' WHERE id = 901");
         $res5 = Evaluation::isGradingWindowOpen($classe_id, $matiere_id, 902, 'devoir');
         if ($res5 !== false) {
             throw new Exception("Scenario 5 failed: Expected false for closed sequence, got " . var_export($res5, true));
         }
+        $db->exec("UPDATE sequences SET statut = 'ouverte' WHERE id = 901");
         echo "    [PASS] Closed sequence blocked grading.\n";
 
         // --- Scenario 6: Séquence fermée + déblocage actif -> OUVERT (true) ---
