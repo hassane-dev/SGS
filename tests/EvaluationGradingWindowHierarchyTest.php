@@ -57,9 +57,9 @@ function run_test() {
 
         // Create test open sequence and closed sequence
         $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut)
-                   VALUES (901, 1, {$active_year_id}, 'Seq Open Test', 'trimestrielle', '2024-09-01', '2024-10-31', 'ouverte')");
+                   VALUES (901, 1, {$active_year_id}, 'Seq Open Test', 'trimestrielle', '2024-09-01', '2029-12-31', 'ouverte')");
         $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut)
-                   VALUES (902, 1, {$active_year_id}, 'Seq Closed Test', 'trimestrielle', '2024-11-01', '2024-12-31', 'fermee')");
+                   VALUES (902, 1, {$active_year_id}, 'Seq Closed Test', 'trimestrielle', '2024-11-01', '2029-12-31', 'fermee')");
 
         // --- Scenario 1: Séquence ouverte + aucune règle -> OUVERT (true) ---
         echo "  Scenario 1: Sequence open + no explicit rule -> ALLOWED BY DEFAULT\n";

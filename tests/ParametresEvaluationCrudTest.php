@@ -27,7 +27,7 @@ class ParametresEvaluationCrudRunner {
             $activeYear = AnneeAcademique::findActive();
             $anneeId = $activeYear['id'];
 
-            $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, statut) VALUES (200, 200, {$anneeId}, 'Seq Alpha', 'ouverte')");
+            $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (200, 200, {$anneeId}, 'Seq Alpha', 'trimestrielle', '2020-01-01', '2099-12-31', 'ouverte')");
 
             $_SESSION['user'] = [
                 'id' => 200,

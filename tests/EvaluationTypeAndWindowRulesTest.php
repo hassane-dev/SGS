@@ -48,7 +48,7 @@ class EvaluationTypeAndWindowRulesRunner {
             $anneeId = $activeYear['id'];
 
             // Create open sequence & user
-            $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, statut) VALUES (500, 500, {$anneeId}, 'Séquence Open 500', 'ouverte')");
+            $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (500, 500, {$anneeId}, 'Séquence Open 500', 'trimestrielle', '2020-01-01', '2099-12-31', 'ouverte')");
             $db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, role_id) VALUES (500, 500, 'Professeur', 'Test', 6)");
 
             // Setup test class A & B, matiere, student using unique IDs
@@ -396,7 +396,7 @@ class EvaluationTypeAndWindowRulesRunner {
             echo "Testing Matrix Cas 15: Deux séquences ouvertes simultanément (500 = Trimestre 1, 501 = Séquence 2)...\n";
             $db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = 500");
             $db->exec("DELETE FROM sequences WHERE id = 501 AND lycee_id = 500");
-            $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, statut, date_debut) VALUES (501, 500, {$anneeId}, 'Séquence 2 Open', 'ouverte', '2024-11-01')");
+            $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (501, 500, {$anneeId}, 'Séquence 2 Open', 'trimestrielle', '2020-01-01', '2099-12-31', 'ouverte')");
 
             ParametresEvaluation::save([
                 'type' => 'global',
