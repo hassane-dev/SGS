@@ -214,6 +214,45 @@ try {
         );
     ");
 
+    // --- MIGRATION IDEMPOTENTE DES DATES COMPORTANT 'T' ---
+    try {
+        if ($tableExists($db, 'deblocages_notes')) {
+            $stmt = $db->query("SELECT id, date_debut, date_fin FROM deblocages_notes WHERE date_debut LIKE '%T%' OR date_fin LIKE '%T%'");
+            if ($stmt) {
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
+                $upStmt = $db->prepare("UPDATE deblocages_notes SET date_debut = :date_debut, date_fin = :date_fin WHERE id = :id");
+                foreach ($rows as $r) {
+                    $cleanStart = date('Y-m-d H:i:s', strtotime(str_replace('T', ' ', $r['date_debut'])));
+                    $cleanEnd = date('Y-m-d H:i:s', strtotime(str_replace('T', ' ', $r['date_fin'])));
+                    $upStmt->execute(['date_debut' => $cleanStart, 'date_fin' => $cleanEnd, 'id' => $r['id']]);
+                }
+                if (count($rows) > 0) {
+                    echo "Normalized " . count($rows) . " existing records in deblocages_notes.\n";
+                }
+            }
+        }
+
+        if ($tableExists($db, 'parametres_evaluations')) {
+            $stmt = $db->query("SELECT id, date_ouverture_saisie, date_fermeture_saisie FROM parametres_evaluations WHERE date_ouverture_saisie LIKE '%T%' OR date_fermeture_saisie LIKE '%T%'");
+            if ($stmt) {
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
+                $upStmt = $db->prepare("UPDATE parametres_evaluations SET date_ouverture_saisie = :date_ouverture, date_fermeture_saisie = :date_fermeture WHERE id = :id");
+                foreach ($rows as $r) {
+                    $cleanOpen = date('Y-m-d H:i:s', strtotime(str_replace('T', ' ', $r['date_ouverture_saisie'])));
+                    $cleanClose = date('Y-m-d H:i:s', strtotime(str_replace('T', ' ', $r['date_fermeture_saisie'])));
+                    $upStmt->execute(['date_ouverture' => $cleanOpen, 'date_fermeture' => $cleanClose, 'id' => $r['id']]);
+                }
+                if (count($rows) > 0) {
+                    echo "Normalized " . count($rows) . " existing records in parametres_evaluations.\n";
+                }
+            }
+        }
+    } catch (Exception $e) {
+        echo "Notice migrating datetime-local strings: " . $e->getMessage() . "\n";
+    }
+
     // Create deblocages_notes table
     $createTable($db, 'deblocages_notes', "
         CREATE TABLE IF NOT EXISTS `deblocages_notes` (
