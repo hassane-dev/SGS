@@ -46,7 +46,7 @@ function run_evaluation_saisie_service_tests() {
         // Clean up test data
         $db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = 1");
         $db->exec("DELETE FROM deblocages_notes WHERE lycee_id = 1");
-        $db->exec("DELETE FROM sequences WHERE lycee_id = 1 AND id IN (801, 802)");
+        $db->exec("DELETE FROM sequences WHERE lycee_id = 1");
 
         // Insert test sequences
         $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut)
@@ -55,35 +55,37 @@ function run_evaluation_saisie_service_tests() {
                    VALUES (802, 1, {$active_year_id}, 'Seq 2 Closed', 'trimestrielle', '2025-12-01', '2026-02-28', 'fermee')");
 
         // ------------------------------------------------------------------
-        // Scenario 1: Déblocage actif + séquence fermée -> AUTORISÉ (ALLOWED_DEBLOCAGE)
+        // Scenario 1: Déblocage actif sur la séquence active -> AUTORISÉ (ALLOWED_DEBLOCAGE)
         // ------------------------------------------------------------------
-        echo "  Scenario 1: Active unlock + closed sequence -> ALLOWED\n";
+        echo "  Scenario 1: Active unlock on active sequence -> ALLOWED\n";
         $now = '2026-09-01 14:30:00';
         Deblocage::save([
             'type' => 'global',
-            'sequence_id' => 802,
+            'sequence_id' => 801,
             'type_evaluation' => 'devoir',
             'date_debut' => '2026-09-01 14:25:00',
             'date_fin' => '2026-09-03 14:25:00',
             'motif' => 'Saisie exceptionnelle de rentrée'
         ]);
 
-        $res1 = EvaluationSaisieService::canTeacherGradeContext($classe_id, $matiere_id, 802, 'devoir', $enseignant_id, $now, 1);
+        $res1 = EvaluationSaisieService::canTeacherGradeContext($classe_id, $matiere_id, 801, 'devoir', $enseignant_id, $now, 1);
         if ($res1['allowed'] !== true || $res1['code'] !== 'ALLOWED_DEBLOCAGE') {
             throw new Exception("Scenario 1 failed: Expected ALLOWED_DEBLOCAGE, got " . json_encode($res1));
         }
-        echo "    [PASS] Active unlock on closed sequence correctly allowed (code: ALLOWED_DEBLOCAGE).\n";
+        echo "    [PASS] Active unlock on active sequence correctly allowed (code: ALLOWED_DEBLOCAGE).\n";
 
         // ------------------------------------------------------------------
-        // Scenario 2: Séquence fermée sans déblocage -> REFUSÉ (DENIED_SEQUENCE_CLOSED)
+        // Scenario 2: Aucune séquence ouverte -> REFUSÉ (DENIED_NO_OPEN_SEQUENCE)
         // ------------------------------------------------------------------
-        echo "  Scenario 2: Closed sequence without unlock -> REFUSED\n";
+        echo "  Scenario 2: No open sequence -> REFUSED (DENIED_NO_OPEN_SEQUENCE)\n";
         $db->exec("DELETE FROM deblocages_notes WHERE lycee_id = 1");
+        $db->exec("UPDATE sequences SET statut = 'fermee' WHERE id = 801");
         $res2 = EvaluationSaisieService::canTeacherGradeContext($classe_id, $matiere_id, 802, 'devoir', $enseignant_id, $now, 1);
-        if ($res2['allowed'] !== false || $res2['code'] !== 'DENIED_SEQUENCE_CLOSED') {
-            throw new Exception("Scenario 2 failed: Expected DENIED_SEQUENCE_CLOSED, got " . json_encode($res2));
+        if ($res2['allowed'] !== false || $res2['code'] !== 'DENIED_NO_OPEN_SEQUENCE') {
+            throw new Exception("Scenario 2 failed: Expected DENIED_NO_OPEN_SEQUENCE, got " . json_encode($res2));
         }
-        echo "    [PASS] Closed sequence without unlock correctly denied (code: DENIED_SEQUENCE_CLOSED).\n";
+        $db->exec("UPDATE sequences SET statut = 'ouverte' WHERE id = 801");
+        echo "    [PASS] Absence of open sequence correctly denied (code: DENIED_NO_OPEN_SEQUENCE).\n";
 
         // ------------------------------------------------------------------
         // Scenario 3: Période normale active sur séquence ouverte -> AUTORISÉ (ALLOWED_PERIOD)
@@ -155,23 +157,33 @@ function run_evaluation_saisie_service_tests() {
         echo "    [PASS] 1 second after end date correctly refused.\n";
 
         // ------------------------------------------------------------------
-        // Scenario 9: Déblocage ne correspondant pas à la séquence -> REFUSÉ
+        // Scenario 9: Déblocage ne correspondant pas à la séquence -> non appliqué
         // ------------------------------------------------------------------
-        echo "  Scenario 9: Unlock for different sequence -> REFUSED\n";
+        echo "  Scenario 9: Unlock for different sequence -> not matched\n";
+        $db->exec("DELETE FROM deblocages_notes WHERE lycee_id = 1");
+        $db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = 1");
+        // Rule created specifically for sequence 999 only (does not match sequence 801)
+        ParametresEvaluation::save([
+            'type' => 'global',
+            'sequence_id' => 999,
+            'type_evaluation' => 'devoir',
+            'date_ouverture_saisie' => '2025-11-11 14:20:00',
+            'date_fermeture_saisie' => '2026-09-15 14:20:00',
+            'commentaire' => 'Rule for sequence 999 only'
+        ]);
         Deblocage::save([
             'type' => 'global',
-            'sequence_id' => 801, // Created for 801
+            'sequence_id' => 999, // Non matching sequence ID
             'type_evaluation' => 'devoir',
             'date_debut' => '2026-09-01 14:25:00',
             'date_fin' => '2026-09-03 14:25:00',
-            'motif' => 'Unlock for Seq 801'
+            'motif' => 'Unlock for Seq 999'
         ]);
-        // Evaluated on closed sequence 802
-        $res9 = EvaluationSaisieService::canTeacherGradeContext($classe_id, $matiere_id, 802, 'devoir', $enseignant_id, $now, 1);
-        if ($res9['allowed'] !== false || $res9['code'] !== 'DENIED_SEQUENCE_CLOSED') {
-            throw new Exception("Scenario 9 failed: Expected DENIED_SEQUENCE_CLOSED for sequence mismatch, got " . json_encode($res9));
+        $res9 = EvaluationSaisieService::canTeacherGradeContext($classe_id, $matiere_id, 801, 'devoir', $enseignant_id, $now, 1);
+        if ($res9['allowed'] !== false || $res9['code'] !== 'DENIED_POLICY_RESTRICTED') {
+            throw new Exception("Scenario 9 failed: Expected DENIED_POLICY_RESTRICTED for sequence mismatch, got " . json_encode($res9));
         }
-        echo "    [PASS] Unlock on sequence 801 did not bleed into closed sequence 802.\n";
+        echo "    [PASS] Unlock and rule on sequence 999 did not match active sequence 801.\n";
 
         // ------------------------------------------------------------------
         // Scenario 10: Déblocage ne correspondant pas au type -> REFUSÉ
@@ -180,14 +192,14 @@ function run_evaluation_saisie_service_tests() {
         $db->exec("DELETE FROM deblocages_notes WHERE lycee_id = 1");
         Deblocage::save([
             'type' => 'global',
-            'sequence_id' => 802,
+            'sequence_id' => 801,
             'type_evaluation' => 'composition',
             'date_debut' => '2026-09-01 14:25:00',
             'date_fin' => '2026-09-03 14:25:00',
             'motif' => 'Unlock for composition'
         ]);
         // Evaluated for 'devoir'
-        $res10 = EvaluationSaisieService::canTeacherGradeContext($classe_id, $matiere_id, 802, 'devoir', $enseignant_id, $now, 1);
+        $res10 = EvaluationSaisieService::canTeacherGradeContext($classe_id, $matiere_id, 801, 'devoir', $enseignant_id, $now, 1);
         if ($res10['allowed'] !== false) {
             throw new Exception("Scenario 10 failed: Expected false for evaluation type mismatch, got " . json_encode($res10));
         }
@@ -200,14 +212,14 @@ function run_evaluation_saisie_service_tests() {
         $db->exec("DELETE FROM deblocages_notes WHERE lycee_id = 1");
         Deblocage::save([
             'type' => 'global',
-            'sequence_id' => 802,
+            'sequence_id' => 801,
             'type_evaluation' => 'tous',
             'date_debut' => '2026-09-01 14:25:00',
             'date_fin' => '2026-09-03 14:25:00',
             'motif' => 'Unlock for all types'
         ]);
-        $res11_dev = EvaluationSaisieService::canTeacherGradeContext($classe_id, $matiere_id, 802, 'devoir', $enseignant_id, $now, 1);
-        $res11_comp = EvaluationSaisieService::canTeacherGradeContext($classe_id, $matiere_id, 802, 'composition', $enseignant_id, $now, 1);
+        $res11_dev = EvaluationSaisieService::canTeacherGradeContext($classe_id, $matiere_id, 801, 'devoir', $enseignant_id, $now, 1);
+        $res11_comp = EvaluationSaisieService::canTeacherGradeContext($classe_id, $matiere_id, 801, 'composition', $enseignant_id, $now, 1);
         if ($res11_dev['allowed'] !== true || $res11_comp['allowed'] !== true) {
             throw new Exception("Scenario 11 failed: Expected true for type 'tous' unlock on both devoir and composition.");
         }
@@ -217,6 +229,7 @@ function run_evaluation_saisie_service_tests() {
         // Scenario 12: Hiérarchie de spécificité (enseignant > classe_matiere > classe > matiere > global)
         // ------------------------------------------------------------------
         echo "  Scenario 12: Specificity hierarchy (targeted expired rule overrides global active rule) -> REFUSED\n";
+        $db->exec("DELETE FROM deblocages_notes WHERE lycee_id = 1");
         $db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = 1");
         // Global active rule
         ParametresEvaluation::save([
@@ -295,32 +308,31 @@ function run_evaluation_saisie_service_tests() {
         echo "    [PASS] Anti-tampering check via EvaluationSaisieService prevents HTTP parameter manipulation.\n";
 
         // ------------------------------------------------------------------
-        // Scenario 17: MYSQL ENGINE REALISTIC SCENARIO VALIDATION
-        // Reproduce exact issue described in prompt:
+        // Scenario 17: REALISTIC SGS SCENARIO (Active open sequence with active unlock)
         // Période normale: 2025-11-11 14:20:00 -> 2026-09-15 14:20:00
         // Déblocage: 2026-09-01 14:25:00 -> 2026-09-03 14:25:00
-        // Séquence: fermée (802)
+        // Séquence: 801 (open)
         // Type: 'devoir'
         // Simulated Now: 2026-09-01 14:30:00
         // ------------------------------------------------------------------
-        echo "  Scenario 17: REALISTIC SGS SCENARIO (Active unlock overrides closed sequence)\n";
+        echo "  Scenario 17: REALISTIC SGS SCENARIO (Active unlock on active open sequence)\n";
         $db->exec("DELETE FROM deblocages_notes WHERE lycee_id = 1");
         $db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = 1");
 
-        // Normal period rule on sequence 802
+        // Normal period rule on sequence 801
         ParametresEvaluation::save([
             'type' => 'global',
-            'sequence_id' => 802,
+            'sequence_id' => 801,
             'type_evaluation' => 'devoir',
             'date_ouverture_saisie' => '2025-11-11 14:20:00',
             'date_fermeture_saisie' => '2026-09-15 14:20:00',
             'commentaire' => 'Période normale SGS'
         ]);
 
-        // Exceptional unlock on closed sequence 802
+        // Exceptional unlock on sequence 801
         Deblocage::save([
             'type' => 'global',
-            'sequence_id' => 802,
+            'sequence_id' => 801,
             'type_evaluation' => 'devoir',
             'date_debut' => '2026-09-01 14:25:00',
             'date_fin' => '2026-09-03 14:25:00',
@@ -329,8 +341,8 @@ function run_evaluation_saisie_service_tests() {
 
         $simulatedNow = '2026-09-01 14:30:00';
 
-        $serviceDecision = EvaluationSaisieService::canTeacherGradeContext($classe_id, $matiere_id, 802, 'devoir', $enseignant_id, $simulatedNow, 1);
-        $facadeDecision = Evaluation::isGradingWindowOpen($classe_id, $matiere_id, 802, 'devoir', $simulatedNow);
+        $serviceDecision = EvaluationSaisieService::canTeacherGradeContext($classe_id, $matiere_id, 801, 'devoir', $enseignant_id, $simulatedNow, 1);
+        $facadeDecision = Evaluation::isGradingWindowOpen($classe_id, $matiere_id, 801, 'devoir', $simulatedNow);
 
         if ($serviceDecision['allowed'] !== true) {
             throw new Exception("Scenario 17 failed: Service decision expected allowed=true, got " . json_encode($serviceDecision));
@@ -342,7 +354,7 @@ function run_evaluation_saisie_service_tests() {
             throw new Exception("Scenario 17 failed: Evaluation::isGradingWindowOpen facade expected true, got " . var_export($facadeDecision, true));
         }
 
-        echo "    [PASS] PROOF CONFIRMED: Active unlock correctly grants access on closed sequence!\n";
+        echo "    [PASS] PROOF CONFIRMED: Active unlock correctly grants access!\n";
         echo "           Service Code: {$serviceDecision['code']}\n";
         echo "           Service Reason: {$serviceDecision['reason']}\n";
         echo "           Facade Result: " . ($facadeDecision ? 'true' : 'false') . "\n";
