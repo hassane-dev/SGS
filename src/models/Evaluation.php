@@ -229,7 +229,26 @@ class Evaluation {
             error_log("Error in Evaluation::isGradingWindowOpen: " . $e->getMessage());
         }
 
-        // Level 4: Fallback by default - If sequence is open and NO explicit rules exist for this target -> ALLOWED BY DEFAULT
+        // Level 4: Fallback
+        // Check if ANY parameter rules exist in parametres_evaluations for this establishment & academic year.
+        // If the administration HAS configured grading rules for the establishment/year, but none match this sequence/target,
+        // then this sequence is NOT authorized by the administrative policy -> BLOCKED (return false).
+        // Default fallback (return true) applies ONLY when NO explicit rules exist at all in parametres_evaluations
+        // for the entire establishment and academic year.
+        try {
+            $stmtCount = $db->prepare("SELECT COUNT(*) FROM parametres_evaluations WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id");
+            $stmtCount->execute([
+                'lycee_id' => $lycee_id,
+                'annee_id' => $active_year['id']
+            ]);
+            $hasAnyRules = ((int)$stmtCount->fetchColumn()) > 0;
+            if ($hasAnyRules) {
+                return false;
+            }
+        } catch (PDOException $e) {
+            error_log("Error in Evaluation::isGradingWindowOpen Level 4 check: " . $e->getMessage());
+        }
+
         return true;
     }
 }
