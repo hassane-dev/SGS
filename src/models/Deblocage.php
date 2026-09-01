@@ -6,6 +6,25 @@ require_once __DIR__ . '/../models/AnneeAcademique.php';
 
 class Deblocage {
 
+    /**
+     * Helper to strictly normalize datetime inputs from HTML5 inputs (e.g. Y-m-d\TH:i) to canonical Y-m-d H:i:s.
+     * Throws InvalidArgumentException on invalid dates.
+     */
+    public static function normalizeDateTime(?string $dateStr): ?string {
+        if (empty($dateStr)) {
+            return null;
+        }
+        $cleanStr = str_replace('T', ' ', trim($dateStr));
+        if (strlen($cleanStr) === 16 && preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/', $cleanStr)) {
+            $cleanStr .= ':00';
+        }
+        $timestamp = strtotime($cleanStr);
+        if ($timestamp === false || date('Y-m-d H:i:s', $timestamp) === '1970-01-01 00:00:00') {
+            throw new InvalidArgumentException("Format de date invalide: " . $dateStr);
+        }
+        return date('Y-m-d H:i:s', $timestamp);
+    }
+
     public static function save($data) {
         $db = Database::getInstance();
         $lycee_id = Auth::getLyceeId();
@@ -44,6 +63,13 @@ class Deblocage {
         ]);
         $existing_id = $stmt_check->fetchColumn();
 
+        $date_debut_norm = self::normalizeDateTime($data['date_debut'] ?? null);
+        $date_fin_norm = self::normalizeDateTime($data['date_fin'] ?? null);
+
+        if (!$date_debut_norm || !$date_fin_norm) {
+            throw new InvalidArgumentException("Les dates de début et de fin sont obligatoires.");
+        }
+
         if ($existing_id) {
             $sql = "UPDATE deblocages_notes SET
                         date_debut = :date_debut,
@@ -52,8 +78,8 @@ class Deblocage {
                         cree_par = :cree_par
                     WHERE id = :id";
             $params = [
-                'date_debut' => $data['date_debut'],
-                'date_fin' => $data['date_fin'],
+                'date_debut' => $date_debut_norm,
+                'date_fin' => $date_fin_norm,
                 'motif' => $data['motif'] ?? null,
                 'cree_par' => Auth::getUserId(),
                 'id' => $existing_id
@@ -75,8 +101,8 @@ class Deblocage {
                 'enseignant_id' => $data['enseignant_id'] ?? null,
                 'sequence_id' => $data['sequence_id'] ?? null,
                 'type_evaluation' => $data['type_evaluation'] ?? 'tous',
-                'date_debut' => $data['date_debut'],
-                'date_fin' => $data['date_fin'],
+                'date_debut' => $date_debut_norm,
+                'date_fin' => $date_fin_norm,
                 'motif' => $data['motif'] ?? null,
                 'cree_par' => Auth::getUserId()
             ];

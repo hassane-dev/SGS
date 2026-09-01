@@ -6,6 +6,25 @@ require_once __DIR__ . '/../models/AnneeAcademique.php';
 
 class ParametresEvaluation {
 
+    /**
+     * Helper to strictly normalize datetime inputs from HTML5 inputs (e.g. Y-m-d\TH:i) to canonical Y-m-d H:i:s.
+     * Throws InvalidArgumentException on invalid dates.
+     */
+    public static function normalizeDateTime(?string $dateStr): ?string {
+        if (empty($dateStr)) {
+            return null;
+        }
+        $cleanStr = str_replace('T', ' ', trim($dateStr));
+        if (strlen($cleanStr) === 16 && preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/', $cleanStr)) {
+            $cleanStr .= ':00';
+        }
+        $timestamp = strtotime($cleanStr);
+        if ($timestamp === false || date('Y-m-d H:i:s', $timestamp) === '1970-01-01 00:00:00') {
+            throw new InvalidArgumentException("Format de date invalide: " . $dateStr);
+        }
+        return date('Y-m-d H:i:s', $timestamp);
+    }
+
     private static function ensureTypeColumn($db) {
         try {
             $isSqlite = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
@@ -73,6 +92,13 @@ class ParametresEvaluation {
         ]);
         $existing_id = $stmt_check->fetchColumn();
 
+        $date_ouverture_norm = self::normalizeDateTime($data['date_ouverture_saisie'] ?? null);
+        $date_fermeture_norm = self::normalizeDateTime($data['date_fermeture_saisie'] ?? null);
+
+        if (!$date_ouverture_norm || !$date_fermeture_norm) {
+            throw new InvalidArgumentException("Les dates d'ouverture et de fermeture sont obligatoires.");
+        }
+
         if ($existing_id) {
             $sql = "UPDATE parametres_evaluations SET
                         date_ouverture_saisie = :date_ouverture,
@@ -81,8 +107,8 @@ class ParametresEvaluation {
                         enseignant_id = :enseignant_id
                     WHERE id = :id";
             $params = [
-                'date_ouverture' => $data['date_ouverture_saisie'],
-                'date_fermeture' => $data['date_fermeture_saisie'],
+                'date_ouverture' => $date_ouverture_norm,
+                'date_fermeture' => $date_fermeture_norm,
                 'commentaire' => $data['commentaire'] ?? null,
                 'enseignant_id' => $data['enseignant_id'] ?? null,
                 'id' => $existing_id
@@ -104,8 +130,8 @@ class ParametresEvaluation {
                 'enseignant_id' => $data['enseignant_id'] ?? null,
                 'sequence_id' => $data['sequence_id'] ?? null,
                 'type_evaluation' => $data['type_evaluation'] ?? 'tous',
-                'date_ouverture' => $data['date_ouverture_saisie'],
-                'date_fermeture' => $data['date_fermeture_saisie'],
+                'date_ouverture' => $date_ouverture_norm,
+                'date_fermeture' => $date_fermeture_norm,
                 'commentaire' => $data['commentaire'] ?? null
             ];
         }
@@ -167,6 +193,16 @@ class ParametresEvaluation {
                     commentaire = :commentaire
                 WHERE id = :id AND lycee_id = :lycee_id";
 
+        $date_ouverture_raw = $data['date_ouverture_saisie'] ?? $data['date_ouverture'] ?? null;
+        $date_fermeture_raw = $data['date_fermeture_saisie'] ?? $data['date_fermeture'] ?? null;
+
+        $date_ouverture_norm = self::normalizeDateTime($date_ouverture_raw);
+        $date_fermeture_norm = self::normalizeDateTime($date_fermeture_raw);
+
+        if (!$date_ouverture_norm || !$date_fermeture_norm) {
+            throw new InvalidArgumentException("Les dates d'ouverture et de fermeture sont obligatoires.");
+        }
+
         $params = [
             'type' => $type,
             'classe_id' => $classe_id,
@@ -174,8 +210,8 @@ class ParametresEvaluation {
             'enseignant_id' => $enseignant_id,
             'sequence_id' => $sequence_id,
             'type_eval' => $type_evaluation,
-            'date_ouverture' => $data['date_ouverture_saisie'] ?? $data['date_ouverture'] ?? null,
-            'date_fermeture' => $data['date_fermeture_saisie'] ?? $data['date_fermeture'] ?? null,
+            'date_ouverture' => $date_ouverture_norm,
+            'date_fermeture' => $date_fermeture_norm,
             'commentaire' => $data['commentaire'] ?? null,
             'id' => (int)$id,
             'lycee_id' => $lycee_id
