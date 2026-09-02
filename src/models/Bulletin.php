@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../services/EvaluationCalculationService.php';
 
 class Bulletin {
 
@@ -13,28 +14,22 @@ class Bulletin {
      */
     public static function generateForClass($classe_id, $sequence_id) {
         $db = Database::getInstance();
-        // This more complex query calculates the weighted average for each student in the class.
-        $sql = "
-            SELECT
-                el.id_eleve,
-                el.nom,
-                el.prenom,
-                SUM(ev.note * cm.coefficient) / SUM(cm.coefficient) as moyenne_generale
-            FROM evaluations ev
-            JOIN eleves el ON ev.eleve_id = el.id_eleve
-            JOIN etudes et ON el.id_eleve = et.eleve_id
-            JOIN classe_matieres cm ON et.classe_id = cm.classe_id AND ev.matiere_id = cm.matiere_id
-            WHERE et.classe_id = :classe_id
-              AND ev.sequence_id = :sequence_id
-              AND et.actif = 1
-            GROUP BY el.id_eleve, el.nom, el.prenom
-            ORDER BY el.nom, el.prenom;
-        ";
-
         try {
-            $stmt = $db->prepare($sql);
-            $stmt->execute(['classe_id' => $classe_id, 'sequence_id' => $sequence_id]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt = $db->prepare("SELECT id_eleve, nom, prenom FROM eleves el JOIN etudes et ON el.id_eleve = et.eleve_id WHERE et.classe_id = :classe_id AND et.actif = 1 ORDER BY el.nom, el.prenom");
+            $stmt->execute(['classe_id' => $classe_id]);
+            $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $results = [];
+            foreach ($students as $stu) {
+                $report = EvaluationCalculationService::computeStudentSequenceReport((int)$stu['id_eleve'], (int)$sequence_id);
+                $results[] = [
+                    'id_eleve' => $stu['id_eleve'],
+                    'nom' => $stu['nom'],
+                    'prenom' => $stu['prenom'],
+                    'moyenne_generale' => $report['moyenne_generale']
+                ];
+            }
+            return $results;
         } catch (PDOException $e) {
             error_log("Error in Bulletin::generateForClass: " . $e->getMessage());
             return [];
@@ -44,57 +39,12 @@ class Bulletin {
     public static function generateForStudent($eleve_id, $sequence_id) {
         $db = Database::getInstance();
 
-        // This complex query fetches all grades for a student in a sequence,
-        // along with the correct subject name and, crucially, the specific coefficient
-        // for that subject within that student's class.
-        $sql = "
-            SELECT
-                e.note,
-                e.appreciation,
-                m.nom_matiere,
-                m.id_matiere,
-                cm.coefficient
-            FROM evaluations e
-            JOIN matieres m ON e.matiere_id = m.id_matiere
-            JOIN etudes et ON e.eleve_id = et.eleve_id AND e.annee_academique_id = et.annee_academique_id
-            JOIN classe_matieres cm ON et.classe_id = cm.classe_id AND e.matiere_id = cm.matiere_id
-            WHERE e.eleve_id = :eleve_id
-              AND e.sequence_id = :sequence_id
-              AND et.actif = 1 -- Ensure we're looking at the current active enrollment
-            ORDER BY m.nom_matiere;
-        ";
-
         try {
-            $stmt = $db->prepare($sql);
-            $stmt->execute([
-                'eleve_id' => $eleve_id,
-                'sequence_id' => $sequence_id
-            ]);
-            $notes_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $report = EvaluationCalculationService::computeStudentSequenceReport((int)$eleve_id, (int)$sequence_id);
 
-            if (empty($notes_data)) {
-                return false; // No grades found for this student in this sequence.
+            if (empty($report['matieres'])) {
+                return false; // No grades found
             }
-
-            // --- Calculations ---
-            $matieres = [];
-            $total_points = 0;
-            $total_coefficients = 0;
-
-            foreach ($notes_data as $note) {
-                $coefficient = (float)$note['coefficient'];
-                $matieres[$note['id_matiere']] = [
-                    'nom' => $note['nom_matiere'],
-                    'note' => (float)$note['note'],
-                    'coefficient' => $coefficient,
-                    'appreciation' => $note['appreciation'],
-                    'total_points' => (float)$note['note'] * $coefficient
-                ];
-                $total_points += $matieres[$note['id_matiere']]['total_points'];
-                $total_coefficients += $coefficient;
-            }
-
-            $moyenne_generale = ($total_coefficients > 0) ? $total_points / $total_coefficients : 0;
 
             // Fetch student and sequence info for the report card header
             $stmt_eleve = $db->prepare("
@@ -118,15 +68,35 @@ class Bulletin {
             $stmt_bulletin->execute(['eleve_id' => $eleve_id, 'sequence_id' => $sequence_id]);
             $bulletin_record = $stmt_bulletin->fetch(PDO::FETCH_ASSOC);
 
+            // Format matieres array for view rendering
+            $formattedMatieres = [];
+            foreach ($report['matieres'] as $mId => $m) {
+                // Determine appreciation or first evaluation appreciation
+                $firstAppreciation = null;
+                foreach ($m['evaluations'] as $ev) {
+                    if (!empty($ev['appreciation'])) {
+                        $firstAppreciation = $ev['appreciation'];
+                        break;
+                    }
+                }
+                $formattedMatieres[$mId] = [
+                    'nom' => $m['nom'],
+                    'note' => $m['moyenne'],
+                    'coefficient' => $m['coefficient'],
+                    'appreciation' => $firstAppreciation,
+                    'total_points' => $m['total_points'],
+                    'evaluations' => $m['evaluations']
+                ];
+            }
 
             return [
                 'eleve' => $eleve_info,
                 'sequence' => $sequence_info,
-                'matieres' => $matieres,
-                'total_points' => $total_points,
-                'total_coefficients' => $total_coefficients,
-                'moyenne_generale' => round($moyenne_generale, 2),
-                'bulletin_record' => $bulletin_record // Contains appreciation, rang, statut
+                'matieres' => $formattedMatieres,
+                'total_points' => $report['total_points'],
+                'total_coefficients' => $report['total_coefficients'],
+                'moyenne_generale' => $report['moyenne_generale'],
+                'bulletin_record' => $bulletin_record
             ];
 
         } catch (PDOException $e) {

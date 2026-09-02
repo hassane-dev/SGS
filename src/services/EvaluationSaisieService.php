@@ -6,6 +6,7 @@ require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../models/Sequence.php';
 require_once __DIR__ . '/../models/AffectationPedagogique.php';
 require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../models/ParamTypeEvaluation.php';
 
 /**
  * Service métier centralisé d'autorisation et de contrôle d'accès à la saisie des notes dans SGS.
@@ -38,7 +39,7 @@ class EvaluationSaisieService {
      * @param int $classe_id ID de la classe
      * @param int $matiere_id ID de la matière
      * @param int $sequence_id ID de la séquence
-     * @param string $type Type d'évaluation ('devoir' ou 'composition')
+     * @param string|int $type Code du type (ex: 'devoir', 'composition') ou ID du type dans param_type_evaluation
      * @param int|null $enseignant_id ID de l'enseignant (par défaut l'utilisateur connecté)
      * @param string|null $simulatedNow Date/heure simulée pour les tests (Y-m-d H:i:s)
      * @param int|null $lycee_id ID du lycée (par défaut Auth::getLyceeId())
@@ -49,7 +50,7 @@ class EvaluationSaisieService {
         int $classe_id,
         int $matiere_id,
         int $sequence_id,
-        string $type = 'devoir',
+        $type = 'devoir',
         ?int $enseignant_id = null,
         ?string $simulatedNow = null,
         ?int $lycee_id = null,
@@ -64,31 +65,62 @@ class EvaluationSaisieService {
         // Heure pivot du serveur / simulation
         $rawNow = $simulatedNow ?? date('Y-m-d H:i:s');
         $nowNorm = self::normalizeDateTime($rawNow) ?? date('Y-m-d H:i:s');
-        $tsNow = strtotime($nowNorm);
+
+        // Résolution de l'année académique active
+        $active_year = AnneeAcademique::findActive();
+        if (!$active_year) {
+            return self::buildDecision(false, 'DENIED_NO_ACTIVE_YEAR', _("Aucune année académique active n'est définie."), 'context', $nowNorm, []);
+        }
+        $anneeId = (int)$active_year['id'];
+
+        if (!$resolvedLyceeId) {
+            $resolvedLyceeId = (int)($active_year['lycee_id'] ?? 1);
+        }
+
+        // ------------------------------------------------------------------
+        // RÈGLE 0 : Résolution dynamique du type d'évaluation
+        // ------------------------------------------------------------------
+        $typeRecord = null;
+        if (is_numeric($type)) {
+            $typeRecord = ParamTypeEvaluation::findById((int)$type);
+        } else {
+            $typeRecord = ParamTypeEvaluation::findByCode((string)$type, $resolvedLyceeId);
+        }
+
+        if (!$typeRecord || empty($typeRecord['actif'])) {
+            // Fallback: Si la table est temporairement vide, autoriser les codes historiques 'devoir' et 'composition'
+            $typeStr = strtolower(trim((string)$type));
+            if (!in_array($typeStr, ['devoir', 'composition'], true)) {
+                return self::buildDecision(
+                    false,
+                    'DENIED_INVALID_TYPE',
+                    sprintf(_("Type d'évaluation invalide '%s' ou non configuré pour l'établissement."), (string)$type),
+                    'validation',
+                    $nowNorm,
+                    []
+                );
+            }
+            $typeRecord = [
+                'id' => null,
+                'code' => $typeStr,
+                'libelle' => ucfirst($typeStr),
+                'bareme_defaut' => 20.00
+            ];
+        }
+
+        $typeCode = $typeRecord['code'];
+        $typeId = $typeRecord['id'];
 
         $context = [
             'lycee_id' => $resolvedLyceeId,
-            'annee_academique_id' => null,
+            'annee_academique_id' => $anneeId,
             'classe_id' => $classe_id,
             'matiere_id' => $matiere_id,
             'sequence_id' => $sequence_id,
             'enseignant_id' => $resolvedEnseignantId,
-            'type' => $type
+            'type_code' => $typeCode,
+            'type_id' => $typeId
         ];
-
-        // ------------------------------------------------------------------
-        // RÈGLE 0 : Validation stricte du type d'évaluation
-        // ------------------------------------------------------------------
-        if (!in_array($type, ['devoir', 'composition'], true)) {
-            return self::buildDecision(
-                false,
-                'DENIED_INVALID_TYPE',
-                sprintf(_("Type d'évaluation invalide '%s'. Seules les valeurs 'devoir' et 'composition' sont autorisées."), $type),
-                'validation',
-                $nowNorm,
-                $context
-            );
-        }
 
         $hasGlobalWrite = false;
 
@@ -115,7 +147,7 @@ class EvaluationSaisieService {
             }
 
             // ------------------------------------------------------------------
-            // RÈGLE 2 : Vérification de l'affectation enseignant à la classe / matière
+            // RÈGLE 2 : Vérification de l'affectation enseignant
             // ------------------------------------------------------------------
             if (!$hasGlobalWrite && $resolvedEnseignantId) {
                 $subjects_taught = User::findSubjectsTaughtByTeacher($resolvedEnseignantId);
@@ -132,20 +164,6 @@ class EvaluationSaisieService {
             }
         }
 
-        // Résolution de l'année académique active
-        $active_year = AnneeAcademique::findActive();
-        if (!$active_year) {
-            return self::buildDecision(false, 'DENIED_NO_ACTIVE_YEAR', _("Aucune année académique active n'est définie."), 'context', $nowNorm, $context);
-        }
-        $context['annee_academique_id'] = (int)$active_year['id'];
-
-        // Si lycee_id n'a pas pu être résolu depuis la session, utiliser le lycée de l'année active ou 1 par défaut
-        if (!$resolvedLyceeId) {
-            $resolvedLyceeId = (int)($active_year['lycee_id'] ?? 1);
-            $context['lycee_id'] = $resolvedLyceeId;
-        }
-
-        // Si $resolvedEnseignantId est nul, tenter d'extraire l'enseignant affecté depuis AffectationPedagogique
         if (!$resolvedEnseignantId) {
             $assignments = AffectationPedagogique::findAssignmentsForClass($classe_id);
             $resolvedEnseignantId = isset($assignments[$matiere_id]['enseignant_id']) ? (int)$assignments[$matiere_id]['enseignant_id'] : null;
@@ -155,7 +173,7 @@ class EvaluationSaisieService {
         // ------------------------------------------------------------------
         // Résolution de la séquence réellement ouverte pour l'année académique active
         // ------------------------------------------------------------------
-        $sequence = Sequence::findActiveForYear($resolvedLyceeId, (int)$active_year['id'], $nowNorm);
+        $sequence = Sequence::findActiveForYear($resolvedLyceeId, $anneeId, $nowNorm);
         if (!$sequence) {
             return self::buildDecision(
                 false,
@@ -173,10 +191,9 @@ class EvaluationSaisieService {
         // ------------------------------------------------------------------
         // RÈGLE 3 & 4 : Recherche d'un déblocage exceptionnel (PRIORITÉ ABSOLUE)
         // ------------------------------------------------------------------
-        $unlockRecord = self::findMatchingUnlock($db, $resolvedLyceeId, (int)$active_year['id'], $classe_id, $matiere_id, $sequence_id, $resolvedEnseignantId, $type, $nowNorm);
+        $unlockRecord = self::findMatchingUnlock($db, $resolvedLyceeId, $anneeId, $classe_id, $matiere_id, $sequence_id, $resolvedEnseignantId, $typeCode, $typeId, $nowNorm);
 
         if ($unlockRecord) {
-            // Déblocage valide et actif présent -> ACCÈS ACCORDÉ IMMÉDIATEMENT
             return self::buildDecision(
                 true,
                 'ALLOWED_DEBLOCAGE',
@@ -196,7 +213,7 @@ class EvaluationSaisieService {
             ? "(type = 'enseignant' AND classe_id = :classe_id_t AND matiere_id = :matiere_id_t AND enseignant_id = :enseignant_id)"
             : "(1 = 0)";
 
-        $sqlRules = "SELECT id, type, type_evaluation, date_ouverture_saisie, date_fermeture_saisie, commentaire,
+        $sqlRules = "SELECT id, type, type_evaluation, type_evaluation_id, date_ouverture_saisie, date_fermeture_saisie, commentaire,
                             (CASE
                                 WHEN type = 'enseignant' THEN 5
                                 WHEN type = 'classe_matiere' THEN 4
@@ -221,7 +238,7 @@ class EvaluationSaisieService {
             $stmt = $db->prepare($sqlRules);
             $params = [
                 'lycee_id' => $resolvedLyceeId,
-                'annee_id' => $active_year['id'],
+                'annee_id' => $anneeId,
                 'sequence_id' => $sequence_id,
                 'classe_id_c' => $classe_id,
                 'matiere_id_m' => $matiere_id,
@@ -237,30 +254,37 @@ class EvaluationSaisieService {
             $matching_rules = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             if (!empty($matching_rules)) {
-                // Isolement du niveau de spécificité maximal présent
                 $max_specificity = (int)$matching_rules[0]['specificity'];
                 $target_rules = array_filter($matching_rules, function($r) use ($max_specificity) {
                     return (int)$r['specificity'] === $max_specificity;
                 });
 
-                // Filtrage des règles couvrant le type d'évaluation demandé ('devoir', 'composition' ou 'tous')
-                $covering_rules = array_filter($target_rules, function($r) use ($type) {
-                    return $r['type_evaluation'] === $type || $r['type_evaluation'] === 'tous';
+                // Filtrage des règles couvrant le type demandé (par ID, par code, ou scope 'tous' / NULL)
+                $covering_rules = array_filter($target_rules, function($r) use ($typeCode, $typeId) {
+                    if ($typeId !== null && !empty($r['type_evaluation_id']) && (int)$r['type_evaluation_id'] === (int)$typeId) {
+                        return true;
+                    }
+                    if (!empty($r['type_evaluation']) && ($r['type_evaluation'] === $typeCode || $r['type_evaluation'] === 'tous')) {
+                        return true;
+                    }
+                    if (empty($r['type_evaluation_id']) && (empty($r['type_evaluation']) || $r['type_evaluation'] === 'tous')) {
+                        return true;
+                    }
+                    return false;
                 });
 
                 if (empty($covering_rules)) {
-                    // Des règles de spécificité maximale existent pour ce périmètre, mais aucune ne couvre ce type d'évaluation
                     return self::buildDecision(
                         false,
                         'DENIED_TYPE_MISMATCH',
-                        sprintf(_("La saisie pour le type '%s' n'est pas autorisée par le paramétrage de l'évaluation."), $type),
+                        sprintf(_("La saisie pour le type '%s' n'est pas autorisée par le paramétrage de l'évaluation."), $typeCode),
                         'parametres',
                         $nowNorm,
                         $context
                     );
                 }
 
-                // Évaluation des intervalles de dates normalisés avec inclusion exacte des bornes
+                $tsNow = strtotime($nowNorm);
                 $isFuture = false;
                 $isExpired = false;
                 $lastRuleChecked = null;
@@ -277,7 +301,6 @@ class EvaluationSaisieService {
                     $tsEnd = strtotime($endNorm);
 
                     if ($tsNow >= $tsStart && $tsNow <= $tsEnd) {
-                        // Règle active -> Saisie AUTORISÉE
                         return self::buildDecision(
                             true,
                             'ALLOWED_PERIOD',
@@ -327,19 +350,16 @@ class EvaluationSaisieService {
             error_log("Error in EvaluationSaisieService::canTeacherGradeContext Level 3: " . $e->getMessage());
         }
 
-        // ------------------------------------------------------------------
-        // RÈGLE 8 : Fallback lorsque aucune règle explicite ne matche
-        // ------------------------------------------------------------------
+        // RÈGLE 8 : Fallback
         try {
             $stmtCount = $db->prepare("SELECT COUNT(*) FROM parametres_evaluations WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id");
             $stmtCount->execute([
                 'lycee_id' => $resolvedLyceeId,
-                'annee_id' => $active_year['id']
+                'annee_id' => $anneeId
             ]);
             $hasAnyRules = ((int)$stmtCount->fetchColumn()) > 0;
 
             if ($hasAnyRules) {
-                // L'établissement possède une politique de règles, mais aucune ne couvre ce contexte -> REFUS
                 return self::buildDecision(
                     false,
                     'DENIED_POLICY_RESTRICTED',
@@ -353,7 +373,6 @@ class EvaluationSaisieService {
             error_log("Error in EvaluationSaisieService::canTeacherGradeContext Level 4: " . $e->getMessage());
         }
 
-        // Aucune règle n'existe pour l'ensemble de l'établissement -> AUTORISÉ PAR DÉFAUT
         return self::buildDecision(
             true,
             'ALLOWED_DEFAULT_FALLBACK',
@@ -365,9 +384,9 @@ class EvaluationSaisieService {
     }
 
     /**
-     * Renvoie la liste des types d'évaluation autorisés pour un contexte donné.
+     * Renvoie la liste dynamique des types d'évaluation autorisés pour un contexte donné.
      *
-     * @return array Liste contenant 'devoir', 'composition', les deux ou vide.
+     * @return array Liste des codes de types autorisés (ex: ['devoir', 'composition', 'interrogation'])
      */
     public static function getAllowedEvaluationTypes(
         int $classe_id,
@@ -378,14 +397,23 @@ class EvaluationSaisieService {
         ?int $lycee_id = null,
         bool $checkRbac = true
     ): array {
-        $allowed = [];
-        $devDecision = self::canTeacherGradeContext($classe_id, $matiere_id, $sequence_id, 'devoir', $enseignant_id, $simulatedNow, $lycee_id, $checkRbac);
-        if ($devDecision['allowed']) {
-            $allowed[] = 'devoir';
+        $resolvedLyceeId = $lycee_id ?? Auth::getLyceeId();
+        $activeTypes = ParamTypeEvaluation::findActive($resolvedLyceeId);
+
+        if (empty($activeTypes)) {
+            $activeTypes = [
+                ['id' => null, 'code' => 'devoir', 'libelle' => 'Devoir'],
+                ['id' => null, 'code' => 'composition', 'libelle' => 'Composition']
+            ];
         }
-        $compDecision = self::canTeacherGradeContext($classe_id, $matiere_id, $sequence_id, 'composition', $enseignant_id, $simulatedNow, $lycee_id, $checkRbac);
-        if ($compDecision['allowed']) {
-            $allowed[] = 'composition';
+
+        $allowed = [];
+        foreach ($activeTypes as $typeRec) {
+            $code = $typeRec['code'];
+            $decision = self::canTeacherGradeContext($classe_id, $matiere_id, $sequence_id, $code, $enseignant_id, $simulatedNow, $resolvedLyceeId, $checkRbac);
+            if ($decision['allowed']) {
+                $allowed[] = $code;
+            }
         }
         return $allowed;
     }
@@ -397,7 +425,7 @@ class EvaluationSaisieService {
         int $classe_id,
         int $matiere_id,
         int $sequence_id,
-        string $type = 'devoir',
+        $type = 'devoir',
         ?int $enseignant_id = null,
         ?string $simulatedNow = null,
         ?int $lycee_id = null
@@ -417,17 +445,22 @@ class EvaluationSaisieService {
         int $matiereId,
         int $sequenceId,
         ?int $enseignantId,
-        string $typeEvaluation,
+        string $typeCode,
+        ?int $typeId,
         string $nowNorm
     ): ?array {
         $teacherCond = ($enseignantId !== null)
             ? "(type = 'enseignant' AND classe_id = :classe_id_t AND matiere_id = :matiere_id_t AND enseignant_id = :enseignant_id)"
             : "(1 = 0)";
 
+        $typeCond = ($typeId !== null)
+            ? "(type_evaluation_id = :type_id OR type_evaluation = :type_code OR type_evaluation = 'tous' OR (type_evaluation_id IS NULL AND (type_evaluation IS NULL OR type_evaluation = 'tous')))"
+            : "(type_evaluation = :type_code OR type_evaluation = 'tous' OR type_evaluation IS NULL)";
+
         $sql = "SELECT * FROM deblocages_notes
                 WHERE lycee_id = :lycee_id
                 AND annee_academique_id = :annee_id
-                AND (type_evaluation = :type_eval OR type_evaluation = 'tous')
+                AND {$typeCond}
                 AND (sequence_id IS NULL OR sequence_id = :sequence_id_unlock)
                 AND (
                     type = 'global'
@@ -442,13 +475,16 @@ class EvaluationSaisieService {
             $params = [
                 'lycee_id' => $lyceeId,
                 'annee_id' => $anneeId,
-                'type_eval' => $typeEvaluation,
+                'type_code' => $typeCode,
                 'sequence_id_unlock' => $sequenceId,
                 'classe_id_c' => $classeId,
                 'matiere_id_m' => $matiereId,
                 'classe_id_cm' => $classeId,
                 'matiere_id_cm' => $matiereId
             ];
+            if ($typeId !== null) {
+                $params['type_id'] = $typeId;
+            }
             if ($enseignantId !== null) {
                 $params['classe_id_t'] = $classeId;
                 $params['matiere_id_t'] = $matiereId;
@@ -470,7 +506,6 @@ class EvaluationSaisieService {
                 $tsStart = strtotime($startNorm);
                 $tsEnd = strtotime($endNorm);
 
-                // Inclusion exacte des bornes: date_debut <= now <= date_fin
                 if ($tsNow >= $tsStart && $tsNow <= $tsEnd) {
                     return $candidate;
                 }
@@ -482,9 +517,6 @@ class EvaluationSaisieService {
         return null;
     }
 
-    /**
-     * Helper de construction de la structure de décision standardisée.
-     */
     private static function buildDecision(
         bool $allowed,
         string $code,
@@ -507,3 +539,4 @@ class EvaluationSaisieService {
         ];
     }
 }
+?>

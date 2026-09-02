@@ -15,7 +15,7 @@
                     </div>
                     <div class="col-md-12">
                         <div class="page-header-title d-flex justify-content-between align-items-center">
-                            <h2 class="mb-0"><?= _('Saisie des Notes') ?> — <?= ucfirst($type) ?></h2>
+                            <h2 class="mb-0"><?= _('Saisie des Notes') ?> — <?= htmlspecialchars($type_rec['libelle'] ?? ucfirst($type)) ?> <?= $numero_evaluation ?></h2>
                             <a href="/evaluations/select_class" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
                                 <i class="ph-duotone ph-arrow-left me-1"></i> <?= _('Retour aux classes') ?>
                             </a>
@@ -54,7 +54,7 @@
                                 </span>
                             </div>
                             <div class="col-md-3">
-                                <span class="text-muted small d-block"><?= _('Coefficient') ?></span>
+                                <span class="text-muted small d-block"><?= _('Coefficient Matière') ?></span>
                                 <span class="badge bg-primary fs-6">
                                     <?= htmlspecialchars($coefficient) ?>
                                 </span>
@@ -65,54 +65,46 @@
             </div>
         </div>
 
-        <!-- Type Evaluation Selector Tabs -->
-        <?php if ($is_devoir_open && $is_composition_open): ?>
-            <!-- Both Devoir and Composition are open: Allow teacher to toggle -->
-            <div class="row mb-4">
-                <div class="col-md-12">
-                    <div class="card">
-                        <div class="card-header pb-0 border-bottom-0">
-                            <h5><i class="ph-duotone ph-sliders me-2 text-primary"></i><?= _('Nature de l\'évaluation à saisir') ?></h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="d-flex flex-wrap gap-2">
-                                <?php
-                                $baseUrl = "/evaluations/form?classe_id=" . $classe['id_classe'] . "&matiere_id=" . $matiere['id_matiere'] . "&sequence_id=" . $sequence_id;
-                                ?>
-                                <a href="<?= $baseUrl ?>&type=devoir" class="btn <?= $type === 'devoir' ? 'btn-primary' : 'btn-outline-primary' ?> d-inline-flex align-items-center px-4 py-2">
+        <!-- Dynamic Type Navigation & Occurrence Selector -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header pb-2 border-bottom-0 d-flex justify-content-between align-items-center">
+                        <h5><i class="ph-duotone ph-sliders me-2 text-primary"></i><?= _('Nature et occurrence de l\'évaluation') ?></h5>
+                        <span class="badge bg-light-info text-info fs-6">
+                            <?= _('Barème') ?> : /<?= number_format((float)$bareme_defaut, 0) ?>
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <?php
+                            $baseUrl = "/evaluations/form?classe_id=" . $classe['id_classe'] . "&matiere_id=" . $matiere['id_matiere'] . "&sequence_id=" . $sequence_id;
+                            foreach ($allowed_types as $tCode):
+                                $tRecObj = ParamTypeEvaluation::findByCode($tCode);
+                                $isSel = ($type === $tCode);
+                            ?>
+                                <a href="<?= $baseUrl ?>&type=<?= $tCode ?>&numero=1"
+                                   class="btn <?= $isSel ? 'btn-primary' : 'btn-outline-primary' ?> d-inline-flex align-items-center px-3 py-2">
                                     <i class="ph-duotone ph-notebook me-2 fs-5"></i>
-                                    <span class="fw-bold"><?= _('Devoir') ?></span>
-                                    <span class="badge bg-success ms-2"><?= _('Ouvert') ?></span>
+                                    <span class="fw-bold"><?= htmlspecialchars($tRecObj['libelle'] ?? ucfirst($tCode)) ?></span>
                                 </a>
-                                <a href="<?= $baseUrl ?>&type=composition" class="btn <?= $type === 'composition' ? 'btn-primary' : 'btn-outline-primary' ?> d-inline-flex align-items-center px-4 py-2">
-                                    <i class="ph-duotone ph-exam me-2 fs-5"></i>
-                                    <span class="fw-bold"><?= _('Composition') ?></span>
-                                    <span class="badge bg-success ms-2"><?= _('Ouvert') ?></span>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <!-- Occurrence Number Tabs (Devoir 1, Devoir 2, Devoir 3...) -->
+                        <div class="mt-3 pt-3 border-top d-flex align-items-center gap-2">
+                            <span class="text-muted small fw-bold me-2"><?= _('Occurrence / Numéro') ?> :</span>
+                            <?php for ($numIter = 1; $numIter <= 5; $numIter++): ?>
+                                <a href="<?= $baseUrl ?>&type=<?= $type ?>&numero=<?= $numIter ?>"
+                                   class="btn btn-sm <?= $numero_evaluation === $numIter ? 'btn-secondary' : 'btn-outline-secondary' ?>">
+                                    N° <?= $numIter ?>
                                 </a>
-                            </div>
+                            <?php endfor; ?>
                         </div>
                     </div>
                 </div>
             </div>
-        <?php else: ?>
-            <!-- Single evaluation type authorized: Display only the authorized nature -->
-            <div class="row mb-4">
-                <div class="col-md-12">
-                    <div class="card bg-light-primary border-primary border-start border-3">
-                        <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between">
-                            <span class="text-muted small fw-bold">
-                                <i class="ph-duotone ph-info me-1 text-primary"></i>
-                                <?= _('Nature imposée par le paramètre d\'évaluation') ?> :
-                            </span>
-                            <span class="badge bg-primary fs-6 px-3 py-2">
-                                <i class="ph-duotone <?= $type === 'composition' ? 'ph-exam' : 'ph-notebook' ?> me-1"></i>
-                                <?= htmlspecialchars(ucfirst($type)) ?>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        <?php endif; ?>
+        </div>
 
         <!-- Grade Entry Table Card -->
         <div class="row">
@@ -121,7 +113,7 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5>
                             <i class="ph-duotone ph-users me-2 text-primary"></i>
-                            <?= _('Saisie des notes pour') ?> : <span class="text-primary fw-bold"><?= ucfirst($type) ?></span>
+                            <?= _('Saisie des notes') ?> : <span class="text-primary fw-bold"><?= htmlspecialchars($type_rec['libelle'] ?? ucfirst($type)) ?> N° <?= $numero_evaluation ?></span>
                         </h5>
                         <span class="badge bg-light-info text-info">
                             <?= count($eleves) ?> <?= _('élève(s) inscrit(s)') ?>
@@ -133,6 +125,8 @@
                             <input type="hidden" name="matiere_id" value="<?= $matiere['id_matiere'] ?>">
                             <input type="hidden" name="sequence_id" value="<?= $sequence_id ?>">
                             <input type="hidden" name="type" value="<?= htmlspecialchars($type) ?>">
+                            <input type="hidden" name="numero_evaluation" value="<?= $numero_evaluation ?>">
+                            <input type="hidden" name="bareme" value="<?= htmlspecialchars($bareme_defaut) ?>">
                             <input type="hidden" name="coefficient" value="<?= htmlspecialchars($coefficient) ?>">
 
                             <div class="table-responsive mb-4">
@@ -141,8 +135,8 @@
                                         <tr>
                                             <th style="width: 5%;">#</th>
                                             <th style="width: 35%;"><?= _('Nom & Prénom de l\'Élève') ?></th>
-                                            <th style="width: 20%;"><?= _('Note / 20') ?></th>
-                                            <th style="width: 40%;"><?= _('Appréciation') ?></th>
+                                            <th style="width: 20%;"><?= _('Note') ?> / <?= number_format((float)$bareme_defaut, 0) ?></th>
+                                            <th style="width: 40%;"><?= _('Appréciation Note Individuelle') ?></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -170,12 +164,12 @@
                                                             <input type="number"
                                                                    step="0.25"
                                                                    min="0"
-                                                                   max="20"
+                                                                   max="<?= (float)$bareme_defaut ?>"
                                                                    class="form-control fw-bold text-primary"
                                                                    name="grades[<?= $eleve['id_eleve'] ?>][note]"
                                                                    value="<?= htmlspecialchars($grade['note'] ?? '') ?>"
                                                                    placeholder="e.g. 15.5">
-                                                            <span class="input-group-text">/ 20</span>
+                                                            <span class="input-group-text">/ <?= number_format((float)$bareme_defaut, 0) ?></span>
                                                         </div>
                                                     </td>
                                                     <td>
@@ -183,7 +177,7 @@
                                                                class="form-control"
                                                                name="grades[<?= $eleve['id_eleve'] ?>][appreciation]"
                                                                value="<?= htmlspecialchars($grade['appreciation'] ?? '') ?>"
-                                                               placeholder="<?= _('Appréciation globale (optionnel)...') ?>">
+                                                               placeholder="<?= _('Appréciation note (ex: Bon travail)...') ?>">
                                                     </td>
                                                 </tr>
                                             <?php endforeach; ?>
