@@ -76,6 +76,20 @@ class EvaluationSaisieService {
             'type' => $type
         ];
 
+        // ------------------------------------------------------------------
+        // RÈGLE 0 : Validation stricte du type d'évaluation
+        // ------------------------------------------------------------------
+        if (!in_array($type, ['devoir', 'composition'], true)) {
+            return self::buildDecision(
+                false,
+                'DENIED_INVALID_TYPE',
+                sprintf(_("Type d'évaluation invalide '%s'. Seules les valeurs 'devoir' et 'composition' sont autorisées."), $type),
+                'validation',
+                $nowNorm,
+                $context
+            );
+        }
+
         $hasGlobalWrite = false;
 
         // ------------------------------------------------------------------
@@ -348,6 +362,32 @@ class EvaluationSaisieService {
             $nowNorm,
             $context
         );
+    }
+
+    /**
+     * Renvoie la liste des types d'évaluation autorisés pour un contexte donné.
+     *
+     * @return array Liste contenant 'devoir', 'composition', les deux ou vide.
+     */
+    public static function getAllowedEvaluationTypes(
+        int $classe_id,
+        int $matiere_id,
+        int $sequence_id,
+        ?int $enseignant_id = null,
+        ?string $simulatedNow = null,
+        ?int $lycee_id = null,
+        bool $checkRbac = true
+    ): array {
+        $allowed = [];
+        $devDecision = self::canTeacherGradeContext($classe_id, $matiere_id, $sequence_id, 'devoir', $enseignant_id, $simulatedNow, $lycee_id, $checkRbac);
+        if ($devDecision['allowed']) {
+            $allowed[] = 'devoir';
+        }
+        $compDecision = self::canTeacherGradeContext($classe_id, $matiere_id, $sequence_id, 'composition', $enseignant_id, $simulatedNow, $lycee_id, $checkRbac);
+        if ($compDecision['allowed']) {
+            $allowed[] = 'composition';
+        }
+        return $allowed;
     }
 
     /**
