@@ -75,9 +75,20 @@ class EvaluationController {
         } elseif ($is_devoir_available && !$is_comp_available) {
             $type = 'devoir';
             $available_evaluations = $evals_devoir;
+        } elseif ($is_devoir_available && $is_comp_available) {
+            if ($requested_type === 'composition') {
+                $type = 'composition';
+                $available_evaluations = $evals_comp;
+            } elseif ($requested_type === 'devoir') {
+                $type = 'devoir';
+                $available_evaluations = $evals_devoir;
+            } else {
+                $type = 'devoir';
+                $available_evaluations = $evals_devoir;
+            }
         } else {
             $type = ($requested_type === 'composition') ? 'composition' : 'devoir';
-            $available_evaluations = ($type === 'composition') ? $evals_comp : $evals_devoir;
+            $available_evaluations = [];
         }
 
         View::render('evaluations/select_evaluation', [
@@ -97,28 +108,55 @@ class EvaluationController {
         $classe_id = $_GET['classe_id'] ?? null;
         $matiere_id = $_GET['matiere_id'] ?? null;
         $sequence_id = $_GET['sequence_id'] ?? null;
-        $type = $_GET['type'] ?? 'devoir';
+        $raw_type = $_GET['type'] ?? null;
 
         if (!$classe_id || !$matiere_id || !$sequence_id) {
             header('Location: /evaluations/select_class');
             exit();
         }
 
-        // Délégation centralisée à EvaluationSaisieService pour les deux types
-        $decisionDevoir = EvaluationSaisieService::canTeacherGradeContext((int)$classe_id, (int)$matiere_id, (int)$sequence_id, 'devoir');
-        $decisionComp = EvaluationSaisieService::canTeacherGradeContext((int)$classe_id, (int)$matiere_id, (int)$sequence_id, 'composition');
+        // Délégation centralisée à EvaluationSaisieService pour les types autorisés
+        $allowedTypes = EvaluationSaisieService::getAllowedEvaluationTypes((int)$classe_id, (int)$matiere_id, (int)$sequence_id);
+        $is_devoir_open = in_array('devoir', $allowedTypes, true);
+        $is_composition_open = in_array('composition', $allowedTypes, true);
 
-        $is_devoir_open = $decisionDevoir['allowed'];
-        $is_composition_open = $decisionComp['allowed'];
-
-        // Vérification stricte anti-tampering sur le type demandé
-        $requestedDecision = ($type === 'composition') ? $decisionComp : $decisionDevoir;
-        if (!$requestedDecision['allowed']) {
+        if (empty($allowedTypes)) {
+            $devDecision = EvaluationSaisieService::canTeacherGradeContext((int)$classe_id, (int)$matiere_id, (int)$sequence_id, 'devoir');
             View::render('evaluations/error', [
-                'message' => $requestedDecision['reason'],
+                'message' => $devDecision['reason'],
                 'title' => 'Accès Refusé'
             ]);
             exit();
+        }
+
+        // Détermination stricte du type selon le paramétrage
+        $type = null;
+        if ($raw_type !== null) {
+            if (!in_array($raw_type, ['devoir', 'composition'], true)) {
+                View::render('evaluations/error', [
+                    'message' => sprintf(_("Type d'évaluation invalide '%s'."), htmlspecialchars($raw_type)),
+                    'title' => 'Accès Refusé'
+                ]);
+                exit();
+            }
+            if (!in_array($raw_type, $allowedTypes, true)) {
+                View::render('evaluations/error', [
+                    'message' => sprintf(_("La saisie pour le type '%s' n'est pas autorisée par le paramétrage de l'évaluation."), $raw_type),
+                    'title' => 'Accès Refusé'
+                ]);
+                exit();
+            }
+            $type = $raw_type;
+        } else {
+            // Aucun type n'est fourni
+            if (count($allowedTypes) === 1) {
+                $type = $allowedTypes[0];
+            } else {
+                // Pour 'tous' (les deux sont autorisés), le système ne doit pas imposer 'devoir' silencieusement:
+                // Rediriger vers selectEvaluation pour présenter le choix Devoir / Composition.
+                header("Location: /evaluations/select_evaluation?classe_id=$classe_id&matiere_id=$matiere_id");
+                exit();
+            }
         }
 
         $eleves = Eleve::findByClass($classe_id);
@@ -148,11 +186,20 @@ class EvaluationController {
             $classe_id = $_POST['classe_id'] ?? null;
             $matiere_id = $_POST['matiere_id'] ?? null;
             $sequence_id = $_POST['sequence_id'] ?? null;
-            $type = $_POST['type'] ?? 'devoir';
+            $type = $_POST['type'] ?? null;
 
-            if (!$classe_id || !$matiere_id || !$sequence_id) {
+            if (!$classe_id || !$matiere_id || !$sequence_id || !$type) {
                 View::render('evaluations/error', [
                     'message' => _("Paramètres d'évaluation manquants."),
+                    'title' => 'Accès Refusé'
+                ]);
+                exit();
+            }
+
+            // Vérification stricte de la valeur du type
+            if (!in_array($type, ['devoir', 'composition'], true)) {
+                View::render('evaluations/error', [
+                    'message' => sprintf(_("Type d'évaluation invalide '%s'."), htmlspecialchars((string)$type)),
                     'title' => 'Accès Refusé'
                 ]);
                 exit();
@@ -207,24 +254,17 @@ class EvaluationController {
         }
 
         $target_sequence = null;
-        $is_devoir_open = false;
-        $is_composition_open = false;
+        $allowed_types = [];
         $lastDecision = null;
 
         foreach ($open_sequences as $seq) {
-            $devDecision = EvaluationSaisieService::canTeacherGradeContext((int)$classe_id, (int)$matiere_id, (int)$seq['id'], 'devoir');
-            $compDecision = EvaluationSaisieService::canTeacherGradeContext((int)$classe_id, (int)$matiere_id, (int)$seq['id'], 'composition');
-
-            $dev_open = $devDecision['allowed'];
-            $comp_open = $compDecision['allowed'];
-
-            if ($dev_open || $comp_open) {
+            $allowed = EvaluationSaisieService::getAllowedEvaluationTypes((int)$classe_id, (int)$matiere_id, (int)$seq['id']);
+            if (!empty($allowed)) {
                 $target_sequence = $seq;
-                $is_devoir_open = $dev_open;
-                $is_composition_open = $comp_open;
+                $allowed_types = $allowed;
                 break;
             } else {
-                $lastDecision = $devDecision;
+                $lastDecision = EvaluationSaisieService::canTeacherGradeContext((int)$classe_id, (int)$matiere_id, (int)$seq['id'], 'devoir');
             }
         }
 
@@ -239,18 +279,24 @@ class EvaluationController {
         }
 
         $sequence_id = $target_sequence['id'];
+        $raw_requested = $_GET['type'] ?? $_POST['type'] ?? null;
 
-        $requested_type = $_GET['type'] ?? $_POST['type'] ?? null;
-        if ($is_composition_open && !$is_devoir_open) {
-            $type = 'composition';
-        } elseif ($is_devoir_open && !$is_composition_open) {
-            $type = 'devoir';
+        if (count($allowed_types) === 1) {
+            $type = $allowed_types[0];
+            header("Location: /evaluations/form?classe_id=$classe_id&matiere_id=$matiere_id&sequence_id=$sequence_id&type=$type");
+            exit();
         } else {
-            $type = ($requested_type === 'composition') ? 'composition' : 'devoir';
+            // cas 'tous'
+            if ($raw_requested !== null && in_array($raw_requested, $allowed_types, true)) {
+                $type = $raw_requested;
+                header("Location: /evaluations/form?classe_id=$classe_id&matiere_id=$matiere_id&sequence_id=$sequence_id&type=$type");
+                exit();
+            } else {
+                // Solliciter le choix de l'enseignant au lieu de supposer 'devoir'
+                header("Location: /evaluations/select_evaluation?classe_id=$classe_id&matiere_id=$matiere_id");
+                exit();
+            }
         }
-
-        header("Location: /evaluations/form?classe_id=$classe_id&matiere_id=$matiere_id&sequence_id=$sequence_id&type=$type");
-        exit();
     }
 }
 ?>
