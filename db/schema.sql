@@ -768,6 +768,20 @@ CREATE TABLE `presences` (
     UNIQUE KEY `unique_presence_eleve_matiere_date` (`eleve_id`, `matiere_id`, `date_presence`)
 );
 
+-- Table for configurable evaluation types per school
+CREATE TABLE IF NOT EXISTS `param_type_evaluation` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `lycee_id` INT NOT NULL,
+    `code` VARCHAR(50) NOT NULL,
+    `libelle` VARCHAR(100) NOT NULL,
+    `bareme_defaut` DECIMAL(5,2) NOT NULL DEFAULT 20.00,
+    `actif` TINYINT(1) NOT NULL DEFAULT 1,
+    `ordre_affichage` INT DEFAULT 0,
+    `cree_le` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
+    UNIQUE KEY `uk_lycee_code` (`lycee_id`, `code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Table for evaluation parameters (when can teachers enter grades)
 CREATE TABLE `parametres_evaluations` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -779,6 +793,7 @@ CREATE TABLE `parametres_evaluations` (
     `annee_academique_id` INT NOT NULL,
     `type` ENUM('global', 'classe', 'matiere', 'classe_matiere', 'enseignant') NOT NULL DEFAULT 'enseignant',
     `type_evaluation` ENUM('devoir', 'composition', 'tous') NOT NULL DEFAULT 'tous',
+    `type_evaluation_id` INT DEFAULT NULL,
     `date_ouverture_saisie` DATETIME NOT NULL,
     `date_fermeture_saisie` DATETIME NOT NULL,
     `commentaire` TEXT,
@@ -787,7 +802,8 @@ CREATE TABLE `parametres_evaluations` (
     FOREIGN KEY (`matiere_id`) REFERENCES `matieres`(`id_matiere`) ON DELETE CASCADE,
     FOREIGN KEY (`sequence_id`) REFERENCES `sequences`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`enseignant_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE SET NULL,
-    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE
+    FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`type_evaluation_id`) REFERENCES `param_type_evaluation`(`id`) ON DELETE SET NULL
 );
 
 CREATE TABLE `deblocages_notes` (
@@ -824,8 +840,12 @@ CREATE TABLE `evaluations` (
     `eleve_id` INT NOT NULL,
     `sequence_id` INT NOT NULL,
     `annee_academique_id` INT NOT NULL,
-    `type` ENUM('devoir', 'composition') NOT NULL DEFAULT 'devoir',
+    `type` VARCHAR(50) NOT NULL DEFAULT 'devoir',
+    `type_evaluation_id` INT NULL,
+    `numero_evaluation` INT NOT NULL DEFAULT 1,
+    `libelle_evaluation` VARCHAR(100) NULL,
     `note` DECIMAL(5, 2) NOT NULL,
+    `bareme_snapshot` DECIMAL(5, 2) NOT NULL DEFAULT 20.00,
     `coefficient` DECIMAL(4, 2) NOT NULL,
     `appreciation` TEXT,
     `date_saisie` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -836,7 +856,8 @@ CREATE TABLE `evaluations` (
     FOREIGN KEY (`eleve_id`) REFERENCES `eleves`(`id_eleve`) ON DELETE CASCADE,
     FOREIGN KEY (`sequence_id`) REFERENCES `sequences`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
-    UNIQUE KEY `unique_evaluation_note` (`eleve_id`, `matiere_id`, `sequence_id`, `annee_academique_id`, `type`)
+    FOREIGN KEY (`type_evaluation_id`) REFERENCES `param_type_evaluation`(`id`) ON DELETE SET NULL,
+    UNIQUE KEY `uk_eval_occ` (`eleve_id`, `matiere_id`, `sequence_id`, `annee_academique_id`, `type_evaluation_id`, `numero_evaluation`)
 );
 
 CREATE TABLE `politiques_financieres` (

@@ -139,6 +139,12 @@ $router->register('/sequences/update', 'SequenceController', 'update');
 $router->register('/sequences/destroy', 'SequenceController', 'destroy');
 
 // Evaluation Settings
+$router->register('/evaluations/types', 'ParamTypeEvaluationController', 'index');
+$router->register('/evaluations/types/create', 'ParamTypeEvaluationController', 'create');
+$router->register('/evaluations/types/store', 'ParamTypeEvaluationController', 'store');
+$router->register('/evaluations/types/edit', 'ParamTypeEvaluationController', 'edit');
+$router->register('/evaluations/types/update', 'ParamTypeEvaluationController', 'update');
+$router->register('/evaluations/types/toggle', 'ParamTypeEvaluationController', 'toggle');
 $router->register('/evaluations/settings', 'ParametresEvaluationController', 'index');
 $router->register('/evaluations/settings/create', 'ParametresEvaluationController', 'create');
 $router->register('/evaluations/settings/store', 'ParametresEvaluationController', 'store');

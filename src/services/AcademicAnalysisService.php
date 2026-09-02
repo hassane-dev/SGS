@@ -193,10 +193,12 @@ class AcademicAnalysisService {
             }
 
             $note = (float)$r['note'];
+            $bareme = (!empty($r['bareme_snapshot']) && (float)$r['bareme_snapshot'] > 0) ? (float)$r['bareme_snapshot'] : 20.00;
+            $normNote = ($note / $bareme) * 20.00;
             $coef = (float)$r['coefficient'];
 
-            $grouped[$aId]['matieres'][$mId]['total_points'] += ($note * $coef);
-            $grouped[$aId]['matieres'][$mId]['total_coefficients'] += $coef;
+            $grouped[$aId]['matieres'][$mId]['total_points'] += $normNote;
+            $grouped[$aId]['matieres'][$mId]['total_coefficients'] += 1.0;
             $grouped[$aId]['matieres'][$mId]['nb_evaluations']++;
         }
 
