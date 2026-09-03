@@ -14,8 +14,13 @@
                         </ul>
                     </div>
                     <div class="col-md-12">
+                        <?php
+                        $limitOccurrences = $max_occurrences ?? (int)($type_rec['nombre_evaluation'] ?? 1);
+                        $typeLabel = $type_rec['libelle'] ?? ucfirst($type);
+                        $displayHeading = ($limitOccurrences > 1) ? ($typeLabel . ' ' . $numero_evaluation) : $typeLabel;
+                        ?>
                         <div class="page-header-title d-flex justify-content-between align-items-center">
-                            <h2 class="mb-0"><?= _('Saisie des Notes') ?> — <?= htmlspecialchars($type_rec['libelle'] ?? ucfirst($type)) ?> <?= $numero_evaluation ?></h2>
+                            <h2 class="mb-0"><?= _('Saisie des Notes') ?> — <?= htmlspecialchars($displayHeading) ?></h2>
                             <a href="/evaluations/select_class" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
                                 <i class="ph-duotone ph-arrow-left me-1"></i> <?= _('Retour aux classes') ?>
                             </a>
@@ -76,33 +81,45 @@
                         </span>
                     </div>
                     <div class="card-body">
-                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+                            <span class="text-muted small fw-bold me-2"><?= _('Nature autorisée') ?> :</span>
                             <?php
-                            $baseUrl = "/evaluations/form?classe_id=" . $classe['id_classe'] . "&matiere_id=" . $matiere['id_matiere'] . "&sequence_id=" . $sequence_id;
-                            foreach ($allowed_types as $tCode):
-                                $tRecObj = ParamTypeEvaluation::findByCode($tCode);
-                                $isSel = ($type === $tCode);
-                            ?>
-                                <a href="<?= $baseUrl ?>&type=<?= $tCode ?>&numero=1"
-                                   class="btn <?= $isSel ? 'btn-primary' : 'btn-outline-primary' ?> d-inline-flex align-items-center px-3 py-2">
-                                    <i class="ph-duotone ph-notebook me-2 fs-5"></i>
-                                    <span class="fw-bold"><?= htmlspecialchars($tRecObj['libelle'] ?? ucfirst($tCode)) ?></span>
-                                </a>
-                            <?php endforeach; ?>
+                            $baseUrl = "/evaluations/form?classe_id=" . $classe['id_classe'] . "&matiere_id=" . $matiere['id_matiere'];
+                            if (count($allowed_types) > 1):
+                                foreach ($allowed_types as $tCode):
+                                    $tRecObj = ParamTypeEvaluation::findByCode($tCode);
+                                    $isSel = ($type === $tCode);
+                                ?>
+                                    <a href="<?= $baseUrl ?>&type=<?= $tCode ?>&numero=1"
+                                       class="btn btn-sm <?= $isSel ? 'btn-primary' : 'btn-outline-primary' ?> d-inline-flex align-items-center px-3 py-1">
+                                        <i class="ph-duotone ph-notebook me-1"></i>
+                                        <span class="fw-bold"><?= htmlspecialchars($tRecObj['libelle'] ?? ucfirst($tCode)) ?></span>
+                                    </a>
+                                <?php endforeach;
+                            else: ?>
+                                <span class="badge bg-primary fs-6 px-3 py-2">
+                                    <i class="ph-duotone ph-notebook me-1"></i>
+                                    <?= htmlspecialchars($typeLabel) ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
 
-                        <!-- Occurrence Number Tabs (Devoir 1, Devoir 2, Devoir 3...) -->
+                        <!-- Occurrence Number Tabs (Devoir 1, Devoir 2 vs Devoir / Composition) -->
                         <div class="mt-3 pt-3 border-top d-flex align-items-center gap-2">
-                            <span class="text-muted small fw-bold me-2"><?= _('Occurrence / Numéro') ?> :</span>
-                            <?php
-                            $limitOccurrences = $max_occurrences ?? (int)($type_rec['nombre_evaluation'] ?? 1);
-                            for ($numIter = 1; $numIter <= $limitOccurrences; $numIter++):
-                            ?>
-                                <a href="<?= $baseUrl ?>&type=<?= $type ?>&numero=<?= $numIter ?>"
-                                   class="btn btn-sm <?= $numero_evaluation === $numIter ? 'btn-secondary' : 'btn-outline-secondary' ?>">
-                                    N° <?= $numIter ?>
+                            <span class="text-muted small fw-bold me-2"><?= _('Évaluation / Occurrence') ?> :</span>
+                            <?php if ($limitOccurrences > 1): ?>
+                                <?php for ($numIter = 1; $numIter <= $limitOccurrences; $numIter++): ?>
+                                    <a href="<?= $baseUrl ?>&type=<?= $type ?>&numero=<?= $numIter ?>"
+                                       class="btn btn-sm <?= $numero_evaluation === $numIter ? 'btn-secondary' : 'btn-outline-secondary' ?>">
+                                        <?= htmlspecialchars($typeLabel) ?> <?= $numIter ?>
+                                    </a>
+                                <?php endfor; ?>
+                            <?php else: ?>
+                                <a href="<?= $baseUrl ?>&type=<?= $type ?>&numero=1"
+                                   class="btn btn-sm btn-secondary">
+                                    <?= htmlspecialchars($typeLabel) ?>
                                 </a>
-                            <?php endfor; ?>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -116,7 +133,7 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5>
                             <i class="ph-duotone ph-users me-2 text-primary"></i>
-                            <?= _('Saisie des notes') ?> : <span class="text-primary fw-bold"><?= htmlspecialchars($type_rec['libelle'] ?? ucfirst($type)) ?> N° <?= $numero_evaluation ?></span>
+                            <?= _('Saisie des notes') ?> : <span class="text-primary fw-bold"><?= htmlspecialchars($displayHeading) ?></span>
                         </h5>
                         <span class="badge bg-light-info text-info">
                             <?= count($eleves) ?> <?= _('élève(s) inscrit(s)') ?>
