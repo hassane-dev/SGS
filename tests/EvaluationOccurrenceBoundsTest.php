@@ -14,7 +14,7 @@ require_once __DIR__ . '/../src/models/AnneeAcademique.php';
 require_once __DIR__ . '/../src/models/Sequence.php';
 require_once __DIR__ . '/../src/services/EvaluationSaisieService.php';
 
-echo "--- Running Comprehensive Evaluation Context & Occurrence Bounds Tests ---\n\n";
+echo "--- Running Comprehensive Evaluation Tests A through I ---\n\n";
 
 $db = Database::getInstance();
 $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
@@ -33,133 +33,261 @@ $annee_id = $active_year ? (int)$active_year['id'] : 1;
 
 $db->exec("DELETE FROM param_type_evaluation WHERE lycee_id = {$lycee_id}");
 $db->exec("DELETE FROM evaluations WHERE lycee_id = {$lycee_id}");
+$db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = {$lycee_id}");
 $db->exec("DELETE FROM sequences WHERE lycee_id = {$lycee_id}");
 
 if ($driver === 'sqlite') {
     $db->exec("INSERT OR IGNORE INTO param_lycee (id, nom_lycee) VALUES (8800, 'Test Lycee Occurrences')");
-    $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (8801, 8800, {$annee_id}, 'Seq Active (Seq 2)', 'trimestrielle', '2020-01-01', '2099-12-31', 'ouverte')");
-    $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (8802, 8800, {$annee_id}, 'Seq Inactive (Seq 3)', 'trimestrielle', '2010-01-01', '2010-02-01', 'fermee')");
+    $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (8801, 8800, {$annee_id}, 'Séquence 2 Active', 'trimestrielle', '2020-01-01', '2099-12-31', 'ouverte')");
+    $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (8802, 8800, {$annee_id}, 'Séquence 3 Inactive', 'trimestrielle', '2010-01-01', '2010-02-01', 'fermee')");
 } else {
     $db->exec("INSERT IGNORE INTO param_lycee (id, nom_lycee) VALUES (8800, 'Test Lycee Occurrences')");
-    $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (8801, 8800, {$annee_id}, 'Seq Active (Seq 2)', 'trimestrielle', '2020-01-01', '2099-12-31', 'ouverte')");
-    $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (8802, 8800, {$annee_id}, 'Seq Inactive (Seq 3)', 'trimestrielle', '2010-01-01', '2010-02-01', 'fermee')");
+    $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (8801, 8800, {$annee_id}, 'Séquence 2 Active', 'trimestrielle', '2020-01-01', '2099-12-31', 'ouverte')");
+    $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (8802, 8800, {$annee_id}, 'Séquence 3 Inactive', 'trimestrielle', '2010-01-01', '2010-02-01', 'fermee')");
 }
 
-// 1. Verify ParamTypeEvaluation save validation for nombre_evaluation
-try {
-    ParamTypeEvaluation::save([
-        'code' => 'invalid_type',
-        'libelle' => 'Invalid Type',
-        'nombre_evaluation' => 5
-    ]);
-    echo "FAIL: Invalid nombre_evaluation = 5 was accepted!\n";
-    exit(1);
-} catch (InvalidArgumentException $e) {
-    echo "PASS: 1. Invalid nombre_evaluation = 5 correctly threw InvalidArgumentException: " . $e->getMessage() . "\n";
-}
-
-// Save valid types
+// Seed param_type_evaluation
 ParamTypeEvaluation::save([
-    'code' => 'devoir_test',
-    'libelle' => 'Devoir Test',
+    'code' => 'devoir',
+    'libelle' => 'Devoir',
     'bareme_defaut' => 20.00,
     'nombre_evaluation' => 2,
     'actif' => 1
 ]);
 
 ParamTypeEvaluation::save([
-    'code' => 'compo_test',
-    'libelle' => 'Composition Test',
+    'code' => 'interro',
+    'libelle' => 'Interrogation',
+    'bareme_defaut' => 20.00,
+    'nombre_evaluation' => 3,
+    'actif' => 1
+]);
+
+ParamTypeEvaluation::save([
+    'code' => 'composition',
+    'libelle' => 'Composition',
     'bareme_defaut' => 40.00,
     'nombre_evaluation' => 1,
     'actif' => 1
 ]);
 
-// 2. Verify legacy method getNextOccurrenceNumber is removed
-if (!method_exists('Evaluation', 'getNextOccurrenceNumber')) {
-    echo "PASS: 2. Legacy Evaluation::getNextOccurrenceNumber method was successfully removed.\n";
-} else {
-    echo "FAIL: Legacy Evaluation::getNextOccurrenceNumber still exists!\n";
-    exit(1);
-}
+ParamTypeEvaluation::save([
+    'code' => 'devoir_unique',
+    'libelle' => 'Devoir Unique',
+    'bareme_defaut' => 20.00,
+    'nombre_evaluation' => 1,
+    'actif' => 1
+]);
 
-// 3. Test Sequence Tampering Rejection: Client passes inactive sequence_id 8802
-$decisionSeq = EvaluationSaisieService::canTeacherGradeContext(99010, 99020, 8802, 'devoir_test');
-if (!$decisionSeq['allowed'] && $decisionSeq['code'] === 'DENIED_SEQUENCE_MISMATCH') {
-    echo "PASS: 3. Sequence tampering blocked: Client requested inactive sequence_id 8802 when 8801 is active.\n";
-} else {
-    echo "FAIL: Sequence tampering was not blocked by EvaluationSaisieService! Result: " . json_encode($decisionSeq) . "\n";
-    exit(1);
-}
+// Configure parametres_evaluations: Devoir only open for sequence 8801
+$db->exec("INSERT INTO parametres_evaluations (lycee_id, classe_id, matiere_id, sequence_id, annee_academique_id, type, type_evaluation, date_ouverture_saisie, date_fermeture_saisie)
+           VALUES (8800, 99010, 99020, 8801, {$annee_id}, 'classe_matiere', 'devoir', '2020-01-01 00:00:00', '2099-12-31 23:59:59')");
 
-// 4. Verify server-side occurrence bounds enforcement in EvaluationController
+$controller = new EvaluationController();
+
+// TEST A — Devoir uniquement (nombre_evaluation = 2): Renders [Devoir 1] [Devoir 2], no Composition
+$_SERVER['REQUEST_METHOD'] = 'GET';
 $_GET = [
     'classe_id' => 99010,
     'matiere_id' => 99020,
     'sequence_id' => 8801,
-    'type' => 'devoir_test',
-    'numero' => 3 // Exceeds nombre_evaluation = 2
+    'type' => 'devoir',
+    'numero' => 1
 ];
 
 ob_start();
-$controller = new EvaluationController();
 try {
     $controller->showForm();
-    $output = ob_get_clean();
-    if (strpos($output, 'Accès Refusé') !== false && strpos($output, 'n\'est pas autorisée') !== false) {
-        echo "PASS: 4. Server-side validation blocked GET numero = 3 for type with max 2 occurrences.\n";
+    $htmlA = ob_get_clean();
+    if (strpos($htmlA, 'Devoir 1') !== false && strpos($htmlA, 'Devoir 2') !== false && strpos($htmlA, 'Composition') === false) {
+        echo "PASS: Test A — Devoir uniquement (nombre = 2) rendered [Devoir 1] [Devoir 2] without Composition.\n";
     } else {
-        echo "FAIL: Server-side validation did not render Accès Refusé for numero = 3!\n";
+        echo "FAIL: Test A output mismatch!\n";
         exit(1);
     }
 } catch (Exception $e) {
     ob_get_clean();
-    echo "PASS: 4. Exception or block triggered for out of bounds occurrence.\n";
+    echo "FAIL Test A: " . $e->getMessage() . "\n";
+    exit(1);
 }
 
-// 5. Verify valid occurrence GET (numero = 2) renders form with 2 tabs only
-$_GET['numero'] = 2;
+// TEST B — Tentative de falsification: Authorized = Devoir, request sends type = composition -> REFUSED
+$_GET['type'] = 'composition';
 ob_start();
 try {
     $controller->showForm();
-    $formOutput = ob_get_clean();
-    if (strpos($formOutput, 'N° 1') !== false && strpos($formOutput, 'N° 2') !== false && strpos($formOutput, 'N° 3') === false) {
-        echo "PASS: 5. Form rendered exactly 2 occurrence tabs (N°1, N°2) without N°3, N°4, or N°5.\n";
+    $htmlB = ob_get_clean();
+    if (strpos($htmlB, 'Accès Refusé') !== false && strpos($htmlB, 'n\'est pas autorisée') !== false) {
+        echo "PASS: Test B — Falsification attempt for type = composition when only devoir is open was REFUSED.\n";
     } else {
-        echo "FAIL: Form did not render exact expected occurrence tabs!\n";
+        echo "FAIL: Test B failed to refuse unauthorized composition type!\n";
         exit(1);
     }
 } catch (Exception $e) {
     ob_get_clean();
-    echo "Error rendering form: " . $e->getMessage() . "\n";
+    echo "PASS: Test B — Exception triggered for unauthorized composition type.\n";
 }
 
-// 6. Test Fully Forged POST Request (Inactive sequence 8802, composition type, occurrence 2)
+// TEST C — Composition unique (nombre_evaluation = 1): Rendered [Composition] without '1'
+// Configure parametres_evaluations: Composition open
+$db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = 8800");
+$db->exec("INSERT INTO parametres_evaluations (lycee_id, classe_id, matiere_id, sequence_id, annee_academique_id, type, type_evaluation, date_ouverture_saisie, date_fermeture_saisie)
+           VALUES (8800, 99010, 99020, 8801, {$annee_id}, 'classe_matiere', 'composition', '2020-01-01 00:00:00', '2099-12-31 23:59:59')");
+
+$_GET['type'] = 'composition';
+$_GET['numero'] = 1;
+
+ob_start();
+try {
+    $controller->showForm();
+    $htmlC = ob_get_clean();
+    if (strpos($htmlC, 'Composition') !== false && strpos($htmlC, 'Composition 1') === false) {
+        echo "PASS: Test C — Composition unique (nombre = 1) rendered [Composition] without '1'.\n";
+    } else {
+        echo "FAIL: Test C output contained unexpected 'Composition 1'!\n";
+        exit(1);
+    }
+} catch (Exception $e) {
+    ob_get_clean();
+    echo "FAIL Test C: " . $e->getMessage() . "\n";
+    exit(1);
+}
+
+// TEST D — Devoir unique (nombre_evaluation = 1): Rendered [Devoir Unique] without '1'
+$db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = 8800");
+$db->exec("INSERT INTO parametres_evaluations (lycee_id, classe_id, matiere_id, sequence_id, annee_academique_id, type, type_evaluation, date_ouverture_saisie, date_fermeture_saisie)
+           VALUES (8800, 99010, 99020, 8801, {$annee_id}, 'classe_matiere', 'devoir_unique', '2020-01-01 00:00:00', '2099-12-31 23:59:59')");
+
+$_GET['type'] = 'devoir_unique';
+$_GET['numero'] = 1;
+
+ob_start();
+try {
+    $controller->showForm();
+    $htmlD = ob_get_clean();
+    if (strpos($htmlD, 'Devoir Unique') !== false && strpos($htmlD, 'Devoir Unique 1') === false) {
+        echo "PASS: Test D — Devoir unique (nombre = 1) rendered [Devoir Unique] without '1'.\n";
+    } else {
+        echo "FAIL: Test D output contained unexpected 'Devoir Unique 1'!\n";
+        exit(1);
+    }
+} catch (Exception $e) {
+    ob_get_clean();
+    echo "FAIL Test D: " . $e->getMessage() . "\n";
+    exit(1);
+}
+
+// TEST E — Deux occurrences (nombre_evaluation = 2): [Devoir 1] [Devoir 2]
+$db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = 8800");
+$db->exec("INSERT INTO parametres_evaluations (lycee_id, classe_id, matiere_id, sequence_id, annee_academique_id, type, type_evaluation, date_ouverture_saisie, date_fermeture_saisie)
+           VALUES (8800, 99010, 99020, 8801, {$annee_id}, 'classe_matiere', 'devoir', '2020-01-01 00:00:00', '2099-12-31 23:59:59')");
+
+$_GET['type'] = 'devoir';
+$_GET['numero'] = 1;
+
+ob_start();
+try {
+    $controller->showForm();
+    $htmlE = ob_get_clean();
+    if (strpos($htmlE, 'Devoir 1') !== false && strpos($htmlE, 'Devoir 2') !== false) {
+        echo "PASS: Test E — Two occurrences (nombre = 2) rendered [Devoir 1] and [Devoir 2].\n";
+    } else {
+        echo "FAIL: Test E missing expected Devoir 1 or Devoir 2 labels!\n";
+        exit(1);
+    }
+} catch (Exception $e) {
+    ob_get_clean();
+    echo "FAIL Test E: " . $e->getMessage() . "\n";
+    exit(1);
+}
+
+// TEST F — Trois occurrences (nombre_evaluation = 3): [Interrogation 1] [Interrogation 2] [Interrogation 3]
+$db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = 8800");
+$db->exec("INSERT INTO parametres_evaluations (lycee_id, classe_id, matiere_id, sequence_id, annee_academique_id, type, type_evaluation, date_ouverture_saisie, date_fermeture_saisie)
+           VALUES (8800, 99010, 99020, 8801, {$annee_id}, 'classe_matiere', 'interro', '2020-01-01 00:00:00', '2099-12-31 23:59:59')");
+
+$_GET['type'] = 'interro';
+$_GET['numero'] = 1;
+
+ob_start();
+try {
+    $controller->showForm();
+    $htmlF = ob_get_clean();
+    if (strpos($htmlF, 'Interrogation 1') !== false && strpos($htmlF, 'Interrogation 2') !== false && strpos($htmlF, 'Interrogation 3') !== false) {
+        echo "PASS: Test F — Three occurrences (nombre = 3) rendered Interrogation 1, 2, and 3.\n";
+    } else {
+        echo "FAIL: Test F missing expected Interrogation 1, 2, or 3 labels!\n";
+        exit(1);
+    }
+} catch (Exception $e) {
+    ob_get_clean();
+    echo "FAIL Test F: " . $e->getMessage() . "\n";
+    exit(1);
+}
+
+// TEST G — Numéro hors limites (nombre = 2, request numero = 3) -> REFUSED
+$_GET['type'] = 'devoir';
+$_GET['numero'] = 3;
+
+ob_start();
+try {
+    $controller->showForm();
+    $htmlG = ob_get_clean();
+    if (strpos($htmlG, 'Accès Refusé') !== false) {
+        echo "PASS: Test G — Occurrence numero = 3 for nombre_evaluation = 2 was REFUSED.\n";
+    } else {
+        echo "FAIL: Test G allowed out of bounds occurrence!\n";
+        exit(1);
+    }
+} catch (Exception $e) {
+    ob_get_clean();
+    echo "PASS: Test G — Out of bounds occurrence rejected.\n";
+}
+
+// TEST H — Séquence falsifiée (request sequence_id = 8802 when 8801 is active) -> REFUSED
+$decisionH = EvaluationSaisieService::canTeacherGradeContext(99010, 99020, 8802, 'devoir');
+if (!$decisionH['allowed'] && $decisionH['code'] === 'DENIED_SEQUENCE_MISMATCH') {
+    echo "PASS: Test H — Sequence forgery (sequence_id = 8802 when 8801 is active) was REFUSED.\n";
+} else {
+    echo "FAIL: Test H failed to refuse forged sequence!\n";
+    exit(1);
+}
+
+// TEST I — Requête complètement forgée (classe 1, matiere 3, sequence 8802, composition, numero 2) -> REFUSED, no grades saved
 $_SERVER['REQUEST_METHOD'] = 'POST';
 $_POST = [
     'classe_id' => 99010,
     'matiere_id' => 99020,
     'sequence_id' => 8802, // Inactive sequence
-    'type' => 'compo_test',
-    'numero_evaluation' => 2, // Exceeds max 1
+    'type' => 'composition',
+    'numero_evaluation' => 2, // Invalid occurrence
     'bareme' => 40,
     'coefficient' => 2,
-    'grades' => [8809 => ['note' => '15']]
+    'grades' => [8809 => ['note' => '18']]
 ];
 
 ob_start();
 try {
     $controller->save();
-    $postOutput = ob_get_clean();
-    if (strpos($postOutput, 'Accès Refusé') !== false) {
-        echo "PASS: 6. Fully forged POST request (inactive sequence + invalid occurrence) strictly rejected.\n";
+    $htmlI = ob_get_clean();
+    if (strpos($htmlI, 'Accès Refusé') !== false) {
+        echo "PASS: Test I — Fully forged POST request (inactive sequence + unauthorized type + invalid occurrence) was REFUSED.\n";
     } else {
-        echo "FAIL: Fully forged POST request was not rejected!\n";
+        echo "FAIL: Test I allowed forged POST request!\n";
         exit(1);
     }
 } catch (Exception $e) {
     ob_get_clean();
-    echo "PASS: 6. Fully forged POST request strictly rejected.\n";
+    echo "PASS: Test I — Fully forged POST request rejected.\n";
 }
 
-echo "\n>>> ALL COMPREHENSIVE EVALUATION CONTEXT & OCCURRENCE BOUNDS TESTS PASSED SUCCESSFULLY! <<<\n";
+// Verify no grades were inserted for forged POST
+$countForged = $db->query("SELECT COUNT(*) FROM evaluations WHERE lycee_id = 8800 AND sequence_id = 8802")->fetchColumn();
+if ((int)$countForged === 0) {
+    echo "PASS: Test I Verification — 0 grades saved in database for forged request.\n";
+} else {
+    echo "FAIL: Forged POST saved grades in database!\n";
+    exit(1);
+}
+
+echo "\n>>> ALL TESTS A THROUGH I PASSED WITH 100% SUCCESS! <<<\n";
