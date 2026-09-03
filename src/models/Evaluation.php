@@ -91,49 +91,6 @@ class Evaluation {
         }
     }
 
-    /**
-     * Compute the next available occurrence number for an evaluation type in a given class/subject/sequence.
-     */
-    public static function getNextOccurrenceNumber($classe_id, $matiere_id, $sequence_id, $type) {
-        $active_year = AnneeAcademique::findActive();
-        if (!$active_year) return 1;
-
-        $lycee_id = Auth::getLyceeId() ?? $active_year['lycee_id'] ?? 1;
-        $typeRec = is_numeric($type) ? ParamTypeEvaluation::findById((int)$type) : ParamTypeEvaluation::findByCode((string)$type, $lycee_id);
-        $typeCode = $typeRec['code'] ?? (string)$type;
-        $typeId = $typeRec['id'] ?? null;
-
-        $db = Database::getInstance();
-        $typeCond = ($typeId !== null)
-            ? "(type_evaluation_id = :type_id OR type = :type_code)"
-            : "type = :type_code";
-
-        $sql = "SELECT COALESCE(MAX(numero_evaluation), 0) + 1 FROM evaluations
-                WHERE classe_id = :classe_id
-                  AND matiere_id = :matiere_id
-                  AND sequence_id = :sequence_id
-                  AND annee_academique_id = :annee_id
-                  AND {$typeCond}";
-
-        try {
-            $stmt = $db->prepare($sql);
-            $params = [
-                'classe_id' => $classe_id,
-                'matiere_id' => $matiere_id,
-                'sequence_id' => $sequence_id,
-                'annee_id' => $active_year['id'],
-                'type_code' => $typeCode
-            ];
-            if ($typeId !== null) {
-                $params['type_id'] = $typeId;
-            }
-            $stmt->execute($params);
-            return (int)$stmt->fetchColumn();
-        } catch (PDOException $e) {
-            error_log("Error in Evaluation::getNextOccurrenceNumber: " . $e->getMessage());
-            return 1;
-        }
-    }
 
     /**
      * Save a batch of grades. Performs upsert for each student's grade.

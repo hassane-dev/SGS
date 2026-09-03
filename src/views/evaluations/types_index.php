@@ -45,6 +45,7 @@
                                         <th><?= _("Ordre") ?></th>
                                         <th><?= _("Code") ?></th>
                                         <th><?= _("Libellé") ?></th>
+                                        <th><?= _("Occurrences Prévues") ?></th>
                                         <th><?= _("Barème par Défaut") ?></th>
                                         <th><?= _("Statut") ?></th>
                                         <th class="text-end"><?= _("Actions") ?></th>
@@ -53,7 +54,7 @@
                                 <tbody>
                                     <?php if (empty($types)): ?>
                                         <tr>
-                                            <td colspan="6" class="text-center text-muted py-4"><?= _("Aucun type d'évaluation configuré.") ?></td>
+                                            <td colspan="7" class="text-center text-muted py-4"><?= _("Aucun type d'évaluation configuré.") ?></td>
                                         </tr>
                                     <?php else: ?>
                                         <?php foreach ($types as $t): ?>
@@ -61,6 +62,7 @@
                                                 <td><?= (int)$t['ordre_affichage'] ?></td>
                                                 <td><code><?= htmlspecialchars($t['code']) ?></code></td>
                                                 <td><strong><?= htmlspecialchars($t['libelle']) ?></strong></td>
+                                                <td><span class="badge bg-light-primary text-primary fw-bold"><?= (int)($t['nombre_evaluation'] ?? 1) ?></span></td>
                                                 <td>/<?= number_format((float)$t['bareme_defaut'], 0) ?></td>
                                                 <td>
                                                     <?php if ($t['actif']): ?>

@@ -94,7 +94,10 @@
                         <!-- Occurrence Number Tabs (Devoir 1, Devoir 2, Devoir 3...) -->
                         <div class="mt-3 pt-3 border-top d-flex align-items-center gap-2">
                             <span class="text-muted small fw-bold me-2"><?= _('Occurrence / Numéro') ?> :</span>
-                            <?php for ($numIter = 1; $numIter <= 5; $numIter++): ?>
+                            <?php
+                            $limitOccurrences = $max_occurrences ?? (int)($type_rec['nombre_evaluation'] ?? 1);
+                            for ($numIter = 1; $numIter <= $limitOccurrences; $numIter++):
+                            ?>
                                 <a href="<?= $baseUrl ?>&type=<?= $type ?>&numero=<?= $numIter ?>"
                                    class="btn btn-sm <?= $numero_evaluation === $numIter ? 'btn-secondary' : 'btn-outline-secondary' ?>">
                                     N° <?= $numIter ?>

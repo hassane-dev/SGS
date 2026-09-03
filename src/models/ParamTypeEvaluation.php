@@ -101,6 +101,11 @@ class ParamTypeEvaluation {
         }
         $bareme = (!empty($data['bareme_defaut']) && (float)$data['bareme_defaut'] > 0) ? (float)$data['bareme_defaut'] : 20.00;
 
+        $nombreEval = (int)($data['nombre_evaluation'] ?? 1);
+        if ($nombreEval < 1 || $nombreEval > 3) {
+            throw new InvalidArgumentException("Le nombre d'évaluations prévues doit être obligatoirement 1, 2 ou 3.");
+        }
+
         $isUpdate = !empty($data['id']);
 
         if ($isUpdate) {
@@ -108,6 +113,7 @@ class ParamTypeEvaluation {
                         code = :code,
                         libelle = :libelle,
                         bareme_defaut = :bareme,
+                        nombre_evaluation = :nombre_eval,
                         actif = :actif,
                         ordre_affichage = :ordre
                     WHERE id = :id AND lycee_id = :lycee_id";
@@ -115,19 +121,21 @@ class ParamTypeEvaluation {
                 'code' => $code,
                 'libelle' => $libelle,
                 'bareme' => $bareme,
+                'nombre_eval' => $nombreEval,
                 'actif' => isset($data['actif']) ? (int)$data['actif'] : 1,
                 'ordre' => (int)($data['ordre_affichage'] ?? 0),
                 'id' => (int)$data['id'],
                 'lycee_id' => $lycee_id
             ];
         } else {
-            $sql = "INSERT INTO param_type_evaluation (lycee_id, code, libelle, bareme_defaut, actif, ordre_affichage)
-                    VALUES (:lycee_id, :code, :libelle, :bareme, :actif, :ordre)";
+            $sql = "INSERT INTO param_type_evaluation (lycee_id, code, libelle, bareme_defaut, nombre_evaluation, actif, ordre_affichage)
+                    VALUES (:lycee_id, :code, :libelle, :bareme, :nombre_eval, :actif, :ordre)";
             $params = [
                 'lycee_id' => $lycee_id,
                 'code' => $code,
                 'libelle' => $libelle,
                 'bareme' => $bareme,
+                'nombre_eval' => $nombreEval,
                 'actif' => isset($data['actif']) ? (int)$data['actif'] : 1,
                 'ordre' => (int)($data['ordre_affichage'] ?? 0)
             ];

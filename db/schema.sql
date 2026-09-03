@@ -775,6 +775,7 @@ CREATE TABLE IF NOT EXISTS `param_type_evaluation` (
     `code` VARCHAR(50) NOT NULL,
     `libelle` VARCHAR(100) NOT NULL,
     `bareme_defaut` DECIMAL(5,2) NOT NULL DEFAULT 20.00,
+    `nombre_evaluation` INT NOT NULL DEFAULT 1,
     `actif` TINYINT(1) NOT NULL DEFAULT 1,
     `ordre_affichage` INT DEFAULT 0,
     `cree_le` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

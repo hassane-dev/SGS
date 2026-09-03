@@ -50,12 +50,22 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label for="bareme_defaut" class="form-label"><?= _("Barème par Défaut") ?> <span class="text-danger">*</span></label>
                                     <input type="number" step="0.5" min="1" max="100" name="bareme_defaut" id="bareme_defaut" class="form-control" value="<?= htmlspecialchars($type['bareme_defaut'] ?? '20.00') ?>" required>
                                     <small class="text-muted"><?= _("Note maximale par défaut (ex: 20, 40, 100).") ?></small>
                                 </div>
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
+                                    <label for="nombre_evaluation" class="form-label"><?= _("Évaluations Prévues") ?> <span class="text-danger">*</span></label>
+                                    <?php $nbEv = (int)($type['nombre_evaluation'] ?? 1); ?>
+                                    <select name="nombre_evaluation" id="nombre_evaluation" class="form-select" required>
+                                        <option value="1" <?= $nbEv === 1 ? 'selected' : '' ?>>1 (ex: Composition)</option>
+                                        <option value="2" <?= $nbEv === 2 ? 'selected' : '' ?>>2 (ex: Devoir)</option>
+                                        <option value="3" <?= $nbEv === 3 ? 'selected' : '' ?>>3 (ex: Interrogation)</option>
+                                    </select>
+                                    <small class="text-muted"><?= _("Nombre structurel d'occurrences pour le lycée.") ?></small>
+                                </div>
+                                <div class="col-md-4 mb-3">
                                     <label for="ordre_affichage" class="form-label"><?= _("Ordre d'Affichage") ?></label>
                                     <input type="number" name="ordre_affichage" id="ordre_affichage" class="form-control" value="<?= htmlspecialchars($type['ordre_affichage'] ?? '0') ?>">
                                 </div>
