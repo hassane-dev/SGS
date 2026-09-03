@@ -171,24 +171,6 @@ class EvaluationSaisieService {
         }
 
         // ------------------------------------------------------------------
-        // Résolution de la séquence réellement ouverte pour l'année académique active
-        // ------------------------------------------------------------------
-        $sequence = Sequence::findActiveForYear($resolvedLyceeId, $anneeId, $nowNorm);
-        if (!$sequence) {
-            return self::buildDecision(
-                false,
-                'DENIED_NO_OPEN_SEQUENCE',
-                _("Aucune séquence n'est actuellement ouverte pour l'année académique active."),
-                'sequence',
-                $nowNorm,
-                $context
-            );
-        }
-
-        $sequence_id = (int)$sequence['id'];
-        $context['sequence_id'] = $sequence_id;
-
-        // ------------------------------------------------------------------
         // RÈGLE 3 & 4 : Recherche d'un déblocage exceptionnel (PRIORITÉ ABSOLUE)
         // ------------------------------------------------------------------
         $unlockRecord = self::findMatchingUnlock($db, $resolvedLyceeId, $anneeId, $classe_id, $matiere_id, $sequence_id, $resolvedEnseignantId, $typeCode, $typeId, $nowNorm);
@@ -205,6 +187,38 @@ class EvaluationSaisieService {
                 null
             );
         }
+
+        // ------------------------------------------------------------------
+        // Résolution de la séquence réellement ouverte pour l'année académique active
+        // ------------------------------------------------------------------
+        $activeSequence = Sequence::findActiveForYear($resolvedLyceeId, $anneeId, $nowNorm);
+        if (!$activeSequence) {
+            return self::buildDecision(
+                false,
+                'DENIED_NO_OPEN_SEQUENCE',
+                _("Aucune séquence n'est actuellement ouverte pour l'année académique active."),
+                'sequence',
+                $nowNorm,
+                $context
+            );
+        }
+
+        $activeSequenceId = (int)$activeSequence['id'];
+
+        // Strict Server Enforcement: The requested sequence_id MUST match the server's active sequence
+        if ($sequence_id !== 0 && $sequence_id !== $activeSequenceId) {
+            return self::buildDecision(
+                false,
+                'DENIED_SEQUENCE_MISMATCH',
+                sprintf(_("La séquence demandée (ID: %d) ne correspond pas à la séquence actuellement active sur le serveur (%s)."), $sequence_id, htmlspecialchars($activeSequence['nom'])),
+                'sequence',
+                $nowNorm,
+                $context
+            );
+        }
+
+        $sequence_id = $activeSequenceId;
+        $context['sequence_id'] = $sequence_id;
 
         // ------------------------------------------------------------------
         // RÈGLE 6 & 7 : Vérification des règles de la période normale (parametres_evaluations)
