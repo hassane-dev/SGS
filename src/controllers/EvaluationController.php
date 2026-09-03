@@ -147,6 +147,16 @@ class EvaluationController {
         }
 
         $typeRec = ParamTypeEvaluation::findByCode($type);
+        $maxOccurrences = (int)($typeRec['nombre_evaluation'] ?? 1);
+
+        if ($numero < 1 || $numero > $maxOccurrences) {
+            View::render('evaluations/error', [
+                'message' => sprintf(_("L'occurrence N°%d n'est pas autorisée pour le type '%s' (Maximum autorisé pour votre établissement : %d)."), $numero, htmlspecialchars($typeRec['libelle'] ?? $type), $maxOccurrences),
+                'title' => 'Accès Refusé'
+            ]);
+            exit();
+        }
+
         $baremeDefault = (!empty($typeRec['bareme_defaut']) && (float)$typeRec['bareme_defaut'] > 0) ? (float)$typeRec['bareme_defaut'] : 20.00;
 
         $eleves = Eleve::findByClass($classe_id);
@@ -162,6 +172,7 @@ class EvaluationController {
             'type' => $type,
             'type_rec' => $typeRec,
             'numero_evaluation' => $numero,
+            'max_occurrences' => $maxOccurrences,
             'bareme_defaut' => $baremeDefault,
             'allowed_types' => $allowedTypes,
             'coefficient' => $classe_matiere_details['coefficient'] ?? 1,
@@ -198,12 +209,24 @@ class EvaluationController {
                 exit();
             }
 
+            $numeroEval = (int)($_POST['numero_evaluation'] ?? 1);
+            $typeRec = ParamTypeEvaluation::findByCode($type);
+            $maxOccurrences = (int)($typeRec['nombre_evaluation'] ?? 1);
+
+            if ($numeroEval < 1 || $numeroEval > $maxOccurrences) {
+                View::render('evaluations/error', [
+                    'message' => sprintf(_("L'occurrence N°%d n'est pas autorisée pour le type '%s' (Maximum autorisé pour votre établissement : %d)."), $numeroEval, htmlspecialchars($typeRec['libelle'] ?? $type), $maxOccurrences),
+                    'title' => 'Accès Refusé'
+                ]);
+                exit();
+            }
+
             $data_to_save = [
                 'classe_id' => $classe_id,
                 'matiere_id' => $matiere_id,
                 'sequence_id' => $sequence_id,
                 'type' => $type,
-                'numero_evaluation' => (int)($_POST['numero_evaluation'] ?? 1),
+                'numero_evaluation' => $numeroEval,
                 'libelle_evaluation' => !empty($_POST['libelle_evaluation']) ? trim($_POST['libelle_evaluation']) : null,
                 'bareme' => (!empty($_POST['bareme']) && (float)$_POST['bareme'] > 0) ? (float)$_POST['bareme'] : 20.00,
                 'coefficient' => $_POST['coefficient'] ?? 1,

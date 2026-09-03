@@ -977,6 +977,10 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_17_refactor_evaluations_dynamic.php';
     migrate_17($db);
 
+    // --- PHASE ADD NOMBRE EVALUATION PARAM ---
+    require_once __DIR__ . '/db/migrations/20240115_18_add_nombre_evaluation_param.php';
+    migrate_18($db);
+
     // Provision DRH role if not present
     $stmt_drh_role = $db->query("SELECT id_role FROM roles WHERE nom_role = 'drh'");
     if (!$stmt_drh_role->fetch()) {
