@@ -37,6 +37,7 @@ $db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = {$lycee_id}");
 $db->exec("DELETE FROM sequences WHERE lycee_id = {$lycee_id}");
 
 if ($driver === 'sqlite') {
+    $db->exec("CREATE TABLE IF NOT EXISTS param_lycee (id INT PRIMARY KEY, nom_lycee VARCHAR(255))");
     $db->exec("INSERT OR IGNORE INTO param_lycee (id, nom_lycee) VALUES (8800, 'Test Lycee Occurrences')");
     $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (8801, 8800, {$annee_id}, 'Séquence 2 Active', 'trimestrielle', '2020-01-01', '2099-12-31', 'ouverte')");
     $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (8802, 8800, {$annee_id}, 'Séquence 3 Inactive', 'trimestrielle', '2010-01-01', '2010-02-01', 'fermee')");

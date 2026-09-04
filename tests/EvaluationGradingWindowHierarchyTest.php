@@ -29,6 +29,8 @@ function run_test() {
         }
 
         // Grant evaluation:manage_settings to Role 3 in permissions table
+        $db->exec("CREATE TABLE IF NOT EXISTS permissions (id_permission INTEGER PRIMARY KEY AUTOINCREMENT, resource VARCHAR(50), action VARCHAR(50), description TEXT)");
+        $db->exec("CREATE TABLE IF NOT EXISTS role_permissions (role_id INT, permission_id INT, PRIMARY KEY(role_id, permission_id))");
         $perm_stmt = $db->prepare("SELECT id_permission FROM permissions WHERE resource = 'evaluation' AND action = 'manage_settings'");
         $perm_stmt->execute();
         $perm_66_id = $perm_stmt->fetchColumn();

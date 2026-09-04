@@ -770,7 +770,7 @@ CREATE TABLE `presences` (
 
 -- Table for configurable evaluation types per school
 CREATE TABLE IF NOT EXISTS `param_type_evaluation` (
-    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `lycee_id` INT NOT NULL,
     `code` VARCHAR(50) NOT NULL,
     `libelle` VARCHAR(100) NOT NULL,
