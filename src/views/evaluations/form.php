@@ -70,7 +70,7 @@
             </div>
         </div>
 
-        <!-- Dynamic Type Navigation & Occurrence Selector -->
+        <!-- Unified Evaluation Type & Occurrence Selector -->
         <div class="row mb-4">
             <div class="col-md-12">
                 <div class="card">
@@ -81,44 +81,47 @@
                         </span>
                     </div>
                     <div class="card-body">
-                        <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
-                            <span class="text-muted small fw-bold me-2"><?= _('Nature autorisée') ?> :</span>
-                            <?php
-                            $baseUrl = "/evaluations/form?classe_id=" . $classe['id_classe'] . "&matiere_id=" . $matiere['id_matiere'];
-                            if (count($allowed_types) > 1):
-                                foreach ($allowed_types as $tCode):
-                                    $tRecObj = ParamTypeEvaluation::findByCode($tCode);
-                                    $isSel = ($type === $tCode);
-                                ?>
-                                    <a href="<?= $baseUrl ?>&type=<?= $tCode ?>&numero=1"
-                                       class="btn btn-sm <?= $isSel ? 'btn-primary' : 'btn-outline-primary' ?> d-inline-flex align-items-center px-3 py-1">
-                                        <i class="ph-duotone ph-notebook me-1"></i>
-                                        <span class="fw-bold"><?= htmlspecialchars($tRecObj['libelle'] ?? ucfirst($tCode)) ?></span>
-                                    </a>
-                                <?php endforeach;
-                            else: ?>
-                                <span class="badge bg-primary fs-6 px-3 py-2">
-                                    <i class="ph-duotone ph-notebook me-1"></i>
-                                    <?= htmlspecialchars($typeLabel) ?>
-                                </span>
-                            <?php endif; ?>
-                        </div>
+                        <?php
+                        $baseUrl = "/evaluations/form?classe_id=" . $classe['id_classe'] . "&matiere_id=" . $matiere['id_matiere'] . "&sequence_id=" . $sequence_id;
+                        $hasMultipleTypes = count($allowed_types) > 1;
+                        ?>
 
-                        <!-- Occurrence Number Tabs (Devoir 1, Devoir 2 vs Devoir / Composition) -->
-                        <div class="mt-3 pt-3 border-top d-flex align-items-center gap-2">
-                            <span class="text-muted small fw-bold me-2"><?= _('Évaluation / Occurrence') ?> :</span>
+                        <?php if ($hasMultipleTypes): ?>
+                            <!-- CAS C : Période "Tous" (ou multiples types autorisés) -->
+                            <div class="mb-3">
+                                <span class="text-muted small fw-bold d-block mb-2"><?= _('Type d\'évaluation autorisée') ?> :</span>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <?php foreach ($allowed_types as $tCode):
+                                        $tRecObj = ParamTypeEvaluation::findByCode($tCode);
+                                        $isSelType = ($type === $tCode);
+                                    ?>
+                                        <a href="<?= $baseUrl ?>&type=<?= $tCode ?>&numero=1"
+                                           class="btn btn-sm <?= $isSelType ? 'btn-primary' : 'btn-outline-primary' ?> d-inline-flex align-items-center px-3 py-1">
+                                            <i class="ph-duotone ph-notebook me-1"></i>
+                                            <span class="fw-bold"><?= htmlspecialchars($tRecObj['libelle'] ?? ucfirst($tCode)) ?></span>
+                                        </a>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Occurrence Selector -->
+                        <div class="<?= $hasMultipleTypes ? 'pt-3 border-top' : '' ?> d-flex flex-wrap align-items-center gap-2">
+                            <span class="text-muted small fw-bold me-2"><?= _('Occurrence à saisir') ?> :</span>
                             <?php if ($limitOccurrences > 1): ?>
+                                <!-- CAS A : Single/Multiple Type with nombre_evaluation > 1 (e.g. Devoir 1, Devoir 2) -->
                                 <?php for ($numIter = 1; $numIter <= $limitOccurrences; $numIter++): ?>
                                     <a href="<?= $baseUrl ?>&type=<?= $type ?>&numero=<?= $numIter ?>"
-                                       class="btn btn-sm <?= $numero_evaluation === $numIter ? 'btn-secondary' : 'btn-outline-secondary' ?>">
+                                       class="btn btn-sm <?= $numero_evaluation === $numIter ? 'btn-secondary' : 'btn-outline-secondary' ?> px-3 py-1 fw-bold">
                                         <?= htmlspecialchars($typeLabel) ?> <?= $numIter ?>
                                     </a>
                                 <?php endfor; ?>
                             <?php else: ?>
-                                <a href="<?= $baseUrl ?>&type=<?= $type ?>&numero=1"
-                                   class="btn btn-sm btn-secondary">
+                                <!-- CAS B : Single occurrence (nombre_evaluation = 1, e.g. Composition) -->
+                                <span class="badge bg-secondary fs-6 px-3 py-2">
+                                    <i class="ph-duotone ph-check-circle me-1"></i>
                                     <?= htmlspecialchars($typeLabel) ?>
-                                </a>
+                                </span>
                             <?php endif; ?>
                         </div>
                     </div>

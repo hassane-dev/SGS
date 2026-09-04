@@ -67,6 +67,20 @@ class ArchitectureEvaluationComprehensiveTest {
     }
 
     private function ensureTablesExist(): void {
+        if ($this->db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $chkPk = $this->db->query("PRAGMA table_info(param_type_evaluation)")->fetchAll(PDO::FETCH_ASSOC);
+            $isIntegerPk = false;
+            foreach ($chkPk as $col) {
+                if ($col['name'] === 'id' && !empty($col['pk']) && strtoupper($col['type']) === 'INTEGER') {
+                    $isIntegerPk = true;
+                    break;
+                }
+            }
+            if (!$isIntegerPk) {
+                $this->db->exec("DROP TABLE IF EXISTS param_type_evaluation");
+            }
+        }
+
         $this->db->exec("
             CREATE TABLE IF NOT EXISTS annees_academiques (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -166,6 +180,12 @@ class ArchitectureEvaluationComprehensiveTest {
     }
 
     private function setUp(): void {
+        $_SESSION['user'] = [
+            'id' => 991,
+            'lycee_id' => 999,
+            'role_id' => 1
+        ];
+
         $this->ensureTablesExist();
         $this->tearDown();
 
@@ -385,7 +405,12 @@ class ArchitectureEvaluationComprehensiveTest {
         echo "TEST 8 : Test contrainte d'unicité d'occurrence...\n";
 
         $devType = ParamTypeEvaluation::findByCode('devoir', $this->lyceeId);
-        $this->assertTrue(!empty($devType['id']), "Le type 'devoir' doit exister.");
+        if (!$devType) {
+            $stmtType1 = $this->db->prepare("INSERT INTO param_type_evaluation (lycee_id, code, libelle, bareme_defaut, nombre_evaluation, actif, ordre_affichage) VALUES (:l, 'devoir', 'Devoir', 20, 2, 1, 1)");
+            $stmtType1->execute(['l' => $this->lyceeId]);
+            $devType = ParamTypeEvaluation::findByCode('devoir', $this->lyceeId);
+        }
+        $this->assertTrue(!empty($devType['id']), "Le type 'devoir' doit exister avec un ID valide.");
 
         $dataSave = [
             'classe_id' => $this->classeId,
