@@ -59,17 +59,20 @@
                                     <label class="form-label"><?= _('Nature de l\'évaluation à débloquer') ?></label>
                                     <div class="d-flex gap-3">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="type_evaluation" id="eval_tous" value="tous" checked>
-                                            <label class="form-check-label" for="eval_tous">Tous (Devoirs & Compositions)</label>
+                                                <input class="form-check-input" type="radio" name="type_evaluation_id" id="eval_tous" value="tous" checked>
+                                                <label class="form-check-label fw-bold text-dark" for="eval_tous"><?= _('Tous les types d\'évaluations') ?></label>
                                         </div>
-                                        <div class="form-check ms-3">
-                                            <input class="form-check-input" type="radio" name="type_evaluation" id="eval_devoir" value="devoir">
-                                            <label class="form-check-label" for="eval_devoir">Devoirs uniquement</label>
-                                        </div>
-                                        <div class="form-check ms-3">
-                                            <input class="form-check-input" type="radio" name="type_evaluation" id="eval_composition" value="composition">
-                                            <label class="form-check-label" for="eval_composition">Compositions uniquement</label>
-                                        </div>
+                                            <?php
+                                            $activeTypesList = $types_evaluation ?? ParamTypeEvaluation::findActive();
+                                            foreach ($activeTypesList as $tItem):
+                                            ?>
+                                                <div class="form-check ms-2">
+                                                    <input class="form-check-input" type="radio" name="type_evaluation_id" id="eval_type_<?= $tItem['id'] ?>" value="<?= $tItem['id'] ?>">
+                                                    <label class="form-check-label" for="eval_type_<?= $tItem['id'] ?>">
+                                                        <?= htmlspecialchars($tItem['libelle']) ?> <span class="text-muted small">(/<?= number_format((float)($tItem['bareme_defaut'] ?? 20), 0) ?>)</span>
+                                                    </label>
+                                                </div>
+                                            <?php endforeach; ?>
                                     </div>
                                 </div>
                             </div>

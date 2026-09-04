@@ -5,6 +5,7 @@ require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Matiere.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/Sequence.php';
+require_once __DIR__ . '/../models/ParamTypeEvaluation.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
 
@@ -33,16 +34,19 @@ class DeblocageController {
     public function create() {
         $this->checkAccess();
 
-        $classes = Classe::findAll(Auth::getLyceeId());
+        $lycee_id = Auth::getLyceeId();
+        $classes = Classe::findAll($lycee_id);
         $matieres = Matiere::findAll();
-        $enseignants = User::findTeachers(Auth::getLyceeId());
+        $enseignants = User::findTeachers($lycee_id);
         $sequences = Sequence::findAll();
+        $types_evaluation = ParamTypeEvaluation::findActive($lycee_id);
 
         View::render('evaluations/deblocage_form', [
             'classes' => $classes,
             'matieres' => $matieres,
             'enseignants' => $enseignants,
             'sequences' => $sequences,
+            'types_evaluation' => $types_evaluation,
             'title' => 'Nouveau Déblocage'
         ]);
     }
@@ -67,13 +71,32 @@ class DeblocageController {
                 exit();
             }
 
+            $typeEvalSelection = $_POST['type_evaluation_id'] ?? 'tous';
+            $typeEvalId = null;
+            $typeEvalCode = 'tous';
+
+            if ($typeEvalSelection !== 'tous' && is_numeric($typeEvalSelection)) {
+                $typeEvalId = (int)$typeEvalSelection;
+                $tRec = ParamTypeEvaluation::findById($typeEvalId);
+                if ($tRec) {
+                    $typeEvalCode = $tRec['code'];
+                }
+            } elseif (!empty($typeEvalSelection) && $typeEvalSelection !== 'tous') {
+                $typeEvalCode = strtolower(trim($typeEvalSelection));
+                $tRec = ParamTypeEvaluation::findByCode($typeEvalCode, Auth::getLyceeId());
+                if ($tRec) {
+                    $typeEvalId = (int)$tRec['id'];
+                }
+            }
+
             $data = [
                 'type' => $type,
                 'classe_id' => !empty($_POST['classe_id']) ? $_POST['classe_id'] : null,
                 'matiere_id' => !empty($_POST['matiere_id']) ? $_POST['matiere_id'] : null,
                 'enseignant_id' => !empty($_POST['enseignant_id']) ? $_POST['enseignant_id'] : null,
                 'sequence_id' => !empty($_POST['sequence_id']) ? $_POST['sequence_id'] : null,
-                'type_evaluation' => $_POST['type_evaluation'] ?? 'tous',
+                'type_evaluation' => $typeEvalCode,
+                'type_evaluation_id' => $typeEvalId,
                 'date_debut' => $_POST['date_debut'],
                 'date_fin' => $_POST['date_fin'],
                 'motif' => $_POST['motif']

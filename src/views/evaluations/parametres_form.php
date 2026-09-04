@@ -1,7 +1,8 @@
 <?php include __DIR__ . '/../layouts/header_able.php';
 $isEdit = isset($param) && !empty($param);
 $paramType = $isEdit ? ($param['type'] ?? 'global') : 'global';
-$typeEval = $isEdit ? ($param['type_evaluation'] ?? 'tous') : 'tous';
+$selectedEvalId = $isEdit ? ($param['type_evaluation_id'] ?? null) : null;
+$selectedEvalCode = $isEdit ? ($param['type_evaluation'] ?? 'tous') : 'tous';
 ?>
 
 <div class="pc-container">
@@ -82,20 +83,31 @@ $typeEval = $isEdit ? ($param['type_evaluation'] ?? 'tous') : 'tous';
 
                             <div class="row mb-3">
                                 <div class="col-12">
-                                    <label class="form-label"><?= _('Nature de l\'évaluation') ?></label>
-                                    <div class="d-flex gap-3">
+                                    <label class="form-label"><?= _('Nature de l\'évaluation autorisée') ?></label>
+                                    <div class="d-flex flex-wrap gap-3">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="type_evaluation" id="eval_tous" value="tous" <?= $typeEval === 'tous' ? 'checked' : '' ?>>
-                                            <label class="form-check-label" for="eval_tous">Tous (Devoirs & Compositions)</label>
+                                            <input class="form-check-input" type="radio" name="type_evaluation_id" id="eval_tous" value="tous" <?= (empty($selectedEvalId) && $selectedEvalCode === 'tous') ? 'checked' : '' ?>>
+                                            <label class="form-check-label fw-bold text-dark" for="eval_tous">
+                                                <i class="ph-duotone ph-circles-four me-1 text-primary"></i><?= _('Tous les types d\'évaluations') ?>
+                                            </label>
                                         </div>
-                                        <div class="form-check ms-3">
-                                            <input class="form-check-input" type="radio" name="type_evaluation" id="eval_devoir" value="devoir" <?= $typeEval === 'devoir' ? 'checked' : '' ?>>
-                                            <label class="form-check-label" for="eval_devoir">Devoirs uniquement</label>
-                                        </div>
-                                        <div class="form-check ms-3">
-                                            <input class="form-check-input" type="radio" name="type_evaluation" id="eval_composition" value="composition" <?= $typeEval === 'composition' ? 'checked' : '' ?>>
-                                            <label class="form-check-label" for="eval_composition">Compositions uniquement</label>
-                                        </div>
+                                        <?php
+                                        $activeTypesList = $types_evaluation ?? ParamTypeEvaluation::findActive();
+                                        foreach ($activeTypesList as $tItem):
+                                            $isChecked = false;
+                                            if (!empty($selectedEvalId) && (int)$selectedEvalId === (int)$tItem['id']) {
+                                                $isChecked = true;
+                                            } elseif (empty($selectedEvalId) && $selectedEvalCode === $tItem['code']) {
+                                                $isChecked = true;
+                                            }
+                                        ?>
+                                            <div class="form-check ms-2">
+                                                <input class="form-check-input" type="radio" name="type_evaluation_id" id="eval_type_<?= $tItem['id'] ?>" value="<?= $tItem['id'] ?>" <?= $isChecked ? 'checked' : '' ?>>
+                                                <label class="form-check-label" for="eval_type_<?= $tItem['id'] ?>">
+                                                    <?= htmlspecialchars($tItem['libelle']) ?> <span class="text-muted small">(/<?= number_format((float)($tItem['bareme_defaut'] ?? 20), 0) ?>)</span>
+                                                </label>
+                                            </div>
+                                        <?php endforeach; ?>
                                     </div>
                                 </div>
                             </div>

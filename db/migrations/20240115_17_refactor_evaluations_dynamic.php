@@ -33,9 +33,10 @@ function migrate_17($db) {
     };
 
     // 1. Create param_type_evaluation table if not exists
+    $pkDef = $isSqlite ? "INTEGER PRIMARY KEY AUTOINCREMENT" : "INT AUTO_INCREMENT PRIMARY KEY";
     $sqlCreateParamType = "
         CREATE TABLE IF NOT EXISTS `param_type_evaluation` (
-            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `id` {$pkDef},
             `lycee_id` INT NOT NULL,
             `code` VARCHAR(50) NOT NULL,
             `libelle` VARCHAR(100) NOT NULL,

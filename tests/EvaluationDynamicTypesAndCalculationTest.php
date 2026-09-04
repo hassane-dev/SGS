@@ -55,7 +55,9 @@ class EvaluationDynamicTypesAndCalculationRunner {
         $db->exec("DELETE FROM param_lycee WHERE id = {$lyceeId}");
 
         $db->exec("INSERT INTO param_lycee (id, nom_lycee) VALUES ({$lyceeId}, 'Lycee Dynamic Test')");
-        $db->exec("INSERT INTO annees_academiques (id, libelle, date_debut, date_fin, est_active, cloturee) VALUES ({$anneeId}, '2025-2026', '2025-09-01', '2026-06-30', 1, 0)");
+        $isSqlite = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
+        $replaceKw = $isSqlite ? 'INSERT OR REPLACE' : 'REPLACE';
+        $db->exec("{$replaceKw} INTO annees_academiques (id, libelle, date_debut, date_fin, est_active, cloturee) VALUES ({$anneeId}, '2025-2026-DYN', '2025-09-01', '2026-06-30', 1, 0)");
         $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES ({$seqId}, {$lyceeId}, {$anneeId}, 'Séquence 1 Test', 'trimestrielle', '2020-01-01', '2099-12-31', 'ouverte')");
 
         $_SESSION['user'] = ['id_user' => $teacherId, 'role_id' => 1, 'lycee_id' => $lyceeId, 'role_name' => 'super_admin_createur'];

@@ -30,6 +30,9 @@ class Deblocage {
         $lycee_id = Auth::getLyceeId();
         $active_year = AnneeAcademique::findActive();
 
+        $typeEvalId = !empty($data['type_evaluation_id']) ? (int)$data['type_evaluation_id'] : null;
+        $typeEvalCode = $data['type_evaluation'] ?? 'tous';
+
         // Check for existing record to avoid duplicates manually since NULLs in unique keys are tricky (with strictly unique named parameters)
         $sql_check = "SELECT id FROM deblocages_notes
                       WHERE lycee_id = :lycee_id
@@ -39,7 +42,10 @@ class Deblocage {
                       AND (matiere_id = :matiere_id1 OR (matiere_id IS NULL AND :matiere_id2 IS NULL))
                       AND (enseignant_id = :enseignant_id1 OR (enseignant_id IS NULL AND :enseignant_id2 IS NULL))
                       AND (sequence_id = :sequence_id1 OR (sequence_id IS NULL AND :sequence_id2 IS NULL))
-                      AND type_evaluation = :type_eval";
+                      AND (
+                          (type_evaluation_id IS NOT NULL AND type_evaluation_id = :type_eval_id_chk)
+                          OR (type_evaluation_id IS NULL AND :type_eval_id_chk2 IS NULL AND type_evaluation = :type_eval_str_chk)
+                      )";
 
         $classe_id_val = $data['classe_id'] ?? null;
         $matiere_id_val = $data['matiere_id'] ?? null;
@@ -59,7 +65,9 @@ class Deblocage {
             'enseignant_id2' => $enseignant_id_val,
             'sequence_id1' => $sequence_id_val,
             'sequence_id2' => $sequence_id_val,
-            'type_eval' => $data['type_evaluation'] ?? 'tous'
+            'type_eval_id_chk' => $typeEvalId,
+            'type_eval_id_chk2' => $typeEvalId,
+            'type_eval_str_chk' => $typeEvalCode
         ]);
         $existing_id = $stmt_check->fetchColumn();
 
@@ -72,12 +80,16 @@ class Deblocage {
 
         if ($existing_id) {
             $sql = "UPDATE deblocages_notes SET
+                        type_evaluation_id = :type_eval_id,
+                        type_evaluation = :type_eval,
                         date_debut = :date_debut,
                         date_fin = :date_fin,
                         motif = :motif,
                         cree_par = :cree_par
                     WHERE id = :id";
             $params = [
+                'type_eval_id' => $typeEvalId,
+                'type_eval' => $typeEvalCode,
                 'date_debut' => $date_debut_norm,
                 'date_fin' => $date_fin_norm,
                 'motif' => $data['motif'] ?? null,
@@ -87,10 +99,10 @@ class Deblocage {
         } else {
             $sql = "INSERT INTO deblocages_notes (
                         lycee_id, annee_academique_id, type, classe_id, matiere_id,
-                        enseignant_id, sequence_id, type_evaluation, date_debut, date_fin, motif, cree_par
+                        enseignant_id, sequence_id, type_evaluation, type_evaluation_id, date_debut, date_fin, motif, cree_par
                     ) VALUES (
                         :lycee_id, :annee_id, :type, :classe_id, :matiere_id,
-                        :enseignant_id, :sequence_id, :type_evaluation, :date_debut, :date_fin, :motif, :cree_par
+                        :enseignant_id, :sequence_id, :type_evaluation, :type_evaluation_id, :date_debut, :date_fin, :motif, :cree_par
                     )";
             $params = [
                 'lycee_id' => $lycee_id,
@@ -100,7 +112,8 @@ class Deblocage {
                 'matiere_id' => $data['matiere_id'] ?? null,
                 'enseignant_id' => $data['enseignant_id'] ?? null,
                 'sequence_id' => $data['sequence_id'] ?? null,
-                'type_evaluation' => $data['type_evaluation'] ?? 'tous',
+                'type_evaluation' => $typeEvalCode,
+                'type_evaluation_id' => $typeEvalId,
                 'date_debut' => $date_debut_norm,
                 'date_fin' => $date_fin_norm,
                 'motif' => $data['motif'] ?? null,
