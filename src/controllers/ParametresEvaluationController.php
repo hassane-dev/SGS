@@ -125,10 +125,10 @@ class ParametresEvaluationController {
         }
     }
 
-    public function edit() {
+    public function edit($id = null) {
         $this->checkAccess();
 
-        $id = $_GET['id'] ?? null;
+        $id = $id ?? $_GET['id'] ?? $_POST['id'] ?? null;
         if (!$id) {
             header('Location: /evaluations/settings');
             exit();
@@ -181,11 +181,11 @@ class ParametresEvaluationController {
         ]);
     }
 
-    public function update() {
+    public function update($id = null) {
         $this->checkAccess();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $id = $_POST['id'] ?? null;
+            $id = $id ?? $_POST['id'] ?? $_GET['id'] ?? null;
             if (!$id) {
                 header('Location: /evaluations/settings');
                 exit();
@@ -262,9 +262,9 @@ class ParametresEvaluationController {
         }
     }
 
-    public function delete() {
+    public function delete($id = null) {
         $this->checkAccess();
-        $id = $_GET['id'] ?? null;
+        $id = $id ?? $_GET['id'] ?? $_POST['id'] ?? null;
         if ($id && ParametresEvaluation::delete($id)) {
             header('Location: /evaluations/settings?success=settings_deleted');
         } else {

@@ -54,8 +54,13 @@ class ParamTypeEvaluationController {
         exit();
     }
 
-    public function edit($id) {
+    public function edit($id = null) {
         $this->checkAccess();
+        $id = $id ?? $_GET['id'] ?? $_POST['id'] ?? null;
+        if (!$id) {
+            header('Location: /evaluations/types?error=missing_id');
+            exit();
+        }
         $type = ParamTypeEvaluation::findById($id);
         if (!$type) {
             header('Location: /evaluations/types?error=not_found');
@@ -68,8 +73,9 @@ class ParamTypeEvaluationController {
         ]);
     }
 
-    public function update($id) {
+    public function update($id = null) {
         $this->checkAccess();
+        $id = $id ?? $_POST['id'] ?? $_GET['id'] ?? null;
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $_POST['id'] = $id;
@@ -90,9 +96,12 @@ class ParamTypeEvaluationController {
         exit();
     }
 
-    public function toggle($id) {
+    public function toggle($id = null) {
         $this->checkAccess();
-        ParamTypeEvaluation::toggleActive($id);
+        $id = $id ?? $_GET['id'] ?? $_POST['id'] ?? null;
+        if ($id) {
+            ParamTypeEvaluation::toggleActive($id);
+        }
         header('Location: /evaluations/types?success=toggled');
         exit();
     }
