@@ -54,7 +54,8 @@ class EvaluationSaisieService {
         ?int $enseignant_id = null,
         ?string $simulatedNow = null,
         ?int $lycee_id = null,
-        bool $checkRbac = true
+        bool $checkRbac = true,
+        ?int $numero_evaluation = null
     ): array {
         $db = Database::getInstance();
 
@@ -110,6 +111,42 @@ class EvaluationSaisieService {
 
         $typeCode = $typeRecord['code'];
         $typeId = $typeRecord['id'];
+
+        // Auto-extract occurrence number from superglobals if not explicitly supplied
+        if ($numero_evaluation === null) {
+            if (isset($_POST['numero_evaluation'])) {
+                $numero_evaluation = (int)$_POST['numero_evaluation'];
+            } elseif (isset($_GET['numero'])) {
+                $numero_evaluation = (int)$_GET['numero'];
+            } elseif (isset($_GET['numero_evaluation'])) {
+                $numero_evaluation = (int)$_GET['numero_evaluation'];
+            }
+        }
+
+        // Strict validation of occurrence bounds if numero_evaluation is present
+        $maxOccurrences = (int)($typeRecord['nombre_evaluation'] ?? 1);
+        if ($numero_evaluation !== null) {
+            if ($numero_evaluation < 1 || $numero_evaluation > $maxOccurrences) {
+                return self::buildDecision(
+                    false,
+                    'DENIED_INVALID_OCCURRENCE',
+                    sprintf(_("L'occurrence N°%d n'est pas autorisée pour le type '%s' (Maximum autorisé : %d)."), $numero_evaluation, htmlspecialchars($typeRecord['libelle'] ?? $typeCode), $maxOccurrences),
+                    'validation',
+                    $nowNorm,
+                    [
+                        'lycee_id' => $resolvedLyceeId,
+                        'annee_academique_id' => $anneeId,
+                        'classe_id' => $classe_id,
+                        'matiere_id' => $matiere_id,
+                        'sequence_id' => $sequence_id,
+                        'enseignant_id' => $resolvedEnseignantId,
+                        'type_code' => $typeCode,
+                        'type_id' => $typeId,
+                        'numero_evaluation' => $numero_evaluation
+                    ]
+                );
+            }
+        }
 
         $context = [
             'lycee_id' => $resolvedLyceeId,
@@ -278,10 +315,11 @@ class EvaluationSaisieService {
                     if ($typeId !== null && !empty($r['type_evaluation_id']) && (int)$r['type_evaluation_id'] === (int)$typeId) {
                         return true;
                     }
-                    if (!empty($r['type_evaluation']) && ($r['type_evaluation'] === $typeCode || $r['type_evaluation'] === 'tous')) {
+                    $ruleType = strtolower(trim((string)($r['type_evaluation'] ?? '')));
+                    if ($ruleType !== '' && ($ruleType === $typeCode || $ruleType === 'tous')) {
                         return true;
                     }
-                    if (empty($r['type_evaluation_id']) && (empty($r['type_evaluation']) || $r['type_evaluation'] === 'tous')) {
+                    if (empty($r['type_evaluation_id']) && ($ruleType === '' || $ruleType === 'tous')) {
                         return true;
                     }
                     return false;
@@ -412,6 +450,12 @@ class EvaluationSaisieService {
         bool $checkRbac = true
     ): array {
         $resolvedLyceeId = $lycee_id ?? Auth::getLyceeId();
+        if (!$resolvedLyceeId) {
+            $active_year = AnneeAcademique::findActive();
+            if ($active_year) {
+                $resolvedLyceeId = (int)($active_year['lycee_id'] ?? 1);
+            }
+        }
         $activeTypes = ParamTypeEvaluation::findActive($resolvedLyceeId);
 
         if (empty($activeTypes)) {

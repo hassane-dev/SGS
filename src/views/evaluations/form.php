@@ -84,6 +84,7 @@
                         <?php
                         $baseUrl = "/evaluations/form?classe_id=" . $classe['id_classe'] . "&matiere_id=" . $matiere['id_matiere'] . "&sequence_id=" . $sequence_id;
                         $hasMultipleTypes = count($allowed_types) > 1;
+                        $targetLyceeId = $type_rec['lycee_id'] ?? null;
                         ?>
 
                         <?php if ($hasMultipleTypes): ?>
@@ -92,7 +93,7 @@
                                 <span class="text-muted small fw-bold d-block mb-2"><?= _('Type d\'évaluation autorisée') ?> :</span>
                                 <div class="d-flex flex-wrap gap-2">
                                     <?php foreach ($allowed_types as $tCode):
-                                        $tRecObj = ParamTypeEvaluation::findByCode($tCode);
+                                        $tRecObj = ParamTypeEvaluation::findByCode($tCode, $targetLyceeId);
                                         $isSelType = ($type === $tCode);
                                     ?>
                                         <a href="<?= $baseUrl ?>&type=<?= $tCode ?>&numero=1"
