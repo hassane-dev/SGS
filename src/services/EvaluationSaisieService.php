@@ -305,13 +305,8 @@ class EvaluationSaisieService {
             $matching_rules = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             if (!empty($matching_rules)) {
-                $max_specificity = (int)$matching_rules[0]['specificity'];
-                $target_rules = array_filter($matching_rules, function($r) use ($max_specificity) {
-                    return (int)$r['specificity'] === $max_specificity;
-                });
-
-                // Filtrage des règles couvrant le type demandé (par ID, par code, ou scope 'tous' / NULL)
-                $covering_rules = array_filter($target_rules, function($r) use ($typeCode, $typeId) {
+                // Filtrage préalable : isoler uniquement les règles couvrant le type demandé (par ID, par code, ou scope 'tous' / NULL)
+                $applicable_rules = array_filter($matching_rules, function($r) use ($typeCode, $typeId) {
                     if ($typeId !== null && !empty($r['type_evaluation_id']) && (int)$r['type_evaluation_id'] === (int)$typeId) {
                         return true;
                     }
@@ -325,7 +320,7 @@ class EvaluationSaisieService {
                     return false;
                 });
 
-                if (empty($covering_rules)) {
+                if (empty($applicable_rules)) {
                     return self::buildDecision(
                         false,
                         'DENIED_TYPE_MISMATCH',
@@ -335,6 +330,12 @@ class EvaluationSaisieService {
                         $context
                     );
                 }
+
+                $applicable_rules = array_values($applicable_rules);
+                $max_specificity = (int)$applicable_rules[0]['specificity'];
+                $covering_rules = array_filter($applicable_rules, function($r) use ($max_specificity) {
+                    return (int)$r['specificity'] === $max_specificity;
+                });
 
                 $tsNow = strtotime($nowNorm);
                 $isFuture = false;
