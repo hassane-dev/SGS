@@ -83,7 +83,7 @@ class EvaluationGradingWindowAndSecurityRunner {
             $isCompositionOpenC3 = Evaluation::isGradingWindowOpen(3, 3, 100, 'composition');
 
             self::assertTrue($isCompositionOpenC3, "6a. Composition window is open for classe 3.");
-            self::assertFalse($isDevoirOpenC3, "6b. Devoir is refused when target has explicit rules at max specificity covering only composition.");
+            self::assertTrue($isDevoirOpenC3, "6b. Devoir is governed independently by its own active global rule (specificity 1).");
 
             echo "\n>>> ALL INTEGRATION TEST ASSERTIONS PASSED SUCCESSFULLY! <<<\n";
 
