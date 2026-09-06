@@ -56,7 +56,17 @@ class EvaluationController {
         $classe_id = $_GET['classe_id'] ?? null;
         $matiere_id = $_GET['matiere_id'] ?? null;
         $requested_sequence_id = (int)($_GET['sequence_id'] ?? 0);
-        $type = $_GET['type'] ?? 'devoir';
+        $requested_type = $_GET['type'] ?? null;
+        if (empty($requested_type)) {
+            $allowedTypes = EvaluationSaisieService::getAllowedEvaluationTypes((int)$classe_id, (int)$matiere_id, $requested_sequence_id);
+            if (!empty($allowedTypes)) {
+                $type = $allowedTypes[0];
+            } else {
+                $type = 'devoir';
+            }
+        } else {
+            $type = $requested_type;
+        }
         $numero = (int)($_GET['numero'] ?? 1);
 
         if (!$classe_id || !$matiere_id) {

@@ -89,6 +89,17 @@ class EvaluationSaisieService {
         }
 
         if (!$typeRecord || empty($typeRecord['actif'])) {
+            $allSchoolTypes = ParamTypeEvaluation::findAll($resolvedLyceeId);
+            if (!empty($allSchoolTypes)) {
+                return self::buildDecision(
+                    false,
+                    'DENIED_INVALID_TYPE',
+                    sprintf(_("Type d'évaluation invalide '%s' ou inactif pour l'établissement."), (string)$type),
+                    'validation',
+                    $nowNorm,
+                    []
+                );
+            }
             // Fallback: Si la table est temporairement vide, autoriser les codes historiques 'devoir' et 'composition'
             $typeStr = strtolower(trim((string)$type));
             if (!in_array($typeStr, ['devoir', 'composition'], true)) {
@@ -305,7 +316,7 @@ class EvaluationSaisieService {
             $matching_rules = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             if (!empty($matching_rules)) {
-                // Filtrage préalable : isoler uniquement les règles couvrant le type demandé (par ID, par code, ou scope 'tous' / NULL)
+                // Filter matching rules to keep only those covering the requested evaluation type
                 $applicable_rules = array_filter($matching_rules, function($r) use ($typeCode, $typeId) {
                     if ($typeId !== null && !empty($r['type_evaluation_id']) && (int)$r['type_evaluation_id'] === (int)$typeId) {
                         return true;
