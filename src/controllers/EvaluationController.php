@@ -36,18 +36,74 @@ class EvaluationController {
         ]);
     }
 
-    // Step 2: Redirects to directSaisie for automatic server context resolution
+    // Step 2: Render evaluation choice page or redirect
     public function selectEvaluation() {
         $this->checkAccess();
         $classe_id = $_POST['classe_id'] ?? $_GET['classe_id'] ?? null;
         $matiere_id = $_POST['matiere_id'] ?? $_GET['matiere_id'] ?? null;
+        $requested_type = $_GET['type'] ?? $_POST['type'] ?? null;
 
         if (!$classe_id || !$matiere_id) {
             header('Location: /evaluations/select_class');
             exit();
         }
 
-        $this->directSaisie((int)$classe_id, (int)$matiere_id);
+        $active_year = AnneeAcademique::findActive();
+        if (!$active_year) {
+            View::render('evaluations/error', [
+                'message' => _("Aucune année académique n'est actuellement active. Veuillez contacter l'administration."),
+                'title' => 'Erreur de Configuration'
+            ]);
+            exit();
+        }
+
+        $lycee_id = Auth::getLyceeId() ?: (int)($active_year['lycee_id'] ?? 1);
+
+        $allowed_types = EvaluationSaisieService::getAllowedEvaluationTypes((int)$classe_id, (int)$matiere_id, 0);
+
+        if (empty($allowed_types)) {
+            $decision = EvaluationSaisieService::canTeacherGradeContext((int)$classe_id, (int)$matiere_id, 0, 'devoir');
+            View::render('evaluations/error', [
+                'message' => $decision['reason'],
+                'title' => 'Saisie Fermée'
+            ]);
+            exit();
+        }
+
+        $active_types = ParamTypeEvaluation::findActive($lycee_id);
+        if (empty($active_types)) {
+            $active_types = [
+                ['id' => null, 'code' => 'devoir', 'libelle' => 'Devoir'],
+                ['id' => null, 'code' => 'composition', 'libelle' => 'Composition']
+            ];
+        }
+
+        if ($requested_type && in_array($requested_type, $allowed_types, true)) {
+            $type = $requested_type;
+        } else {
+            $type = $allowed_types[0];
+        }
+
+        $sequences = Sequence::findOpenSequences();
+        if (empty($sequences)) {
+            $activeSeq = Sequence::findActiveForYear($lycee_id, (int)$active_year['id']);
+            if ($activeSeq) {
+                $sequences = [$activeSeq];
+            }
+        }
+
+        $classe = Classe::findById($classe_id);
+        $matiere = Matiere::findById($matiere_id);
+
+        View::render('evaluations/select_evaluation', [
+            'classe' => $classe,
+            'matiere' => $matiere,
+            'allowed_types' => $allowed_types,
+            'active_types' => $active_types,
+            'type' => $type,
+            'sequences' => $sequences,
+            'title' => 'Saisie des Notes — Choix du Type et de la Période'
+        ]);
     }
 
     // Step 3: Show the grading form
@@ -59,7 +115,10 @@ class EvaluationController {
         $requested_type = $_GET['type'] ?? null;
         if (empty($requested_type)) {
             $allowedTypes = EvaluationSaisieService::getAllowedEvaluationTypes((int)$classe_id, (int)$matiere_id, $requested_sequence_id);
-            if (!empty($allowedTypes)) {
+            if (count($allowedTypes) > 1) {
+                header("Location: /evaluations/select_evaluation?classe_id=$classe_id&matiere_id=$matiere_id");
+                exit();
+            } elseif (!empty($allowedTypes)) {
                 $type = $allowedTypes[0];
             } else {
                 $type = 'devoir';
@@ -205,6 +264,11 @@ class EvaluationController {
                 'message' => $decision['reason'],
                 'title' => 'Saisie Fermée'
             ]);
+            exit();
+        }
+
+        if (count($allowed_types) > 1) {
+            header("Location: /evaluations/select_evaluation?classe_id=$classe_id&matiere_id=$matiere_id");
             exit();
         }
 
