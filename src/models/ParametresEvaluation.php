@@ -27,26 +27,12 @@ class ParametresEvaluation {
 
     private static function ensureTypeColumn($db) {
         try {
-            $isSqlite = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
-            if ($isSqlite) {
-                $stmt = $db->prepare("PRAGMA table_info(`parametres_evaluations`)");
-                $stmt->execute();
-                $cols = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                $hasType = false;
-                foreach ($cols as $c) {
-                    if ($c['name'] === 'type') { $hasType = true; break; }
-                }
-                if (!$hasType) {
-                    $db->exec("ALTER TABLE parametres_evaluations ADD COLUMN type TEXT NOT NULL DEFAULT 'enseignant'");
-                }
-            } else {
-                $stmt = $db->query("SHOW COLUMNS FROM `parametres_evaluations` LIKE 'type'");
-                if (!$stmt->fetch()) {
-                    $db->exec("ALTER TABLE `parametres_evaluations` ADD COLUMN `type` ENUM('global', 'classe', 'matiere', 'classe_matiere', 'enseignant') NOT NULL DEFAULT 'enseignant'");
-                    $db->exec("ALTER TABLE `parametres_evaluations` MODIFY COLUMN `classe_id` INT DEFAULT NULL");
-                    $db->exec("ALTER TABLE `parametres_evaluations` MODIFY COLUMN `matiere_id` INT DEFAULT NULL");
-                    $db->exec("ALTER TABLE `parametres_evaluations` MODIFY COLUMN `sequence_id` INT DEFAULT NULL");
-                }
+            $stmt = $db->query("SHOW COLUMNS FROM `parametres_evaluations` LIKE 'type'");
+            if (!$stmt->fetch()) {
+                $db->exec("ALTER TABLE `parametres_evaluations` ADD COLUMN `type` ENUM('global', 'classe', 'matiere', 'classe_matiere', 'enseignant') NOT NULL DEFAULT 'enseignant'");
+                $db->exec("ALTER TABLE `parametres_evaluations` MODIFY COLUMN `classe_id` INT DEFAULT NULL");
+                $db->exec("ALTER TABLE `parametres_evaluations` MODIFY COLUMN `matiere_id` INT DEFAULT NULL");
+                $db->exec("ALTER TABLE `parametres_evaluations` MODIFY COLUMN `sequence_id` INT DEFAULT NULL");
             }
         } catch (Exception $e) {
             // Ignore if column check fails or exists
@@ -246,10 +232,7 @@ class ParametresEvaluation {
         $db = Database::getInstance();
         $lycee_id = $lycee_id ?? Auth::getLyceeId();
 
-        $isSqlite = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
-        $concatClasse = $isSqlite
-            ? "(c.niveau || CASE WHEN c.serie IS NOT NULL AND c.serie != '' THEN ' ' || c.serie ELSE '' END || CASE WHEN c.numero IS NOT NULL AND c.numero != '' THEN ' ' || c.numero ELSE '' END) as nom_classe"
-            : "CONCAT(c.niveau, IF(c.serie IS NOT NULL AND c.serie != '', CONCAT(' ', c.serie), ''), IF(c.numero IS NOT NULL AND c.numero != '', CONCAT(' ', c.numero), '')) as nom_classe";
+        $concatClasse = "CONCAT(c.niveau, IF(c.serie IS NOT NULL AND c.serie != '', CONCAT(' ', c.serie), ''), IF(c.numero IS NOT NULL AND c.numero != '', CONCAT(' ', c.numero), '')) as nom_classe";
 
         $sql = "SELECT p.*, {$concatClasse}, m.nom_matiere, u.nom as enseignant_nom, u.prenom as enseignant_prenom,
                        s.nom as sequence_nom

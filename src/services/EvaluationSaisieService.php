@@ -89,35 +89,14 @@ class EvaluationSaisieService {
         }
 
         if (!$typeRecord || empty($typeRecord['actif'])) {
-            $allSchoolTypes = ParamTypeEvaluation::findAll($resolvedLyceeId);
-            if (!empty($allSchoolTypes)) {
-                return self::buildDecision(
-                    false,
-                    'DENIED_INVALID_TYPE',
-                    sprintf(_("Type d'évaluation invalide '%s' ou inactif pour l'établissement."), (string)$type),
-                    'validation',
-                    $nowNorm,
-                    []
-                );
-            }
-            // Fallback: Si la table est temporairement vide, autoriser les codes historiques 'devoir' et 'composition'
-            $typeStr = strtolower(trim((string)$type));
-            if (!in_array($typeStr, ['devoir', 'composition'], true)) {
-                return self::buildDecision(
-                    false,
-                    'DENIED_INVALID_TYPE',
-                    sprintf(_("Type d'évaluation invalide '%s' ou non configuré pour l'établissement."), (string)$type),
-                    'validation',
-                    $nowNorm,
-                    []
-                );
-            }
-            $typeRecord = [
-                'id' => null,
-                'code' => $typeStr,
-                'libelle' => ucfirst($typeStr),
-                'bareme_defaut' => 20.00
-            ];
+            return self::buildDecision(
+                false,
+                'DENIED_INVALID_TYPE',
+                sprintf(_("Type d'évaluation invalide '%s' ou inactif pour l'établissement."), (string)$type),
+                'validation',
+                $nowNorm,
+                []
+            );
         }
 
         $typeCode = $typeRecord['code'];
@@ -414,34 +393,12 @@ class EvaluationSaisieService {
             error_log("Error in EvaluationSaisieService::canTeacherGradeContext Level 3: " . $e->getMessage());
         }
 
-        // RÈGLE 8 : Fallback
-        try {
-            $stmtCount = $db->prepare("SELECT COUNT(*) FROM parametres_evaluations WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id");
-            $stmtCount->execute([
-                'lycee_id' => $resolvedLyceeId,
-                'annee_id' => $anneeId
-            ]);
-            $hasAnyRules = ((int)$stmtCount->fetchColumn()) > 0;
-
-            if ($hasAnyRules) {
-                return self::buildDecision(
-                    false,
-                    'DENIED_POLICY_RESTRICTED',
-                    _("Aucun paramétrage de saisie ne couvre cette évaluation dans l'établissement."),
-                    'fallback',
-                    $nowNorm,
-                    $context
-                );
-            }
-        } catch (PDOException $e) {
-            error_log("Error in EvaluationSaisieService::canTeacherGradeContext Level 4: " . $e->getMessage());
-        }
-
+        // Strict Refusal: Absence of active period rule or unlock = DENIED (No default fallback)
         return self::buildDecision(
-            true,
-            'ALLOWED_DEFAULT_FALLBACK',
-            _("Aucun paramétrage restrictif configuré. Saisie autorisée par défaut."),
-            'fallback',
+            false,
+            'DENIED_NO_ACTIVE_PERIOD',
+            _("Aucune période de saisie n'est actuellement ouverte pour ce type d'évaluation."),
+            'parametres',
             $nowNorm,
             $context
         );
@@ -471,10 +428,7 @@ class EvaluationSaisieService {
         $activeTypes = ParamTypeEvaluation::findActive($resolvedLyceeId);
 
         if (empty($activeTypes)) {
-            $activeTypes = [
-                ['id' => null, 'code' => 'devoir', 'libelle' => 'Devoir'],
-                ['id' => null, 'code' => 'composition', 'libelle' => 'Composition']
-            ];
+            return [];
         }
 
         $allowed = [];

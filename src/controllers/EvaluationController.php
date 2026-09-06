@@ -57,16 +57,6 @@ class EvaluationController {
         $matiere_id = $_GET['matiere_id'] ?? null;
         $requested_sequence_id = (int)($_GET['sequence_id'] ?? 0);
         $requested_type = $_GET['type'] ?? null;
-        if (empty($requested_type)) {
-            $allowedTypes = EvaluationSaisieService::getAllowedEvaluationTypes((int)$classe_id, (int)$matiere_id, $requested_sequence_id);
-            if (!empty($allowedTypes)) {
-                $type = $allowedTypes[0];
-            } else {
-                $type = 'devoir';
-            }
-        } else {
-            $type = $requested_type;
-        }
         $numero = (int)($_GET['numero'] ?? 1);
 
         if (!$classe_id || !$matiere_id) {
@@ -74,8 +64,32 @@ class EvaluationController {
             exit();
         }
 
-        // Strict Server Context Validation: Sequence and Type must be authorized by server
-        $decision = EvaluationSaisieService::canTeacherGradeContext((int)$classe_id, (int)$matiere_id, $requested_sequence_id, (string)$type);
+        // Server resolves allowed types for active sequence
+        $allowedTypes = EvaluationSaisieService::getAllowedEvaluationTypes((int)$classe_id, (int)$matiere_id, $requested_sequence_id);
+
+        if (empty($allowedTypes)) {
+            View::render('evaluations/error', [
+                'message' => _("Aucune période de saisie n'est actuellement ouverte pour cette classe et cette matière."),
+                'title' => 'Saisie Fermée'
+            ]);
+            exit();
+        }
+
+        if (!empty($requested_type)) {
+            if (!in_array($requested_type, $allowedTypes, true)) {
+                View::render('evaluations/error', [
+                    'message' => sprintf(_("La saisie pour le type '%s' n'est pas autorisée dans la période actuelle."), htmlspecialchars($requested_type)),
+                    'title' => 'Accès Refusé'
+                ]);
+                exit();
+            }
+            $type = $requested_type;
+        } else {
+            $type = $allowedTypes[0];
+        }
+
+        // Strict Server Context Validation: Sequence, Type and Occurrence must be authorized
+        $decision = EvaluationSaisieService::canTeacherGradeContext((int)$classe_id, (int)$matiere_id, $requested_sequence_id, (string)$type, null, null, null, true, $numero);
         if (!$decision['allowed']) {
             View::render('evaluations/error', [
                 'message' => $decision['reason'],
@@ -86,8 +100,6 @@ class EvaluationController {
 
         $serverSequenceId = (int)$decision['context']['sequence_id'];
         $serverTypeCode = (string)$decision['context']['type_code'];
-
-        $allowedTypes = EvaluationSaisieService::getAllowedEvaluationTypes((int)$classe_id, (int)$matiere_id, $serverSequenceId);
 
         $typeRec = ParamTypeEvaluation::findByCode($serverTypeCode);
         $maxOccurrences = (int)($typeRec['nombre_evaluation'] ?? 1);
@@ -142,8 +154,10 @@ class EvaluationController {
                 exit();
             }
 
+            $numeroEval = (int)($_POST['numero_evaluation'] ?? 1);
+
             // Centralized anti-tampering verification
-            $decision = EvaluationSaisieService::canTeacherGradeContext((int)$classe_id, (int)$matiere_id, (int)$sequence_id, (string)$type);
+            $decision = EvaluationSaisieService::canTeacherGradeContext((int)$classe_id, (int)$matiere_id, (int)$sequence_id, (string)$type, null, null, null, true, $numeroEval);
             if (!$decision['allowed']) {
                 View::render('evaluations/error', [
                     'message' => $decision['reason'],
@@ -200,9 +214,8 @@ class EvaluationController {
         $allowed_types = EvaluationSaisieService::getAllowedEvaluationTypes((int)$classe_id, (int)$matiere_id, 0);
 
         if (empty($allowed_types)) {
-            $decision = EvaluationSaisieService::canTeacherGradeContext((int)$classe_id, (int)$matiere_id, 0, 'devoir');
             View::render('evaluations/error', [
-                'message' => $decision['reason'],
+                'message' => _("Aucune période de saisie des notes n'est actuellement ouverte pour ce cours."),
                 'title' => 'Saisie Fermée'
             ]);
             exit();

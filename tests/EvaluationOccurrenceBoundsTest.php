@@ -22,10 +22,12 @@ $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
 // Setup test tenant
 $lycee_id = 8800;
 $_SESSION['user'] = [
+    'id' => 8801,
     'id_user' => 8801,
     'role_id' => 1,
     'lycee_id' => $lycee_id,
-    'role_name' => 'super_admin_createur'
+    'role_name' => 'super_admin_createur',
+    'permissions' => ['note' => ['*'], 'evaluation' => ['*']]
 ];
 
 $active_year = AnneeAcademique::findActive();
@@ -36,16 +38,13 @@ $db->exec("DELETE FROM evaluations WHERE lycee_id = {$lycee_id}");
 $db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = {$lycee_id}");
 $db->exec("DELETE FROM sequences WHERE lycee_id = {$lycee_id}");
 
-if ($driver === 'sqlite') {
-    $db->exec("CREATE TABLE IF NOT EXISTS param_lycee (id INT PRIMARY KEY, nom_lycee VARCHAR(255))");
-    $db->exec("INSERT OR IGNORE INTO param_lycee (id, nom_lycee) VALUES (8800, 'Test Lycee Occurrences')");
-    $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (8801, 8800, {$annee_id}, 'Séquence 2 Active', 'trimestrielle', '2020-01-01', '2099-12-31', 'ouverte')");
-    $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (8802, 8800, {$annee_id}, 'Séquence 3 Inactive', 'trimestrielle', '2010-01-01', '2010-02-01', 'fermee')");
-} else {
-    $db->exec("INSERT IGNORE INTO param_lycee (id, nom_lycee) VALUES (8800, 'Test Lycee Occurrences')");
-    $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (8801, 8800, {$annee_id}, 'Séquence 2 Active', 'trimestrielle', '2020-01-01', '2099-12-31', 'ouverte')");
-    $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (8802, 8800, {$annee_id}, 'Séquence 3 Inactive', 'trimestrielle', '2010-01-01', '2010-02-01', 'fermee')");
-}
+$db->exec("INSERT IGNORE INTO param_lycee (id, nom_lycee, type_lycee) VALUES (8800, 'Test Lycee Occurrences', 'prive')");
+$db->exec("INSERT IGNORE INTO cycles (id_cycle, lycee_id, nom_cycle) VALUES (8800, 8800, 'Cycle Test')");
+$db->exec("INSERT IGNORE INTO classes (id_classe, lycee_id, cycle_id, niveau) VALUES (99010, 8800, 8800, '6ème')");
+$db->exec("INSERT IGNORE INTO matieres (id_matiere, lycee_id, nom_matiere) VALUES (99020, 8800, 'Maths')");
+$db->exec("INSERT IGNORE INTO utilisateurs (id_user, lycee_id, nom, prenom, email, mot_de_passe) VALUES (8801, 8800, 'Prof', 'Test', 'prof8801@test.com', 'hash')");
+$db->exec("REPLACE INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (8801, 8800, {$annee_id}, 'Séquence 2 Active', 'trimestrielle', '2020-01-01', '2099-12-31', 'ouverte')");
+$db->exec("REPLACE INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (8802, 8800, {$annee_id}, 'Séquence 3 Inactive', 'trimestrielle', '2010-01-01', '2010-02-01', 'fermee')");
 
 // Seed param_type_evaluation
 ParamTypeEvaluation::save([

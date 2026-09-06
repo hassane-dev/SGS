@@ -29,20 +29,10 @@ class Database {
         try {
             $this->conn = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
-            // Fallback to SQLite database file if MySQL fails
-            try {
-                $this->conn = new PDO('sqlite:' . __DIR__ . '/../../database.sqlite', null, null, [
-                    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_TIMEOUT            => 10,
-                ]);
-                $this->conn->exec('PRAGMA busy_timeout = 10000;');
-            } catch (Exception $ex) {
-                if (APP_ENV === 'development') {
-                    throw new PDOException($e->getMessage(), (int)$e->getCode());
-                } else {
-                    die('Could not connect to the database. Please try again later.');
-                }
+            if (APP_ENV === 'development') {
+                throw new PDOException($e->getMessage(), (int)$e->getCode());
+            } else {
+                die('Could not connect to the MySQL database. Please verify database server availability and configuration.');
             }
         }
     }

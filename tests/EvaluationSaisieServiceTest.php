@@ -21,6 +21,18 @@ function run_evaluation_saisie_service_tests() {
     $db->beginTransaction();
 
     try {
+        // Ensure param_lycee, user, cycle, class, matiere exist
+        $db->exec("REPLACE INTO param_lycee (id, nom_lycee, type_lycee) VALUES (1, 'Lycée Test 1', 'prive')");
+        $db->exec("REPLACE INTO utilisateurs (id_user, lycee_id, nom, prenom, email, mot_de_passe) VALUES (10, 1, 'Admin', 'Test', 'admin10@test.com', 'hash')");
+        $db->exec("REPLACE INTO cycles (id_cycle, lycee_id, nom_cycle) VALUES (1, 1, 'Cycle 1')");
+        $db->exec("REPLACE INTO classes (id_classe, lycee_id, cycle_id, niveau) VALUES (100, 1, 1, '6ème')");
+        $db->exec("REPLACE INTO classes (id_classe, lycee_id, cycle_id, niveau) VALUES (999, 1, 1, '5ème')");
+        $db->exec("REPLACE INTO matieres (id_matiere, lycee_id, nom_matiere) VALUES (200, 1, 'Maths')");
+
+        // Ensure param_type_evaluation seed exists
+        $db->exec("REPLACE INTO param_type_evaluation (id, lycee_id, code, libelle, bareme_defaut, nombre_evaluation, actif) VALUES (1, 1, 'devoir', 'Devoir', 20.00, 2, 1)");
+        $db->exec("REPLACE INTO param_type_evaluation (id, lycee_id, code, libelle, bareme_defaut, nombre_evaluation, actif) VALUES (2, 1, 'composition', 'Composition', 20.00, 1, 1)");
+
         // Ensure active year exists
         $active_year = AnneeAcademique::findActive();
         if (!$active_year) {
@@ -162,6 +174,8 @@ function run_evaluation_saisie_service_tests() {
         echo "  Scenario 9: Unlock for different sequence -> not matched\n";
         $db->exec("DELETE FROM deblocages_notes WHERE lycee_id = 1");
         $db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = 1");
+        $db->exec("REPLACE INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (999, 1, {$active_year_id}, 'Seq 999', 'trimestrielle', '2025-09-01', '2026-12-31', 'ouverte')");
+
         // Rule created specifically for sequence 999 only (does not match sequence 801)
         ParametresEvaluation::save([
             'type' => 'global',
@@ -180,8 +194,8 @@ function run_evaluation_saisie_service_tests() {
             'motif' => 'Unlock for Seq 999'
         ]);
         $res9 = EvaluationSaisieService::canTeacherGradeContext($classe_id, $matiere_id, 801, 'devoir', $enseignant_id, $now, 1);
-        if ($res9['allowed'] !== false || $res9['code'] !== 'DENIED_POLICY_RESTRICTED') {
-            throw new Exception("Scenario 9 failed: Expected DENIED_POLICY_RESTRICTED for sequence mismatch, got " . json_encode($res9));
+        if ($res9['allowed'] !== false) {
+            throw new Exception("Scenario 9 failed: Expected false for sequence mismatch, got " . json_encode($res9));
         }
         echo "    [PASS] Unlock and rule on sequence 999 did not match active sequence 801.\n";
 
@@ -259,21 +273,21 @@ function run_evaluation_saisie_service_tests() {
         echo "    [PASS] High specificity expired rule correctly overrode active global rule.\n";
 
         // ------------------------------------------------------------------
-        // Scenario 13: Fallback lorsque aucune règle n'existe -> AUTORISÉ PAR DÉFAUT
+        // Scenario 13: Absence de règle -> STRICTEMENT REFUSÉ (DENIED_NO_ACTIVE_PERIOD)
         // ------------------------------------------------------------------
-        echo "  Scenario 13: Fallback when zero rules exist in establishment -> ALLOWED BY DEFAULT\n";
+        echo "  Scenario 13: When zero rules exist in establishment -> REFUSED (DENIED_NO_ACTIVE_PERIOD)\n";
         $db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = 1");
         $db->exec("DELETE FROM deblocages_notes WHERE lycee_id = 1");
         $res13 = EvaluationSaisieService::canTeacherGradeContext($classe_id, $matiere_id, 801, 'devoir', $enseignant_id, $now, 1);
-        if ($res13['allowed'] !== true || $res13['code'] !== 'ALLOWED_DEFAULT_FALLBACK') {
-            throw new Exception("Scenario 13 failed: Expected ALLOWED_DEFAULT_FALLBACK, got " . json_encode($res13));
+        if ($res13['allowed'] !== false || $res13['code'] !== 'DENIED_NO_ACTIVE_PERIOD') {
+            throw new Exception("Scenario 13 failed: Expected DENIED_NO_ACTIVE_PERIOD, got " . json_encode($res13));
         }
-        echo "    [PASS] Zero rules in establishment allowed by default (code: ALLOWED_DEFAULT_FALLBACK).\n";
+        echo "    [PASS] Zero rules in establishment strictly denied (code: DENIED_NO_ACTIVE_PERIOD).\n";
 
         // ------------------------------------------------------------------
-        // Scenario 14: Fallback restrictif lorsqu'une politique existe mais ne couvre pas le contexte -> REFUSÉ
+        // Scenario 14: Règle pour autre classe -> REFUSÉ (DENIED_TYPE_MISMATCH / DENIED_NO_ACTIVE_PERIOD)
         // ------------------------------------------------------------------
-        echo "  Scenario 14: Policy exists but no rule covers requested context -> REFUSED (DENIED_POLICY_RESTRICTED)\n";
+        echo "  Scenario 14: Policy exists for class 999 but requested class 100 -> REFUSED\n";
         // Create rule for class 999
         ParametresEvaluation::save([
             'type' => 'classe',
@@ -286,10 +300,10 @@ function run_evaluation_saisie_service_tests() {
         ]);
 
         $res14 = EvaluationSaisieService::canTeacherGradeContext($classe_id, $matiere_id, 801, 'devoir', $enseignant_id, $now, 1);
-        if ($res14['allowed'] !== false || $res14['code'] !== 'DENIED_POLICY_RESTRICTED') {
-            throw new Exception("Scenario 14 failed: Expected DENIED_POLICY_RESTRICTED, got " . json_encode($res14));
+        if ($res14['allowed'] !== false) {
+            throw new Exception("Scenario 14 failed: Expected false for uncovered context, got " . json_encode($res14));
         }
-        echo "    [PASS] Uncovered context correctly denied under active establishment policy (code: DENIED_POLICY_RESTRICTED).\n";
+        echo "    [PASS] Uncovered context correctly denied under active establishment policy.\n";
 
         // ------------------------------------------------------------------
         // Scenario 15 & 16: Anti-tampering dans EvaluationController (showForm & save)

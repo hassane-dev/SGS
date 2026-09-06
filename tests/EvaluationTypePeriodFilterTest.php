@@ -57,9 +57,11 @@ class EvaluationTypePeriodFilterTest {
             $this->testI_ManualPostZeroOccurrenceRejection();
             $this->testJ_ManualPostExceededOccurrenceRejection();
             $this->testK_CoherenceServiceFormAndPostValidation();
+            $this->testL_OldGradesExistPeriodInactiveNotAuthorized();
+            $this->testM_VerifyNoSqliteDriverUsed();
 
             echo "\n=========================================================\n";
-            echo " SUCCESS: TOUS LES TESTS A À K ONT RÉUSSI AVEC SUCCÈS !\n";
+            echo " SUCCESS: TOUS LES TESTS A À M ONT RÉUSSI AVEC SUCCÈS !\n";
             echo "=========================================================\n";
         } finally {
             $this->tearDown();
@@ -67,23 +69,10 @@ class EvaluationTypePeriodFilterTest {
     }
 
     private function ensureTablesExist(): void {
-        if ($this->db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
-            $chkPk = $this->db->query("PRAGMA table_info(param_type_evaluation)")->fetchAll(PDO::FETCH_ASSOC);
-            $isIntegerPk = false;
-            foreach ($chkPk as $col) {
-                if ($col['name'] === 'id' && !empty($col['pk']) && strtoupper($col['type']) === 'INTEGER') {
-                    $isIntegerPk = true;
-                    break;
-                }
-            }
-            if (!$isIntegerPk) {
-                $this->db->exec("DROP TABLE IF EXISTS param_type_evaluation");
-            }
-        }
-
+        $pkType = "INT AUTO_INCREMENT PRIMARY KEY";
         $this->db->exec("
             CREATE TABLE IF NOT EXISTS annees_academiques (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id {$pkType},
                 lycee_id INT NULL,
                 libelle VARCHAR(100),
                 date_debut DATE,
@@ -92,7 +81,7 @@ class EvaluationTypePeriodFilterTest {
                 cloturee BOOLEAN
             );
             CREATE TABLE IF NOT EXISTS sequences (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id {$pkType},
                 lycee_id INT NOT NULL,
                 annee_academique_id INT NOT NULL,
                 nom VARCHAR(255) NOT NULL,
@@ -102,7 +91,7 @@ class EvaluationTypePeriodFilterTest {
                 statut VARCHAR(20) DEFAULT 'ouverte'
             );
             CREATE TABLE IF NOT EXISTS param_type_evaluation (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id {$pkType},
                 lycee_id INT NOT NULL,
                 code VARCHAR(50) NOT NULL,
                 libelle VARCHAR(100) NOT NULL,
@@ -113,7 +102,7 @@ class EvaluationTypePeriodFilterTest {
                 cree_le TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
             CREATE TABLE IF NOT EXISTS parametres_evaluations (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id {$pkType},
                 lycee_id INT NOT NULL,
                 annee_academique_id INT NOT NULL,
                 type VARCHAR(50) DEFAULT 'global',
@@ -128,7 +117,7 @@ class EvaluationTypePeriodFilterTest {
                 commentaire TEXT
             );
             CREATE TABLE IF NOT EXISTS deblocages_notes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id {$pkType},
                 lycee_id INT NOT NULL,
                 annee_academique_id INT NOT NULL,
                 type VARCHAR(50) DEFAULT 'global',
@@ -144,7 +133,7 @@ class EvaluationTypePeriodFilterTest {
                 cree_par INT
             );
             CREATE TABLE IF NOT EXISTS evaluations (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id {$pkType},
                 lycee_id INT NOT NULL,
                 classe_id INT,
                 matiere_id INT,
@@ -177,13 +166,25 @@ class EvaluationTypePeriodFilterTest {
 
         $this->db->exec("UPDATE annees_academiques SET est_active = 0 WHERE id != {$this->anneeId}");
 
-        $isSqlite = $this->db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
-        $replaceKw = $isSqlite ? 'INSERT OR REPLACE' : 'REPLACE';
+        $stmtLycee = $this->db->prepare("REPLACE INTO param_lycee (id, nom_lycee, type_lycee) VALUES (:id, 'Lycée Test 999', 'prive')");
+        $stmtLycee->execute(['id' => $this->lyceeId]);
 
-        $stmtYear = $this->db->prepare("{$replaceKw} INTO annees_academiques (id, libelle, date_debut, date_fin, est_active, cloturee) VALUES (:id, '2025-2026-TEST', '2025-09-01', '2026-06-30', 1, 0)");
+        $stmtCycle = $this->db->prepare("REPLACE INTO cycles (id_cycle, lycee_id, nom_cycle) VALUES (999, :l, 'Secondaire')");
+        $stmtCycle->execute(['l' => $this->lyceeId]);
+
+        $stmtClasse = $this->db->prepare("REPLACE INTO classes (id_classe, lycee_id, cycle_id, niveau) VALUES (:c, :l, 999, '6ème')");
+        $stmtClasse->execute(['c' => $this->classeId, 'l' => $this->lyceeId]);
+
+        $stmtMatiere = $this->db->prepare("REPLACE INTO matieres (id_matiere, lycee_id, nom_matiere) VALUES (:m, :l, 'Mathématiques')");
+        $stmtMatiere->execute(['m' => $this->matiereId, 'l' => $this->lyceeId]);
+
+        $stmtUser = $this->db->prepare("REPLACE INTO utilisateurs (id_user, lycee_id, nom, prenom, email, mot_de_passe) VALUES (:u, :l, 'Prof', 'Test', 'prof991@test.com', 'hash')");
+        $stmtUser->execute(['u' => $this->teacherId, 'l' => $this->lyceeId]);
+
+        $stmtYear = $this->db->prepare("REPLACE INTO annees_academiques (id, libelle, date_debut, date_fin, est_active, cloturee) VALUES (:id, '2025-2026-TEST', '2025-09-01', '2026-06-30', 1, 0)");
         $stmtYear->execute(['id' => $this->anneeId]);
 
-        $stmtSeq = $this->db->prepare("{$replaceKw} INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (:id, :l, :a, 'Séquence 1', 'trimestre', '2025-09-01', '2026-06-30', 'ouverte')");
+        $stmtSeq = $this->db->prepare("REPLACE INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (:id, :l, :a, 'Séquence 1', 'trimestrielle', '2025-09-01', '2026-06-30', 'ouverte')");
         $stmtSeq->execute(['id' => $this->sequenceId, 'l' => $this->lyceeId, 'a' => $this->anneeId]);
 
         // Seed base types in param_type_evaluation
@@ -318,6 +319,52 @@ class EvaluationTypePeriodFilterTest {
         $this->assertFalse($dec3['allowed'], "Occurrence 3 doit être refusée.");
 
         echo "  [OK] Passé avec succès.\n";
+    }
+
+    /**
+     * TEST L : Des notes existent déjà dans 'evaluations' pour Devoir, mais aucune période Devoir n'est active -> REFUS.
+     */
+    private function testL_OldGradesExistPeriodInactiveNotAuthorized(): void {
+        echo "TEST L : Anciennes notes dans 'evaluations' avec période inactive -> REFUS...\n";
+
+        $devType = ParamTypeEvaluation::findByCode('devoir', $this->lyceeId);
+        $this->db->exec("DELETE FROM parametres_evaluations WHERE lycee_id = {$this->lyceeId}");
+        $this->db->exec("DELETE FROM evaluations WHERE lycee_id = {$this->lyceeId}");
+
+        // Insert dummy eleve
+        $stmtEleve = $this->db->prepare("REPLACE INTO eleves (id_eleve, lycee_id, nom, prenom) VALUES (101, :l, 'Doe', 'John')");
+        $stmtEleve->execute(['l' => $this->lyceeId]);
+
+        // Insert historical grade into evaluations
+        $stmtGrade = $this->db->prepare("INSERT INTO evaluations (lycee_id, classe_id, matiere_id, enseignant_id, eleve_id, sequence_id, annee_academique_id, type, type_evaluation_id, numero_evaluation, note, coefficient) VALUES (:l, :c, :m, :e, 101, :s, :a, 'devoir', :tid, 1, 15.5, 1.0)");
+        $stmtGrade->execute([
+            'l' => $this->lyceeId,
+            'c' => $this->classeId,
+            'm' => $this->matiereId,
+            'e' => $this->teacherId,
+            's' => $this->sequenceId,
+            'a' => $this->anneeId,
+            'tid' => $devType['id']
+        ]);
+
+        // Verify that even though grades exist, canTeacherGradeContext refuses because no period is active
+        $dec = EvaluationSaisieService::canTeacherGradeContext($this->classeId, $this->matiereId, $this->sequenceId, 'devoir', $this->teacherId, $this->simulatedNow, $this->lyceeId, false, 1);
+        $this->assertFalse($dec['allowed'], "La présence d'anciennes notes dans 'evaluations' ne doit PAS accorder d'autorisation si la période est inactive.");
+
+        $allowed = EvaluationSaisieService::getAllowedEvaluationTypes($this->classeId, $this->matiereId, $this->sequenceId, $this->teacherId, $this->simulatedNow, $this->lyceeId, false);
+        $this->assertFalse(in_array('devoir', $allowed, true), "'devoir' ne doit pas apparaître dans les types autorisés.");
+
+        echo "  [OK] Passé avec succès.\n";
+    }
+
+    /**
+     * TEST M : Vérifier qu'aucun driver SQLite n'est utilisé pour SGS.
+     */
+    private function testM_VerifyNoSqliteDriverUsed(): void {
+        echo "TEST M : Vérification qu'aucun driver SQLite n'est utilisé...\n";
+        $driver = $this->db->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $this->assertFalse($driver === 'sqlite', "Le driver de base de données ne doit PAS être SQLite.");
+        echo "  [OK] Passé avec succès ($driver).\n";
     }
 
     /**
