@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/ParametresEvaluation.php';
+require_once __DIR__ . '/../models/ParamTypeEvaluation.php';
 require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Matiere.php';
 require_once __DIR__ . '/../models/Sequence.php';
