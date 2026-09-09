@@ -89,7 +89,7 @@ class EvaluationCalculationService {
         // 1. Récupérer la classe active de l'élève et son année académique
         $sqlClass = "SELECT et.classe_id, et.annee_academique_id
                      FROM etudes et
-                     WHERE et.eleve_id = :eleve_id AND et.actif = 1
+                     WHERE et.eleve_id = :eleve_id AND (et.is_active = 1 OR et.status = 'active')
                      LIMIT 1";
         $stmtC = $db->prepare($sqlClass);
         $stmtC->execute(['eleve_id' => $eleve_id]);

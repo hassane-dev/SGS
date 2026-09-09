@@ -162,7 +162,7 @@ class ArchitectureEvaluationComprehensiveTest {
                 appreciation TEXT,
                 date_saisie DATETIME DEFAULT CURRENT_TIMESTAMP
             );
-            CREATE UNIQUE INDEX IF NOT EXISTS uk_eval_occ ON evaluations (eleve_id, matiere_id, sequence_id, annee_academique_id, type_evaluation_id, numero_evaluation);
+            CREATE UNIQUE INDEX IF NOT EXISTS uk_eval_occ ON evaluations (eleve_id, classe_id, matiere_id, sequence_id, annee_academique_id, type_evaluation_id, numero_evaluation);
         ");
 
         try {

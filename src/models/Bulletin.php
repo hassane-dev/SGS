@@ -15,7 +15,7 @@ class Bulletin {
     public static function generateForClass($classe_id, $sequence_id) {
         $db = Database::getInstance();
         try {
-            $stmt = $db->prepare("SELECT id_eleve, nom, prenom FROM eleves el JOIN etudes et ON el.id_eleve = et.eleve_id WHERE et.classe_id = :classe_id AND et.actif = 1 ORDER BY el.nom, el.prenom");
+            $stmt = $db->prepare("SELECT id_eleve, nom, prenom FROM eleves el JOIN etudes et ON el.id_eleve = et.eleve_id WHERE et.classe_id = :classe_id AND (et.is_active = 1 OR et.status = 'active') ORDER BY el.nom, el.prenom");
             $stmt->execute(['classe_id' => $classe_id]);
             $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -54,7 +54,7 @@ class Bulletin {
                 JOIN classes c ON et.classe_id = c.id_classe
                 JOIN param_lycee l ON c.lycee_id = l.id
                 JOIN annees_academiques aa ON et.annee_academique_id = aa.id
-                WHERE e.id_eleve = :id AND et.actif = 1
+                WHERE e.id_eleve = :id AND (et.is_active = 1 OR et.status = 'active')
             ");
             $stmt_eleve->execute(['id' => $eleve_id]);
             $eleve_info = $stmt_eleve->fetch(PDO::FETCH_ASSOC);

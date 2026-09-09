@@ -858,7 +858,7 @@ CREATE TABLE `evaluations` (
     FOREIGN KEY (`sequence_id`) REFERENCES `sequences`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`type_evaluation_id`) REFERENCES `param_type_evaluation`(`id`) ON DELETE SET NULL,
-    UNIQUE KEY `uk_eval_occ` (`eleve_id`, `matiere_id`, `sequence_id`, `annee_academique_id`, `type_evaluation_id`, `numero_evaluation`)
+    UNIQUE KEY `uk_eval_occ` (`eleve_id`, `classe_id`, `matiere_id`, `sequence_id`, `annee_academique_id`, `type_evaluation_id`, `numero_evaluation`)
 );
 
 CREATE TABLE `politiques_financieres` (

@@ -981,6 +981,10 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_18_add_nombre_evaluation_param.php';
     migrate_18($db);
 
+    // --- PHASE ADD CLASSE_ID TO UK_EVAL_OCC ---
+    require_once __DIR__ . '/db/migrations/20240115_19_add_classe_id_to_uk_eval_occ.php';
+    migrate_19($db);
+
     // Provision DRH role if not present
     $stmt_drh_role = $db->query("SELECT id_role FROM roles WHERE nom_role = 'drh'");
     if (!$stmt_drh_role->fetch()) {
