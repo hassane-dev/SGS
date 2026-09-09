@@ -122,7 +122,7 @@ class Evaluation {
             $sql = "
                 INSERT INTO evaluations (lycee_id, classe_id, matiere_id, enseignant_id, eleve_id, sequence_id, annee_academique_id, type, type_evaluation_id, numero_evaluation, libelle_evaluation, note, bareme_snapshot, coefficient, appreciation, date_saisie)
                 VALUES (:lycee_id, :classe_id, :matiere_id, :enseignant_id, :eleve_id, :sequence_id, :annee_academique_id, :type, :type_evaluation_id, :numero_evaluation, :libelle_evaluation, :note, :bareme_snapshot, :coefficient, :appreciation, CURRENT_TIMESTAMP)
-                ON CONFLICT(eleve_id, matiere_id, sequence_id, annee_academique_id, type_evaluation_id, numero_evaluation) DO UPDATE SET
+                ON CONFLICT(eleve_id, classe_id, matiere_id, sequence_id, annee_academique_id, type_evaluation_id, numero_evaluation) DO UPDATE SET
                     note = excluded.note,
                     appreciation = excluded.appreciation,
                     bareme_snapshot = excluded.bareme_snapshot,

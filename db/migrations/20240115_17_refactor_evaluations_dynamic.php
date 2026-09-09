@@ -209,7 +209,7 @@ function migrate_17($db) {
     // 7. Update unique constraint on evaluations
     try {
         if ($isSqlite) {
-            $db->exec("CREATE UNIQUE INDEX IF NOT EXISTS `uk_eval_occ` ON `evaluations` (`eleve_id`, `matiere_id`, `sequence_id`, `annee_academique_id`, `type_evaluation_id`, `numero_evaluation`)");
+            $db->exec("CREATE UNIQUE INDEX IF NOT EXISTS `uk_eval_occ` ON `evaluations` (`eleve_id`, `classe_id`, `matiere_id`, `sequence_id`, `annee_academique_id`, `type_evaluation_id`, `numero_evaluation`)");
         } else {
             // Drop old index if exists
             $chkOld = $db->prepare("SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'evaluations' AND INDEX_NAME = 'unique_evaluation_note'");
@@ -220,7 +220,7 @@ function migrate_17($db) {
             $chkNew = $db->prepare("SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'evaluations' AND INDEX_NAME = 'uk_eval_occ'");
             $chkNew->execute();
             if ((int)$chkNew->fetchColumn() === 0) {
-                $db->exec("ALTER TABLE `evaluations` ADD UNIQUE KEY `uk_eval_occ` (`eleve_id`, `matiere_id`, `sequence_id`, `annee_academique_id`, `type_evaluation_id`, `numero_evaluation`)");
+                $db->exec("ALTER TABLE `evaluations` ADD UNIQUE KEY `uk_eval_occ` (`eleve_id`, `classe_id`, `matiere_id`, `sequence_id`, `annee_academique_id`, `type_evaluation_id`, `numero_evaluation`)");
             }
         }
     } catch (Exception $e) {
