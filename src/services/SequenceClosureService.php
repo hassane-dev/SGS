@@ -241,6 +241,7 @@ class SequenceClosureService {
                     foreach ($report['matieres'] as $mId => $m) {
                         $subRank = $subjectRankings[$mId][$eleve_id]['rang'] ?? null;
                         $subClassAvg = $subjectClassAverages[$mId] ?? null;
+                        $subjAppreciation = EvaluationCalculationService::getInstitutionalAppreciation((float)$m['moyenne']);
 
                         $stmtInsDetail->execute([
                             'bulletin_id' => $bulletin_id,
@@ -251,7 +252,7 @@ class SequenceClosureService {
                             'pts' => $m['total_points'],
                             'rang_matiere' => $subRank,
                             'moy_classe_matiere' => $subClassAvg,
-                            'appreciation' => null
+                            'appreciation' => $subjAppreciation
                         ]);
                     }
                 }

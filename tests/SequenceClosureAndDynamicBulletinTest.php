@@ -45,9 +45,11 @@ class SequenceClosureAndDynamicBulletinTest {
         $this->test7_PostClosureImmutability();
         $this->test8_PostClosureGradeSaveRefusal();
         $this->test9_AcademicAnalysisFromSnapshots();
+        $this->test10_CorrectionA_3OccurrencesValues();
+        $this->test11_CorrectionB_InstitutionalAppreciation();
 
         echo "\n=========================================================\n";
-        echo " ALL 12 MANDATORY ACADEMIC SCENARIOS PASSED SUCCESSFULLY! \n";
+        echo " ALL MANDATORY ACADEMIC SCENARIOS PASSED SUCCESSFULLY! \n";
         echo "=========================================================\n";
     }
 
@@ -354,6 +356,130 @@ class SequenceClosureAndDynamicBulletinTest {
         assert((float)$snapshots[0]['moyenne_generale'] === 18.0, "Expected general average 18.0, got " . $snapshots[0]['moyenne_generale']);
 
         echo "  [OK] AcademicAnalysisService successfully loads official closed bulletin snapshots.\n";
+    }
+
+    private function test10_CorrectionA_3OccurrencesValues() {
+        echo "TEST 10 : Correction A — 3 Occurrences Grade Injection (Devoir 1=12, Devoir 2=15, Devoir 3=17)...\n";
+
+        // Setup 3 Devoirs in param_type_evaluation
+        $this->db->exec("DELETE FROM param_type_evaluation WHERE lycee_id = {$this->lyceeId}");
+        $stmtT = $this->db->prepare("INSERT INTO param_type_evaluation (lycee_id, code, libelle, bareme_defaut, nombre_evaluation, actif, ordre_affichage) VALUES (:l, 'devoir', 'Devoir', 20.0, 3, 1, 1)");
+        $stmtT->execute(['l' => $this->lyceeId]);
+        $typeId = (int)$this->db->lastInsertId();
+
+        // Create open sequence for test
+        $stmtS = $this->db->prepare("
+            INSERT INTO sequences (lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut)
+            VALUES (:l, :a, 'Séquence 3 Occurrences Test', 'trimestrielle', '2024-11-01', '2024-12-31', 'ouverte')
+        ");
+        $stmtS->execute(['l' => $this->lyceeId, 'a' => $this->anneeId]);
+        $seqId = (int)$this->db->lastInsertId();
+
+        $e1 = $this->eleveIds[0];
+
+        // Save Devoir 1 = 12, Devoir 2 = 15, Devoir 3 = 17
+        Evaluation::saveGrades([
+            'classe_id' => $this->classeId,
+            'matiere_id' => $this->matiereMathId,
+            'sequence_id' => $seqId,
+            'type' => 'devoir',
+            'numero_evaluation' => 1,
+            'bareme' => 20.0,
+            'coefficient' => 4.0,
+            'enseignant_id' => 1,
+            'grades' => [$e1 => ['note' => 12.0, 'appreciation' => 'Travail moyen en Devoir 1']]
+        ]);
+
+        Evaluation::saveGrades([
+            'classe_id' => $this->classeId,
+            'matiere_id' => $this->matiereMathId,
+            'sequence_id' => $seqId,
+            'type' => 'devoir',
+            'numero_evaluation' => 2,
+            'bareme' => 20.0,
+            'coefficient' => 4.0,
+            'enseignant_id' => 1,
+            'grades' => [$e1 => ['note' => 15.0, 'appreciation' => 'Bon effort en Devoir 2']]
+        ]);
+
+        Evaluation::saveGrades([
+            'classe_id' => $this->classeId,
+            'matiere_id' => $this->matiereMathId,
+            'sequence_id' => $seqId,
+            'type' => 'devoir',
+            'numero_evaluation' => 3,
+            'bareme' => 20.0,
+            'coefficient' => 4.0,
+            'enseignant_id' => 1,
+            'grades' => [$e1 => ['note' => 17.0, 'appreciation' => 'Très bien en Devoir 3']]
+        ]);
+
+        // Generate bulletin report for student
+        $bulletin = Bulletin::generateForStudent($e1, $seqId);
+        assert($bulletin !== false, "Bulletin report generation should succeed.");
+
+        $mathMatiere = null;
+        foreach ($bulletin['matieres'] as $m) {
+            if ($m['matiere_id'] == $this->matiereMathId) {
+                $mathMatiere = $m;
+                break;
+            }
+        }
+        assert($mathMatiere !== null, "Math subject must exist in bulletin.");
+
+        $evalValues = $mathMatiere['evaluation_values'];
+        assert(isset($evalValues['devoir_1']), "Column key 'devoir_1' must exist in evaluation_values.");
+        assert(isset($evalValues['devoir_2']), "Column key 'devoir_2' must exist in evaluation_values.");
+        assert(isset($evalValues['devoir_3']), "Column key 'devoir_3' must exist in evaluation_values.");
+
+        assert((float)$evalValues['devoir_1'] === 12.0, "Expected Devoir 1 = 12.0, got " . var_export($evalValues['devoir_1'], true));
+        assert((float)$evalValues['devoir_2'] === 15.0, "Expected Devoir 2 = 15.0, got " . var_export($evalValues['devoir_2'], true));
+        assert((float)$evalValues['devoir_3'] === 17.0, "Expected Devoir 3 = 17.0, got " . var_export($evalValues['devoir_3'], true));
+
+        // Average should be (12 + 15 + 17) / 3 = 14.67
+        assert(abs($mathMatiere['note'] - 14.67) < 0.01, "Expected subject average ~14.67, got " . $mathMatiere['note']);
+
+        echo "  [OK] Correction A verified: Devoir 1 = 12, Devoir 2 = 15, Devoir 3 = 17 appear respectively in devoir_1, devoir_2, devoir_3 columns.\n";
+    }
+
+    private function test11_CorrectionB_InstitutionalAppreciation() {
+        echo "TEST 11 : Correction B — Institutional Subject Appreciation Generation & Storage...\n";
+
+        // Re-use sequence from test 10 with Math average = 14.67 (institutional appreciation "Bien")
+        $stmtS = $this->db->query("SELECT id FROM sequences WHERE lycee_id = {$this->lyceeId} AND nom = 'Séquence 3 Occurrences Test' LIMIT 1");
+        $seqId = (int)$stmtS->fetchColumn();
+
+        $e1 = $this->eleveIds[0];
+
+        // In open sequence, bulletin must calculate appreciation from subject average (14.67 -> "Bien")
+        // and NEVER copy individual evaluation appreciations (e.g. 'Travail moyen en Devoir 1')
+        $openBulletin = Bulletin::generateForStudent($e1, $seqId);
+        $mathMatiere = $openBulletin['matieres'][$this->matiereMathId];
+
+        assert($mathMatiere['appreciation'] === 'Bien', "Expected subject appreciation 'Bien' for avg 14.67, got '" . $mathMatiere['appreciation'] . "'");
+        assert($mathMatiere['appreciation'] !== 'Travail moyen en Devoir 1', "Subject appreciation MUST NOT be copied from individual evaluation!");
+
+        // Close sequence and verify snapshot in bulletin_details.appreciation_matiere
+        SequenceClosureService::closeSequence($seqId, 1);
+
+        $closedBulletin = Bulletin::generateForStudent($e1, $seqId);
+        $closedMathMatiere = $closedBulletin['matieres'][$this->matiereMathId];
+
+        assert($closedMathMatiere['appreciation'] === 'Bien', "Closed bulletin expected 'Bien' from bulletin_details snapshot, got '" . $closedMathMatiere['appreciation'] . "'");
+
+        // Verify direct DB snapshot in bulletin_details
+        $stmtBD = $this->db->prepare("
+            SELECT bd.appreciation_matiere
+            FROM bulletin_details bd
+            JOIN bulletins b ON bd.bulletin_id = b.id
+            WHERE b.eleve_id = :e AND b.sequence_id = :s AND bd.matiere_id = :m
+        ");
+        $stmtBD->execute(['e' => $e1, 's' => $seqId, 'm' => $this->matiereMathId]);
+        $snapshotApp = $stmtBD->fetchColumn();
+
+        assert($snapshotApp === 'Bien', "bulletin_details.appreciation_matiere DB snapshot expected 'Bien', got '$snapshotApp'");
+
+        echo "  [OK] Correction B verified: Institutional appreciation 'Bien' calculated for average 14.67 and persisted to bulletin_details.appreciation_matiere.\n";
     }
 }
 
