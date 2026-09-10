@@ -166,6 +166,20 @@ class Sequence {
             return false;
         }
 
+        // Delegate official closure to SequenceClosureService if sequence status transitions to 'fermee'
+        if ($isUpdate && isset($data['statut']) && $data['statut'] === 'fermee') {
+            $db = Database::getInstance();
+            $stmtPrev = $db->prepare("SELECT statut FROM sequences WHERE id = :id AND lycee_id = :lycee_id");
+            $stmtPrev->execute(['id' => $data['id'], 'lycee_id' => $lycee_id]);
+            $prevStatut = $stmtPrev->fetchColumn();
+
+            if ($prevStatut === 'ouverte') {
+                require_once __DIR__ . '/../services/SequenceClosureService.php';
+                $result = SequenceClosureService::closeSequence((int)$data['id']);
+                return $result['success'] ?? false;
+            }
+        }
+
         $sql = $isUpdate
             ? "UPDATE sequences SET nom = :nom, type = :type, date_debut = :date_debut, date_fin = :date_fin, statut = :statut WHERE id = :id AND lycee_id = :lycee_id"
             : "INSERT INTO sequences (lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (:lycee_id, :annee_academique_id, :nom, :type, :date_debut, :date_fin, :statut)";

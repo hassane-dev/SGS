@@ -5,14 +5,14 @@ require_once __DIR__ . '/../config/database.php';
 /**
  * Service applicatif Read-Only d'Analyse Académique Longitudinale.
  *
- * Génère des projections analytiques en mémoire à partir des tables sources
- * (etudes, evaluations, sequences, annees_academiques, classes, matieres, bulletins).
+ * Consomme les résultats officiels figés (bulletins + bulletin_details) pour les séquences fermées,
+ * et les données dynamiques (evaluations) pour les séquences ouvertes.
  * NE PERSISTE AUCUNE DONNÉE MÉTIER.
  */
 class AcademicAnalysisService {
 
     /**
-     * Récupère la frise chronologique complète des inscriptions et évaluations de l'élève.
+     * Récupère la frise chronologique complète des inscriptions et évaluations/bulletins de l'élève.
      */
     public static function getStudentLongitudinalTimeline(int $eleveId): array {
         $db = Database::getInstance();
@@ -49,8 +49,31 @@ class AcademicAnalysisService {
             return [];
         }
 
-        // 2. Récupérer toutes les évaluations de cet élève
-        // Jointure explicite sur e.eleve_id, e.annee_academique_id ET e.classe_id
+        // 2. For closed sequences, fetch official bulletin details snapshots
+        $sqlClosedSnapshots = "
+            SELECT
+                bd.matiere_id,
+                bd.nom_matiere_snapshot AS nom_matiere,
+                bd.moyenne_matiere AS note,
+                bd.coefficient_snapshot AS coefficient,
+                bd.appreciation_matiere AS appreciation,
+                b.sequence_id,
+                b.annee_academique_id,
+                b.classe_id,
+                s.nom AS sequence_nom,
+                s.date_debut AS sequence_date_debut
+            FROM bulletin_details bd
+            JOIN bulletins b ON bd.bulletin_id = b.id
+            JOIN sequences s ON b.sequence_id = s.id
+            WHERE b.eleve_id = :eleve_id
+              AND s.statut = 'fermee'
+            ORDER BY b.annee_academique_id ASC, s.date_debut ASC, bd.nom_matiere_snapshot ASC
+        ";
+        $stmtClosed = $db->prepare($sqlClosedSnapshots);
+        $stmtClosed->execute(['eleve_id' => $eleveId]);
+        $closedSnapshots = $stmtClosed->fetchAll(PDO::FETCH_ASSOC);
+
+        // 3. For evaluations (open sequences or fallbacks)
         $sqlEvals = "
             SELECT
                 ev.id AS evaluation_id,
@@ -61,12 +84,14 @@ class AcademicAnalysisService {
                 ev.matiere_id,
                 ev.type AS eval_type,
                 ev.note,
+                ev.bareme_snapshot,
                 ev.coefficient,
                 ev.appreciation,
                 ev.date_saisie,
                 m.nom_matiere,
                 s.nom AS sequence_nom,
-                s.date_debut AS sequence_date_debut
+                s.date_debut AS sequence_date_debut,
+                s.statut AS sequence_statut
             FROM evaluations ev
             JOIN matieres m ON ev.matiere_id = m.id_matiere
             JOIN sequences s ON ev.sequence_id = s.id
@@ -74,34 +99,70 @@ class AcademicAnalysisService {
             ORDER BY ev.annee_academique_id ASC, s.date_debut ASC, m.nom_matiere ASC, ev.type ASC
         ";
 
-        $stmtEv = $db->prepare($sqlEvals);
-        $stmtEv->execute(['eleve_id' => $eleveId]);
-        $evaluations = $stmtEv->fetchAll(PDO::FETCH_ASSOC);
+        $stmtOpen = $db->prepare($sqlEvals);
+        $stmtOpen->execute(['eleve_id' => $eleveId]);
+        $openEvals = $stmtOpen->fetchAll(PDO::FETCH_ASSOC);
 
-        // Grouper les évaluations par [annee_academique_id][classe_id]
-        $evalsGrouped = [];
-        foreach ($evaluations as $ev) {
-            $evalsGrouped[$ev['annee_academique_id']][$ev['classe_id']][] = $ev;
+        $groupedData = [];
+        $closedSeqKeys = [];
+
+        foreach ($closedSnapshots as $cs) {
+            $key = $cs['annee_academique_id'] . '_' . $cs['sequence_id'] . '_' . $cs['matiere_id'];
+            $closedSeqKeys[$key] = true;
+
+            $groupedData[(int)$cs['annee_academique_id']][(int)$cs['classe_id']][] = [
+                'source' => 'snapshot',
+                'matiere_id' => (int)$cs['matiere_id'],
+                'nom_matiere' => $cs['nom_matiere'],
+                'sequence_id' => (int)$cs['sequence_id'],
+                'sequence_nom' => $cs['sequence_nom'],
+                'note' => (float)$cs['note'],
+                'coefficient' => (float)$cs['coefficient'],
+                'appreciation' => $cs['appreciation']
+            ];
         }
 
-        // Assembler le résultat
+        foreach ($openEvals as $ev) {
+            $key = $ev['annee_academique_id'] . '_' . $ev['sequence_id'] . '_' . $ev['matiere_id'];
+            if (isset($closedSeqKeys[$key])) {
+                continue; // Prefer snapshot if present
+            }
+
+            $bareme = (!empty($ev['bareme_snapshot']) && (float)$ev['bareme_snapshot'] > 0) ? (float)$ev['bareme_snapshot'] : 20.00;
+            $normNote = round(((float)$ev['note'] / $bareme) * 20.00, 2);
+
+            $groupedData[(int)$ev['annee_academique_id']][(int)$ev['classe_id']][] = [
+                'source' => 'evaluation',
+                'evaluation_id' => (int)$ev['evaluation_id'],
+                'matiere_id' => (int)$ev['matiere_id'],
+                'nom_matiere' => $ev['nom_matiere'],
+                'sequence_id' => (int)$ev['sequence_id'],
+                'sequence_nom' => $ev['sequence_nom'],
+                'type' => $ev['eval_type'],
+                'note' => $normNote,
+                'coefficient' => (float)$ev['coefficient'],
+                'appreciation' => $ev['appreciation'],
+                'date_saisie' => $ev['date_saisie']
+            ];
+        }
+
+        // Assembler la timeline
         $timeline = [];
         foreach ($etudes as $etude) {
-            $anneeId = $etude['annee_academique_id'];
-            $classeId = $etude['classe_id'];
+            $anneeId = (int)$etude['annee_academique_id'];
+            $classeId = (int)$etude['classe_id'];
 
-            $etudeEvals = $evalsGrouped[$anneeId][$classeId] ?? [];
+            $items = $groupedData[$anneeId][$classeId] ?? [];
 
-            // Structuralisation des évaluations par matière et par séquence
             $matieresData = [];
-            foreach ($etudeEvals as $ev) {
-                $mId = $ev['matiere_id'];
-                $sId = $ev['sequence_id'];
+            foreach ($items as $item) {
+                $mId = $item['matiere_id'];
+                $sId = $item['sequence_id'];
 
                 if (!isset($matieresData[$mId])) {
                     $matieresData[$mId] = [
                         'matiere_id' => $mId,
-                        'nom_matiere' => $ev['nom_matiere'],
+                        'nom_matiere' => $item['nom_matiere'],
                         'sequences' => []
                     ];
                 }
@@ -109,19 +170,12 @@ class AcademicAnalysisService {
                 if (!isset($matieresData[$mId]['sequences'][$sId])) {
                     $matieresData[$mId]['sequences'][$sId] = [
                         'sequence_id' => $sId,
-                        'sequence_nom' => $ev['sequence_nom'],
-                        'evaluations' => []
+                        'sequence_nom' => $item['sequence_nom'],
+                        'items' => []
                     ];
                 }
 
-                $matieresData[$mId]['sequences'][$sId]['evaluations'][] = [
-                    'evaluation_id' => $ev['evaluation_id'],
-                    'type' => $ev['eval_type'],
-                    'note' => (float)$ev['note'],
-                    'coefficient' => (float)$ev['coefficient'],
-                    'appreciation' => $ev['appreciation'],
-                    'date_saisie' => $ev['date_saisie']
-                ];
+                $matieresData[$mId]['sequences'][$sId]['items'][] = $item;
             }
 
             $timeline[] = [
@@ -134,13 +188,38 @@ class AcademicAnalysisService {
     }
 
     /**
-     * Calcule les moyennes annuelles par matière pour chaque année d'inscription.
+     * Calcule les moyennes annuelles par matière pour chaque année d'inscription en utilisant les snapshots fermés et les évaluations ouvertes/fallbacks.
      */
     public static function getSubjectAnnualAverages(int $eleveId): array {
         $db = Database::getInstance();
 
-        // Récupérer toutes les évaluations de l'élève avec coefficient d'évaluation (immutabilité)
-        $sql = "
+        // 1. Fetch closed sequence subject averages directly from bulletin_details (SNAPSHOTS)
+        $sqlClosed = "
+            SELECT
+                b.annee_academique_id,
+                aa.libelle AS annee_libelle,
+                aa.date_debut AS annee_date_debut,
+                b.classe_id,
+                b.nom_classe_snapshot AS classe_libelle,
+                bd.matiere_id,
+                bd.nom_matiere_snapshot AS nom_matiere,
+                bd.moyenne_matiere,
+                bd.coefficient_snapshot AS coefficient
+            FROM bulletin_details bd
+            JOIN bulletins b ON bd.bulletin_id = b.id
+            JOIN annees_academiques aa ON b.annee_academique_id = aa.id
+            JOIN sequences s ON b.sequence_id = s.id
+            WHERE b.eleve_id = :eleve_id
+              AND s.statut = 'fermee'
+            ORDER BY aa.date_debut ASC, bd.nom_matiere_snapshot ASC
+        ";
+
+        $stmtClosed = $db->prepare($sqlClosed);
+        $stmtClosed->execute(['eleve_id' => $eleveId]);
+        $closedRows = $stmtClosed->fetchAll(PDO::FETCH_ASSOC);
+
+        // 2. Fetch raw evaluations
+        $sqlEvals = "
             SELECT
                 ev.annee_academique_id,
                 aa.libelle AS annee_libelle,
@@ -153,31 +232,35 @@ class AcademicAnalysisService {
                 m.nom_matiere,
                 ev.sequence_id,
                 ev.note,
+                ev.bareme_snapshot,
                 ev.coefficient
             FROM evaluations ev
             JOIN annees_academiques aa ON ev.annee_academique_id = aa.id
             JOIN classes c ON ev.classe_id = c.id_classe
             JOIN matieres m ON ev.matiere_id = m.id_matiere
+            JOIN sequences s ON ev.sequence_id = s.id
             WHERE ev.eleve_id = :eleve_id
             ORDER BY aa.date_debut ASC, m.nom_matiere ASC
         ";
 
-        $stmt = $db->prepare($sql);
-        $stmt->execute(['eleve_id' => $eleveId]);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmtEvals = $db->prepare($sqlEvals);
+        $stmtEvals->execute(['eleve_id' => $eleveId]);
+        $evalRows = $stmtEvals->fetchAll(PDO::FETCH_ASSOC);
 
-        // Aggréger par [annee_academique_id][matiere_id]
         $grouped = [];
-        foreach ($rows as $r) {
-            $aId = $r['annee_academique_id'];
-            $mId = $r['matiere_id'];
+        $closedKeys = [];
+
+        foreach ($closedRows as $r) {
+            $aId = (int)$r['annee_academique_id'];
+            $mId = (int)$r['matiere_id'];
+            $closedKeys[$aId . '_' . $mId] = true;
 
             if (!isset($grouped[$aId])) {
                 $grouped[$aId] = [
                     'annee_academique_id' => $aId,
                     'annee_libelle' => $r['annee_libelle'],
                     'annee_date_debut' => $r['annee_date_debut'],
-                    'classe_libelle' => trim(($r['classe_niveau'] ?? '') . ' ' . ($r['classe_serie'] ?? '') . ' ' . ($r['classe_numero'] ?? '')),
+                    'classe_libelle' => $r['classe_libelle'],
                     'matieres' => []
                 ];
             }
@@ -186,35 +269,63 @@ class AcademicAnalysisService {
                 $grouped[$aId]['matieres'][$mId] = [
                     'matiere_id' => $mId,
                     'nom_matiere' => $r['nom_matiere'],
-                    'total_points' => 0.0,
-                    'total_coefficients' => 0.0,
-                    'nb_evaluations' => 0
+                    'sum_averages' => 0.0,
+                    'count_sequences' => 0
+                ];
+            }
+
+            $grouped[$aId]['matieres'][$mId]['sum_averages'] += (float)$r['moyenne_matiere'];
+            $grouped[$aId]['matieres'][$mId]['count_sequences']++;
+        }
+
+        foreach ($evalRows as $r) {
+            $aId = (int)$r['annee_academique_id'];
+            $mId = (int)$r['matiere_id'];
+
+            if (isset($closedKeys[$aId . '_' . $mId])) {
+                continue; // Prefer closed snapshot if present
+            }
+
+            if (!isset($grouped[$aId])) {
+                $classeLib = trim(($r['classe_niveau'] ?? '') . ' ' . ($r['classe_serie'] ?? '') . ' ' . ($r['classe_numero'] ?? ''));
+                $grouped[$aId] = [
+                    'annee_academique_id' => $aId,
+                    'annee_libelle' => $r['annee_libelle'],
+                    'annee_date_debut' => $r['annee_date_debut'],
+                    'classe_libelle' => $classeLib,
+                    'matieres' => []
+                ];
+            }
+
+            if (!isset($grouped[$aId]['matieres'][$mId])) {
+                $grouped[$aId]['matieres'][$mId] = [
+                    'matiere_id' => $mId,
+                    'nom_matiere' => $r['nom_matiere'],
+                    'sum_averages' => 0.0,
+                    'count_sequences' => 0
                 ];
             }
 
             $note = (float)$r['note'];
             $bareme = (!empty($r['bareme_snapshot']) && (float)$r['bareme_snapshot'] > 0) ? (float)$r['bareme_snapshot'] : 20.00;
             $normNote = ($note / $bareme) * 20.00;
-            $coef = (float)$r['coefficient'];
 
-            $grouped[$aId]['matieres'][$mId]['total_points'] += $normNote;
-            $grouped[$aId]['matieres'][$mId]['total_coefficients'] += 1.0;
-            $grouped[$aId]['matieres'][$mId]['nb_evaluations']++;
+            $grouped[$aId]['matieres'][$mId]['sum_averages'] += $normNote;
+            $grouped[$aId]['matieres'][$mId]['count_sequences']++;
         }
 
-        // Calculer la moyenne pondérée finale pour chaque matière/année
+        // Calculate final annual subject averages
         $result = [];
         foreach ($grouped as $aId => $anneeData) {
             $matieresComputed = [];
             foreach ($anneeData['matieres'] as $mId => $m) {
-                $avg = ($m['total_coefficients'] > 0) ? ($m['total_points'] / $m['total_coefficients']) : 0.0;
+                $cnt = $m['count_sequences'];
+                $avg = ($cnt > 0) ? ($m['sum_averages'] / $cnt) : 0.0;
                 $matieresComputed[$mId] = [
                     'matiere_id' => $mId,
                     'nom_matiere' => $m['nom_matiere'],
                     'annual_average' => round($avg, 2),
-                    'total_points' => round($m['total_points'], 2),
-                    'total_coefficients' => round($m['total_coefficients'], 2),
-                    'nb_evaluations' => $m['nb_evaluations']
+                    'nb_sequences' => $cnt
                 ];
             }
             $anneeData['matieres'] = array_values($matieresComputed);
@@ -231,10 +342,9 @@ class AcademicAnalysisService {
         $annualData = self::getSubjectAnnualAverages($eleveId);
 
         if (count($annualData) < 2) {
-            return []; // Besoin d'au moins 2 années pour calculer des variations
+            return [];
         }
 
-        // Construire une matrice [matiere_id][annee_index]
         $subjectSeries = [];
         foreach ($annualData as $yearIdx => $year) {
             $anneeLibelle = $year['annee_libelle'];
@@ -256,7 +366,6 @@ class AcademicAnalysisService {
             }
         }
 
-        // Calculer les variations consécutives
         $variations = [];
         foreach ($subjectSeries as $mId => $series) {
             $yearsCount = count($series['years']);
@@ -281,7 +390,6 @@ class AcademicAnalysisService {
                 ];
             }
 
-            // Calcul de la variation globale (Première vs Dernière année)
             $firstYear = $series['years'][0];
             $lastYear = $series['years'][$yearsCount - 1];
             $totalDelta = round($lastYear['average'] - $firstYear['average'], 2);
@@ -301,7 +409,7 @@ class AcademicAnalysisService {
     }
 
     /**
-     * Extrait les mesures de performance (dernière année active et globale) sans imposer de seuil codé en dur.
+     * Extrait les mesures de performance sans imposer de seuil codé en dur.
      */
     public static function getRawPerformanceMetrics(int $eleveId): array {
         $annualData = self::getSubjectAnnualAverages($eleveId);
@@ -316,14 +424,11 @@ class AcademicAnalysisService {
             ];
         }
 
-        // Prendre la dernière année d'étude enregistrée
         $latestYearData = end($annualData);
         $subjects = $latestYearData['matieres'];
 
-        // Tri par moyenne décroissante
         usort($subjects, fn($a, $b) => $b['annual_average'] <=> $a['annual_average']);
 
-        // Tri des variations par delta décroissant / croissant
         $progressions = $variations;
         usort($progressions, fn($a, $b) => $b['total_delta'] <=> $a['total_delta']);
 
@@ -351,12 +456,19 @@ class AcademicAnalysisService {
                 b.eleve_id,
                 b.sequence_id,
                 b.annee_academique_id,
+                b.classe_id,
+                b.nom_classe_snapshot,
+                b.effectif_classe,
                 b.moyenne_generale,
+                b.total_points,
+                b.total_coefficients,
+                b.moyenne_classe,
+                b.rang_int,
                 b.rang,
                 b.appreciation,
                 b.statut,
-                b.created_at,
-                b.updated_at,
+                b.date_cloture,
+                b.cloture_par_user_id,
                 s.nom AS sequence_nom,
                 aa.libelle AS annee_libelle
             FROM bulletins b

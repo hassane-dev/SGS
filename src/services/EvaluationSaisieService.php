@@ -170,6 +170,27 @@ class EvaluationSaisieService {
             'type_id' => $typeId
         ];
 
+        // ------------------------------------------------------------------
+        // ABSOLUTE LOCK RULE: Closed sequences are strictly read-only!
+        // deblocages_notes MUST NEVER bypass a closed sequence.
+        // ------------------------------------------------------------------
+        if ($sequence_id > 0) {
+            $stmtSeqCheck = $db->prepare("SELECT statut, nom FROM sequences WHERE id = :id");
+            $stmtSeqCheck->execute(['id' => $sequence_id]);
+            $seqRecord = $stmtSeqCheck->fetch(PDO::FETCH_ASSOC);
+
+            if ($seqRecord && $seqRecord['statut'] === 'fermee') {
+                return self::buildDecision(
+                    false,
+                    'DENIED_SEQUENCE_CLOSED',
+                    sprintf(_("La séquence '%s' est définitivement fermée. Aucune modification de note n'est autorisée sur une séquence fermée."), htmlspecialchars($seqRecord['nom'])),
+                    'sequence',
+                    $nowNorm,
+                    $context
+                );
+            }
+        }
+
         $hasGlobalWrite = false;
 
         // ------------------------------------------------------------------
