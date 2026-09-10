@@ -446,7 +446,7 @@ class SequenceClosureAndDynamicBulletinTest {
         echo "TEST 11 : Correction B — Institutional Subject Appreciation Generation & Storage...\n";
 
         // Re-use sequence from test 10 with Math average = 14.67 (institutional appreciation "Bien")
-        $stmtS = $this->db->query("SELECT id FROM sequences WHERE lycee_id = {$this->lyceeId} AND nom = 'Séquence 3 Occurrences Test' LIMIT 1");
+        $stmtS = $this->db->query("SELECT id FROM sequences WHERE lycee_id = {$this->lyceeId} AND nom = 'Séquence 3 Occurrences Test' ORDER BY id DESC LIMIT 1");
         $seqId = (int)$stmtS->fetchColumn();
 
         $e1 = $this->eleveIds[0];

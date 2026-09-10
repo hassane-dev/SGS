@@ -190,6 +190,7 @@ class EvaluationCalculationService {
                     'type_code' => strtolower(trim((string)$typeCode)),
                     'type_libelle' => $ev['type_libelle'] ?? ucfirst($ev['type']),
                     'numero' => (int)($ev['numero_evaluation'] ?? 1),
+                    'numero_evaluation' => (int)($ev['numero_evaluation'] ?? 1),
                     'libelle' => $ev['libelle_evaluation'],
                     'note_brute' => $rawNote,
                     'bareme' => $bareme,
