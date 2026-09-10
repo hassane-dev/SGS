@@ -104,6 +104,19 @@ class Evaluation {
             return false;
         }
 
+        $db = Database::getInstance();
+
+        // STRICT LOCK REJECT: Sequence must not be closed
+        if (!empty($data['sequence_id'])) {
+            $stmtSeqCheck = $db->prepare("SELECT statut, nom FROM sequences WHERE id = :id");
+            $stmtSeqCheck->execute(['id' => $data['sequence_id']]);
+            $seqRecord = $stmtSeqCheck->fetch(PDO::FETCH_ASSOC);
+            if ($seqRecord && $seqRecord['statut'] === 'fermee') {
+                error_log("Refused grade save: Sequence '{$seqRecord['nom']}' (ID: {$data['sequence_id']}) is closed.");
+                return false;
+            }
+        }
+
         $type = $data['type'] ?? 'devoir';
         $typeRec = is_numeric($type) ? ParamTypeEvaluation::findById((int)$type) : ParamTypeEvaluation::findByCode((string)$type, $lycee_id);
 
@@ -114,7 +127,6 @@ class Evaluation {
         $numeroEval = (!empty($data['numero_evaluation']) && (int)$data['numero_evaluation'] > 0) ? (int)$data['numero_evaluation'] : 1;
         $libelleEval = !empty($data['libelle_evaluation']) ? trim($data['libelle_evaluation']) : null;
 
-        $db = Database::getInstance();
         $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
         $isSqlite = ($driver === 'sqlite');
 
@@ -170,7 +182,9 @@ class Evaluation {
             return true;
 
         } catch (PDOException $e) {
-            $db->rollBack();
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
             error_log("Error in Evaluation::saveGrades: " . $e->getMessage());
             return false;
         }

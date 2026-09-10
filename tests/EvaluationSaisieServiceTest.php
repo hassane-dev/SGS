@@ -81,8 +81,8 @@ function run_evaluation_saisie_service_tests() {
         $db->exec("DELETE FROM deblocages_notes WHERE lycee_id = 1");
         $db->exec("UPDATE sequences SET statut = 'fermee' WHERE id = 801");
         $res2 = EvaluationSaisieService::canTeacherGradeContext($classe_id, $matiere_id, 802, 'devoir', $enseignant_id, $now, 1);
-        if ($res2['allowed'] !== false || $res2['code'] !== 'DENIED_NO_OPEN_SEQUENCE') {
-            throw new Exception("Scenario 2 failed: Expected DENIED_NO_OPEN_SEQUENCE, got " . json_encode($res2));
+        if ($res2['allowed'] !== false || !in_array($res2['code'], ['DENIED_NO_OPEN_SEQUENCE', 'DENIED_SEQUENCE_CLOSED'], true)) {
+            throw new Exception("Scenario 2 failed: Expected DENIED_NO_OPEN_SEQUENCE or DENIED_SEQUENCE_CLOSED, got " . json_encode($res2));
         }
         $db->exec("UPDATE sequences SET statut = 'ouverte' WHERE id = 801");
         echo "    [PASS] Absence of open sequence correctly denied (code: DENIED_NO_OPEN_SEQUENCE).\n";

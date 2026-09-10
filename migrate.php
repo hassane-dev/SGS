@@ -985,6 +985,10 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_19_add_classe_id_to_uk_eval_occ.php';
     migrate_19($db);
 
+    // --- PHASE CREATE BULLETIN DETAILS & EXTEND BULLETINS ---
+    require_once __DIR__ . '/db/migrations/20240115_20_create_bulletin_details_and_extend_bulletins.php';
+    migrate_20($db);
+
     // Provision DRH role if not present
     $stmt_drh_role = $db->query("SELECT id_role FROM roles WHERE nom_role = 'drh'");
     if (!$stmt_drh_role->fetch()) {
