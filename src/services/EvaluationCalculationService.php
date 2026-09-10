@@ -14,6 +14,28 @@ require_once __DIR__ . '/../config/database.php';
 class EvaluationCalculationService {
 
     /**
+     * Génère l'appréciation institutionnelle fondée sur la moyenne de la matière (/20).
+     */
+    public static function getInstitutionalAppreciation(?float $average): string {
+        if ($average === null) {
+            return '';
+        }
+        if ($average >= 16.0) {
+            return 'Très Bien';
+        } elseif ($average >= 14.0) {
+            return 'Bien';
+        } elseif ($average >= 12.0) {
+            return 'Assez Bien';
+        } elseif ($average >= 10.0) {
+            return 'Passable';
+        } elseif ($average >= 8.0) {
+            return 'Insuffisant';
+        } else {
+            return 'Médiocre';
+        }
+    }
+
+    /**
      * Normalise une note brute sur 20 points.
      */
     public static function normalizeGrade(float $note, float $bareme = 20.00): float {
@@ -161,11 +183,13 @@ class EvaluationCalculationService {
 
                 $sumNorm += $normNote;
 
+                $typeCode = !empty($ev['type_code']) ? $ev['type_code'] : $ev['type'];
+
                 $evalList[] = [
                     'id' => (int)$ev['id'],
-                    'type_code' => $ev['type_code'] ?? $ev['type'],
+                    'type_code' => strtolower(trim((string)$typeCode)),
                     'type_libelle' => $ev['type_libelle'] ?? ucfirst($ev['type']),
-                    'numero' => (int)$ev['numero_evaluation'],
+                    'numero' => (int)($ev['numero_evaluation'] ?? 1),
                     'libelle' => $ev['libelle_evaluation'],
                     'note_brute' => $rawNote,
                     'bareme' => $bareme,

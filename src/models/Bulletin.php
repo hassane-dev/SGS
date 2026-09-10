@@ -28,6 +28,8 @@ class Bulletin {
             if ($nombre < 1) $nombre = 1;
             if ($nombre > 3) $nombre = 3;
 
+            $evaluationType = strtolower(trim($evaluationType));
+
             for ($occ = 1; $occ <= $nombre; $occ++) {
                 $evaluationOccurrence = $occ;
                 $evaluationColumnKey = $evaluationType . '_' . $evaluationOccurrence;
@@ -165,8 +167,10 @@ class Bulletin {
                     ]);
                     $evs = $stmtEvals->fetchAll(PDO::FETCH_ASSOC);
                     foreach ($evs as $ev) {
-                        $evType = $ev['type_code'] ?? $ev['type'];
-                        $evOcc = (int)$ev['numero_evaluation'];
+                        $evTypeCode = !empty($ev['type_code']) ? $ev['type_code'] : $ev['type'];
+                        $evType = strtolower(trim((string)$evTypeCode));
+                        $evOcc = (int)($ev['numero_evaluation'] ?? 1);
+                        if ($evOcc < 1) $evOcc = 1;
                         $colKey = $evType . '_' . $evOcc;
                         $bareme = (!empty($ev['bareme_snapshot']) && (float)$ev['bareme_snapshot'] > 0) ? (float)$ev['bareme_snapshot'] : 20.00;
                         $normNote = EvaluationCalculationService::normalizeGrade((float)$ev['note'], $bareme);
@@ -178,15 +182,18 @@ class Bulletin {
                     $totalPoints += $pts;
                     $totalCoefficients += $coef;
 
+                    $subjAvg = (float)$d['moyenne_matiere'];
+                    $subjAppreciation = $d['appreciation_matiere'] ?? EvaluationCalculationService::getInstitutionalAppreciation($subjAvg);
+
                     $formattedMatieres[$mId] = [
                         'matiere_id' => $mId,
                         'nom' => $d['nom_matiere_snapshot'], // HISTORICAL SNAPSHOT
-                        'note' => (float)$d['moyenne_matiere'],
+                        'note' => $subjAvg,
                         'coefficient' => $coef, // HISTORICAL SNAPSHOT
                         'total_points' => $pts,
                         'rang_matiere' => $d['rang_matiere'],
                         'moyenne_classe_matiere' => $d['moyenne_classe_matiere'],
-                        'appreciation' => $d['appreciation_matiere'],
+                        'appreciation' => $subjAppreciation,
                         'evaluation_values' => $evaluationValues
                     ];
                 }
@@ -225,27 +232,24 @@ class Bulletin {
                     }
 
                     foreach ($m['evaluations'] as $ev) {
-                        $evType = $ev['type_code'] ?? $ev['type'];
-                        $evOcc = (int)$ev['numero'];
+                        $evTypeCode = !empty($ev['type_code']) ? $ev['type_code'] : ($ev['type'] ?? '');
+                        $evType = strtolower(trim((string)$evTypeCode));
+                        $evOcc = (int)($ev['numero'] ?? $ev['numero_evaluation'] ?? 1);
+                        if ($evOcc < 1) $evOcc = 1;
                         $colKey = $evType . '_' . $evOcc;
                         $evaluationValues[$colKey] = $ev['note_normalisee'];
                     }
 
-                    $firstAppreciation = null;
-                    foreach ($m['evaluations'] as $ev) {
-                        if (!empty($ev['appreciation'])) {
-                            $firstAppreciation = $ev['appreciation'];
-                            break;
-                        }
-                    }
+                    $subjAvg = (float)$m['moyenne'];
+                    $subjAppreciation = EvaluationCalculationService::getInstitutionalAppreciation($subjAvg);
 
                     $formattedMatieres[$mId] = [
                         'matiere_id' => $mId,
                         'nom' => $m['nom'],
-                        'note' => $m['moyenne'],
+                        'note' => $subjAvg,
                         'coefficient' => $m['coefficient'],
                         'total_points' => $m['total_points'],
-                        'appreciation' => $firstAppreciation,
+                        'appreciation' => $subjAppreciation,
                         'evaluation_values' => $evaluationValues,
                         'evaluations' => $m['evaluations']
                     ];
