@@ -169,7 +169,7 @@ class Bulletin {
                     foreach ($evs as $ev) {
                         $evTypeCode = !empty($ev['type_code']) ? $ev['type_code'] : $ev['type'];
                         $evType = strtolower(trim((string)$evTypeCode));
-                        $evOcc = (int)($ev['numero_evaluation'] ?? 1);
+                        $evOcc = (int)($ev['numero_evaluation'] ?? $ev['numero'] ?? 1);
                         if ($evOcc < 1) $evOcc = 1;
                         $colKey = $evType . '_' . $evOcc;
                         $bareme = (!empty($ev['bareme_snapshot']) && (float)$ev['bareme_snapshot'] > 0) ? (float)$ev['bareme_snapshot'] : 20.00;
@@ -234,7 +234,7 @@ class Bulletin {
                     foreach ($m['evaluations'] as $ev) {
                         $evTypeCode = !empty($ev['type_code']) ? $ev['type_code'] : ($ev['type'] ?? '');
                         $evType = strtolower(trim((string)$evTypeCode));
-                        $evOcc = (int)($ev['numero'] ?? $ev['numero_evaluation'] ?? 1);
+                        $evOcc = (int)($ev['numero_evaluation'] ?? $ev['numero'] ?? 1);
                         if ($evOcc < 1) $evOcc = 1;
                         $colKey = $evType . '_' . $evOcc;
                         $evaluationValues[$colKey] = $ev['note_normalisee'];
