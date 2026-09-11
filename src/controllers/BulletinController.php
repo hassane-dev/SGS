@@ -98,17 +98,16 @@ class BulletinController {
     }
 
     public function saveAppreciation() {
-        $this->checkAccess('bulletin:validate'); // A more specific permission for this action
+        // Manual appreciation / status editing on individual bulletins has been deprecated.
+        // Validation must be executed via the institutional validation interface /bulletins/validation.
+        $eleve_id = $_POST['eleve_id'] ?? $_GET['eleve_id'] ?? null;
+        $sequence_id = $_POST['sequence_id'] ?? $_GET['sequence_id'] ?? null;
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = Validator::sanitize($_POST);
-            Bulletin::saveAppreciation($data);
-            header('Location: /bulletins/student?eleve_id=' . $data['eleve_id'] . '&sequence_id=' . $data['sequence_id']);
-            exit();
+        if ($eleve_id && $sequence_id) {
+            header('Location: /bulletins/student?eleve_id=' . $eleve_id . '&sequence_id=' . $sequence_id);
+        } else {
+            header('Location: /bulletins/validation');
         }
-
-        // Redirect if not a POST request
-        header('Location: /bulletins');
         exit();
     }
 }

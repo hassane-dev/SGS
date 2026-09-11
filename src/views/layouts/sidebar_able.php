@@ -116,6 +116,12 @@ $navItems = [
                 'title' => _('Générer et consulter les bulletins de notes.'),
                 'condition' => Auth::can('generate', 'bulletin'),
             ],
+            [
+                'url' => '/bulletins/validation',
+                'text' => _('Validation des Bulletins'),
+                'title' => _('Valider les bulletins par cycle, niveau ou classe.'),
+                'condition' => Auth::can('validate', 'bulletin'),
+            ],
         ],
     ],
     [

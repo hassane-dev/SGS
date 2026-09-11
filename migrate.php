@@ -993,6 +993,10 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_21_add_appreciation_conseil_classe_and_permission.php';
     migrate_21($db);
 
+    // --- PHASE ADD VALIDATION FIELDS TO BULLETINS ---
+    require_once __DIR__ . '/db/migrations/20240115_22_add_validation_fields_to_bulletins.php';
+    migrate_22($db);
+
     // Provision DRH role if not present
     $stmt_drh_role = $db->query("SELECT id_role FROM roles WHERE nom_role = 'drh'");
     if (!$stmt_drh_role->fetch()) {
