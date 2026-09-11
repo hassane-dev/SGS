@@ -122,6 +122,12 @@ $navItems = [
                 'title' => _('Valider les bulletins par cycle, niveau ou classe.'),
                 'condition' => Auth::can('validate', 'bulletin'),
             ],
+            [
+                'url' => '/bulletins/print',
+                'text' => _('Impression des Bulletins'),
+                'title' => _('Imprimer les bulletins officiels par cycle, niveau ou classe.'),
+                'condition' => Auth::can('generate', 'bulletin') || Auth::can('print', 'bulletin'),
+            ],
         ],
     ],
     [
