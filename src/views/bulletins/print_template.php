@@ -145,10 +145,11 @@ $isFullPage = $isFullPage ?? true;
         }
 
         .school-logo {
-            max-height: 70px;
+            max-height: 75px;
             max-width: 180px;
             object-fit: contain;
-            margin-bottom: 6px;
+            display: block;
+            margin: 0 auto 6px auto;
         }
 
         .school-name {
@@ -157,6 +158,14 @@ $isFullPage = $isFullPage ?? true;
             text-transform: uppercase;
             letter-spacing: 1px;
             color: #000;
+        }
+
+        .school-devise {
+            font-size: 9.5pt;
+            font-style: italic;
+            font-weight: 500;
+            color: #333;
+            margin-top: 2px;
         }
 
         .school-subdetails {
@@ -416,10 +425,20 @@ $isFullPage = $isFullPage ?? true;
             $dirUser = User::findOneByRoleNameAndLycee('proviseur', $lyceeId) ?: User::findOneByRoleNameAndLycee('directeur', $lyceeId);
             $dirSettings = $dirUser ? ParametreUtilisateur::findByUserId($dirUser['id_user']) : null;
 
+            $logoUrl = $currentLycee['logo'] ?? '';
+            if ($logoUrl && strpos($logoUrl, 'http') !== 0 && strpos($logoUrl, '/') !== 0) {
+                $logoUrl = '/' . $logoUrl;
+            }
+
             $addressParts = array_filter([
                 !empty($currentLycee['quartier']) ? $currentLycee['quartier'] : null,
+                !empty($currentLycee['ruelle']) ? 'Ruelle ' . $currentLycee['ruelle'] : null,
+                !empty($currentLycee['arrondissement']) ? 'Arrond. ' . $currentLycee['arrondissement'] : null,
                 !empty($currentLycee['ville']) ? $currentLycee['ville'] : null,
                 !empty($currentLycee['boite_postale']) ? 'BP: ' . $currentLycee['boite_postale'] : null,
+            ]);
+
+            $contactParts = array_filter([
                 !empty($currentLycee['tel']) ? 'Tél: ' . $currentLycee['tel'] : (!empty($currentLycee['telephone']) ? 'Tél: ' . $currentLycee['telephone'] : null),
                 !empty($currentLycee['email']) ? 'Email: ' . $currentLycee['email'] : null,
             ]);
@@ -436,9 +455,9 @@ $isFullPage = $isFullPage ?? true;
 
                 <!-- Institutional Header -->
                 <div class="institutional-header">
-                    <?php if (!empty($currentLycee['logo'])): ?>
-                        <div>
-                            <img src="<?= htmlspecialchars($currentLycee['logo']) ?>" class="school-logo" alt="Logo">
+                    <?php if (!empty($logoUrl)): ?>
+                        <div style="text-align: center;">
+                            <img src="<?= htmlspecialchars($logoUrl) ?>" class="school-logo" alt="Logo">
                         </div>
                     <?php endif; ?>
                     <div class="school-name">
@@ -447,6 +466,9 @@ $isFullPage = $isFullPage ?? true;
                             (<?= htmlspecialchars($currentLycee['sigle']) ?>)
                         <?php endif; ?>
                     </div>
+                    <?php if (!empty($currentLycee['devise'])): ?>
+                        <div class="school-devise">« <?= htmlspecialchars($currentLycee['devise']) ?> »</div>
+                    <?php endif; ?>
                     <?php if (!empty($currentLycee['header_primary'])): ?>
                         <div class="school-subdetails"><?= htmlspecialchars($currentLycee['header_primary']) ?></div>
                     <?php endif; ?>
@@ -455,11 +477,16 @@ $isFullPage = $isFullPage ?? true;
                     <?php endif; ?>
                     <?php if (!empty($addressParts)): ?>
                         <div class="school-subdetails">
-                            <?= htmlspecialchars(implode(' | ', $addressParts)) ?>
+                            <?= htmlspecialchars(implode(' - ', $addressParts)) ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if (!empty($contactParts)): ?>
+                        <div class="school-subdetails">
+                            <?= htmlspecialchars(implode(' | ', $contactParts)) ?>
                         </div>
                     <?php endif; ?>
                     <?php if (!empty($currentLycee['arrete'])): ?>
-                        <div class="school-subdetails" style="font-style: italic;">
+                        <div class="school-subdetails" style="font-style: italic; font-size: 8.5pt;">
                             <?= htmlspecialchars($currentLycee['arrete']) ?>
                         </div>
                     <?php endif; ?>
