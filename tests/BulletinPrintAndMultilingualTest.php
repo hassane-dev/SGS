@@ -250,6 +250,32 @@ try {
 
     echo "OK!\n";
 
+    echo "[TEST 2.5] Verification de l'acces au module d'impression (/bulletins/print)... ";
+
+    resetBuffers();
+    $_GET = [];
+    $_SERVER['REQUEST_URI'] = '/bulletins/print';
+    $_SESSION['user'] = [
+        'id_user' => $userId,
+        'role_id' => 1,
+        'role_name' => 'super_admin_createur',
+        'lycee_id' => $lyceeId
+    ];
+    $controller = new BulletinPrintController();
+
+    ob_start();
+    try {
+        $controller->index();
+    } catch (Throwable $e) {}
+    $htmlIndex = ob_get_clean();
+
+    assertStringContains('Impression', $htmlIndex, "Selection page rendered");
+    assertStringContains('id="select_cycle"', $htmlIndex, "Cycle selector present");
+    assertStringContains('id="select_niveau"', $htmlIndex, "Niveau selector present");
+    assertStringContains('id="select_classe"', $htmlIndex, "Classe selector present");
+
+    echo "OK!\n";
+
 
     echo "[TEST 3/5] API de Prévisualisation / Résumé (/bulletins/print/summary)... ";
 

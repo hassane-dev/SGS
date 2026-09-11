@@ -104,6 +104,26 @@ class AuthorizationScopeService {
     }
 
     /**
+     * Retrieves cycle records that the currently authenticated user is permitted to access for a given lycee.
+     * @param int|null $lycee_id
+     * @return array List of cycle records (array of associative arrays with id_cycle, nom_cycle, etc.)
+     */
+    public static function getPermittedCycles(?int $lycee_id = null): array {
+        $authorized_ids = self::getAuthorizedCycleIds();
+        if (empty($authorized_ids)) {
+            return [];
+        }
+
+        $lycee_id = $lycee_id ?: Auth::getLyceeId();
+        $all_cycles = $lycee_id ? Cycle::findByLycee($lycee_id) : Cycle::findAll();
+
+        return array_values(array_filter($all_cycles, function($c) use ($authorized_ids) {
+            $cId = (int)($c['id_cycle'] ?? $c['id'] ?? 0);
+            return in_array($cId, $authorized_ids, true);
+        }));
+    }
+
+    /**
      * Checks if the user can access a specific lycée.
      */
     public static function canAccessLycee($lycee_id) {
