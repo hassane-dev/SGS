@@ -450,6 +450,9 @@ $router->register('/bulletins', 'BulletinController', 'index');
 $router->register('/bulletins/class_results', 'BulletinController', 'showClassResults');
 $router->register('/bulletins/student', 'BulletinController', 'showStudentBulletin');
 $router->register('/bulletins/appreciation/save', 'BulletinController', 'saveAppreciation');
+$router->register('/bulletins/validation', 'BulletinValidationController', 'index');
+$router->register('/bulletins/validation/summary', 'BulletinValidationController', 'summary');
+$router->register('/bulletins/validation/execute', 'BulletinValidationController', 'execute');
 $router->register('/appreciation-conseil', 'AppreciationConseilController', 'index');
 $router->register('/appreciation-conseil/save', 'AppreciationConseilController', 'save');
 

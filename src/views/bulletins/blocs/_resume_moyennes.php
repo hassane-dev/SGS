@@ -1,72 +1,63 @@
+<?php
+require_once __DIR__ . '/../../../services/EvaluationCalculationService.php';
+
+$moyenneGen = $bulletin['moyenne_generale'] ?? null;
+$institutionalAppreciation = EvaluationCalculationService::getInstitutionalAppreciation($moyenneGen);
+$bulletinStatut = $bulletin['bulletin_record']['statut'] ?? 'provisoire';
+
+$statusBadgeClass = 'bg-secondary';
+if ($bulletinStatut === 'valide') {
+    $statusBadgeClass = 'bg-success';
+} elseif ($bulletinStatut === 'publie') {
+    $statusBadgeClass = 'bg-info';
+}
+?>
+
 <div class="summary mt-4">
-    <form action="/bulletins/appreciation/save" method="POST">
-        <input type="hidden" name="eleve_id" value="<?= $bulletin['eleve']['id_eleve'] ?>">
-        <input type="hidden" name="sequence_id" value="<?= $bulletin['sequence']['id'] ?>">
-        <input type="hidden" name="moyenne_generale" value="<?= $bulletin['moyenne_generale'] ?>">
+    <div class="row">
+        <div class="col-md-6">
+            <p><strong><?= _('Moyenne Générale') ?> :</strong> <span class="h5"><?= ($moyenneGen !== null) ? number_format($moyenneGen, 2) . ' / 20' : _('N/A') ?></span></p>
 
-        <div class="row">
-            <div class="col-md-6">
-                <p><strong><?= _('Moyenne Générale') ?> :</strong> <span class="h5"><?= number_format($bulletin['moyenne_generale'], 2) ?> / 20</span></p>
+            <p><strong><?= _('Rang') ?> :</strong> <?= htmlspecialchars($bulletin['bulletin_record']['rang'] ?? _('Non défini')) ?></p>
 
-                <?php if (Auth::can('validate', 'bulletin')): ?>
-                    <div class="form-group">
-                        <label for="rang"><strong><?= _("Rang de l'élève") ?></strong></label>
-                        <input type="text" name="rang" id="rang" class="form-control" value="<?= htmlspecialchars($bulletin['bulletin_record']['rang'] ?? '') ?>">
-                    </div>
-                <?php else: ?>
-                    <p><strong><?= _('Rang') ?> :</strong> <?= htmlspecialchars($bulletin['bulletin_record']['rang'] ?? _('Non défini')) ?></p>
-                <?php endif; ?>
-            </div>
-            <div class="col-md-6">
-                <div class="border p-3">
-                    <h5><?= _('Appréciation du Conseil de Classe') ?></h5>
-                    <p class="fst-italic border-bottom pb-2"><?= htmlspecialchars($bulletin['bulletin_record']['appreciation_conseil_classe'] ?? _('Aucune appréciation du conseil de classe.')) ?></p>
+            <p><strong><?= _('Statut du bulletin') ?> :</strong>
+                <span class="badge <?= $statusBadgeClass ?>"><?= _(ucfirst(htmlspecialchars($bulletinStatut))) ?></span>
+            </p>
+        </div>
+        <div class="col-md-6">
+            <div class="border p-3 rounded">
+                <h5><?= _('Appréciation du Conseil de Classe') ?></h5>
+                <p class="fst-italic border-bottom pb-2"><?= htmlspecialchars($bulletin['bulletin_record']['appreciation_conseil_classe'] ?? _('Aucune appréciation du conseil de classe.')) ?></p>
 
-                    <h5 class="mt-3"><?= _('Appréciation Générale') ?></h5>
-                    <?php if (Auth::can('validate', 'bulletin')): ?>
-                        <div class="form-group">
-                            <textarea name="appreciation" class="form-control" rows="3"><?= htmlspecialchars($bulletin['bulletin_record']['appreciation'] ?? '') ?></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="statut"><strong><?= _('Statut du bulletin') ?></strong></label>
-                            <select name="statut" id="statut" class="form-control">
-                                <option value="provisoire" <?= ($bulletin['bulletin_record']['statut'] ?? '') == 'provisoire' ? 'selected' : '' ?>><?= _('Provisoire') ?></option>
-                                <option value="valide" <?= ($bulletin['bulletin_record']['statut'] ?? '') == 'valide' ? 'selected' : '' ?>><?= _('Validé') ?></option>
-                                <option value="publie" <?= ($bulletin['bulletin_record']['statut'] ?? '') == 'publie' ? 'selected' : '' ?>><?= _('Publié') ?></option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-success mt-2"><?= _("Enregistrer l'Appréciation") ?></button>
-                    <?php else: ?>
-                        <p><?= htmlspecialchars($bulletin['bulletin_record']['appreciation'] ?? _('Aucune appréciation.')) ?></p>
-                        <p><strong><?= _('Statut') ?> :</strong> <span class="badge badge-info"><?= _(ucfirst(htmlspecialchars($bulletin['bulletin_record']['statut'] ?? 'provisoire'))) ?></span></p>
+                <h5 class="mt-3"><?= _('Appréciation Générale') ?></h5>
+                <p class="fw-bold text-primary fs-5 mb-3"><?= htmlspecialchars($institutionalAppreciation) ?></p>
+
+                <p class="mt-3"><strong><?= _("Le Chef d'établissement") ?></strong></p>
+                <?php
+                require_once __DIR__ . '/../../../models/User.php';
+                require_once __DIR__ . '/../../../models/ParametreUtilisateur.php';
+                require_once __DIR__ . '/../../../models/ParamLycee.php';
+
+                // Find director or proviseur strictly filtered by the student's lycée
+                $lyceeId = $bulletin['eleve']['lycee_id'] ?? null;
+                $dirUser = User::findOneByRoleNameAndLycee('proviseur', $lyceeId) ?: User::findOneByRoleNameAndLycee('directeur', $lyceeId);
+                $dirSettings = null;
+                if ($dirUser) {
+                    $dirSettings = ParametreUtilisateur::findByUserId($dirUser['id_user']);
+                }
+                ?>
+                <div style="height: 65px; display: flex; align-items: center; justify-content: start; position: relative; margin-top: 5px; margin-bottom: 5px;">
+                    <?php if ($dirSettings && !empty($dirSettings->signature)): ?>
+                        <img src="<?= htmlspecialchars($dirSettings->signature) ?>" alt="Signature Directeur" style="max-height: 55px; position: absolute; z-index: 2; left: 20px;">
                     <?php endif; ?>
-                    <p class="mt-3"><strong><?= _("Le Chef d'établissement") ?></strong></p>
                     <?php
-                    require_once __DIR__ . '/../../../models/User.php';
-                    require_once __DIR__ . '/../../../models/ParametreUtilisateur.php';
-                    require_once __DIR__ . '/../../../models/ParamLycee.php';
-
-                    // Find director or proviseur strictly filtered by the student's lycée
-                    $lyceeId = $bulletin['eleve']['lycee_id'] ?? null;
-                    $dirUser = User::findOneByRoleNameAndLycee('proviseur', $lyceeId) ?: User::findOneByRoleNameAndLycee('directeur', $lyceeId);
-                    $dirSettings = null;
-                    if ($dirUser) {
-                        $dirSettings = ParametreUtilisateur::findByUserId($dirUser['id_user']);
-                    }
+                    $lyceeParams = ParamLycee::findByLyceeId($lyceeId);
+                    if ($lyceeParams && !empty($lyceeParams['tampon_ecole'])):
                     ?>
-                    <div style="height: 65px; display: flex; align-items: center; justify-content: start; position: relative; margin-top: 5px; margin-bottom: 5px;">
-                        <?php if ($dirSettings && !empty($dirSettings->signature)): ?>
-                            <img src="<?= htmlspecialchars($dirSettings->signature) ?>" alt="Signature Directeur" style="max-height: 55px; position: absolute; z-index: 2; left: 20px;">
-                        <?php endif; ?>
-                        <?php
-                        $lyceeParams = ParamLycee::findByLyceeId($lyceeId);
-                        if ($lyceeParams && !empty($lyceeParams['tampon_ecole'])):
-                        ?>
-                            <img src="<?= htmlspecialchars($lyceeParams['tampon_ecole']) ?>" alt="Tampon Établissement" style="max-height: 60px; opacity: 0.75; position: absolute; z-index: 1; left: 10px;">
-                        <?php endif; ?>
-                    </div>
+                        <img src="<?= htmlspecialchars($lyceeParams['tampon_ecole']) ?>" alt="Tampon Établissement" style="max-height: 60px; opacity: 0.75; position: absolute; z-index: 1; left: 10px;">
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
-    </form>
+    </div>
 </div>

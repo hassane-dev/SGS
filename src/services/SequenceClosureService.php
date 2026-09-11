@@ -150,7 +150,7 @@ class SequenceClosureService {
                     ]);
                     $existingBul = $stmtCheckBul->fetch(PDO::FETCH_ASSOC);
 
-                    $bulletin_statut = $existingBul['statut'] ?? 'valide';
+                    $bulletin_statut = $existingBul['statut'] ?? 'provisoire';
                     $appreciation = $existingBul['appreciation'] ?? null;
 
                     if ($existingBul) {
