@@ -450,6 +450,8 @@ $router->register('/bulletins', 'BulletinController', 'index');
 $router->register('/bulletins/class_results', 'BulletinController', 'showClassResults');
 $router->register('/bulletins/student', 'BulletinController', 'showStudentBulletin');
 $router->register('/bulletins/appreciation/save', 'BulletinController', 'saveAppreciation');
+$router->register('/appreciation-conseil', 'AppreciationConseilController', 'index');
+$router->register('/appreciation-conseil/save', 'AppreciationConseilController', 'save');
 
 // Bulletin Template Editor
 $router->register('/modele-bulletin/edit', 'ModeleBulletinController', 'edit');

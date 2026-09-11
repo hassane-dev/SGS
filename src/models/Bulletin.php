@@ -311,5 +311,96 @@ class Bulletin {
             return false;
         }
     }
+
+    /**
+     * Saves or updates the Class Council Appreciation (Appréciation du conseil de classe).
+     * Rule:
+     * - If bulletin exists: UPDATE appreciation_conseil_classe (unless statut is 'valide' or 'publie').
+     * - If bulletin does NOT exist: Computes real average via EvaluationCalculationService (never 0.00 fake average) and inserts provisional bulletin.
+     *
+     * @param int $eleve_id
+     * @param int $sequence_id
+     * @param int $annee_id
+     * @param int $lycee_id
+     * @param string|null $appreciation_conseil_classe
+     * @return bool
+     * @throws LogicException If bulletin status is locked ('valide' or 'publie').
+     */
+    public static function saveAppreciationConseil($eleve_id, $sequence_id, $annee_id, $lycee_id, $appreciation_conseil_classe) {
+        $db = Database::getInstance();
+
+        // 1. Fetch existing bulletin row
+        $stmtBul = $db->prepare("SELECT id, statut FROM bulletins WHERE eleve_id = :eleve_id AND sequence_id = :sequence_id");
+        $stmtBul->execute(['eleve_id' => $eleve_id, 'sequence_id' => $sequence_id]);
+        $existing = $stmtBul->fetch(PDO::FETCH_ASSOC);
+
+        if ($existing) {
+            // Check status locking
+            if (in_array($existing['statut'], ['valide', 'publie'])) {
+                throw new LogicException("Le bulletin est déjà dans le statut '{$existing['statut']}' et ne peut plus être modifié par le professeur principal.");
+            }
+
+            $stmtUp = $db->prepare("
+                UPDATE bulletins
+                SET appreciation_conseil_classe = :apprec, updated_at = CURRENT_TIMESTAMP
+                WHERE id = :id
+            ");
+            return $stmtUp->execute([
+                'apprec' => $appreciation_conseil_classe,
+                'id' => (int)$existing['id']
+            ]);
+        } else {
+            // Bulletin does not exist yet: compute REAL dynamic report metrics via EvaluationCalculationService
+            $report = EvaluationCalculationService::computeStudentSequenceReport((int)$eleve_id, (int)$sequence_id);
+            $moyenneGenerale = (float)($report['moyenne_generale'] ?? 0.00);
+
+            $stmtIns = $db->prepare("
+                INSERT INTO bulletins (
+                    eleve_id, sequence_id, annee_academique_id, lycee_id,
+                    moyenne_generale, statut, appreciation_conseil_classe
+                ) VALUES (
+                    :eleve_id, :sequence_id, :annee_id, :lycee_id,
+                    :moyenne, 'provisoire', :apprec
+                )
+            ");
+            return $stmtIns->execute([
+                'eleve_id' => $eleve_id,
+                'sequence_id' => $sequence_id,
+                'annee_id' => $annee_id,
+                'lycee_id' => $lycee_id,
+                'moyenne' => $moyenneGenerale,
+                'apprec' => $appreciation_conseil_classe
+            ]);
+        }
+    }
+
+    /**
+     * Retrieves Class Council Appreciations for all students in a class for a given sequence.
+     * @param int $classe_id
+     * @param int $sequence_id
+     * @return array Map of [eleve_id => ['appreciation_conseil_classe' => ..., 'statut' => ...]]
+     */
+    public static function findAppreciationsConseilByClasseAndSequence($classe_id, $sequence_id) {
+        $db = Database::getInstance();
+        try {
+            $stmt = $db->prepare("
+                SELECT b.eleve_id, b.appreciation_conseil_classe, b.statut
+                FROM bulletins b
+                JOIN etudes et ON b.eleve_id = et.eleve_id
+                WHERE et.classe_id = :classe_id
+                  AND b.sequence_id = :sequence_id
+            ");
+            $stmt->execute(['classe_id' => $classe_id, 'sequence_id' => $sequence_id]);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $result = [];
+            foreach ($rows as $r) {
+                $result[(int)$r['eleve_id']] = $r;
+            }
+            return $result;
+        } catch (PDOException $e) {
+            error_log("Error in Bulletin::findAppreciationsConseilByClasseAndSequence: " . $e->getMessage());
+            return [];
+        }
+    }
 }
 ?>
