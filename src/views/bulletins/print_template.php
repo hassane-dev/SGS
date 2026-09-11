@@ -27,7 +27,7 @@ $isFullPage = $isFullPage ?? true;
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title><?= _('Impression des Bulletins') ?></title>
+    <title><?= _('Bulletin Scolaire Officiel') ?></title>
 <?php endif; ?>
     <style>
         /* Base Screen & Page Setup */
@@ -136,41 +136,81 @@ $isFullPage = $isFullPage ?? true;
             z-index: 1;
         }
 
-        /* Header Layout */
-        .institutional-header {
-            text-align: center;
+        /* SHARED ADMINISTRATIVE HEADER STYLES (MATCHING ID CARD IDENTITY) */
+        .admin-header-wrapper {
             margin-bottom: 12px;
             border-bottom: 2px solid #222;
             padding-bottom: 10px;
         }
 
-        .school-logo {
-            max-height: 75px;
-            max-width: 180px;
-            object-fit: contain;
-            display: block;
-            margin: 0 auto 6px auto;
+        .admin-header-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 15px;
+            text-align: center;
         }
 
-        .school-name {
-            font-size: 15pt;
+        .admin-header-col {
+            font-size: 8.5pt;
+            line-height: 1.3;
+            color: #222;
+        }
+
+        .admin-header-left {
+            text-align: left;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #000;
         }
 
-        .school-devise {
-            font-size: 9.5pt;
+        .admin-header-right {
+            text-align: right;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .admin-header-center {
+            text-align: center;
+        }
+
+        .admin-school-logo {
+            max-height: 75px;
+            max-width: 150px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto 4px auto;
+        }
+
+        .admin-school-name {
+            font-size: 14pt;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #000;
+            line-height: 1.2;
+        }
+
+        .admin-school-devise {
+            font-size: 9pt;
             font-style: italic;
-            font-weight: 500;
+            font-weight: 600;
             color: #333;
             margin-top: 2px;
         }
 
-        .school-subdetails {
-            font-size: 9pt;
+        .admin-header-details {
+            margin-top: 6px;
+            text-align: center;
+            font-size: 8.5pt;
             color: #444;
+            border-top: 1px dashed #ccc;
+            padding-top: 4px;
+        }
+
+        .admin-header-arrete {
+            font-style: italic;
+            font-size: 8pt;
+            color: #555;
             margin-top: 2px;
         }
 
@@ -179,6 +219,7 @@ $isFullPage = $isFullPage ?? true;
             font-weight: 800;
             text-transform: uppercase;
             margin-top: 8px;
+            text-align: center;
             color: #1a252f;
             letter-spacing: 1.5px;
         }
@@ -347,13 +388,18 @@ $isFullPage = $isFullPage ?? true;
             text-align: right;
         }
 
-        .bulletin-sheet.rtl-doc .institutional-header {
+        .bulletin-sheet.rtl-doc .admin-header-wrapper {
             text-align: center;
         }
 
-        /* STRICT PRINT STYLES */
+        /* STRICT PRINT STYLES - STOPS ALL BROWSER TECHNICAL HEADERS/FOOTERS/URLS/COUNTERS */
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
         @media print {
-            body {
+            html, body {
                 background-color: #ffffff !important;
                 padding: 0 !important;
                 margin: 0 !important;
@@ -361,7 +407,7 @@ $isFullPage = $isFullPage ?? true;
                 print-color-adjust: exact !important;
             }
 
-            .no-print-toolbar, .pc-sidebar, .pc-header, .pc-container, .no-print {
+            .no-print-toolbar, .pc-sidebar, .pc-header, .pc-container, .no-print, header, footer, nav {
                 display: none !important;
             }
 
@@ -375,15 +421,15 @@ $isFullPage = $isFullPage ?? true;
             .bulletin-sheet {
                 width: 100% !important;
                 margin: 0 !important;
-                padding: 10mm !important;
+                padding: 10mm 15mm !important;
                 box-shadow: none !important;
                 border-radius: 0 !important;
-                min-height: auto !important;
+                min-height: 100vh !important;
+                page-break-before: always;
             }
 
-            @page {
-                size: A4 portrait;
-                margin: 5mm;
+            .bulletin-sheet:first-child {
+                page-break-before: avoid;
             }
         }
     </style>
@@ -425,24 +471,6 @@ $isFullPage = $isFullPage ?? true;
             $dirUser = User::findOneByRoleNameAndLycee('proviseur', $lyceeId) ?: User::findOneByRoleNameAndLycee('directeur', $lyceeId);
             $dirSettings = $dirUser ? ParametreUtilisateur::findByUserId($dirUser['id_user']) : null;
 
-            $logoUrl = $currentLycee['logo'] ?? '';
-            if ($logoUrl && strpos($logoUrl, 'http') !== 0 && strpos($logoUrl, '/') !== 0) {
-                $logoUrl = '/' . $logoUrl;
-            }
-
-            $addressParts = array_filter([
-                !empty($currentLycee['quartier']) ? $currentLycee['quartier'] : null,
-                !empty($currentLycee['ruelle']) ? 'Ruelle ' . $currentLycee['ruelle'] : null,
-                !empty($currentLycee['arrondissement']) ? 'Arrond. ' . $currentLycee['arrondissement'] : null,
-                !empty($currentLycee['ville']) ? $currentLycee['ville'] : null,
-                !empty($currentLycee['boite_postale']) ? 'BP: ' . $currentLycee['boite_postale'] : null,
-            ]);
-
-            $contactParts = array_filter([
-                !empty($currentLycee['tel']) ? 'Tél: ' . $currentLycee['tel'] : (!empty($currentLycee['telephone']) ? 'Tél: ' . $currentLycee['telephone'] : null),
-                !empty($currentLycee['email']) ? 'Email: ' . $currentLycee['email'] : null,
-            ]);
-
             $isRtlDoc = BulletinI18nHelper::isRtl($currentParamGeneral['langue_1'] ?? 'fr_FR') && ((int)($currentParamGeneral['nb_langue'] ?? 1) === 1);
             ?>
             <div class="bulletin-sheet <?= $isRtlDoc ? 'rtl-doc' : '' ?>" <?= $isRtlDoc ? 'dir="rtl"' : '' ?>>
@@ -453,52 +481,17 @@ $isFullPage = $isFullPage ?? true;
                     </div>
                 <?php endif; ?>
 
-                <!-- Institutional Header -->
-                <div class="institutional-header">
-                    <?php if (!empty($logoUrl)): ?>
-                        <div style="text-align: center;">
-                            <img src="<?= htmlspecialchars($logoUrl) ?>" class="school-logo" alt="Logo">
-                        </div>
-                    <?php endif; ?>
-                    <div class="school-name">
-                        <?= htmlspecialchars($currentLycee['nom_lycee'] ?? $eleve['nom_lycee'] ?? 'ÉTABLISSEMENT SCOLAIRE') ?>
-                        <?php if (!empty($currentLycee['sigle'])): ?>
-                            (<?= htmlspecialchars($currentLycee['sigle']) ?>)
-                        <?php endif; ?>
-                    </div>
-                    <?php if (!empty($currentLycee['devise'])): ?>
-                        <div class="school-devise">« <?= htmlspecialchars($currentLycee['devise']) ?> »</div>
-                    <?php endif; ?>
-                    <?php if (!empty($currentLycee['header_primary'])): ?>
-                        <div class="school-subdetails"><?= htmlspecialchars($currentLycee['header_primary']) ?></div>
-                    <?php endif; ?>
-                    <?php if (!empty($currentLycee['header_secondary'])): ?>
-                        <div class="school-subdetails"><?= htmlspecialchars($currentLycee['header_secondary']) ?></div>
-                    <?php endif; ?>
-                    <?php if (!empty($addressParts)): ?>
-                        <div class="school-subdetails">
-                            <?= htmlspecialchars(implode(' - ', $addressParts)) ?>
-                        </div>
-                    <?php endif; ?>
-                    <?php if (!empty($contactParts)): ?>
-                        <div class="school-subdetails">
-                            <?= htmlspecialchars(implode(' | ', $contactParts)) ?>
-                        </div>
-                    <?php endif; ?>
-                    <?php if (!empty($currentLycee['arrete'])): ?>
-                        <div class="school-subdetails" style="font-style: italic; font-size: 8.5pt;">
-                            <?= htmlspecialchars($currentLycee['arrete']) ?>
-                        </div>
-                    <?php endif; ?>
+                <!-- Shared Administrative Header (Reused from ID Card Identity) -->
+                <?php include __DIR__ . '/../layouts/_header_administrative.php'; ?>
 
-                    <div class="document-title">
-                        <?= BulletinI18nHelper::label('BULLETIN SCOLAIRE', $currentParamGeneral) ?>
-                    </div>
-                    <div class="meta-pills">
-                        <span><?= BulletinI18nHelper::label('Année Académique', $currentParamGeneral) ?>: <?= htmlspecialchars($eleve['annee_academique'] ?? '') ?></span>
-                        <span>•</span>
-                        <span><?= BulletinI18nHelper::label('Séquence', $currentParamGeneral) ?>: <?= htmlspecialchars($seq['nom'] ?? '') ?></span>
-                    </div>
+                <!-- Document Title & Meta -->
+                <div class="document-title">
+                    <?= BulletinI18nHelper::label('BULLETIN SCOLAIRE', $currentParamGeneral) ?>
+                </div>
+                <div class="meta-pills mb-3">
+                    <span><?= BulletinI18nHelper::label('Année Académique', $currentParamGeneral) ?>: <?= htmlspecialchars($eleve['annee_academique'] ?? '') ?></span>
+                    <span>•</span>
+                    <span><?= BulletinI18nHelper::label('Séquence', $currentParamGeneral) ?>: <?= htmlspecialchars($seq['nom'] ?? '') ?></span>
                 </div>
 
                 <!-- Student Information Grid -->
