@@ -60,7 +60,7 @@ $navItems = [
         'text' => _('Pédagogie'),
         'icon' => 'ph-duotone ph-chalkboard-teacher',
         'is_dropdown' => true,
-        'condition' => Auth::can('view_affectations', 'pedagogy') || Auth::can('view_my_affectations', 'pedagogy') || Auth::can('manage_affectations', 'pedagogy') || Auth::can('manage', 'timetable') || Auth::get('role_name') === 'enseignant' || Auth::can('view_all', 'cahier_texte') || Auth::can('manage', 'cahier_texte') || Auth::can('view_all', 'note') || Auth::can('manage_settings', 'evaluation') || Auth::can('generate', 'bulletin'),
+        'condition' => Auth::can('view_affectations', 'pedagogy') || Auth::can('view_my_affectations', 'pedagogy') || Auth::can('manage_affectations', 'pedagogy') || Auth::can('manage', 'timetable') || Auth::get('role_name') === 'enseignant' || Auth::can('view_all', 'cahier_texte') || Auth::can('manage', 'cahier_texte') || Auth::can('view_all', 'note') || Auth::can('manage_settings', 'evaluation') || Auth::can('generate', 'bulletin') || Auth::can('edit_appreciation_conseil', 'bulletin'),
         'submenu' => [
             [
                 'url' => '/affectations-pedagogiques',
@@ -103,6 +103,12 @@ $navItems = [
                 'text' => _('Déblocage Notes'),
                 'title' => _('Gérer les déblocages exceptionnels pour la saisie des notes.'),
                 'condition' => Auth::can('manage_settings', 'evaluation'),
+            ],
+            [
+                'url' => '/appreciation-conseil',
+                'text' => _('Appréciation Conseil de Classe'),
+                'title' => _('Saisir les appréciations du conseil de classe pour sa classe principale.'),
+                'condition' => Auth::can('edit_appreciation_conseil', 'bulletin'),
             ],
             [
                 'url' => '/bulletins',

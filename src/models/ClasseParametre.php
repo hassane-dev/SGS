@@ -65,6 +65,71 @@ class ClasseParametre {
     }
 
     /**
+     * Checks if a user is designated as the Main Teacher (Professeur Principal) for a given class and academic year.
+     * @param int $user_id
+     * @param int $classe_id
+     * @param int $annee_id
+     * @return bool
+     */
+    public static function isProfesseurPrincipal($user_id, $classe_id, $annee_id) {
+        if (!$user_id || !$classe_id || !$annee_id) {
+            return false;
+        }
+        try {
+            $db = Database::getInstance();
+            $stmt = $db->prepare(
+                "SELECT COUNT(*) FROM classe_parametres
+                 WHERE classe_id = :classe_id
+                   AND annee_academique_id = :annee_id
+                   AND professeur_principal_id = :user_id"
+            );
+            $stmt->execute([
+                'classe_id' => (int)$classe_id,
+                'annee_id' => (int)$annee_id,
+                'user_id' => (int)$user_id
+            ]);
+            return ((int)$stmt->fetchColumn()) > 0;
+        } catch (PDOException $e) {
+            error_log("Error in ClasseParametre::isProfesseurPrincipal: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Finds all classes where a user is the Main Teacher for a specific academic year and school tenant.
+     * @param int $user_id
+     * @param int $annee_id
+     * @param int $lycee_id
+     * @return array
+     */
+    public static function findClassesByProfesseurPrincipal($user_id, $annee_id, $lycee_id) {
+        if (!$user_id || !$annee_id || !$lycee_id) {
+            return [];
+        }
+        try {
+            $db = Database::getInstance();
+            $stmt = $db->prepare(
+                "SELECT c.*, cp.professeur_principal_id
+                 FROM classes c
+                 JOIN classe_parametres cp ON c.id_classe = cp.classe_id
+                 WHERE cp.professeur_principal_id = :user_id
+                   AND cp.annee_academique_id = :annee_id
+                   AND c.lycee_id = :lycee_id
+                 ORDER BY c.niveau, c.serie, c.numero"
+            );
+            $stmt->execute([
+                'user_id' => (int)$user_id,
+                'annee_id' => (int)$annee_id,
+                'lycee_id' => (int)$lycee_id
+            ]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error in ClasseParametre::findClassesByProfesseurPrincipal: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
      * Update the student count for a class in a specific year.
      * @param int $classe_id
      * @param int $annee_id

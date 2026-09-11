@@ -20,6 +20,9 @@
             <div class="col-md-6">
                 <div class="border p-3">
                     <h5><?= _('Appréciation du Conseil de Classe') ?></h5>
+                    <p class="fst-italic border-bottom pb-2"><?= htmlspecialchars($bulletin['bulletin_record']['appreciation_conseil_classe'] ?? _('Aucune appréciation du conseil de classe.')) ?></p>
+
+                    <h5 class="mt-3"><?= _('Appréciation Générale') ?></h5>
                     <?php if (Auth::can('validate', 'bulletin')): ?>
                         <div class="form-group">
                             <textarea name="appreciation" class="form-control" rows="3"><?= htmlspecialchars($bulletin['bulletin_record']['appreciation'] ?? '') ?></textarea>
