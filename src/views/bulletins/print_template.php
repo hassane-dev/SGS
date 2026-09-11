@@ -328,6 +328,20 @@ $isFullPage = $isFullPage ?? true;
             font-family: 'Amiri', 'Traditional Arabic', serif;
         }
 
+        .bulletin-sheet.rtl-doc {
+            direction: rtl;
+            text-align: right;
+        }
+
+        .bulletin-sheet.rtl-doc .subject-col,
+        .bulletin-sheet.rtl-doc .apprec-col {
+            text-align: right;
+        }
+
+        .bulletin-sheet.rtl-doc .institutional-header {
+            text-align: center;
+        }
+
         /* STRICT PRINT STYLES */
         @media print {
             body {
@@ -394,43 +408,69 @@ $isFullPage = $isFullPage ?? true;
             $isProvisoire = !empty($bData['is_provisoire']) || ($bRecord['statut'] ?? '') === 'provisoire';
             $moyGen = $bData['moyenne_generale'] ?? null;
             $institutionalApprec = EvaluationCalculationService::getInstitutionalAppreciation($moyGen);
-            $lyceeId = $eleve['lycee_id'] ?? null;
+            $lyceeId = $eleve['lycee_id'] ?? Auth::getLyceeId();
+            $currentLycee = ($lyceeId && (!isset($lycee['id']) || (int)$lycee['id'] === (int)$lyceeId)) ? $lycee : (ParamLycee::findByLyceeId($lyceeId) ?: $lycee);
+            $currentParamGeneral = ($lyceeId && (!isset($paramGeneral['lycee_id']) || (int)$paramGeneral['lycee_id'] === (int)$lyceeId)) ? $paramGeneral : (ParamGeneral::findByLyceeId($lyceeId) ?: $paramGeneral);
 
             // Fetch headmaster signature/cachet for target school
             $dirUser = User::findOneByRoleNameAndLycee('proviseur', $lyceeId) ?: User::findOneByRoleNameAndLycee('directeur', $lyceeId);
             $dirSettings = $dirUser ? ParametreUtilisateur::findByUserId($dirUser['id_user']) : null;
+
+            $addressParts = array_filter([
+                !empty($currentLycee['quartier']) ? $currentLycee['quartier'] : null,
+                !empty($currentLycee['ville']) ? $currentLycee['ville'] : null,
+                !empty($currentLycee['boite_postale']) ? 'BP: ' . $currentLycee['boite_postale'] : null,
+                !empty($currentLycee['tel']) ? 'Tél: ' . $currentLycee['tel'] : (!empty($currentLycee['telephone']) ? 'Tél: ' . $currentLycee['telephone'] : null),
+                !empty($currentLycee['email']) ? 'Email: ' . $currentLycee['email'] : null,
+            ]);
+
+            $isRtlDoc = BulletinI18nHelper::isRtl($currentParamGeneral['langue_1'] ?? 'fr_FR') && ((int)($currentParamGeneral['nb_langue'] ?? 1) === 1);
             ?>
-            <div class="bulletin-sheet">
+            <div class="bulletin-sheet <?= $isRtlDoc ? 'rtl-doc' : '' ?>" <?= $isRtlDoc ? 'dir="rtl"' : '' ?>>
 
                 <?php if ($isProvisoire): ?>
                     <div class="watermark-provisoire">
-                        <?= BulletinI18nHelper::label('BULLETIN PROVISOIRE', $paramGeneral) ?>
+                        <?= BulletinI18nHelper::label('BULLETIN PROVISOIRE', $currentParamGeneral) ?>
                     </div>
                 <?php endif; ?>
 
                 <!-- Institutional Header -->
                 <div class="institutional-header">
-                    <?php if (!empty($lycee['logo'])): ?>
+                    <?php if (!empty($currentLycee['logo'])): ?>
                         <div>
-                            <img src="<?= htmlspecialchars($lycee['logo']) ?>" class="school-logo" alt="Logo">
+                            <img src="<?= htmlspecialchars($currentLycee['logo']) ?>" class="school-logo" alt="Logo">
                         </div>
                     <?php endif; ?>
                     <div class="school-name">
-                        <?= htmlspecialchars($lycee['nom_lycee'] ?? $eleve['nom_lycee'] ?? 'ÉTABLISSEMENT SCOLAIRE') ?>
+                        <?= htmlspecialchars($currentLycee['nom_lycee'] ?? $eleve['nom_lycee'] ?? 'ÉTABLISSEMENT SCOLAIRE') ?>
+                        <?php if (!empty($currentLycee['sigle'])): ?>
+                            (<?= htmlspecialchars($currentLycee['sigle']) ?>)
+                        <?php endif; ?>
                     </div>
-                    <?php if (!empty($lycee['adresse']) || !empty($lycee['telephone'])): ?>
+                    <?php if (!empty($currentLycee['header_primary'])): ?>
+                        <div class="school-subdetails"><?= htmlspecialchars($currentLycee['header_primary']) ?></div>
+                    <?php endif; ?>
+                    <?php if (!empty($currentLycee['header_secondary'])): ?>
+                        <div class="school-subdetails"><?= htmlspecialchars($currentLycee['header_secondary']) ?></div>
+                    <?php endif; ?>
+                    <?php if (!empty($addressParts)): ?>
                         <div class="school-subdetails">
-                            <?= htmlspecialchars($lycee['adresse'] ?? '') ?> <?= !empty($lycee['telephone']) ? ' | Tél: ' . htmlspecialchars($lycee['telephone']) : '' ?>
+                            <?= htmlspecialchars(implode(' | ', $addressParts)) ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if (!empty($currentLycee['arrete'])): ?>
+                        <div class="school-subdetails" style="font-style: italic;">
+                            <?= htmlspecialchars($currentLycee['arrete']) ?>
                         </div>
                     <?php endif; ?>
 
                     <div class="document-title">
-                        <?= BulletinI18nHelper::label('BULLETIN SCOLAIRE', $paramGeneral) ?>
+                        <?= BulletinI18nHelper::label('BULLETIN SCOLAIRE', $currentParamGeneral) ?>
                     </div>
                     <div class="meta-pills">
-                        <span><?= BulletinI18nHelper::label('Année Académique', $paramGeneral) ?>: <?= htmlspecialchars($eleve['annee_academique'] ?? '') ?></span>
+                        <span><?= BulletinI18nHelper::label('Année Académique', $currentParamGeneral) ?>: <?= htmlspecialchars($eleve['annee_academique'] ?? '') ?></span>
                         <span>•</span>
-                        <span><?= BulletinI18nHelper::label('Séquence', $paramGeneral) ?>: <?= htmlspecialchars($seq['nom'] ?? '') ?></span>
+                        <span><?= BulletinI18nHelper::label('Séquence', $currentParamGeneral) ?>: <?= htmlspecialchars($seq['nom'] ?? '') ?></span>
                     </div>
                 </div>
 
@@ -438,22 +478,22 @@ $isFullPage = $isFullPage ?? true;
                 <div class="student-info-box">
                     <div class="student-info-grid">
                         <div>
-                            <span class="lbl"><?= BulletinI18nHelper::label('Nom & Prénom', $paramGeneral) ?> :</span>
+                            <span class="lbl"><?= BulletinI18nHelper::label('Nom & Prénom', $currentParamGeneral) ?> :</span>
                             <strong><?= htmlspecialchars(($eleve['nom'] ?? '') . ' ' . ($eleve['prenom'] ?? '')) ?></strong>
                         </div>
                         <div>
-                            <span class="lbl"><?= BulletinI18nHelper::label('Classe', $paramGeneral) ?> :</span>
+                            <span class="lbl"><?= BulletinI18nHelper::label('Classe', $currentParamGeneral) ?> :</span>
                             <strong><?= htmlspecialchars($eleve['nom_classe'] ?? '') ?></strong>
                         </div>
                         <?php if (!empty($eleve['identifiant_public'])): ?>
                             <div>
-                                <span class="lbl"><?= BulletinI18nHelper::label('Matricule', $paramGeneral) ?> :</span>
-                                <?= htmlspecialchars($eleve['identifiant_public']) ?>
+                                <span class="lbl"><?= BulletinI18nHelper::label('Matricule', $currentParamGeneral) ?> :</span>
+                                <strong><?= htmlspecialchars($eleve['identifiant_public']) ?></strong>
                             </div>
                         <?php endif; ?>
                         <?php if (!empty($eleve['date_naissance'])): ?>
                             <div>
-                                <span class="lbl"><?= BulletinI18nHelper::label('Date de Naissance', $paramGeneral) ?> :</span>
+                                <span class="lbl"><?= BulletinI18nHelper::label('Date de Naissance', $currentParamGeneral) ?> :</span>
                                 <?= htmlspecialchars($eleve['date_naissance']) ?>
                             </div>
                         <?php endif; ?>
@@ -464,14 +504,14 @@ $isFullPage = $isFullPage ?? true;
                 <table class="grades-table">
                     <thead>
                         <tr>
-                            <th class="subject-col"><?= BulletinI18nHelper::label('Matières', $paramGeneral) ?></th>
+                            <th class="subject-col"><?= BulletinI18nHelper::label('Matières', $currentParamGeneral) ?></th>
                             <?php foreach ($evalCols as $col): ?>
                                 <th><?= htmlspecialchars($col['label']) ?></th>
                             <?php endforeach; ?>
-                            <th><?= BulletinI18nHelper::label('Moyenne / 20', $paramGeneral) ?></th>
-                            <th><?= BulletinI18nHelper::label('Coef', $paramGeneral) ?></th>
-                            <th><?= BulletinI18nHelper::label('Total Points', $paramGeneral) ?></th>
-                            <th class="apprec-col"><?= BulletinI18nHelper::label("Appreciations de l'enseignant", $paramGeneral) ?></th>
+                            <th><?= BulletinI18nHelper::label('Moyenne / 20', $currentParamGeneral) ?></th>
+                            <th><?= BulletinI18nHelper::label('Coef', $currentParamGeneral) ?></th>
+                            <th><?= BulletinI18nHelper::label('Total Points', $currentParamGeneral) ?></th>
+                            <th class="apprec-col"><?= BulletinI18nHelper::label("Appreciations de l'enseignant", $currentParamGeneral) ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -491,7 +531,7 @@ $isFullPage = $isFullPage ?? true;
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td class="subject-col"><?= BulletinI18nHelper::label('Totaux', $paramGeneral) ?></td>
+                            <td class="subject-col"><?= BulletinI18nHelper::label('Totaux', $currentParamGeneral) ?></td>
                             <?php if (!empty($evalCols)): ?>
                                 <td colspan="<?= count($evalCols) ?>"></td>
                             <?php endif; ?>
@@ -506,36 +546,36 @@ $isFullPage = $isFullPage ?? true;
                 <!-- Summary Box -->
                 <div class="summary-container">
                     <div class="summary-card">
-                        <h5><?= BulletinI18nHelper::label('Moyenne', $paramGeneral) ?> & <?= BulletinI18nHelper::label('Rang', $paramGeneral) ?></h5>
+                        <h5><?= BulletinI18nHelper::label('Moyenne', $currentParamGeneral) ?> & <?= BulletinI18nHelper::label('Rang', $currentParamGeneral) ?></h5>
                         <div class="stat-row">
-                            <span><?= BulletinI18nHelper::label('Moyenne Générale', $paramGeneral) ?> :</span>
+                            <span><?= BulletinI18nHelper::label('Moyenne Générale', $currentParamGeneral) ?> :</span>
                             <span class="highlight-avg"><?= ($moyGen !== null) ? number_format($moyGen, 2) . ' / 20' : 'N/A' ?></span>
                         </div>
                         <div class="stat-row">
-                            <span><?= BulletinI18nHelper::label('Rang', $paramGeneral) ?> :</span>
+                            <span><?= BulletinI18nHelper::label('Rang', $currentParamGeneral) ?> :</span>
                             <strong><?= htmlspecialchars($bRecord['rang'] ?? _('Non défini')) ?></strong>
                         </div>
                         <div class="stat-row">
-                            <span><?= BulletinI18nHelper::label('Statut du bulletin', $paramGeneral) ?> :</span>
+                            <span><?= BulletinI18nHelper::label('Statut du bulletin', $currentParamGeneral) ?> :</span>
                             <span>
                                 <?php
                                 $stKey = ucfirst($bRecord['statut'] ?? 'provisoire');
-                                echo BulletinI18nHelper::label($stKey, $paramGeneral);
+                                echo BulletinI18nHelper::label($stKey, $currentParamGeneral);
                                 ?>
                             </span>
                         </div>
                     </div>
 
                     <div class="summary-card">
-                        <h5><?= BulletinI18nHelper::label('Appréciation Générale', $paramGeneral) ?></h5>
+                        <h5><?= BulletinI18nHelper::label('Appréciation Générale', $currentParamGeneral) ?></h5>
                         <div style="margin-bottom: 6px;">
-                            <span class="lbl"><?= BulletinI18nHelper::label('Appréciation Générale', $paramGeneral) ?> :</span>
+                            <span class="lbl"><?= BulletinI18nHelper::label('Appréciation Générale', $currentParamGeneral) ?> :</span>
                             <strong style="color: #0d6efd; display: block; font-size: 10.5pt; margin-top: 2px;">
-                                <?= BulletinI18nHelper::label($institutionalApprec, $paramGeneral) ?>
+                                <?= BulletinI18nHelper::label($institutionalApprec, $currentParamGeneral) ?>
                             </strong>
                         </div>
                         <div style="border-top: 1px dashed #ccc; pt-1; margin-top: 4px;">
-                            <span class="lbl"><?= BulletinI18nHelper::label('Appréciation du Conseil de Classe', $paramGeneral) ?> :</span>
+                            <span class="lbl"><?= BulletinI18nHelper::label('Appréciation du Conseil de Classe', $currentParamGeneral) ?> :</span>
                             <p style="font-style: italic; font-size: 8.5pt; color: #333; margin-top: 2px;">
                                 <?= htmlspecialchars($bRecord['appreciation_conseil_classe'] ?? _('Aucune appréciation du conseil de classe.')) ?>
                             </p>
@@ -546,10 +586,10 @@ $isFullPage = $isFullPage ?? true;
                 <!-- Signatures -->
                 <div class="signatures-grid">
                     <div class="signature-box">
-                        <div class="signature-title"><?= BulletinI18nHelper::label('Appréciation du Conseil de Classe', $paramGeneral) ?></div>
+                        <div class="signature-title"><?= BulletinI18nHelper::label('Appréciation du Conseil de Classe', $currentParamGeneral) ?></div>
                     </div>
                     <div class="signature-box">
-                        <div class="signature-title"><?= BulletinI18nHelper::label("Le Chef d'établissement", $paramGeneral) ?></div>
+                        <div class="signature-title"><?= BulletinI18nHelper::label("Le Chef d'établissement", $currentParamGeneral) ?></div>
                         <?php if ($dirSettings && !empty($dirSettings->signature)): ?>
                             <div>
                                 <img src="<?= htmlspecialchars($dirSettings->signature) ?>" class="stamp-img" alt="Signature">

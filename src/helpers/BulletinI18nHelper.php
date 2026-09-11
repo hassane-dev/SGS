@@ -235,12 +235,16 @@ class BulletinI18nHelper {
      */
     public static function label(string $msgid, array $paramGeneral): string {
         $nbLangue = (int)($paramGeneral['nb_langue'] ?? 1);
+        $multilingueActif = isset($paramGeneral['multilingue_actif']) ? (int)$paramGeneral['multilingue_actif'] : 1;
         $lang1 = self::normalizeLang($paramGeneral['langue_1'] ?? 'fr_FR');
         $lang2 = self::normalizeLang($paramGeneral['langue_2'] ?? 'en_US');
 
         $t1 = self::translateTo($msgid, $lang1);
 
         if ($nbLangue < 2 || empty($paramGeneral['langue_2']) || $lang1 === $lang2) {
+            if (self::isRtl($lang1)) {
+                return '<span dir="rtl" class="rtl-text">' . htmlspecialchars($t1) . '</span>';
+            }
             return htmlspecialchars($t1);
         }
 
@@ -248,6 +252,8 @@ class BulletinI18nHelper {
 
         if (self::isRtl($lang2)) {
             return htmlspecialchars($t1) . ' / <span dir="rtl" class="rtl-text">' . htmlspecialchars($t2) . '</span>';
+        } elseif (self::isRtl($lang1)) {
+            return '<span dir="rtl" class="rtl-text">' . htmlspecialchars($t1) . '</span> / ' . htmlspecialchars($t2);
         }
 
         return htmlspecialchars($t1) . ' / ' . htmlspecialchars($t2);

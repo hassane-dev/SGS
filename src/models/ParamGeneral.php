@@ -102,7 +102,7 @@ class ParamGeneral {
                 'langue_2' => $data['langue_2'] ?? null,
                 'sequence_annuelle' => $data['sequence_annuelle'],
                 'mode_cycle' => $data['mode_cycle'] ?? 'separe_ceg_lycee',
-                'multilingue_actif' => $data['multilingue_actif'] ?? 0,
+                'multilingue_actif' => $data['multilingue_actif'] ?? ((isset($data['nb_langue']) && (int)$data['nb_langue'] >= 2) ? 1 : 0),
                 'biometrie_actif' => $data['biometrie_actif'] ?? 0,
                 'confidentialite_nationale' => $data['confidentialite_nationale'] ?? 0,
                 'lycee_id' => $lycee_id
@@ -146,7 +146,7 @@ class ParamGeneral {
                 'langue_2' => $data['langue_2'] ?? $existing['langue_2'],
                 'sequence_annuelle' => $data['sequence_annuelle'] ?? $existing['sequence_annuelle'],
                 'mode_cycle' => $data['mode_cycle'] ?? $existing['mode_cycle'],
-                'multilingue_actif' => $data['multilingue_actif'] ?? $existing['multilingue_actif'],
+                'multilingue_actif' => $data['multilingue_actif'] ?? ($existing['multilingue_actif'] ?? ((isset($data['nb_langue']) && (int)$data['nb_langue'] >= 2) ? 1 : 0)),
                 'biometrie_actif' => $data['biometrie_actif'] ?? $existing['biometrie_actif'],
                 'confidentialite_nationale' => $data['confidentialite_nationale'] ?? $existing['confidentialite_nationale']
             ];
@@ -165,7 +165,7 @@ class ParamGeneral {
                 'langue_2' => $data['langue_2'] ?? null,
                 'sequence_annuelle' => $data['sequence_annuelle'] ?? 'Trimestrielle',
                 'mode_cycle' => $data['mode_cycle'] ?? 'separe_ceg_lycee',
-                'multilingue_actif' => $data['multilingue_actif'] ?? 0,
+                'multilingue_actif' => $data['multilingue_actif'] ?? ((isset($data['nb_langue']) && (int)$data['nb_langue'] >= 2) ? 1 : 0),
                 'biometrie_actif' => $data['biometrie_actif'] ?? 0,
                 'confidentialite_nationale' => $data['confidentialite_nationale'] ?? 0
             ];
