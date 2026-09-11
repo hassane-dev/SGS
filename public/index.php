@@ -453,6 +453,10 @@ $router->register('/bulletins/appreciation/save', 'BulletinController', 'saveApp
 $router->register('/bulletins/validation', 'BulletinValidationController', 'index');
 $router->register('/bulletins/validation/summary', 'BulletinValidationController', 'summary');
 $router->register('/bulletins/validation/execute', 'BulletinValidationController', 'execute');
+$router->register('/bulletins/print', 'BulletinPrintController', 'index');
+$router->register('/bulletins/print/summary', 'BulletinPrintController', 'summary');
+$router->register('/bulletins/print/execute', 'BulletinPrintController', 'execute');
+$router->register('/bulletins/student/print', 'BulletinPrintController', 'printSingle');
 $router->register('/appreciation-conseil', 'AppreciationConseilController', 'index');
 $router->register('/appreciation-conseil/save', 'AppreciationConseilController', 'save');
 

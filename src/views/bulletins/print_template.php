@@ -1,0 +1,568 @@
+<?php
+/**
+ * Unified Official Report Card Print Template (Modèle Officiel Bilingue / Monolingue)
+ *
+ * Variables required in scope:
+ * - $bulletinsData: array of bulletin items generated via Bulletin::generateForStudent()
+ * - $lycee: array of ParamLycee / lycee details (nom_lycee, logo, adresse, telephone, etc.)
+ * - $paramGeneral: array of ParamGeneral settings (nb_langue, langue_1, langue_2)
+ */
+
+require_once __DIR__ . '/../../helpers/BulletinI18nHelper.php';
+require_once __DIR__ . '/../../services/EvaluationCalculationService.php';
+require_once __DIR__ . '/../../models/User.php';
+require_once __DIR__ . '/../../models/ParametreUtilisateur.php';
+
+if (empty($bulletinsData)) {
+    $bulletinsData = [];
+}
+
+$paramGeneral = $paramGeneral ?? ['nb_langue' => 1, 'langue_1' => 'fr_FR'];
+$lycee = $lycee ?? [];
+$isBilingual = ((int)($paramGeneral['nb_langue'] ?? 1) === 2 && !empty($paramGeneral['langue_2']));
+$isFullPage = $isFullPage ?? true;
+?>
+<?php if ($isFullPage): ?>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title><?= _('Impression des Bulletins') ?></title>
+<?php endif; ?>
+    <style>
+        /* Base Screen & Page Setup */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 11pt;
+            color: #111;
+            background-color: #f4f6f8;
+            padding: 20px;
+        }
+
+        .no-print-toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            background: #ffffff;
+            padding: 15px 25px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .no-print-toolbar h4 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #2b343b;
+        }
+
+        .btn-print {
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: background 0.2s ease;
+        }
+
+        .btn-print:hover {
+            background-color: #0b5ed7;
+        }
+
+        .btn-close-view {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            font-size: 0.95rem;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        /* Printable Paper Wrapper */
+        .print-container {
+            max-width: 210mm;
+            margin: 0 auto;
+        }
+
+        .bulletin-sheet {
+            background: #ffffff;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 15mm;
+            margin: 0 auto 20px auto;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.08);
+            position: relative;
+            page-break-after: always;
+            break-after: page;
+        }
+
+        .bulletin-sheet:last-child {
+            page-break-after: avoid;
+            break-after: avoid;
+        }
+
+        /* Watermark for Provisional Bulletins */
+        .watermark-provisoire {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 4.5rem;
+            font-weight: 900;
+            color: rgba(220, 53, 69, 0.12);
+            text-transform: uppercase;
+            letter-spacing: 12px;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 1;
+        }
+
+        /* Header Layout */
+        .institutional-header {
+            text-align: center;
+            margin-bottom: 12px;
+            border-bottom: 2px solid #222;
+            padding-bottom: 10px;
+        }
+
+        .school-logo {
+            max-height: 70px;
+            max-width: 180px;
+            object-fit: contain;
+            margin-bottom: 6px;
+        }
+
+        .school-name {
+            font-size: 15pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #000;
+        }
+
+        .school-subdetails {
+            font-size: 9pt;
+            color: #444;
+            margin-top: 2px;
+        }
+
+        .document-title {
+            font-size: 14pt;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-top: 8px;
+            color: #1a252f;
+            letter-spacing: 1.5px;
+        }
+
+        .meta-pills {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            font-size: 9.5pt;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        /* Student Metadata Grid */
+        .student-info-box {
+            width: 100%;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+            background-color: #fafafa;
+        }
+
+        .student-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            row-gap: 5px;
+            column-gap: 15px;
+            font-size: 9.5pt;
+        }
+
+        .student-info-grid div {
+            line-height: 1.3;
+        }
+
+        .lbl {
+            font-weight: bold;
+            color: #222;
+        }
+
+        /* Grades Table */
+        .grades-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9pt;
+            margin-bottom: 12px;
+        }
+
+        .grades-table th, .grades-table td {
+            border: 1px solid #222;
+            padding: 5px 6px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .grades-table th {
+            background-color: #e9ecef;
+            font-weight: bold;
+            color: #000;
+            text-transform: uppercase;
+            font-size: 8.5pt;
+        }
+
+        .grades-table .subject-col {
+            text-align: left;
+            font-weight: bold;
+            width: 25%;
+        }
+
+        .grades-table .apprec-col {
+            text-align: left;
+            width: 28%;
+            font-style: italic;
+            font-size: 8.5pt;
+        }
+
+        .grades-table tfoot td {
+            font-weight: bold;
+            background-color: #f1f3f5;
+        }
+
+        /* Summary Box */
+        .summary-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .summary-card {
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 9.5pt;
+            background: #fafafa;
+        }
+
+        .summary-card h5 {
+            font-size: 10pt;
+            text-transform: uppercase;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 4px;
+            margin-bottom: 6px;
+            color: #111;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .highlight-avg {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+
+        /* Signatures Section */
+        .signatures-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+            font-size: 9.5pt;
+            text-align: center;
+        }
+
+        .signature-box {
+            border: 1px dashed #666;
+            border-radius: 4px;
+            height: 80px;
+            padding: 6px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .signature-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 9pt;
+        }
+
+        .stamp-img {
+            max-height: 50px;
+            max-width: 120px;
+            object-fit: contain;
+            margin: 0 auto;
+        }
+
+        .rtl-text {
+            direction: rtl;
+            unicode-bidi: embed;
+            font-family: 'Amiri', 'Traditional Arabic', serif;
+        }
+
+        /* STRICT PRINT STYLES */
+        @media print {
+            body {
+                background-color: #ffffff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .no-print-toolbar, .pc-sidebar, .pc-header, .pc-container, .no-print {
+                display: none !important;
+            }
+
+            .print-container {
+                max-width: 100% !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .bulletin-sheet {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 10mm !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                min-height: auto !important;
+            }
+
+            @page {
+                size: A4 portrait;
+                margin: 5mm;
+            }
+        }
+    </style>
+<?php if ($isFullPage): ?>
+</head>
+<body>
+
+    <div class="no-print-toolbar">
+        <div>
+            <h4><?= _("Impression des Bulletins Officiels") ?></h4>
+            <span class="text-muted small"><?= sprintf(_("%d bulletin(s) prêt(s) pour l'impression"), count($bulletinsData)) ?></span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <a href="javascript:history.back()" class="btn-close-view"><?= _("Retour") ?></a>
+            <button class="btn-print" onclick="window.print();">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h10z"></path></svg>
+                <?= _("Lancer l'impression / PDF") ?>
+            </button>
+        </div>
+    </div>
+<?php endif; ?>
+
+    <div class="print-container">
+        <?php foreach ($bulletinsData as $bIndex => $bData): ?>
+            <?php
+            $eleve = $bData['eleve'] ?? [];
+            $seq = $bData['sequence'] ?? [];
+            $matieres = $bData['matieres'] ?? [];
+            $evalCols = $bData['evaluation_columns'] ?? [];
+            $bRecord = $bData['bulletin_record'] ?? [];
+            $isProvisoire = !empty($bData['is_provisoire']) || ($bRecord['statut'] ?? '') === 'provisoire';
+            $moyGen = $bData['moyenne_generale'] ?? null;
+            $institutionalApprec = EvaluationCalculationService::getInstitutionalAppreciation($moyGen);
+            $lyceeId = $eleve['lycee_id'] ?? null;
+
+            // Fetch headmaster signature/cachet for target school
+            $dirUser = User::findOneByRoleNameAndLycee('proviseur', $lyceeId) ?: User::findOneByRoleNameAndLycee('directeur', $lyceeId);
+            $dirSettings = $dirUser ? ParametreUtilisateur::findByUserId($dirUser['id_user']) : null;
+            ?>
+            <div class="bulletin-sheet">
+
+                <?php if ($isProvisoire): ?>
+                    <div class="watermark-provisoire">
+                        <?= BulletinI18nHelper::label('BULLETIN PROVISOIRE', $paramGeneral) ?>
+                    </div>
+                <?php endif; ?>
+
+                <!-- Institutional Header -->
+                <div class="institutional-header">
+                    <?php if (!empty($lycee['logo'])): ?>
+                        <div>
+                            <img src="<?= htmlspecialchars($lycee['logo']) ?>" class="school-logo" alt="Logo">
+                        </div>
+                    <?php endif; ?>
+                    <div class="school-name">
+                        <?= htmlspecialchars($lycee['nom_lycee'] ?? $eleve['nom_lycee'] ?? 'ÉTABLISSEMENT SCOLAIRE') ?>
+                    </div>
+                    <?php if (!empty($lycee['adresse']) || !empty($lycee['telephone'])): ?>
+                        <div class="school-subdetails">
+                            <?= htmlspecialchars($lycee['adresse'] ?? '') ?> <?= !empty($lycee['telephone']) ? ' | Tél: ' . htmlspecialchars($lycee['telephone']) : '' ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="document-title">
+                        <?= BulletinI18nHelper::label('BULLETIN SCOLAIRE', $paramGeneral) ?>
+                    </div>
+                    <div class="meta-pills">
+                        <span><?= BulletinI18nHelper::label('Année Académique', $paramGeneral) ?>: <?= htmlspecialchars($eleve['annee_academique'] ?? '') ?></span>
+                        <span>•</span>
+                        <span><?= BulletinI18nHelper::label('Séquence', $paramGeneral) ?>: <?= htmlspecialchars($seq['nom'] ?? '') ?></span>
+                    </div>
+                </div>
+
+                <!-- Student Information Grid -->
+                <div class="student-info-box">
+                    <div class="student-info-grid">
+                        <div>
+                            <span class="lbl"><?= BulletinI18nHelper::label('Nom & Prénom', $paramGeneral) ?> :</span>
+                            <strong><?= htmlspecialchars(($eleve['nom'] ?? '') . ' ' . ($eleve['prenom'] ?? '')) ?></strong>
+                        </div>
+                        <div>
+                            <span class="lbl"><?= BulletinI18nHelper::label('Classe', $paramGeneral) ?> :</span>
+                            <strong><?= htmlspecialchars($eleve['nom_classe'] ?? '') ?></strong>
+                        </div>
+                        <?php if (!empty($eleve['identifiant_public'])): ?>
+                            <div>
+                                <span class="lbl"><?= BulletinI18nHelper::label('Matricule', $paramGeneral) ?> :</span>
+                                <?= htmlspecialchars($eleve['identifiant_public']) ?>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (!empty($eleve['date_naissance'])): ?>
+                            <div>
+                                <span class="lbl"><?= BulletinI18nHelper::label('Date de Naissance', $paramGeneral) ?> :</span>
+                                <?= htmlspecialchars($eleve['date_naissance']) ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Grades Table -->
+                <table class="grades-table">
+                    <thead>
+                        <tr>
+                            <th class="subject-col"><?= BulletinI18nHelper::label('Matières', $paramGeneral) ?></th>
+                            <?php foreach ($evalCols as $col): ?>
+                                <th><?= htmlspecialchars($col['label']) ?></th>
+                            <?php endforeach; ?>
+                            <th><?= BulletinI18nHelper::label('Moyenne / 20', $paramGeneral) ?></th>
+                            <th><?= BulletinI18nHelper::label('Coef', $paramGeneral) ?></th>
+                            <th><?= BulletinI18nHelper::label('Total Points', $paramGeneral) ?></th>
+                            <th class="apprec-col"><?= BulletinI18nHelper::label("Appreciations de l'enseignant", $paramGeneral) ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($matieres as $m): ?>
+                            <tr>
+                                <td class="subject-col"><?= htmlspecialchars($m['nom']) ?></td>
+                                <?php foreach ($evalCols as $col): ?>
+                                    <?php $v = $m['evaluation_values'][$col['key']] ?? null; ?>
+                                    <td><?= ($v !== null) ? number_format((float)$v, 2) : '-' ?></td>
+                                <?php endforeach; ?>
+                                <td><strong><?= number_format((float)$m['note'], 2) ?></strong></td>
+                                <td><?= htmlspecialchars($m['coefficient']) ?></td>
+                                <td><strong><?= number_format((float)$m['total_points'], 2) ?></strong></td>
+                                <td class="apprec-col"><?= htmlspecialchars($m['appreciation'] ?? '') ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td class="subject-col"><?= BulletinI18nHelper::label('Totaux', $paramGeneral) ?></td>
+                            <?php if (!empty($evalCols)): ?>
+                                <td colspan="<?= count($evalCols) ?>"></td>
+                            <?php endif; ?>
+                            <td></td>
+                            <td><?= htmlspecialchars($bData['total_coefficients'] ?? '0') ?></td>
+                            <td><?= number_format((float)($bData['total_points'] ?? 0), 2) ?></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <!-- Summary Box -->
+                <div class="summary-container">
+                    <div class="summary-card">
+                        <h5><?= BulletinI18nHelper::label('Moyenne', $paramGeneral) ?> & <?= BulletinI18nHelper::label('Rang', $paramGeneral) ?></h5>
+                        <div class="stat-row">
+                            <span><?= BulletinI18nHelper::label('Moyenne Générale', $paramGeneral) ?> :</span>
+                            <span class="highlight-avg"><?= ($moyGen !== null) ? number_format($moyGen, 2) . ' / 20' : 'N/A' ?></span>
+                        </div>
+                        <div class="stat-row">
+                            <span><?= BulletinI18nHelper::label('Rang', $paramGeneral) ?> :</span>
+                            <strong><?= htmlspecialchars($bRecord['rang'] ?? _('Non défini')) ?></strong>
+                        </div>
+                        <div class="stat-row">
+                            <span><?= BulletinI18nHelper::label('Statut du bulletin', $paramGeneral) ?> :</span>
+                            <span>
+                                <?php
+                                $stKey = ucfirst($bRecord['statut'] ?? 'provisoire');
+                                echo BulletinI18nHelper::label($stKey, $paramGeneral);
+                                ?>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="summary-card">
+                        <h5><?= BulletinI18nHelper::label('Appréciation Générale', $paramGeneral) ?></h5>
+                        <div style="margin-bottom: 6px;">
+                            <span class="lbl"><?= BulletinI18nHelper::label('Appréciation Générale', $paramGeneral) ?> :</span>
+                            <strong style="color: #0d6efd; display: block; font-size: 10.5pt; margin-top: 2px;">
+                                <?= BulletinI18nHelper::label($institutionalApprec, $paramGeneral) ?>
+                            </strong>
+                        </div>
+                        <div style="border-top: 1px dashed #ccc; pt-1; margin-top: 4px;">
+                            <span class="lbl"><?= BulletinI18nHelper::label('Appréciation du Conseil de Classe', $paramGeneral) ?> :</span>
+                            <p style="font-style: italic; font-size: 8.5pt; color: #333; margin-top: 2px;">
+                                <?= htmlspecialchars($bRecord['appreciation_conseil_classe'] ?? _('Aucune appréciation du conseil de classe.')) ?>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Signatures -->
+                <div class="signatures-grid">
+                    <div class="signature-box">
+                        <div class="signature-title"><?= BulletinI18nHelper::label('Appréciation du Conseil de Classe', $paramGeneral) ?></div>
+                    </div>
+                    <div class="signature-box">
+                        <div class="signature-title"><?= BulletinI18nHelper::label("Le Chef d'établissement", $paramGeneral) ?></div>
+                        <?php if ($dirSettings && !empty($dirSettings->signature)): ?>
+                            <div>
+                                <img src="<?= htmlspecialchars($dirSettings->signature) ?>" class="stamp-img" alt="Signature">
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+            </div>
+        <?php endforeach; ?>
+    </div>
+
+<?php if ($isFullPage): ?>
+</body>
+</html>
+<?php endif; ?>
