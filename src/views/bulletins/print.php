@@ -228,19 +228,26 @@ document.addEventListener('DOMContentLoaded', function() {
             groupCycle.classList.remove('d-none');
             groupNiveau.classList.remove('d-none');
             groupClasse.classList.add('d-none');
-            populateNiveaux();
+            if (selectNiveau.options.length <= 1) {
+                populateNiveaux();
+            }
             scopeIdInput.value = selectNiveau.value;
         } else if (scope === 'classe') {
             groupCycle.classList.remove('d-none');
             groupNiveau.classList.remove('d-none');
             groupClasse.classList.remove('d-none');
-            populateNiveaux();
-            populateClasses();
+            if (selectNiveau.options.length <= 1) {
+                populateNiveaux();
+            }
+            if (selectClasse.options.length <= 1) {
+                populateClasses();
+            }
             scopeIdInput.value = selectClasse.value;
         }
     }
 
     function populateNiveaux() {
+        const currentSelected = selectNiveau.value;
         const cycleId = selectCycle.value;
         selectNiveau.innerHTML = '<option value=""><?= _("-- Sélectionner un niveau --") ?></option>';
 
@@ -255,15 +262,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        let foundSelected = false;
         niveauxMap.forEach((sampleClassId, niv) => {
             const opt = document.createElement('option');
             opt.value = sampleClassId;
             opt.textContent = niv;
+            if (String(sampleClassId) === String(currentSelected)) {
+                opt.selected = true;
+                foundSelected = true;
+            }
             selectNiveau.appendChild(opt);
         });
+
+        if (foundSelected) {
+            selectNiveau.value = currentSelected;
+        }
     }
 
     function populateClasses() {
+        const currentSelected = selectClasse.value;
         const cycleId = selectCycle.value;
         const sampleClassId = selectNiveau.value;
 
@@ -276,28 +293,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const filtered = classesData.filter(c => String(c.cycle_id) === String(cycleId) && c.niveau === sampleClass.niveau);
 
+        let foundSelected = false;
         filtered.forEach(c => {
             const opt = document.createElement('option');
             opt.value = c.id_classe;
             const name = (c.niveau || '') + ' ' + (c.serie || '') + ' ' + (c.numero || '');
             opt.textContent = name.trim();
+            if (String(c.id_classe) === String(currentSelected)) {
+                opt.selected = true;
+                foundSelected = true;
+            }
             selectClasse.appendChild(opt);
         });
+
+        if (foundSelected) {
+            selectClasse.value = currentSelected;
+        }
     }
 
     [radioCycle, radioNiveau, radioClasse].forEach(r => r.addEventListener('change', updateScopeVisibility));
 
     selectCycle.addEventListener('change', function() {
+        selectNiveau.value = '';
+        selectClasse.value = '';
         populateNiveaux();
-        updateScopeVisibility();
-    });
-
-    selectNiveau.addEventListener('change', function() {
         populateClasses();
         updateScopeVisibility();
     });
 
-    selectClasse.addEventListener('change', updateScopeVisibility);
+    selectNiveau.addEventListener('change', function() {
+        selectClasse.value = '';
+        populateClasses();
+        updateScopeVisibility();
+    });
+
+    selectClasse.addEventListener('change', function() {
+        updateScopeVisibility();
+    });
 
     // Summary AJAX Handler
     btnPreview.addEventListener('click', function() {

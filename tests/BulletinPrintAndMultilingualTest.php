@@ -98,7 +98,7 @@ foreach (['view_all_cycles', 'view_all_lycees', 'view', 'manage'] as $act) {
 }
 
 // 1. Create test Lycee
-$stmtL = $db->prepare("INSERT INTO param_lycee (nom_lycee, sigle, tel, logo) VALUES ('Lycée Test Print', 'LTP', '0102030405', '/uploads/logos/test_logo.png')");
+$stmtL = $db->prepare("INSERT INTO param_lycee (nom_lycee, sigle, tel, email, quartier, ruelle, arrondissement, ville, boite_postale, arrete, devise, logo) VALUES ('Lycée Test Print', 'LTP', '0102030405', 'contact@ltp.edu', 'Nkolbisson', 'Rue 12', 'Yaoundé 7', 'Yaoundé', '1234', 'Arrêté N°001/MINESEC/2020', 'Discipline - Travail - Succès', '/uploads/logos/test_logo.png')");
 $stmtL->execute();
 $lyceeId = (int)$db->lastInsertId();
 
@@ -324,6 +324,10 @@ try {
     assertStringContains('KOUAMÉ', $htmlExec, "Student 1 in bulk print");
     assertStringContains('DIOP', $htmlExec, "Student 2 in bulk print");
     assertStringContains('/uploads/logos/test_logo.png', $htmlExec, "Lycee logo rendered");
+    assertStringContains('Discipline - Travail - Succès', $htmlExec, "Lycee motto/devise rendered");
+    assertStringContains('Nkolbisson', $htmlExec, "Lycee quartier rendered");
+    assertStringContains('Arrêté N°001/MINESEC/2020', $htmlExec, "Lycee arrete rendered");
+    assertStringContains('contact@ltp.edu', $htmlExec, "Lycee email rendered");
     assertStringContains('page-break-after: always;', $htmlExec, "A4 page break between students");
 
     echo "OK!\n";
