@@ -130,6 +130,59 @@ class BulletinI18nHelper {
             'en_US' => 'General Assessment',
             'ar'    => 'التقييم العام'
         ],
+        'DISTINCTION / PALMARÈS' => [
+            'fr_FR' => 'DISTINCTION / PALMARÈS',
+            'en_US' => 'HONORS & AWARDS',
+            'ar'    => 'شرفيات وجوائز'
+        ],
+        'Distinction' => [
+            'fr_FR' => 'Distinction',
+            'en_US' => 'Honor / Distinction',
+            'ar'    => 'درجة الشرف'
+        ],
+        "Tableau d'honneur + Félicitations" => [
+            'fr_FR' => "Tableau d'honneur + Félicitations",
+            'en_US' => 'Honor Roll + Congratulations',
+            'ar'    => 'لوحة الشرف + تهنئة'
+        ],
+        "Tableau d'honneur + Encouragements" => [
+            'fr_FR' => "Tableau d'honneur + Encouragements",
+            'en_US' => 'Honor Roll + Encouragements',
+            'ar'    => 'لوحة الشرف + تشجيع'
+        ],
+        "Tableau d'honneur" => [
+            'fr_FR' => "Tableau d'honneur",
+            'en_US' => 'Honor Roll',
+            'ar'    => 'لوحة الشرف'
+        ],
+        'Encouragements' => [
+            'fr_FR' => 'Encouragements',
+            'en_US' => 'Encouragements',
+            'ar'    => 'تشجيع'
+        ],
+        'Félicitations' => [
+            'fr_FR' => 'Félicitations',
+            'en_US' => 'Congratulations',
+            'ar'    => 'تهنئة'
+        ],
+        'Aucune distinction' => [
+            'fr_FR' => 'Aucune distinction',
+            'en_US' => 'No distinction',
+            'ar'    => 'بدون درجة شرف'
+        ],
+        'Français' => ['fr_FR' => 'Français', 'en_US' => 'French', 'ar' => 'الفرنسية'],
+        'Anglais' => ['fr_FR' => 'Anglais', 'en_US' => 'English', 'ar' => 'الإنجليزية'],
+        'Mathématiques' => ['fr_FR' => 'Mathématiques', 'en_US' => 'Mathematics', 'ar' => 'الرياضيات'],
+        'Histoire - Géographie' => ['fr_FR' => 'Histoire - Géographie', 'en_US' => 'History - Geography', 'ar' => 'التاريخ والجغرافيا'],
+        'Physique - Chimie' => ['fr_FR' => 'Physique - Chimie', 'en_US' => 'Physics - Chemistry', 'ar' => 'الفيزياء والكيمياء'],
+        'SVT' => ['fr_FR' => 'SVT (Sciences de la Vie et de la Terre)', 'en_US' => 'Biology & Earth Sciences', 'ar' => 'علوم الحياة والأرض'],
+        'Philosophie' => ['fr_FR' => 'Philosophie', 'en_US' => 'Philosophy', 'ar' => 'الفلسفة'],
+        'EPS' => ['fr_FR' => 'Éducation Physique et Sportive', 'en_US' => 'Physical Education', 'ar' => 'التربية البدنية والرياضية'],
+        'Informatique' => ['fr_FR' => 'Informatique', 'en_US' => 'Computer Science', 'ar' => 'الحاسوب'],
+        'Arabe' => ['fr_FR' => 'Arabe', 'en_US' => 'Arabic', 'ar' => 'العربية'],
+        'Devoir' => ['fr_FR' => 'Devoir', 'en_US' => 'Assignment', 'ar' => 'واجب'],
+        'Composition' => ['fr_FR' => 'Composition', 'en_US' => 'Exam', 'ar' => 'اختبار'],
+        'Interrogation' => ['fr_FR' => 'Interrogation', 'en_US' => 'Quiz', 'ar' => 'استجواب'],
         "Le Chef d'établissement" => [
             'fr_FR' => "Le Chef d'établissement",
             'en_US' => "School Headmaster",

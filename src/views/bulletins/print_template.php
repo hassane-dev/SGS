@@ -563,6 +563,10 @@ $isFullPage = $isFullPage ?? true;
                     </tfoot>
                 </table>
 
+                <?php
+                // Automatic institutional distinction calculation (SSoT)
+                $institutionalDistinction = EvaluationCalculationService::getInstitutionalDistinction($moyGen);
+                ?>
                 <!-- Summary Box -->
                 <div class="summary-container">
                     <div class="summary-card">
@@ -575,31 +579,32 @@ $isFullPage = $isFullPage ?? true;
                             <span><?= BulletinI18nHelper::label('Rang', $currentParamGeneral) ?> :</span>
                             <strong><?= htmlspecialchars($bRecord['rang'] ?? _('Non défini')) ?></strong>
                         </div>
-                        <div class="stat-row">
-                            <span><?= BulletinI18nHelper::label('Statut du bulletin', $currentParamGeneral) ?> :</span>
-                            <span>
-                                <?php
-                                $stKey = ucfirst($bRecord['statut'] ?? 'provisoire');
-                                echo BulletinI18nHelper::label($stKey, $currentParamGeneral);
-                                ?>
-                            </span>
-                        </div>
                     </div>
 
                     <div class="summary-card">
-                        <h5><?= BulletinI18nHelper::label('Appréciation Générale', $currentParamGeneral) ?></h5>
-                        <div style="margin-bottom: 6px;">
-                            <span class="lbl"><?= BulletinI18nHelper::label('Appréciation Générale', $currentParamGeneral) ?> :</span>
-                            <strong style="color: #0d6efd; display: block; font-size: 10.5pt; margin-top: 2px;">
-                                <?= BulletinI18nHelper::label($institutionalApprec, $currentParamGeneral) ?>
+                        <h5><?= BulletinI18nHelper::label('DISTINCTION / PALMARÈS', $currentParamGeneral) ?></h5>
+                        <div style="margin-top: 6px;">
+                            <span class="lbl"><?= BulletinI18nHelper::label('Distinction', $currentParamGeneral) ?> :</span>
+                            <strong style="color: #198754; display: block; font-size: 11pt; margin-top: 4px;">
+                                <?= !empty($institutionalDistinction) ? BulletinI18nHelper::label($institutionalDistinction, $currentParamGeneral) : BulletinI18nHelper::label('Aucune distinction', $currentParamGeneral) ?>
                             </strong>
                         </div>
-                        <div style="border-top: 1px dashed #ccc; pt-1; margin-top: 4px;">
-                            <span class="lbl"><?= BulletinI18nHelper::label('Appréciation du Conseil de Classe', $currentParamGeneral) ?> :</span>
-                            <p style="font-style: italic; font-size: 8.5pt; color: #333; margin-top: 2px;">
-                                <?= htmlspecialchars($bRecord['appreciation_conseil_classe'] ?? _('Aucune appréciation du conseil de classe.')) ?>
-                            </p>
-                        </div>
+                    </div>
+                </div>
+
+                <div class="summary-card mt-3" style="width: 100%;">
+                    <h5><?= BulletinI18nHelper::label('Appréciation Générale', $currentParamGeneral) ?></h5>
+                    <div style="margin-bottom: 6px;">
+                        <span class="lbl"><?= BulletinI18nHelper::label('Appréciation Générale', $currentParamGeneral) ?> :</span>
+                        <strong style="color: #0d6efd; display: inline-block; font-size: 10.5pt; margin-left: 6px;">
+                            <?= BulletinI18nHelper::label($institutionalApprec, $currentParamGeneral) ?>
+                        </strong>
+                    </div>
+                    <div style="border-top: 1px dashed #ccc; padding-top: 6px; margin-top: 6px;">
+                        <span class="lbl"><?= BulletinI18nHelper::label('Appréciation du Conseil de Classe', $currentParamGeneral) ?> :</span>
+                        <p style="font-style: italic; font-size: 9pt; color: #333; margin-top: 4px; margin-bottom: 0;">
+                            <?= htmlspecialchars($bRecord['appreciation_conseil_classe'] ?? _('Aucune appréciation du conseil de classe.')) ?>
+                        </p>
                     </div>
                 </div>
 

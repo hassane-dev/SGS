@@ -35,7 +35,7 @@ $contactParts = array_filter([
     <div class="admin-header-grid">
         <div class="admin-header-col admin-header-left">
             <?php if (!empty($lyceeData['header_primary'])): ?>
-                <?= nl2br(htmlspecialchars($lyceeData['header_primary'])) ?>
+                <?= nl2br(htmlspecialchars($lyceeData['header_primary'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false)) ?>
             <?php else: ?>
                 RÉPUBLIQUE DU TCHAD<br>
                 Unité - Travail - Progrès<br>
@@ -61,9 +61,9 @@ $contactParts = array_filter([
 
         <div class="admin-header-col admin-header-right" dir="auto">
             <?php if (!empty($lyceeData['header_secondary'])): ?>
-                <?= nl2br(htmlspecialchars($lyceeData['header_secondary'])) ?>
+                <?= nl2br(htmlspecialchars($lyceeData['header_secondary'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false)) ?>
             <?php else: ?>
-                <?= htmlspecialchars($lyceeData['nom_lycee'] ?? '') ?>
+                <?= htmlspecialchars($lyceeData['nom_lycee'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false) ?>
             <?php endif; ?>
         </div>
     </div>
