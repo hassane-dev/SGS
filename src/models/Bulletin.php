@@ -77,6 +77,34 @@ class Bulletin {
     }
 
     /**
+     * Generates persistent unique serial number for a bulletin in format YYYYMMDDHHmmssNNNNNN.
+     *
+     * @param array $bulletinRow Database record from `bulletins` table containing `id` and `created_at`
+     * @return string Serial number, e.g. "20260309113657000123"
+     */
+    public static function generateSerialNumber(array $bulletinRow): string {
+        $id = (int)($bulletinRow['id'] ?? 0);
+        $createdAt = $bulletinRow['created_at'] ?? date('Y-m-d H:i:s');
+        $ts = strtotime($createdAt) ?: time();
+        $dateFormatted = date('YmdHis', $ts);
+        $idFormatted = str_pad((string)$id, 6, '0', STR_PAD_LEFT);
+        return $dateFormatted . $idFormatted;
+    }
+
+    /**
+     * Generates signed QR code token payload for a bulletin.
+     */
+    public static function generateQrToken(int $eleve_id, int $lycee_id, int $sequence_id, string $serialNumber): string {
+        $dataToSign = $eleve_id . '-' . $lycee_id . '-' . $sequence_id . '-' . $serialNumber;
+        $secret = defined('CARD_SIGNATURE_SECRET') ? CARD_SIGNATURE_SECRET : 'SECURE_SCHOOL_APP_2024';
+        $signature = hash_hmac('sha256', $dataToSign, $secret);
+        $secureToken = $dataToSign . '|' . $signature;
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+        return "{$scheme}://{$host}/verify-bulletin?data=" . urlencode($secureToken);
+    }
+
+    /**
      * Generates report card data for a student.
      * - Sequence 'ouverte': dynamic computation from evaluations (provisional).
      * - Sequence 'fermee': reading strictly from official snapshot tables bulletins + bulletin_details.
@@ -118,10 +146,32 @@ class Bulletin {
             $lycee_id = (int)$eleve_info['lycee_id'];
             $classe_id = (int)$eleve_info['classe_id'];
 
-            // Fetch existing bulletin record if any
+            // Fetch or create persistent bulletin record
             $stmt_bulletin = $db->prepare("SELECT * FROM bulletins WHERE eleve_id = :eleve_id AND sequence_id = :sequence_id");
             $stmt_bulletin->execute(['eleve_id' => $eleve_id, 'sequence_id' => $sequence_id]);
             $bulletin_record = $stmt_bulletin->fetch(PDO::FETCH_ASSOC);
+
+            if (!$bulletin_record) {
+                // Ensure a persistent DB record exists so ID and created_at are permanently fixed
+                $annee_academique_id = (int)($sequence_info['annee_academique_id'] ?? 0);
+                $stmtIns = $db->prepare("
+                    INSERT INTO bulletins (eleve_id, sequence_id, annee_academique_id, lycee_id, moyenne_generale, statut)
+                    VALUES (:eleve_id, :sequence_id, :annee_id, :lycee_id, 0.00, 'provisoire')
+                ");
+                $stmtIns->execute([
+                    'eleve_id' => $eleve_id,
+                    'sequence_id' => $sequence_id,
+                    'annee_id' => $annee_academique_id,
+                    'lycee_id' => $lycee_id
+                ]);
+                $bulletin_id = (int)$db->lastInsertId();
+
+                $stmt_bulletin->execute(['eleve_id' => $eleve_id, 'sequence_id' => $sequence_id]);
+                $bulletin_record = $stmt_bulletin->fetch(PDO::FETCH_ASSOC);
+            }
+
+            $numero_serie = self::generateSerialNumber($bulletin_record);
+            $qr_code_url = self::generateQrToken((int)$eleve_id, (int)$lycee_id, (int)$sequence_id, $numero_serie);
 
             $isClosed = ($sequence_info['statut'] === 'fermee');
 
@@ -211,7 +261,9 @@ class Bulletin {
                     'total_coefficients' => (float)($bulletin_record['total_coefficients'] ?? $totalCoefficients),
                     'moyenne_generale' => (float)$bulletin_record['moyenne_generale'],
                     'bulletin_record' => $bulletin_record,
-                    'is_provisoire' => false
+                    'is_provisoire' => false,
+                    'numero_serie' => $numero_serie,
+                    'qr_code_url' => $qr_code_url
                 ];
 
             } else {
@@ -268,7 +320,9 @@ class Bulletin {
                         'rang' => null,
                         'appreciation' => null
                     ],
-                    'is_provisoire' => true
+                    'is_provisoire' => true,
+                    'numero_serie' => $numero_serie,
+                    'qr_code_url' => $qr_code_url
                 ];
             }
 

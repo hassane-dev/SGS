@@ -372,6 +372,47 @@ $isFullPage = $isFullPage ?? true;
             margin: 0 auto;
         }
 
+        /* Footer Section */
+        .bulletin-footer {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 8pt;
+            color: #333;
+        }
+
+        .bulletin-footer-left {
+            text-align: left;
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .bulletin-footer-center {
+            text-align: center;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .bulletin-footer-right {
+            text-align: right;
+            flex: 1;
+            font-size: 8pt;
+            font-weight: bold;
+            color: #555;
+            letter-spacing: 0.5px;
+        }
+
+        .qr-code-footer-container {
+            width: 75px;
+            height: 75px;
+            display: inline-block;
+        }
+
         .rtl-text {
             direction: rtl;
             unicode-bidi: embed;
@@ -439,6 +480,8 @@ $isFullPage = $isFullPage ?? true;
             }
         }
     </style>
+    <script src="/assets/libs/qrcode/qrcode.min.js"></script>
+    <script src="/assets/js/sgs-qrcode.js"></script>
 <?php if ($isFullPage): ?>
 </head>
 <body>
@@ -628,6 +671,45 @@ $isFullPage = $isFullPage ?? true;
                         <?php endif; ?>
                     </div>
                 </div>
+
+                <!-- Footer Section (Serial Number, QR Code, Authenticity Stamp) -->
+                <?php
+                $serialNum = $bData['numero_serie'] ?? 'N/A';
+                $qrUrl = $bData['qr_code_url'] ?? '';
+                $logoUrl = $currentLycee['logo'] ?? '/assets/img/logo-placeholder.png';
+                $qrElemId = 'bulletin-qr-' . $bIndex;
+                ?>
+                <div class="bulletin-footer">
+                    <div class="bulletin-footer-left">
+                        <span><?= BulletinI18nHelper::label('N° série', $currentParamGeneral) ?> : <strong class="ltr-value" dir="ltr"><?= htmlspecialchars($serialNum) ?></strong></span>
+                    </div>
+                    <div class="bulletin-footer-center">
+                        <div id="<?= $qrElemId ?>" class="qr-code-footer-container"></div>
+                    </div>
+                    <div class="bulletin-footer-right">
+                        <span><?= BulletinI18nHelper::label('Document officiel • SGS', $currentParamGeneral) ?></span>
+                    </div>
+                </div>
+
+                <script>
+                    (function() {
+                        function renderQr() {
+                            if (typeof SGSQrCode !== 'undefined') {
+                                SGSQrCode.render("<?= $qrElemId ?>", {
+                                    text: "<?= addslashes($qrUrl) ?>",
+                                    width: 75,
+                                    height: 75,
+                                    logoUrl: "<?= addslashes($logoUrl) ?>"
+                                });
+                            }
+                        }
+                        if (document.readyState === 'loading') {
+                            document.addEventListener('DOMContentLoaded', renderQr);
+                        } else {
+                            renderQr();
+                        }
+                    })();
+                </script>
 
             </div>
         <?php endforeach; ?>

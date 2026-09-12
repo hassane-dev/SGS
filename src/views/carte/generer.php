@@ -6,6 +6,7 @@
     <title><?= _("Cartes d'Identité Scolaire") ?></title>
     <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
     <script src="/assets/libs/qrcode/qrcode.min.js"></script>
+    <script src="/assets/js/sgs-qrcode.js"></script>
     <style>
         @page {
             size: 85.6mm 53.98mm;
@@ -231,11 +232,11 @@
                 if (elData.type === 'qr_code') {
                     currentQr++;
                     const qrId = `qrcode-${index}-${currentQr}`;
-                    new QRCode(document.getElementById(qrId), {
+                    SGSQrCode.render(qrId, {
                         text: secureToken,
                         width: elData.width * scale,
                         height: elData.height * scale,
-                        correctLevel: QRCode.CorrectLevel.H
+                        logoUrl: modelData.logo_lycee || null
                     });
                 }
             });
