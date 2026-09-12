@@ -378,6 +378,12 @@ $isFullPage = $isFullPage ?? true;
             font-family: 'Amiri', 'Traditional Arabic', serif;
         }
 
+        .ltr-value {
+            direction: ltr;
+            unicode-bidi: isolate;
+            display: inline-block;
+        }
+
         .bulletin-sheet.rtl-doc {
             direction: rtl;
             text-align: right;
@@ -407,7 +413,7 @@ $isFullPage = $isFullPage ?? true;
                 print-color-adjust: exact !important;
             }
 
-            .no-print-toolbar, .pc-sidebar, .pc-header, .pc-container, .no-print, header, footer, nav {
+            .no-print-toolbar, .pc-sidebar, .pc-header, .pc-container, .no-print, .d-print-none, header, footer, nav, button, .btn {
                 display: none !important;
             }
 
@@ -499,22 +505,22 @@ $isFullPage = $isFullPage ?? true;
                     <div class="student-info-grid">
                         <div>
                             <span class="lbl"><?= BulletinI18nHelper::label('Nom & Prénom', $currentParamGeneral) ?> :</span>
-                            <strong><?= htmlspecialchars(($eleve['nom'] ?? '') . ' ' . ($eleve['prenom'] ?? '')) ?></strong>
+                            <strong class="ltr-value" dir="ltr"><?= htmlspecialchars(($eleve['nom'] ?? '') . ' ' . ($eleve['prenom'] ?? '')) ?></strong>
                         </div>
                         <div>
                             <span class="lbl"><?= BulletinI18nHelper::label('Classe', $currentParamGeneral) ?> :</span>
-                            <strong><?= htmlspecialchars($eleve['nom_classe'] ?? '') ?></strong>
+                            <strong class="ltr-value" dir="ltr"><?= htmlspecialchars($eleve['nom_classe'] ?? '') ?></strong>
                         </div>
                         <?php if (!empty($eleve['identifiant_public'])): ?>
                             <div>
                                 <span class="lbl"><?= BulletinI18nHelper::label('Matricule', $currentParamGeneral) ?> :</span>
-                                <strong><?= htmlspecialchars($eleve['identifiant_public']) ?></strong>
+                                <strong class="ltr-value" dir="ltr"><?= htmlspecialchars($eleve['identifiant_public']) ?></strong>
                             </div>
                         <?php endif; ?>
                         <?php if (!empty($eleve['date_naissance'])): ?>
                             <div>
                                 <span class="lbl"><?= BulletinI18nHelper::label('Date de Naissance', $currentParamGeneral) ?> :</span>
-                                <?= htmlspecialchars($eleve['date_naissance']) ?>
+                                <span class="ltr-value" dir="ltr"><?= htmlspecialchars($eleve['date_naissance']) ?></span>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -530,7 +536,7 @@ $isFullPage = $isFullPage ?? true;
                             <?php endforeach; ?>
                             <th><?= BulletinI18nHelper::label('Moyenne / 20', $currentParamGeneral) ?></th>
                             <th><?= BulletinI18nHelper::label('Coef', $currentParamGeneral) ?></th>
-                            <th><?= BulletinI18nHelper::label('Total Points', $currentParamGeneral) ?></th>
+                            <th><?= BulletinI18nHelper::label('Moyenne coefficient', $currentParamGeneral) ?></th>
                             <th class="apprec-col"><?= BulletinI18nHelper::label("Appreciations de l'enseignant", $currentParamGeneral) ?></th>
                         </tr>
                     </thead>
@@ -540,11 +546,11 @@ $isFullPage = $isFullPage ?? true;
                                 <td class="subject-col"><?= htmlspecialchars($m['nom']) ?></td>
                                 <?php foreach ($evalCols as $col): ?>
                                     <?php $v = $m['evaluation_values'][$col['key']] ?? null; ?>
-                                    <td><?= ($v !== null) ? number_format((float)$v, 2) : '-' ?></td>
+                                    <td><span class="ltr-value" dir="ltr"><?= ($v !== null) ? number_format((float)$v, 2) : '-' ?></span></td>
                                 <?php endforeach; ?>
-                                <td><strong><?= number_format((float)$m['note'], 2) ?></strong></td>
-                                <td><?= htmlspecialchars($m['coefficient']) ?></td>
-                                <td><strong><?= number_format((float)$m['total_points'], 2) ?></strong></td>
+                                <td><strong class="ltr-value" dir="ltr"><?= number_format((float)$m['note'], 2) ?></strong></td>
+                                <td><span class="ltr-value" dir="ltr"><?= htmlspecialchars($m['coefficient']) ?></span></td>
+                                <td><strong class="ltr-value" dir="ltr"><?= number_format((float)$m['total_points'], 2) ?></strong></td>
                                 <td class="apprec-col"><?= htmlspecialchars($m['appreciation'] ?? '') ?></td>
                             </tr>
                         <?php endforeach; ?>
@@ -556,8 +562,8 @@ $isFullPage = $isFullPage ?? true;
                                 <td colspan="<?= count($evalCols) ?>"></td>
                             <?php endif; ?>
                             <td></td>
-                            <td><?= htmlspecialchars($bData['total_coefficients'] ?? '0') ?></td>
-                            <td><?= number_format((float)($bData['total_points'] ?? 0), 2) ?></td>
+                            <td><span class="ltr-value" dir="ltr"><?= htmlspecialchars($bData['total_coefficients'] ?? '0') ?></span></td>
+                            <td><span class="ltr-value" dir="ltr"><?= number_format((float)($bData['total_points'] ?? 0), 2) ?></span></td>
                             <td></td>
                         </tr>
                     </tfoot>
@@ -611,7 +617,7 @@ $isFullPage = $isFullPage ?? true;
                 <!-- Signatures -->
                 <div class="signatures-grid">
                     <div class="signature-box">
-                        <div class="signature-title"><?= BulletinI18nHelper::label('Appréciation du Conseil de Classe', $currentParamGeneral) ?></div>
+                        <div class="signature-title"><?= BulletinI18nHelper::label('Le Professeur Principal', $currentParamGeneral) ?></div>
                     </div>
                     <div class="signature-box">
                         <div class="signature-title"><?= BulletinI18nHelper::label("Le Chef d'établissement", $currentParamGeneral) ?></div>

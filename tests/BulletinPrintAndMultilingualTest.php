@@ -222,7 +222,10 @@ try {
     assertEquals('BULLETIN SCOLAIRE', $lbl1, "Monolingual FR label");
 
     $lbl2 = BulletinI18nHelper::label('BULLETIN SCOLAIRE', $pgBilingualEn);
-    assertEquals('BULLETIN SCOLAIRE / SCHOOL REPORT', $lbl2, "Bilingual FR/EN label");
+    assertStringContains('BULLETIN SCOLAIRE', $lbl2, "FR part in FR/EN");
+    assertStringContains('SCHOOL REPORT', $lbl2, "EN part in FR/EN");
+    assertStringContains('class="label-l1"', $lbl2, "L1 wrapper class in FR/EN");
+    assertStringContains('class="label-l2"', $lbl2, "L2 wrapper class in FR/EN");
 
     $lbl3 = BulletinI18nHelper::label('BULLETIN SCOLAIRE', $pgBilingualAr);
     assertStringContains('BULLETIN SCOLAIRE', $lbl3, "FR part in FR/AR");
@@ -234,6 +237,43 @@ try {
     assertEquals("Tableau d'honneur + Encouragements", EvaluationCalculationService::getInstitutionalDistinction(14.5), "Distinction >= 14");
     assertEquals("Tableau d'honneur", EvaluationCalculationService::getInstitutionalDistinction(12.5), "Distinction >= 12");
     assertEquals("", EvaluationCalculationService::getInstitutionalDistinction(10.0), "Distinction < 12");
+
+    // EXPLICIT BIDI MATRICULE ISOLATION & XSS SAFETY TEST (Independent mock data)
+    $bData3 = [
+        'eleve' => [
+            'id_eleve' => 999,
+            'nom' => 'BIDI',
+            'prenom' => 'Test',
+            'identifiant_public' => '10092026-0003E',
+            'nom_classe' => '6e A 1',
+            'annee_academique' => '2024-2025',
+            'lycee_id' => $lyceeId
+        ],
+        'sequence' => ['nom' => 'Séquence 1 Test'],
+        'matieres' => [],
+        'evaluation_columns' => [],
+        'bulletin_record' => ['statut' => 'valide', 'rang' => '1er'],
+        'moyenne_generale' => 18.00,
+        'total_points' => 180.00,
+        'total_coefficients' => 10.00
+    ];
+    $paramGeneralAr = ['nb_langue' => 2, 'langue_1' => 'fr_FR', 'langue_2' => 'ar'];
+
+    resetBuffers();
+    $bulletinsData = [$bData3];
+    $paramGeneral = $paramGeneralAr;
+    $isFullPage = false;
+    ob_start();
+    include __DIR__ . '/../src/views/bulletins/print_template.php';
+    $htmlBidi = ob_get_clean();
+
+    assertStringContains('<strong class="ltr-value" dir="ltr">10092026-0003E</strong>', $htmlBidi, "Strict LTR isolation wrapper for 10092026-0003E");
+    assertStringContains('الرقم التسلسلي', $htmlBidi, "Arabic matricule label in print output");
+
+    // XSS SAFETY VERIFICATION
+    $xssHeader = "<script>alert('xss')</script>";
+    $decodedEscaped = htmlspecialchars(html_entity_decode($xssHeader, ENT_QUOTES | ENT_HTML5, 'UTF-8'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false);
+    assertEquals("&lt;script&gt;alert(&#039;xss&#039;)&lt;/script&gt;", $decodedEscaped, "XSS payload correctly neutralized");
 
     echo "OK!\n";
 
@@ -326,7 +366,8 @@ try {
     } catch (Throwable $e) {}
     $htmlExec = ob_get_clean();
 
-    assertStringContains('BULLETIN SCOLAIRE / SCHOOL REPORT', $htmlExec, "Bilingual title in print template");
+    assertStringContains('BULLETIN SCOLAIRE', $htmlExec, "Title L1 in print template");
+    assertStringContains('SCHOOL REPORT', $htmlExec, "Title L2 in print template");
     assertStringContains('KOUAMÉ', $htmlExec, "Student 1 in bulk print");
     assertStringContains('DIOP', $htmlExec, "Student 2 in bulk print");
     assertStringContains('/uploads/logos/test_logo.png', $htmlExec, "Lycee logo rendered");
@@ -337,6 +378,11 @@ try {
     assertStringContains('DISTINCTION / PALMARÈS', $htmlExec, "Distinction section header in printed bulletin");
     assertStringContains("Tableau d&#039;honneur + Encouragements", $htmlExec, "Calculated distinction rendered");
     assertTrue(strpos($htmlExec, '&amp;#039;') === false, "No double escaping &amp;#039; in printed template");
+
+    // COLUMN HEADER VERIFICATION: 'Moyenne coefficient' present and 'Total Points' / 'Total points' absent in headers
+    assertStringContains('Moyenne coefficient', $htmlExec, "Column header 'Moyenne coefficient' present in L1/L2 output");
+    assertTrue(strpos($htmlExec, '<th>Total Points</th>') === false, "Header 'Total Points' absent from table header");
+    assertTrue(strpos($htmlExec, '<th>Total points</th>') === false, "Header 'Total points' absent from table header");
     assertStringContains('page-break-after: always;', $htmlExec, "A4 page break between students");
 
     echo "OK!\n";
