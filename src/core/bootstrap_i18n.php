@@ -10,7 +10,7 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 // Determine if we are in the setup process to avoid database calls
-$uri = strtok($_SERVER['REQUEST_URI'], '?');
+$uri = strtok($_SERVER['REQUEST_URI'] ?? '', '?');
 $is_setup_route = (strpos($uri, '/setup') === 0);
 
 // Fetch school-specific language settings only if not in setup and user is logged in
@@ -79,7 +79,7 @@ if (isset($_GET['lang'])) {
         }
     }
     // Redirect to the same page without the lang parameter to have a clean URL
-    $redirect_url = strtok($_SERVER['REQUEST_URI'], '?');
+    $redirect_url = strtok($_SERVER['REQUEST_URI'] ?? '', '?');
     header("Location: " . $redirect_url);
     exit();
 }

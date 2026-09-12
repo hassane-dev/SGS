@@ -212,7 +212,7 @@ $_SESSION['role_name'] = 'super_admin_createur';
 
 
 try {
-    echo "[TEST 1/5] BulletinI18nHelper Monolingual, Bilingual FR/EN, & FR/AR RTL... ";
+    echo "[TEST 1/5] BulletinI18nHelper Monolingual, Bilingual FR/EN, & FR/AR RTL & Distinction... ";
 
     $pgMonolingual = ['nb_langue' => 1, 'langue_1' => 'fr_FR'];
     $pgBilingualEn = ['nb_langue' => 2, 'langue_1' => 'fr_FR', 'langue_2' => 'en_US'];
@@ -228,6 +228,12 @@ try {
     assertStringContains('BULLETIN SCOLAIRE', $lbl3, "FR part in FR/AR");
     assertStringContains('dir="rtl"', $lbl3, "RTL attribute in FR/AR");
     assertStringContains('بطاقة تقرير مدرسي', $lbl3, "Arabic label in FR/AR");
+
+    // SSoT Distinction Calculation Test
+    assertEquals("Tableau d'honneur + Félicitations", EvaluationCalculationService::getInstitutionalDistinction(16.5), "Distinction >= 16");
+    assertEquals("Tableau d'honneur + Encouragements", EvaluationCalculationService::getInstitutionalDistinction(14.5), "Distinction >= 14");
+    assertEquals("Tableau d'honneur", EvaluationCalculationService::getInstitutionalDistinction(12.5), "Distinction >= 12");
+    assertEquals("", EvaluationCalculationService::getInstitutionalDistinction(10.0), "Distinction < 12");
 
     echo "OK!\n";
 
@@ -328,6 +334,9 @@ try {
     assertStringContains('Nkolbisson', $htmlExec, "Lycee quartier rendered");
     assertStringContains('Arrêté N°001/MINESEC/2020', $htmlExec, "Lycee arrete rendered");
     assertStringContains('contact@ltp.edu', $htmlExec, "Lycee email rendered");
+    assertStringContains('DISTINCTION / PALMARÈS', $htmlExec, "Distinction section header in printed bulletin");
+    assertStringContains("Tableau d&#039;honneur + Encouragements", $htmlExec, "Calculated distinction rendered");
+    assertTrue(strpos($htmlExec, '&amp;#039;') === false, "No double escaping &amp;#039; in printed template");
     assertStringContains('page-break-after: always;', $htmlExec, "A4 page break between students");
 
     echo "OK!\n";

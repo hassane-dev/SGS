@@ -14,6 +14,31 @@ require_once __DIR__ . '/../config/database.php';
 class EvaluationCalculationService {
 
     /**
+     * Génère la distinction / palmarès institutionnel fondé sur la moyenne générale (/20).
+     * Single Source of Truth (SSoT) pour les distinctions d'établissement.
+     *
+     * Seuils institutionnels standard :
+     * - Moyenne >= 16.0 : Tableau d'honneur + Félicitations
+     * - Moyenne >= 14.0 : Tableau d'honneur + Encouragements
+     * - Moyenne >= 12.0 : Tableau d'honneur
+     * - Moyenne < 12.0 ou non calculable : Aucune distinction
+     */
+    public static function getInstitutionalDistinction(?float $average): string {
+        if ($average === null) {
+            return '';
+        }
+        if ($average >= 16.0) {
+            return "Tableau d'honneur + Félicitations";
+        } elseif ($average >= 14.0) {
+            return "Tableau d'honneur + Encouragements";
+        } elseif ($average >= 12.0) {
+            return "Tableau d'honneur";
+        } else {
+            return '';
+        }
+    }
+
+    /**
      * Génère l'appréciation institutionnelle fondée sur la moyenne de la matière (/20).
      */
     public static function getInstitutionalAppreciation(?float $average): string {
