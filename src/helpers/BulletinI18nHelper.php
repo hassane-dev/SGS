@@ -40,6 +40,16 @@ class BulletinI18nHelper {
             'en_US' => 'Sequence',
             'ar'    => 'الفصل / الدورة'
         ],
+        'N° série' => [
+            'fr_FR' => 'N° série',
+            'en_US' => 'Serial No.',
+            'ar'    => 'الرقم التسلسلي'
+        ],
+        'Document officiel • SGS' => [
+            'fr_FR' => 'Document officiel • SGS',
+            'en_US' => 'Official Document • SGS',
+            'ar'    => 'وثيقة رسمية • SGS'
+        ],
         'Matricule' => [
             'fr_FR' => 'Matricule',
             'en_US' => 'Student ID',
