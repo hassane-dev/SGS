@@ -35,7 +35,7 @@ $contactParts = array_filter([
     <div class="admin-header-grid">
         <div class="admin-header-col admin-header-left">
             <?php if (!empty($lyceeData['header_primary'])): ?>
-                <?= nl2br(htmlspecialchars($lyceeData['header_primary'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false)) ?>
+                <?= nl2br(htmlspecialchars(html_entity_decode((string)$lyceeData['header_primary'], ENT_QUOTES | ENT_HTML5, 'UTF-8'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false)) ?>
             <?php else: ?>
                 RÉPUBLIQUE DU TCHAD<br>
                 Unité - Travail - Progrès<br>
@@ -49,21 +49,21 @@ $contactParts = array_filter([
                 <img src="<?= htmlspecialchars($logoUrl) ?>" class="admin-school-logo" alt="Logo Lycée">
             <?php endif; ?>
             <div class="admin-school-name">
-                <?= htmlspecialchars($lyceeData['nom_lycee'] ?? 'ÉTABLISSEMENT SCOLAIRE') ?>
+                <?= htmlspecialchars(html_entity_decode((string)($lyceeData['nom_lycee'] ?? 'ÉTABLISSEMENT SCOLAIRE'), ENT_QUOTES | ENT_HTML5, 'UTF-8'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false) ?>
                 <?php if (!empty($lyceeData['sigle'])): ?>
-                    (<?= htmlspecialchars($lyceeData['sigle']) ?>)
+                    (<?= htmlspecialchars(html_entity_decode((string)$lyceeData['sigle'], ENT_QUOTES | ENT_HTML5, 'UTF-8'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false) ?>)
                 <?php endif; ?>
             </div>
             <?php if (!empty($lyceeData['devise'])): ?>
-                <div class="admin-school-devise">« <?= htmlspecialchars($lyceeData['devise']) ?> »</div>
+                <div class="admin-school-devise">« <?= htmlspecialchars(html_entity_decode((string)$lyceeData['devise'], ENT_QUOTES | ENT_HTML5, 'UTF-8'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false) ?> »</div>
             <?php endif; ?>
         </div>
 
         <div class="admin-header-col admin-header-right" dir="auto">
             <?php if (!empty($lyceeData['header_secondary'])): ?>
-                <?= nl2br(htmlspecialchars($lyceeData['header_secondary'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false)) ?>
+                <?= nl2br(htmlspecialchars(html_entity_decode((string)$lyceeData['header_secondary'], ENT_QUOTES | ENT_HTML5, 'UTF-8'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false)) ?>
             <?php else: ?>
-                <?= htmlspecialchars($lyceeData['nom_lycee'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false) ?>
+                <?= htmlspecialchars(html_entity_decode((string)($lyceeData['nom_lycee'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false) ?>
             <?php endif; ?>
         </div>
     </div>
@@ -73,16 +73,16 @@ $contactParts = array_filter([
             <?php if (!empty($addressParts) || !empty($contactParts)): ?>
                 <div>
                     <?php if (!empty($addressParts)): ?>
-                        <span><?= htmlspecialchars(implode(' - ', $addressParts)) ?></span>
+                        <span><?= htmlspecialchars(html_entity_decode(implode(' - ', $addressParts), ENT_QUOTES | ENT_HTML5, 'UTF-8'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false) ?></span>
                     <?php endif; ?>
                     <?php if (!empty($contactParts)): ?>
                         <?php if (!empty($addressParts)): ?> | <?php endif; ?>
-                        <span><?= htmlspecialchars(implode(' | ', $contactParts)) ?></span>
+                        <span><?= htmlspecialchars(html_entity_decode(implode(' | ', $contactParts), ENT_QUOTES | ENT_HTML5, 'UTF-8'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false) ?></span>
                     <?php endif; ?>
                 </div>
             <?php endif; ?>
             <?php if (!empty($lyceeData['arrete'])): ?>
-                <div class="admin-header-arrete"><?= htmlspecialchars($lyceeData['arrete']) ?></div>
+                <div class="admin-header-arrete"><?= htmlspecialchars(html_entity_decode((string)$lyceeData['arrete'], ENT_QUOTES | ENT_HTML5, 'UTF-8'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false) ?></div>
             <?php endif; ?>
         </div>
     <?php endif; ?>

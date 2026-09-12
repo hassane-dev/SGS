@@ -90,6 +90,11 @@ class BulletinI18nHelper {
             'en_US' => 'Coefficient',
             'ar'    => 'المعامل'
         ],
+        'Moyenne coefficient' => [
+            'fr_FR' => 'Moyenne coefficient',
+            'en_US' => 'Weighted Average',
+            'ar'    => 'المعدل الموزون'
+        ],
         'Total Points' => [
             'fr_FR' => 'Total Points',
             'en_US' => 'Total Points',
@@ -183,6 +188,11 @@ class BulletinI18nHelper {
         'Devoir' => ['fr_FR' => 'Devoir', 'en_US' => 'Assignment', 'ar' => 'واجب'],
         'Composition' => ['fr_FR' => 'Composition', 'en_US' => 'Exam', 'ar' => 'اختبار'],
         'Interrogation' => ['fr_FR' => 'Interrogation', 'en_US' => 'Quiz', 'ar' => 'استجواب'],
+        'Le Professeur Principal' => [
+            'fr_FR' => 'Le Professeur Principal',
+            'en_US' => 'Head Teacher / Homeroom Teacher',
+            'ar'    => 'الأستاذ الرئيسي'
+        ],
         "Le Chef d'établissement" => [
             'fr_FR' => "Le Chef d'établissement",
             'en_US' => "School Headmaster",
@@ -304,11 +314,11 @@ class BulletinI18nHelper {
         $t2 = self::translateTo($msgid, $lang2);
 
         if (self::isRtl($lang2)) {
-            return htmlspecialchars($t1) . ' / <span dir="rtl" class="rtl-text">' . htmlspecialchars($t2) . '</span>';
+            return '<span class="label-l1" dir="ltr">' . htmlspecialchars($t1) . '</span> <span class="bidi-separator" dir="ltr">/</span> <span class="label-l2 rtl-text" dir="rtl">' . htmlspecialchars($t2) . '</span>';
         } elseif (self::isRtl($lang1)) {
-            return '<span dir="rtl" class="rtl-text">' . htmlspecialchars($t1) . '</span> / ' . htmlspecialchars($t2);
+            return '<span class="label-l1 rtl-text" dir="rtl">' . htmlspecialchars($t1) . '</span> <span class="bidi-separator" dir="ltr">/</span> <span class="label-l2" dir="ltr">' . htmlspecialchars($t2) . '</span>';
         }
 
-        return htmlspecialchars($t1) . ' / ' . htmlspecialchars($t2);
+        return '<span class="label-l1" dir="ltr">' . htmlspecialchars($t1) . '</span> <span class="bidi-separator" dir="ltr">/</span> <span class="label-l2" dir="ltr">' . htmlspecialchars($t2) . '</span>';
     }
 }
