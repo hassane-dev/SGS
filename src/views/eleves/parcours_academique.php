@@ -312,7 +312,7 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                     <div class="card-body">
                         <h6 class="card-title text-info fw-bold"><i class="ph-duotone ph-trend-up me-2"></i><?= _('Plus Forte Progression') ?></h6>
                         <?php if (empty($performanceMetrics['top_progressions'])): ?>
-                            <p class="text-muted fs-7 mb-0"><?= _('S'évalue sur au moins 2 années.') ?></p>
+                            <p class="text-muted fs-7 mb-0"><?= _("S'évalue sur au moins 2 années.") ?></p>
                         <?php else:
                             $bestProg = $performanceMetrics['top_progressions'][0];
                         ?>
@@ -334,7 +334,7 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                     <div class="card-body">
                         <h6 class="card-title text-warning fw-bold"><i class="ph-duotone ph-trend-down me-2"></i><?= _('Plus Forte Régression') ?></h6>
                         <?php if (empty($performanceMetrics['top_regressions'])): ?>
-                            <p class="text-muted fs-7 mb-0"><?= _('S'évalue sur au moins 2 années.') ?></p>
+                            <p class="text-muted fs-7 mb-0"><?= _("S'évalue sur au moins 2 années.") ?></p>
                         <?php else:
                             $worstProg = $performanceMetrics['top_regressions'][0];
                         ?>
