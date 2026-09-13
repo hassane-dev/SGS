@@ -482,5 +482,418 @@ class AcademicAnalysisService {
         $stmt->execute(['eleve_id' => $eleveId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    /**
+     * Récupère toutes les données séquentielles pour les graphiques (officiels + ouverts/provisoires).
+     * Trie chronologiquement par année et date de début de séquence.
+     */
+    public static function getSequentialSeriesData(int $eleveId): array {
+        $db = Database::getInstance();
+
+        $sql = "
+            SELECT
+                b.id AS bulletin_id,
+                b.sequence_id,
+                b.annee_academique_id,
+                b.moyenne_generale,
+                b.moyenne_classe,
+                b.rang_int,
+                b.rang,
+                b.effectif_classe,
+                b.statut AS bulletin_statut,
+                s.nom AS sequence_nom,
+                s.statut AS sequence_statut,
+                s.date_debut AS sequence_date_debut,
+                aa.libelle AS annee_libelle,
+                aa.date_debut AS annee_date_debut
+            FROM bulletins b
+            JOIN sequences s ON b.sequence_id = s.id
+            JOIN annees_academiques aa ON b.annee_academique_id = aa.id
+            WHERE b.eleve_id = :eleve_id
+            ORDER BY aa.date_debut ASC, s.date_debut ASC
+        ";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute(['eleve_id' => $eleveId]);
+        $bulletins = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        // Track sequence IDs already present in bulletins
+        $existingSequenceIds = array_column($bulletins, 'sequence_id');
+
+        // Check if student has open sequence raw evaluations not yet in bulletins
+        $sqlEvals = "
+            SELECT DISTINCT
+                ev.sequence_id,
+                ev.annee_academique_id,
+                s.nom AS sequence_nom,
+                s.statut AS sequence_statut,
+                s.date_debut AS sequence_date_debut,
+                aa.libelle AS annee_libelle,
+                aa.date_debut AS annee_date_debut
+            FROM evaluations ev
+            JOIN sequences s ON ev.sequence_id = s.id
+            JOIN annees_academiques aa ON ev.annee_academique_id = aa.id
+            WHERE ev.eleve_id = :eleve_id
+              AND s.statut = 'ouverte'
+            ORDER BY aa.date_debut ASC, s.date_debut ASC
+        ";
+        $stmtEvals = $db->prepare($sqlEvals);
+        $stmtEvals->execute(['eleve_id' => $eleveId]);
+        $openSeqs = $stmtEvals->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        if (!empty($openSeqs)) {
+            require_once __DIR__ . '/EvaluationCalculationService.php';
+
+            foreach ($openSeqs as $seq) {
+                if (in_array($seq['sequence_id'], $existingSequenceIds, true)) {
+                    continue; // Skip if already present in official bulletins
+                }
+
+                $report = EvaluationCalculationService::computeStudentSequenceReport($eleveId, (int)$seq['sequence_id']);
+                if (!empty($report['matieres'])) {
+                    $bulletins[] = [
+                        'bulletin_id' => null,
+                        'sequence_id' => $seq['sequence_id'],
+                        'annee_academique_id' => $seq['annee_academique_id'],
+                        'moyenne_generale' => $report['moyenne_generale'],
+                        'moyenne_classe' => null,
+                        'rang_int' => null,
+                        'rang' => null,
+                        'effectif_classe' => null,
+                        'bulletin_statut' => 'provisoire',
+                        'sequence_nom' => $seq['sequence_nom'],
+                        'sequence_statut' => $seq['sequence_statut'],
+                        'sequence_date_debut' => $seq['sequence_date_debut'],
+                        'annee_libelle' => $seq['annee_libelle'],
+                        'annee_date_debut' => $seq['annee_date_debut']
+                    ];
+                }
+            }
+
+            // Sort all bulletins chronologically by academic year start date and sequence start date
+            usort($bulletins, function($a, $b) {
+                if ($a['annee_date_debut'] === $b['annee_date_debut']) {
+                    return strcmp($a['sequence_date_debut'] ?? '', $b['sequence_date_debut'] ?? '');
+                }
+                return strcmp($a['annee_date_debut'] ?? '', $b['annee_date_debut'] ?? '');
+            });
+        }
+
+        return $bulletins;
+    }
+
+    /**
+     * G1 — Série de l'évolution de la moyenne générale (Axe X: Année • Séquence, Axe Y: Moyenne /20)
+     */
+    public static function getGeneralAverageTrendSeries(int $eleveId): array {
+        $bulletins = self::getSequentialSeriesData($eleveId);
+
+        $labels = [];
+        $values = [];
+        $statuses = [];
+
+        foreach ($bulletins as $b) {
+            $label = $b['annee_libelle'] . ' • ' . $b['sequence_nom'];
+            $isOfficial = ($b['sequence_statut'] === 'fermee');
+
+            $labels[] = $label;
+            $values[] = (float)$b['moyenne_generale'];
+            $statuses[] = $isOfficial ? 'officiel' : 'provisoire';
+        }
+
+        return [
+            'categories' => $labels,
+            'series' => [
+                [
+                    'name' => _('Moyenne Générale'),
+                    'data' => $values
+                ]
+            ],
+            'statuses' => $statuses
+        ];
+    }
+
+    /**
+     * G2 — Série Élève vs Classe (Double courbe)
+     */
+    public static function getStudentVsClassSeries(int $eleveId): array {
+        $bulletins = self::getSequentialSeriesData($eleveId);
+
+        $labels = [];
+        $studentValues = [];
+        $classValues = [];
+        $gaps = [];
+
+        foreach ($bulletins as $b) {
+            $label = $b['annee_libelle'] . ' • ' . $b['sequence_nom'];
+            $stuAvg = (float)$b['moyenne_generale'];
+            $clsAvg = $b['moyenne_classe'] !== null ? (float)$b['moyenne_classe'] : null;
+
+            $labels[] = $label;
+            $studentValues[] = $stuAvg;
+            $classValues[] = $clsAvg;
+            $gaps[] = ($clsAvg !== null) ? round($stuAvg - $clsAvg, 2) : null;
+        }
+
+        return [
+            'categories' => $labels,
+            'series' => [
+                [
+                    'name' => _('Élève'),
+                    'data' => $studentValues
+                ],
+                [
+                    'name' => _('Moyenne Classe'),
+                    'data' => $classValues
+                ]
+            ],
+            'gaps' => $gaps
+        ];
+    }
+
+    /**
+     * G3 — Série de l'évolution du rang
+     */
+    public static function getRankTrendSeries(int $eleveId): array {
+        $bulletins = self::getSequentialSeriesData($eleveId);
+
+        $labels = [];
+        $ranks = [];
+        $effectifs = [];
+        $rankStrings = [];
+
+        foreach ($bulletins as $b) {
+            $label = $b['annee_libelle'] . ' • ' . $b['sequence_nom'];
+            $rankInt = $b['rang_int'] !== null ? (int)$b['rang_int'] : null;
+            $eff = $b['effectif_classe'] !== null ? (int)$b['effectif_classe'] : null;
+
+            $labels[] = $label;
+            $ranks[] = $rankInt;
+            $effectifs[] = $eff;
+            $rankStrings[] = $b['rang'] ?? ($rankInt ? $rankInt . 'e' : 'N/A');
+        }
+
+        return [
+            'categories' => $labels,
+            'ranks' => $ranks,
+            'effectifs' => $effectifs,
+            'rank_strings' => $rankStrings
+        ];
+    }
+
+    /**
+     * G4 — Série d'évolution par matière
+     */
+    public static function getSubjectTrendSeries(int $eleveId): array {
+        $db = Database::getInstance();
+
+        // Query official closed bulletin_details
+        $sqlDetails = "
+            SELECT
+                bd.matiere_id,
+                bd.nom_matiere_snapshot AS nom_matiere,
+                bd.moyenne_matiere,
+                b.sequence_id,
+                s.nom AS sequence_nom,
+                s.date_debut AS sequence_date_debut,
+                aa.libelle AS annee_libelle,
+                aa.date_debut AS annee_date_debut
+            FROM bulletin_details bd
+            JOIN bulletins b ON bd.bulletin_id = b.id
+            JOIN sequences s ON b.sequence_id = s.id
+            JOIN annees_academiques aa ON b.annee_academique_id = aa.id
+            WHERE b.eleve_id = :eleve_id
+            ORDER BY aa.date_debut ASC, s.date_debut ASC, bd.nom_matiere_snapshot ASC
+        ";
+
+        $stmt = $db->prepare($sqlDetails);
+        $stmt->execute(['eleve_id' => $eleveId]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        $sequenceKeys = [];
+        $subjectsData = [];
+
+        foreach ($rows as $r) {
+            $seqKey = $r['annee_libelle'] . ' • ' . $r['sequence_nom'];
+            if (!in_array($seqKey, $sequenceKeys, true)) {
+                $sequenceKeys[] = $seqKey;
+            }
+
+            $mId = (int)$r['matiere_id'];
+            if (!isset($subjectsData[$mId])) {
+                $subjectsData[$mId] = [
+                    'matiere_id' => $mId,
+                    'nom_matiere' => $r['nom_matiere'],
+                    'averages_by_seq' => []
+                ];
+            }
+            $subjectsData[$mId]['averages_by_seq'][$seqKey] = (float)$r['moyenne_matiere'];
+        }
+
+        // Align each subject data to all categories
+        $resultSubjects = [];
+        foreach ($subjectsData as $mId => $sData) {
+            $dataPoints = [];
+            foreach ($sequenceKeys as $sKey) {
+                $dataPoints[] = $sData['averages_by_seq'][$sKey] ?? null;
+            }
+            $resultSubjects[] = [
+                'matiere_id' => $mId,
+                'nom_matiere' => $sData['nom_matiere'],
+                'data' => $dataPoints
+            ];
+        }
+
+        return [
+            'categories' => $sequenceKeys,
+            'subjects' => $resultSubjects
+        ];
+    }
+
+    /**
+     * G5 — Profil de la dernière séquence disponible (Matières fortes / faibles / radar)
+     */
+    public static function getLatestSubjectProfile(int $eleveId): array {
+        $db = Database::getInstance();
+
+        // Get the latest bulletin
+        $sqlLatest = "
+            SELECT b.id AS bulletin_id, b.sequence_id, s.nom AS sequence_nom, aa.libelle AS annee_libelle
+            FROM bulletins b
+            JOIN sequences s ON b.sequence_id = s.id
+            JOIN annees_academiques aa ON b.annee_academique_id = aa.id
+            WHERE b.eleve_id = :eleve_id
+            ORDER BY aa.date_debut DESC, s.date_debut DESC
+            LIMIT 1
+        ";
+
+        $stmt = $db->prepare($sqlLatest);
+        $stmt->execute(['eleve_id' => $eleveId]);
+        $latestBul = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$latestBul) {
+            return [
+                'period_label' => null,
+                'subjects' => [],
+                'averages' => [],
+                'class_averages' => []
+            ];
+        }
+
+        $sqlDetails = "
+            SELECT
+                bd.matiere_id,
+                bd.nom_matiere_snapshot AS nom_matiere,
+                bd.moyenne_matiere,
+                bd.moyenne_classe_matiere
+            FROM bulletin_details bd
+            WHERE bd.bulletin_id = :bulletin_id
+            ORDER BY bd.moyenne_matiere DESC
+        ";
+
+        $stmtDet = $db->prepare($sqlDetails);
+        $stmtDet->execute(['bulletin_id' => $latestBul['bulletin_id']]);
+        $details = $stmtDet->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        $subjectNames = [];
+        $studentAvgs = [];
+        $classAvgs = [];
+
+        foreach ($details as $d) {
+            $subjectNames[] = $d['nom_matiere'];
+            $studentAvgs[] = (float)$d['moyenne_matiere'];
+            $classAvgs[] = $d['moyenne_classe_matiere'] !== null ? (float)$d['moyenne_classe_matiere'] : null;
+        }
+
+        return [
+            'period_label' => $latestBul['annee_libelle'] . ' • ' . $latestBul['sequence_nom'],
+            'subjects' => $subjectNames,
+            'averages' => $studentAvgs,
+            'class_averages' => $classAvgs
+        ];
+    }
+
+    /**
+     * Résumé décisionnel global (Cartes de synthèse et classification de tendance)
+     */
+    public static function getPerformanceSummary(int $eleveId): array {
+        $bulletins = self::getSequentialSeriesData($eleveId);
+        $snapshots = self::getOfficialBulletinSnapshots($eleveId);
+        $latestProfile = self::getLatestSubjectProfile($eleveId);
+        $variations = self::getInterannualVariations($eleveId);
+
+        if (empty($bulletins)) {
+            return [
+                'has_data' => false,
+                'latest_average' => null,
+                'average_delta' => null,
+                'latest_rank' => null,
+                'rank_delta' => null,
+                'latest_class_gap' => null,
+                'best_subject' => null,
+                'worst_subject' => null,
+                'general_trend' => _('Historique insuffisant')
+            ];
+        }
+
+        $count = count($bulletins);
+        $latestBul = $bulletins[$count - 1];
+        $prevBul = ($count >= 2) ? $bulletins[$count - 2] : null;
+
+        $latestAvg = (float)$latestBul['moyenne_generale'];
+        $prevAvg = $prevBul ? (float)$prevBul['moyenne_generale'] : null;
+        $avgDelta = ($prevAvg !== null) ? round($latestAvg - $prevAvg, 2) : null;
+
+        $latestRankInt = $latestBul['rang_int'] !== null ? (int)$latestBul['rang_int'] : null;
+        $prevRankInt = ($prevBul && $prevBul['rang_int'] !== null) ? (int)$prevBul['rang_int'] : null;
+
+        // Rank delta: prevRank - latestRank (Positive means rank improved, e.g. 18 -> 6 = +12)
+        $rankDelta = ($prevRankInt !== null && $latestRankInt !== null) ? ($prevRankInt - $latestRankInt) : null;
+
+        $clsAvg = $latestBul['moyenne_classe'] !== null ? (float)$latestBul['moyenne_classe'] : null;
+        $classGap = ($clsAvg !== null) ? round($latestAvg - $clsAvg, 2) : null;
+
+        // Best and worst subjects from latest profile
+        $bestSubj = null;
+        $worstSubj = null;
+
+        if (!empty($latestProfile['subjects'])) {
+            $bestSubj = [
+                'nom' => $latestProfile['subjects'][0],
+                'note' => $latestProfile['averages'][0]
+            ];
+            $lastIndex = count($latestProfile['subjects']) - 1;
+            $worstSubj = [
+                'nom' => $latestProfile['subjects'][$lastIndex],
+                'note' => $latestProfile['averages'][$lastIndex]
+            ];
+        }
+
+        // Determine general trend safely based on avgDelta or overall history
+        if ($avgDelta === null) {
+            $generalTrend = _('Données initiales');
+        } elseif ($avgDelta >= 0.50) {
+            $generalTrend = _('En progression');
+        } elseif ($avgDelta <= -0.50) {
+            $generalTrend = _('En régression');
+        } else {
+            $generalTrend = _('Stable');
+        }
+
+        return [
+            'has_data' => true,
+            'period_label' => $latestBul['annee_libelle'] . ' • ' . $latestBul['sequence_nom'],
+            'latest_average' => $latestAvg,
+            'average_delta' => $avgDelta,
+            'latest_rank' => $latestBul['rang'] ?? ($latestRankInt ? $latestRankInt . 'e' : 'N/A'),
+            'latest_rank_int' => $latestRankInt,
+            'effectif' => $latestBul['effectif_classe'],
+            'rank_delta' => $rankDelta,
+            'latest_class_gap' => $classGap,
+            'best_subject' => $bestSubj,
+            'worst_subject' => $worstSubj,
+            'general_trend' => $generalTrend
+        ];
+    }
 }
 ?>

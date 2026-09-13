@@ -530,6 +530,14 @@ class EleveController {
         $performanceMetrics = AcademicAnalysisService::getRawPerformanceMetrics($eleve_id);
         $bulletinSnapshots = AcademicAnalysisService::getOfficialBulletinSnapshots($eleve_id);
 
+        // Chart & Analytics Series
+        $performanceSummary = AcademicAnalysisService::getPerformanceSummary($eleve_id);
+        $generalAverageTrend = AcademicAnalysisService::getGeneralAverageTrendSeries($eleve_id);
+        $studentVsClassSeries = AcademicAnalysisService::getStudentVsClassSeries($eleve_id);
+        $rankTrendSeries = AcademicAnalysisService::getRankTrendSeries($eleve_id);
+        $subjectTrendSeries = AcademicAnalysisService::getSubjectTrendSeries($eleve_id);
+        $latestSubjectProfile = AcademicAnalysisService::getLatestSubjectProfile($eleve_id);
+
         View::render('eleves/parcours_academique', [
             'eleve' => $eleve,
             'timeline' => $timeline,
@@ -537,7 +545,13 @@ class EleveController {
             'variations' => $variations,
             'performanceMetrics' => $performanceMetrics,
             'bulletinSnapshots' => $bulletinSnapshots,
-            'title' => 'Parcours Académique - ' . htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom'])
+            'performanceSummary' => $performanceSummary,
+            'generalAverageTrend' => $generalAverageTrend,
+            'studentVsClassSeries' => $studentVsClassSeries,
+            'rankTrendSeries' => $rankTrendSeries,
+            'subjectTrendSeries' => $subjectTrendSeries,
+            'latestSubjectProfile' => $latestSubjectProfile,
+            'title' => 'Suivi & Parcours - ' . htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom'])
         ]);
     }
 }
