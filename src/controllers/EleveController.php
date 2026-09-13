@@ -13,6 +13,7 @@ require_once __DIR__ . '/../models/Mensualite.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
 require_once __DIR__ . '/../core/Validator.php';
+require_once __DIR__ . '/../services/AuthorizationScopeService.php';
 
 class EleveController {
 
