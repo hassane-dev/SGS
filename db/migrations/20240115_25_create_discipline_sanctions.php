@@ -36,6 +36,9 @@ function migrate_25($db) {
                 duree_jours INT NULL,
                 duree_heures INT NULL,
                 statut VARCHAR(30) NOT NULL DEFAULT 'prononcee',
+                date_levee_annulation DATETIME NULL,
+                motif_levee_annulation TEXT NULL,
+                par_user_id_levee_annulation INT NULL,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
@@ -81,6 +84,11 @@ function migrate_25($db) {
         }
         $db->exec($sql_sanctions);
         echo "Migration 25: Table `discipline_sanctions` OK.\n";
+
+        // Ensure columns exist on already created tables
+        addColumnIfNeeded($db, 'discipline_sanctions', 'date_levee_annulation', 'DATETIME NULL');
+        addColumnIfNeeded($db, 'discipline_sanctions', 'motif_levee_annulation', 'TEXT NULL');
+        addColumnIfNeeded($db, 'discipline_sanctions', 'par_user_id_levee_annulation', 'INT NULL');
     } catch (PDOException $e) {
         echo "Migration 25 Error (discipline_sanctions): " . $e->getMessage() . "\n";
         throw $e;
