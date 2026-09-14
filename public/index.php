@@ -500,6 +500,12 @@ $router->register('/discipline/sanctions/store', 'DisciplineSanctionController',
 $router->register('/discipline/sanctions/show', 'DisciplineSanctionController', 'show');
 $router->register('/discipline/sanctions/update-status', 'DisciplineSanctionController', 'updateStatus');
 
+// Discipline Phase 4 (Documents & Notifications)
+$router->register('/discipline/documents/upload', 'DisciplineDocumentController', 'upload');
+$router->register('/discipline/documents/download', 'DisciplineDocumentController', 'download');
+$router->register('/discipline/documents/delete', 'DisciplineDocumentController', 'delete');
+$router->register('/discipline/notifications/store', 'DisciplineDocumentController', 'storeNotification');
+
 // Affectations Pédagogiques Routes
 $router->register('/affectations-pedagogiques', 'AffectationPedagogiqueController', 'index');
 $router->register('/affectations-pedagogiques/create', 'AffectationPedagogiqueController', 'create');

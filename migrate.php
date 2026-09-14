@@ -1009,6 +1009,10 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_25_create_discipline_sanctions.php';
     migrate_25($db);
 
+    // --- PHASE DISCIPLINE PHASE 4 (HISTORIQUE, DOCUMENTS, NOTIFICATIONS) ---
+    require_once __DIR__ . '/db/migrations/20240115_26_create_discipline_phase4_tables.php';
+    migrate_26($db);
+
     // Provision DRH role if not present
     $stmt_drh_role = $db->query("SELECT id_role FROM roles WHERE nom_role = 'drh'");
     if (!$stmt_drh_role->fetch()) {
