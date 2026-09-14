@@ -478,6 +478,20 @@ $router->register('/param-composition', 'ParamCompositionController', 'edit');
 $router->register('/param-composition/edit', 'ParamCompositionController', 'edit');
 $router->register('/param-composition/update', 'ParamCompositionController', 'update');
 
+// Discipline & Sanctions (Phase 1 & Phase 2)
+$router->register('/discipline/settings', 'DisciplineSettingsController', 'index');
+$router->register('/discipline/settings/incidents/store', 'DisciplineSettingsController', 'storeIncident');
+$router->register('/discipline/settings/incidents/toggle', 'DisciplineSettingsController', 'toggleIncident');
+$router->register('/discipline/settings/sanctions/store', 'DisciplineSettingsController', 'storeSanction');
+$router->register('/discipline/settings/sanctions/toggle', 'DisciplineSettingsController', 'toggleSanction');
+
+$router->register('/discipline/incidents', 'DisciplineIncidentController', 'index');
+$router->register('/discipline/incidents/create', 'DisciplineIncidentController', 'create');
+$router->register('/discipline/incidents/store', 'DisciplineIncidentController', 'store');
+$router->register('/discipline/incidents/show', 'DisciplineIncidentController', 'show');
+$router->register('/discipline/incidents/update-status', 'DisciplineIncidentController', 'updateStatus');
+$router->register('/discipline/incidents/ajax-eleves', 'DisciplineIncidentController', 'searchElevesAjax');
+
 // Affectations Pédagogiques Routes
 $router->register('/affectations-pedagogiques', 'AffectationPedagogiqueController', 'index');
 $router->register('/affectations-pedagogiques/create', 'AffectationPedagogiqueController', 'create');
