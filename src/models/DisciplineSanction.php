@@ -4,6 +4,7 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/DisciplineTypeSanction.php';
 require_once __DIR__ . '/DisciplineIncident.php';
+require_once __DIR__ . '/DisciplineHistorique.php';
 
 class DisciplineSanction {
 
@@ -251,7 +252,21 @@ class DisciplineSanction {
                 'duree_h' => $dureeHeures
             ]);
 
-            return (int)$db->lastInsertId();
+            $sanctionId = (int)$db->lastInsertId();
+
+            DisciplineHistorique::log([
+                'lycee_id' => $lyceeId,
+                'user_id' => $userId,
+                'annee_academique_id' => $anneeId,
+                'incident_id' => $incidentId,
+                'sanction_id' => $sanctionId,
+                'eleve_id' => $eleveId,
+                'action' => 'PRONONCE_SANCTION',
+                'statut_apres' => 'prononcee',
+                'description' => "Sanction #{$sanctionId} prononcée pour '{$motif}'"
+            ]);
+
+            return $sanctionId;
         } catch (PDOException $e) {
             error_log("Error in DisciplineSanction::create: " . $e->getMessage());
             throw $e;
@@ -295,11 +310,35 @@ class DisciplineSanction {
 
         try {
             $stmt = $db->prepare($sql);
-            return $stmt->execute([
+            $res = $stmt->execute([
                 'statut' => $newStatut,
                 'id' => $sanctionId,
                 'lycee_id' => $lyceeId
             ]);
+
+            if ($res) {
+                $actionName = match($newStatut) {
+                    'levee' => 'LEVEE_SANCTION',
+                    'annulee' => 'ANNULATION_SANCTION',
+                    'executee' => 'EXECUTION_SANCTION',
+                    default => 'CHANGEMENT_STATUT_SANCTION'
+                };
+
+                DisciplineHistorique::log([
+                    'lycee_id' => $lyceeId,
+                    'user_id' => Auth::getUserId(),
+                    'annee_academique_id' => $sanction['annee_academique_id'],
+                    'incident_id' => $sanction['incident_id'],
+                    'sanction_id' => $sanctionId,
+                    'eleve_id' => $sanction['eleve_id'],
+                    'action' => $actionName,
+                    'statut_avant' => $currentStatut,
+                    'statut_apres' => $newStatut,
+                    'description' => "Statut de la sanction #{$sanctionId} changé de '{$currentStatut}' vers '{$newStatut}'"
+                ]);
+            }
+
+            return $res;
         } catch (PDOException $e) {
             error_log("Error in DisciplineSanction::updateStatus: " . $e->getMessage());
             return false;

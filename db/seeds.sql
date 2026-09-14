@@ -238,13 +238,17 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 -- Discipline & Sanctions (Phase 1)
 -- Discipline & Sanctions (Phase 1 & Phase 2)
 -- Discipline & Sanctions (Phase 1, Phase 2 & Phase 3)
+-- Discipline & Sanctions (Phase 1, Phase 2, Phase 3 & Phase 4)
 (250, 'discipline', 'view_config', 'Consulter le référentiel des types d\'incidents et de sanctions disciplinaires'),
 (251, 'discipline', 'manage_config', 'Gérer et configurer le référentiel disciplinaire de l\'établissement'),
 (252, 'discipline', 'view_incidents', 'Consulter la liste et les détails des incidents disciplinaires'),
 (253, 'discipline', 'report_incident', 'Signaler un nouvel incident disciplinaire'),
 (254, 'discipline', 'manage_incident', 'Instruire, modifier, qualifier ou classer sans suite un incident'),
 (255, 'discipline', 'view_sanctions', 'Consulter la liste et les détails des sanctions disciplinaires'),
-(256, 'discipline', 'manage_sanctions', 'Prononcer, exécuter, lever ou annuler des sanctions disciplinaires');
+(256, 'discipline', 'manage_sanctions', 'Prononcer, exécuter, lever ou annuler des sanctions disciplinaires'),
+(257, 'discipline', 'view_history', 'Consulter le journal d\'historique et d\'audit disciplinaire'),
+(258, 'discipline', 'manage_documents', 'Téléverser et consulter les pièces jointes disciplinaires'),
+(259, 'discipline', 'manage_notifications', 'Consigner et suivre les notifications disciplinaires aux responsables');
 
 -- --------------------------------------------------------
 -- Role-Permission Assignments

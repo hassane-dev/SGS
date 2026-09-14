@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/DisciplineIncidentEleve.php';
+require_once __DIR__ . '/DisciplineHistorique.php';
 
 class DisciplineIncident {
 
@@ -244,6 +245,16 @@ class DisciplineIncident {
                 ]);
             }
 
+            DisciplineHistorique::log([
+                'lycee_id' => $lyceeId,
+                'user_id' => $userId,
+                'annee_academique_id' => $anneeId,
+                'incident_id' => $incidentId,
+                'action' => 'CREATION_INCIDENT',
+                'statut_apres' => 'signale',
+                'description' => "Incident #{$incidentId} signalé (" . count($validatedEleves) . " élève(s) impliqué(s))"
+            ]);
+
             $db->commit();
             return $incidentId;
         } catch (Exception $e) {
@@ -387,6 +398,17 @@ class DisciplineIncident {
                 ]);
             }
 
+            DisciplineHistorique::log([
+                'lycee_id' => $lyceeId,
+                'user_id' => $teacherUserId ?? Auth::getUserId(),
+                'annee_academique_id' => $anneeId,
+                'incident_id' => $incidentId,
+                'action' => 'MODIFICATION_INCIDENT',
+                'statut_avant' => 'signale',
+                'statut_apres' => 'signale',
+                'description' => "Information de l'incident #{$incidentId} modifiée par son auteur"
+            ]);
+
             $db->commit();
             return true;
         } catch (Exception $e) {
@@ -422,11 +444,26 @@ class DisciplineIncident {
         $sql = "UPDATE discipline_incidents SET statut = :statut, updated_at = '$now' WHERE id = :id AND lycee_id = :lycee_id";
         try {
             $stmt = $db->prepare($sql);
-            return $stmt->execute([
+            $res = $stmt->execute([
                 'statut' => $newStatut,
                 'id' => $incidentId,
                 'lycee_id' => $lyceeId
             ]);
+
+            if ($res) {
+                DisciplineHistorique::log([
+                    'lycee_id' => $lyceeId,
+                    'user_id' => Auth::getUserId(),
+                    'annee_academique_id' => $incident['annee_academique_id'],
+                    'incident_id' => $incidentId,
+                    'action' => 'CHANGEMENT_STATUT_INCIDENT',
+                    'statut_avant' => $incident['statut'],
+                    'statut_apres' => $newStatut,
+                    'description' => "Statut de l'incident #{$incidentId} modifié de '{$incident['statut']}' vers '{$newStatut}'"
+                ]);
+            }
+
+            return $res;
         } catch (PDOException $e) {
             error_log("Error in DisciplineIncident::updateStatus: " . $e->getMessage());
             return false;
