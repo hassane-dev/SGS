@@ -233,7 +233,15 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 -- Pedagogy (Affectations Pédagogiques)
 (240, 'pedagogy', 'manage_affectations', 'Créer, modifier, suspendre et clôturer les affectations pédagogiques'),
 (241, 'pedagogy', 'view_affectations', 'Consulter le registre général des affectations pédagogiques'),
-(242, 'pedagogy', 'view_my_affectations', 'Consulter ses propres affectations pédagogiques (enseignant)');
+(242, 'pedagogy', 'view_my_affectations', 'Consulter ses propres affectations pédagogiques (enseignant)'),
+
+-- Discipline & Sanctions (Phase 1)
+-- Discipline & Sanctions (Phase 1 & Phase 2)
+(250, 'discipline', 'view_config', 'Consulter le référentiel des types d\'incidents et de sanctions disciplinaires'),
+(251, 'discipline', 'manage_config', 'Gérer et configurer le référentiel disciplinaire de l\'établissement'),
+(252, 'discipline', 'view_incidents', 'Consulter la liste et les détails des incidents disciplinaires'),
+(253, 'discipline', 'report_incident', 'Signaler un nouvel incident disciplinaire'),
+(254, 'discipline', 'manage_incident', 'Instruire, modifier, qualifier ou classer sans suite un incident');
 
 -- --------------------------------------------------------
 -- Role-Permission Assignments

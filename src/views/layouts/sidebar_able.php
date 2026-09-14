@@ -16,13 +16,19 @@ $navItems = [
         'text' => _('Scolarité'),
         'icon' => 'ph-duotone ph-student',
         'is_dropdown' => true,
-        'condition' => Auth::can('view_all', 'eleve') || Auth::can('manage', 'inscription') || Auth::can('view', 'class') || Auth::can('manage', 'series') || Auth::can('view', 'matiere'),
+        'condition' => Auth::can('view_all', 'eleve') || Auth::can('manage', 'inscription') || Auth::can('view', 'class') || Auth::can('manage', 'series') || Auth::can('view', 'matiere') || Auth::can('view_incidents', 'discipline'),
         'submenu' => [
             [
                 'url' => '/eleves',
                 'text' => _('Élèves'),
                 'title' => _('Gérer les dossiers des élèves, inscriptions et archives.'),
                 'condition' => Auth::can('view_all', 'eleve'),
+            ],
+            [
+                'url' => '/discipline/incidents',
+                'text' => _('Incidents Disciplinaires'),
+                'title' => _('Consulter et signaler les incidents disciplinaires des élèves.'),
+                'condition' => Auth::can('view_incidents', 'discipline'),
             ],
             [
                 'url' => '/inscriptions',
@@ -453,8 +459,14 @@ $navItems = [
         'text' => _('Administration & Paramètres'),
         'icon' => 'ph-duotone ph-gear',
         'is_dropdown' => true,
-        'condition' => Auth::can('view_all', 'user') || Auth::can('view_all', 'role') || Auth::can('view_all_lycees', 'lycee') || Auth::can('manage', 'annee_academique') || Auth::can('manage', 'sequence') || Auth::can('manage', 'cycle') || Auth::can('edit', 'param_lycee') || Auth::can('edit', 'param_general') || Auth::can('edit', 'param_devoir') || Auth::can('edit', 'param_composition') || Auth::can('manage', 'bulletin_template') || Auth::get('role_name') === 'super_admin_createur',
+        'condition' => Auth::can('view_all', 'user') || Auth::can('view_all', 'role') || Auth::can('view_all_lycees', 'lycee') || Auth::can('manage', 'annee_academique') || Auth::can('manage', 'sequence') || Auth::can('manage', 'cycle') || Auth::can('edit', 'param_lycee') || Auth::can('edit', 'param_general') || Auth::can('edit', 'param_devoir') || Auth::can('edit', 'param_composition') || Auth::can('manage', 'bulletin_template') || Auth::can('view_config', 'discipline') || Auth::can('manage_config', 'discipline') || Auth::get('role_name') === 'super_admin_createur',
         'submenu' => [
+            [
+                'url' => '/discipline/settings',
+                'text' => _('Discipline & Sanctions'),
+                'title' => _('Configurer les référentiels des d\'incidents et sanctions.'),
+                'condition' => Auth::can('view_config', 'discipline') || Auth::can('manage_config', 'discipline'),
+            ],
             [
                 'url' => '/users',
                 'text' => _('Comptes Utilisateurs'),
