@@ -69,7 +69,14 @@ $canManage = Auth::can('manage_incident', 'discipline');
                             default => htmlspecialchars($incident['statut'])
                         };
                         ?>
-                        <span class="badge fs-6 <?= $badgeStatut ?>"><?= $labelStatut ?></span>
+                        <div>
+                            <?php if ($incident['statut'] === 'signale' && (int)$incident['signale_par_user_id'] === (int)Auth::getUserId()): ?>
+                                <a href="/discipline/incidents/edit?id=<?= $incident['id'] ?>" class="btn btn-sm btn-outline-primary me-2">
+                                    <i class="ph-duotone ph-pencil me-1"></i><?= _("Modifier mon signalement") ?>
+                                </a>
+                            <?php endif; ?>
+                            <span class="badge fs-6 <?= $badgeStatut ?>"><?= $labelStatut ?></span>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="row mb-3">

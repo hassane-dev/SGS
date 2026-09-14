@@ -489,6 +489,8 @@ $router->register('/discipline/incidents', 'DisciplineIncidentController', 'inde
 $router->register('/discipline/incidents/create', 'DisciplineIncidentController', 'create');
 $router->register('/discipline/incidents/store', 'DisciplineIncidentController', 'store');
 $router->register('/discipline/incidents/show', 'DisciplineIncidentController', 'show');
+$router->register('/discipline/incidents/edit', 'DisciplineIncidentController', 'edit');
+$router->register('/discipline/incidents/update', 'DisciplineIncidentController', 'update');
 $router->register('/discipline/incidents/update-status', 'DisciplineIncidentController', 'updateStatus');
 $router->register('/discipline/incidents/ajax-eleves', 'DisciplineIncidentController', 'searchElevesAjax');
 

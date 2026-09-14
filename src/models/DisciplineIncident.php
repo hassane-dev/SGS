@@ -36,7 +36,7 @@ class DisciplineIncident {
         }
     }
 
-    public static function search($filters = [], $lyceeId = null) {
+    public static function search($filters = [], $lyceeId = null, $isTeacherScoped = false, $teacherUserId = null, $allowedClassIds = []) {
         $db = Database::getInstance();
         $lyceeId = $lyceeId ?? Auth::getLyceeId();
         if (!$lyceeId) {
@@ -53,6 +53,22 @@ class DisciplineIncident {
                 WHERE i.lycee_id = :lycee_id";
 
         $params = ['lycee_id' => $lyceeId];
+
+        // Teacher scoping
+        if ($isTeacherScoped && $teacherUserId) {
+            if (!empty($allowedClassIds)) {
+                $placeholders = [];
+                foreach (array_values($allowedClassIds) as $idx => $cid) {
+                    $key = ':t_cls_' . $idx;
+                    $placeholders[] = $key;
+                    $params[$key] = (int)$cid;
+                }
+                $sql .= " AND (i.signale_par_user_id = :teacher_uid OR ie_filter.classe_id IN (" . implode(',', $placeholders) . "))";
+            } else {
+                $sql .= " AND i.signale_par_user_id = :teacher_uid";
+            }
+            $params['teacher_uid'] = (int)$teacherUserId;
+        }
 
         if (!empty($filters['annee_academique_id'])) {
             $sql .= " AND i.annee_academique_id = :annee_id";
@@ -101,7 +117,7 @@ class DisciplineIncident {
         }
     }
 
-    public static function create($data, $elevesData) {
+    public static function create($data, $elevesData, $isTeacherScoped = false, $allowedClassIds = []) {
         $db = Database::getInstance();
         $lyceeId = Auth::getLyceeId();
         $userId = Auth::getUserId();
@@ -169,9 +185,18 @@ class DisciplineIncident {
                 $role = 'auteur_principal';
             }
 
+            $studentClasseId = (int)$eleveInfo['classe_id'];
+
+            // Teacher scope check: verify student belongs to an authorized class
+            if ($isTeacherScoped) {
+                if (empty($allowedClassIds) || !in_array($studentClasseId, $allowedClassIds, true)) {
+                    throw new InvalidArgumentException("Vous n'avez pas de périmètre pédagogique actif dans la classe de cet élève.");
+                }
+            }
+
             $validatedEleves[] = [
                 'eleve_id' => $eleveId,
-                'classe_id' => (int)$eleveInfo['classe_id'],
+                'classe_id' => $studentClasseId,
                 'role_implication' => $role,
                 'observation_individuelle' => trim($item['observation_individuelle'] ?? '')
             ];
@@ -224,6 +249,149 @@ class DisciplineIncident {
         } catch (Exception $e) {
             $db->rollBack();
             error_log("Error in DisciplineIncident::create: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public static function update($incidentId, $data, $elevesData, $isTeacherScoped = false, $teacherUserId = null, $allowedClassIds = []) {
+        $db = Database::getInstance();
+        $lyceeId = Auth::getLyceeId();
+
+        if (!$incidentId || !$lyceeId) {
+            throw new InvalidArgumentException("Incident ou établissement non valide.");
+        }
+
+        $incident = self::findById($incidentId, $lyceeId);
+        if (!$incident) {
+            throw new InvalidArgumentException("Incident introuvable.");
+        }
+
+        // Check status: can only edit when statut == 'signale'
+        if ($incident['statut'] !== 'signale') {
+            throw new InvalidArgumentException("Cet incident est en cours d'instruction ou clôturé et ne peut plus être modifié.");
+        }
+
+        // Check teacher scope & ownership
+        if ($isTeacherScoped) {
+            if ((int)$incident['signale_par_user_id'] !== (int)$teacherUserId) {
+                throw new InvalidArgumentException("Vous ne pouvez modifier que les signalements dont vous êtes l'auteur.");
+            }
+        }
+
+        if (empty($data['type_incident_id'])) {
+            throw new InvalidArgumentException("Le type d'incident est obligatoire.");
+        }
+        if (empty($data['date_incident'])) {
+            throw new InvalidArgumentException("La date de l'incident est obligatoire.");
+        }
+        if (empty(trim($data['description_faits'] ?? ''))) {
+            throw new InvalidArgumentException("La description des faits est obligatoire.");
+        }
+        if (empty($elevesData) || !is_array($elevesData)) {
+            throw new InvalidArgumentException("Au moins un élève doit être associé à l'incident.");
+        }
+
+        $anneeId = $incident['annee_academique_id'];
+        $rolesValides = ['auteur_principal', 'co_auteur', 'complice', 'victime', 'temoin'];
+        $validatedEleves = [];
+
+        $stmtEleveCheck = $db->prepare("
+            SELECT e.id_eleve, et.classe_id
+            FROM eleves e
+            JOIN etudes et ON e.id_eleve = et.eleve_id
+            WHERE e.id_eleve = :eleve_id
+              AND e.lycee_id = :lycee_id
+              AND et.annee_academique_id = :annee_id
+            LIMIT 1
+        ");
+
+        foreach ($elevesData as $item) {
+            $eleveId = (int)($item['eleve_id'] ?? 0);
+            if ($eleveId <= 0) continue;
+
+            $stmtEleveCheck->execute([
+                'eleve_id' => $eleveId,
+                'lycee_id' => $lyceeId,
+                'annee_id' => $anneeId
+            ]);
+            $eleveInfo = $stmtEleveCheck->fetch(PDO::FETCH_ASSOC);
+
+            if (!$eleveInfo) {
+                throw new InvalidArgumentException("L'élève ID $eleveId n'appartient pas à cet établissement ou n'a pas de classe inscrite pour cette année académique.");
+            }
+
+            $studentClasseId = (int)$eleveInfo['classe_id'];
+
+            if ($isTeacherScoped) {
+                if (empty($allowedClassIds) || !in_array($studentClasseId, $allowedClassIds, true)) {
+                    throw new InvalidArgumentException("Vous n'avez pas de périmètre pédagogique actif dans la classe de cet élève.");
+                }
+            }
+
+            $role = strtolower(trim($item['role_implication'] ?? 'auteur_principal'));
+            if (!in_array($role, $rolesValides, true)) {
+                $role = 'auteur_principal';
+            }
+
+            $validatedEleves[] = [
+                'eleve_id' => $eleveId,
+                'classe_id' => $studentClasseId,
+                'role_implication' => $role,
+                'observation_individuelle' => trim($item['observation_individuelle'] ?? '')
+            ];
+        }
+
+        if (empty($validatedEleves)) {
+            throw new InvalidArgumentException("Aucun élève valide n'a été fourni.");
+        }
+
+        $db->beginTransaction();
+        try {
+            $now = date('Y-m-d H:i:s');
+            $sqlInc = "UPDATE discipline_incidents SET
+                       type_incident_id = :type_id,
+                       date_incident = :date_inc,
+                       heure_incident = :heure_inc,
+                       lieu = :lieu,
+                       description_faits = :desc,
+                       updated_at = '$now'
+                       WHERE id = :id AND lycee_id = :lycee_id";
+
+            $stmtInc = $db->prepare($sqlInc);
+            $stmtInc->execute([
+                'type_id' => (int)$data['type_incident_id'],
+                'date_inc' => $data['date_incident'],
+                'heure_inc' => !empty($data['heure_incident']) ? $data['heure_incident'] : null,
+                'lieu' => !empty($data['lieu']) ? trim($data['lieu']) : null,
+                'desc' => trim($data['description_faits']),
+                'id' => $incidentId,
+                'lycee_id' => $lyceeId
+            ]);
+
+            // Re-insert students
+            $stmtDel = $db->prepare("DELETE FROM discipline_incident_eleves WHERE incident_id = :incident_id");
+            $stmtDel->execute(['incident_id' => $incidentId]);
+
+            $sqlEleve = "INSERT INTO discipline_incident_eleves
+                         (incident_id, eleve_id, classe_id, role_implication, observation_individuelle, created_at)
+                         VALUES (:incident_id, :eleve_id, :classe_id, :role_imp, :obs, '$now')";
+            $stmtEleve = $db->prepare($sqlEleve);
+
+            foreach ($validatedEleves as $ve) {
+                $stmtEleve->execute([
+                    'incident_id' => $incidentId,
+                    'eleve_id' => $ve['eleve_id'],
+                    'classe_id' => $ve['classe_id'],
+                    'role_imp' => $ve['role_implication'],
+                    'obs' => !empty($ve['observation_individuelle']) ? $ve['observation_individuelle'] : null
+                ]);
+            }
+
+            $db->commit();
+            return true;
+        } catch (Exception $e) {
+            $db->rollBack();
+            error_log("Error in DisciplineIncident::update: " . $e->getMessage());
             throw $e;
         }
     }
