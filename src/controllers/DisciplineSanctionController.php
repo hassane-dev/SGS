@@ -171,9 +171,10 @@ class DisciplineSanctionController {
 
         $id = (int)($_POST['id'] ?? 0);
         $newStatut = $_POST['statut'] ?? '';
+        $motif = $_POST['motif_levee_annulation'] ?? null;
 
         try {
-            DisciplineSanction::updateStatus($id, $newStatut);
+            DisciplineSanction::updateStatus($id, $newStatut, $motif);
             $_SESSION['flash_success'] = _("Statut de la sanction mis à jour.");
         } catch (InvalidArgumentException $e) {
             $_SESSION['flash_error'] = $e->getMessage();

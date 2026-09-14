@@ -113,14 +113,28 @@ class DisciplinePhase4Test extends TestCase {
         $this->assertNotEmpty($histSanc);
         $this->assertEquals('PRONONCE_SANCTION', $histSanc[0]['action']);
 
-        // 4. Lift Sanction -> Audit Logged
+        // 4. Lift Sanction -> Rejection on empty motif
         DisciplineSanction::updateStatus($sancId, 'en_cours');
-        DisciplineSanction::updateStatus($sancId, 'levee');
+
+        try {
+            DisciplineSanction::updateStatus($sancId, 'levee', '   ');
+            $this->fail("Empty motif must throw InvalidArgumentException");
+        } catch (InvalidArgumentException $e) {
+            $this->assertStringContainsString("motif", $e->getMessage());
+        }
+
+        // Lift Sanction with valid motif -> SUCCESS & Audit Logged
+        DisciplineSanction::updateStatus($sancId, 'levee', 'Conduite irréprochable constatée par la Vie Scolaire');
+
+        $sancCheck = DisciplineSanction::findById($sancId, self::$lyceeIdA);
+        $this->assertEquals('levee', $sancCheck['statut']);
+        $this->assertEquals('Conduite irréprochable constatée par la Vie Scolaire', $sancCheck['motif_levee_annulation']);
 
         $histSancLift = DisciplineHistorique::findByTarget('sanction', $sancId, self::$lyceeIdA);
         $this->assertEquals('LEVEE_SANCTION', $histSancLift[0]['action']);
         $this->assertEquals('en_cours', $histSancLift[0]['statut_avant']);
         $this->assertEquals('levee', $histSancLift[0]['statut_apres']);
+        $this->assertStringContainsString("Conduite irréprochable", $histSancLift[0]['description']);
     }
 
     public function testDocumentManagementAndIsolation(): void {

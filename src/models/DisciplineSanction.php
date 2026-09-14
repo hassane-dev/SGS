@@ -273,9 +273,11 @@ class DisciplineSanction {
         }
     }
 
-    public static function updateStatus($sanctionId, $newStatut) {
+    public static function updateStatus($sanctionId, $newStatut, $motifLeveeAnnulation = null) {
         $db = Database::getInstance();
         $lyceeId = Auth::getLyceeId();
+        $userId = Auth::getUserId();
+
         if (!$sanctionId || !$lyceeId) {
             return false;
         }
@@ -305,16 +307,38 @@ class DisciplineSanction {
             throw new InvalidArgumentException("Transition de statut non autorisée depuis le statut 'en cours'.");
         }
 
+        $motifClean = trim($motifLeveeAnnulation ?? '');
+        if (in_array($newStatut, ['levee', 'annulee'], true)) {
+            if (empty($motifClean)) {
+                $labelAction = ($newStatut === 'levee') ? "de la levée" : "de l'annulation";
+                throw new InvalidArgumentException("Le motif " . $labelAction . " de la sanction est obligatoire.");
+            }
+        }
+
         $now = date('Y-m-d H:i:s');
-        $sql = "UPDATE discipline_sanctions SET statut = :statut, updated_at = '$now' WHERE id = :id AND lycee_id = :lycee_id";
+        $params = [
+            'statut' => $newStatut,
+            'id' => $sanctionId,
+            'lycee_id' => $lyceeId
+        ];
+
+        if (in_array($newStatut, ['levee', 'annulee'], true)) {
+            $sql = "UPDATE discipline_sanctions SET
+                    statut = :statut,
+                    date_levee_annulation = '$now',
+                    motif_levee_annulation = :motif_levee,
+                    par_user_id_levee_annulation = :user_id_levee,
+                    updated_at = '$now'
+                    WHERE id = :id AND lycee_id = :lycee_id";
+            $params['motif_levee'] = $motifClean;
+            $params['user_id_levee'] = $userId;
+        } else {
+            $sql = "UPDATE discipline_sanctions SET statut = :statut, updated_at = '$now' WHERE id = :id AND lycee_id = :lycee_id";
+        }
 
         try {
             $stmt = $db->prepare($sql);
-            $res = $stmt->execute([
-                'statut' => $newStatut,
-                'id' => $sanctionId,
-                'lycee_id' => $lyceeId
-            ]);
+            $res = $stmt->execute($params);
 
             if ($res) {
                 $actionName = match($newStatut) {
@@ -324,9 +348,14 @@ class DisciplineSanction {
                     default => 'CHANGEMENT_STATUT_SANCTION'
                 };
 
+                $description = "Statut de la sanction #{$sanctionId} changé de '{$currentStatut}' vers '{$newStatut}'";
+                if (in_array($newStatut, ['levee', 'annulee'], true)) {
+                    $description .= " (Motif: '{$motifClean}')";
+                }
+
                 DisciplineHistorique::log([
                     'lycee_id' => $lyceeId,
-                    'user_id' => Auth::getUserId(),
+                    'user_id' => $userId,
                     'annee_academique_id' => $sanction['annee_academique_id'],
                     'incident_id' => $sanction['incident_id'],
                     'sanction_id' => $sanctionId,
@@ -334,7 +363,7 @@ class DisciplineSanction {
                     'action' => $actionName,
                     'statut_avant' => $currentStatut,
                     'statut_apres' => $newStatut,
-                    'description' => "Statut de la sanction #{$sanctionId} changé de '{$currentStatut}' vers '{$newStatut}'"
+                    'description' => $description
                 ]);
             }
 

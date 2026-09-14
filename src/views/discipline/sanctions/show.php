@@ -170,6 +170,18 @@ $canViewHistory = Auth::can('view_history', 'discipline');
                             </div>
                         <?php endif; ?>
 
+                        <?php if (!empty($sanction['motif_levee_annulation'])): ?>
+                            <div class="border-top pt-3 mt-3">
+                                <label class="text-muted small fw-bold text-danger"><?= _("Motif de la levée / annulation") ?></label>
+                                <div class="p-3 bg-light-danger text-danger rounded mt-1">
+                                    <?= htmlspecialchars($sanction['motif_levee_annulation']) ?>
+                                    <?php if (!empty($sanction['date_levee_annulation'])): ?>
+                                        <div class="small text-muted mt-1"><?= _("Enregistré le") ?> <?= date('d/m/Y H:i', strtotime($sanction['date_levee_annulation'])) ?></div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
                     </div>
                 </div>
 
@@ -353,23 +365,15 @@ $canViewHistory = Auth::can('view_history', 'discipline');
                                 <?php endif; ?>
 
                                 <?php if ($sanction['statut'] === 'en_cours'): ?>
-                                    <form action="/discipline/sanctions/update-status" method="POST" onsubmit="return confirm('<?= _('Confirmer la levée anticipée de cette sanction ?') ?>')">
-                                        <input type="hidden" name="id" value="<?= $sanction['id'] ?>">
-                                        <input type="hidden" name="statut" value="levee">
-                                        <button type="submit" class="btn btn-info w-100 d-inline-flex align-items-center justify-content-center gap-2">
-                                            <i class="ph-duotone ph-arrow-up-right fs-5"></i><?= _("Lever la sanction (Anticipé)") ?>
-                                        </button>
-                                    </form>
+                                    <button type="button" class="btn btn-info w-100 d-inline-flex align-items-center justify-content-center gap-2" data-bs-toggle="modal" data-bs-target="#modalLeverSanction">
+                                        <i class="ph-duotone ph-arrow-up-right fs-5"></i><?= _("Lever la sanction (Anticipé)") ?>
+                                    </button>
                                 <?php endif; ?>
 
                                 <?php if (in_array($sanction['statut'], ['prononcee', 'en_cours'], true)): ?>
-                                    <form action="/discipline/sanctions/update-status" method="POST" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir annuler définitivement cette sanction ?') ?>')">
-                                        <input type="hidden" name="id" value="<?= $sanction['id'] ?>">
-                                        <input type="hidden" name="statut" value="annulee">
-                                        <button type="submit" class="btn btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2">
-                                            <i class="ph-duotone ph-x-circle fs-5"></i><?= _("Annuler la sanction") ?>
-                                        </button>
-                                    </form>
+                                    <button type="button" class="btn btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2" data-bs-toggle="modal" data-bs-target="#modalAnnulerSanction">
+                                        <i class="ph-duotone ph-x-circle fs-5"></i><?= _("Annuler la sanction") ?>
+                                    </button>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -455,6 +459,68 @@ $canViewHistory = Auth::can('view_history', 'discipline');
                 <div class="modal-footer">
                     <button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal"><?= _("Annuler") ?></button>
                     <button type="submit" class="btn btn-primary"><?= _("Consigner") ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<?php if ($canManage && $sanction['statut'] === 'en_cours'): ?>
+<!-- MODAL LEVER SANCTION -->
+<div class="modal fade" id="modalLeverSanction" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form action="/discipline/sanctions/update-status" method="POST">
+                <input type="hidden" name="id" value="<?= $sanction['id'] ?>">
+                <input type="hidden" name="statut" value="levee">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="ph-duotone ph-arrow-up-right me-2 text-info"></i><?= _("Lever la Sanction (Anticipé)") ?></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info py-2 small">
+                        <?= _("Vous êtes sur le point de lever prématurément cette sanction pour l'élève.") ?>
+                    </div>
+                    <div class="mb-3">
+                        <label for="motif_levee" class="form-label required-field"><?= _("Motif de la levée (Obligatoire)") ?></label>
+                        <textarea name="motif_levee_annulation" id="motif_levee" rows="3" class="form-control" placeholder="<?= _('Ex: Conduite exemplaire, travaux d\'intérêt exécutés satisfaisants...') ?>" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal"><?= _("Annuler") ?></button>
+                    <button type="submit" class="btn btn-info"><?= _("Confirmer la levée") ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<?php if ($canManage && in_array($sanction['statut'], ['prononcee', 'en_cours'], true)): ?>
+<!-- MODAL ANNULER SANCTION -->
+<div class="modal fade" id="modalAnnulerSanction" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form action="/discipline/sanctions/update-status" method="POST">
+                <input type="hidden" name="id" value="<?= $sanction['id'] ?>">
+                <input type="hidden" name="statut" value="annulee">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="ph-duotone ph-x-circle me-2 text-danger"></i><?= _("Annuler la Sanction") ?></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning py-2 small">
+                        <?= _("L'annulation effacera l'effet de cette sanction de la fiche active de l'élève.") ?>
+                    </div>
+                    <div class="mb-3">
+                        <label for="motif_annulation" class="form-label required-field"><?= _("Motif de l'annulation (Obligatoire)") ?></label>
+                        <textarea name="motif_levee_annulation" id="motif_annulation" rows="3" class="form-control" placeholder="<?= _('Ex: Erreur matérielle, révision en conseil de discipline...') ?>" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal"><?= _("Annuler") ?></button>
+                    <button type="submit" class="btn btn-danger"><?= _("Confirmer l'annulation") ?></button>
                 </div>
             </form>
         </div>
