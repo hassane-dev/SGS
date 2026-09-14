@@ -555,5 +555,219 @@ class EleveController {
             'title' => 'Suivi & Parcours - ' . htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom'])
         ]);
     }
+
+    /**
+     * Fiche Élève - Discipline & Vie Scolaire
+     */
+    public function discipline() {
+        $canViewIncidents = Auth::can('view_incidents', 'discipline') || Auth::can('report_incident', 'discipline') || Auth::can('manage_incident', 'discipline') || Auth::can('view_all', 'eleve');
+        $canViewSanctions = Auth::can('view_sanctions', 'discipline') || Auth::can('manage_sanctions', 'discipline') || Auth::can('view_all', 'eleve');
+
+        if (!$canViewIncidents && !$canViewSanctions) {
+            $this->forbidden();
+        }
+
+        $eleve_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+        if (!$eleve_id) {
+            header('Location: /eleves');
+            exit();
+        }
+
+        $eleve = Eleve::findById($eleve_id);
+        if (!$eleve) {
+            header('Location: /eleves');
+            exit();
+        }
+
+        $lycee_id = Auth::getLyceeId();
+        if ($lycee_id && (int)$eleve['lycee_id'] !== (int)$lycee_id) {
+            $this->forbidden();
+        }
+
+        // Multi-tenant & cycle scope assertion
+        AuthorizationScopeService::assertAccessToObject($eleve['lycee_id'], $eleve['cycle_id'] ?? null);
+
+        $userId = Auth::get('id');
+        $userRole = Auth::get('role_name');
+        $isTeacher = ($userRole === 'enseignant') || !empty(User::getTeacherAssignments($userId));
+        $hasGlobalView = Auth::can('view_all', 'eleve') || Auth::can('manage_incident', 'discipline') || Auth::can('manage_sanctions', 'discipline');
+
+        // Teacher active pedagogical scope check
+        if ($isTeacher && !$hasGlobalView) {
+            $assignments = User::getTeacherAssignments($userId);
+            $assignedClassIds = array_keys($assignments);
+
+            $db = Database::getInstance();
+            // Check student's active enrollment classes
+            $stmtClass = $db->prepare("SELECT classe_id FROM etudes WHERE eleve_id = :eleve_id");
+            $stmtClass->execute([':eleve_id' => $eleve_id]);
+            $studentClassIds = $stmtClass->fetchAll(PDO::FETCH_COLUMN);
+
+            $hasSharedClass = !empty(array_intersect($assignedClassIds, $studentClassIds));
+
+            if (!$hasSharedClass) {
+                $this->forbidden();
+            }
+        }
+
+        $db = Database::getInstance();
+
+        // 1. Incidents for this student
+        $incidents = [];
+        if ($canViewIncidents) {
+            $stmtInc = $db->prepare("
+                SELECT
+                    i.id AS incident_id,
+                    i.code,
+                    i.date_incident,
+                    i.heure_incident,
+                    i.lieu,
+                    i.description,
+                    i.statut,
+                    i.signale_par_user_id,
+                    ti.libelle AS type_incident_libelle,
+                    ti.niveau_gravite,
+                    ie.role_implication,
+                    ie.observations_eleve,
+                    c.nom_classe AS nom_classe_snapshot,
+                    CONCAT(u.prenom, ' ', u.nom) AS signale_par_nom
+                FROM discipline_incident_eleves ie
+                JOIN discipline_incidents i ON i.id = ie.incident_id
+                LEFT JOIN discipline_types_incidents ti ON ti.id = i.type_incident_id
+                LEFT JOIN classes c ON c.id_classe = ie.classe_id
+                LEFT JOIN utilisateurs u ON u.id_user = i.signale_par_user_id
+                WHERE ie.eleve_id = :eleve_id AND i.lycee_id = :lycee_id
+                ORDER BY i.date_incident DESC, i.created_at DESC
+            ");
+            $stmtInc->execute([':eleve_id' => $eleve_id, ':lycee_id' => $eleve['lycee_id']]);
+            $incidents = $stmtInc->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        // 2. Sanctions for this student
+        $sanctions = [];
+        if ($canViewSanctions) {
+            $stmtSanc = $db->prepare("
+                SELECT
+                    s.id AS sanction_id,
+                    s.incident_id,
+                    s.date_decision,
+                    s.date_debut_execution,
+                    s.date_fin_execution,
+                    s.statut,
+                    s.motif_decision,
+                    s.motif_levee_annulation,
+                    s.date_levee_annulation,
+                    s.duree_jours,
+                    s.duree_heures,
+                    ts.libelle AS type_sanction_libelle,
+                    c.nom_classe AS nom_classe_snapshot,
+                    CONCAT(u_dec.prenom, ' ', u_dec.nom) AS prononcee_par_nom,
+                    CONCAT(u_lev.prenom, ' ', u_lev.nom) AS levee_par_nom,
+                    i.code AS incident_code
+                FROM discipline_sanctions s
+                LEFT JOIN discipline_types_sanctions ts ON ts.id = s.type_sanction_id
+                LEFT JOIN classes c ON c.id_classe = s.classe_id
+                LEFT JOIN utilisateurs u_dec ON u_dec.id_user = s.par_user_id
+                LEFT JOIN utilisateurs u_lev ON u_lev.id_user = s.par_user_id_levee_annulation
+                LEFT JOIN discipline_incidents i ON i.id = s.incident_id
+                WHERE s.eleve_id = :eleve_id AND s.lycee_id = :lycee_id
+                ORDER BY s.date_decision DESC, s.created_at DESC
+            ");
+            $stmtSanc->execute([':eleve_id' => $eleve_id, ':lycee_id' => $eleve['lycee_id']]);
+            $sanctions = $stmtSanc->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        // Permissions for additional sections
+        $canViewHistory = Auth::can('view_history', 'discipline') || Auth::can('manage_config', 'discipline') || Auth::can('view_all', 'eleve');
+        $canViewDocuments = Auth::can('manage_documents', 'discipline') || Auth::can('view_history', 'discipline') || Auth::can('view_all', 'eleve');
+        $canViewNotifications = Auth::can('manage_notifications', 'discipline') || Auth::can('view_history', 'discipline') || Auth::can('view_all', 'eleve');
+
+        // 3. Audit history
+        $history = [];
+        if ($canViewHistory) {
+            $stmtHist = $db->prepare("
+                SELECT
+                    h.*,
+                    CONCAT(u.prenom, ' ', u.nom) AS auteur_nom
+                FROM discipline_historique h
+                LEFT JOIN utilisateurs u ON u.id_user = h.user_id
+                WHERE h.lycee_id = :lycee_id
+                  AND (
+                    h.incident_id IN (SELECT incident_id FROM discipline_incident_eleves WHERE eleve_id = :eleve_id)
+                    OR h.sanction_id IN (SELECT id FROM discipline_sanctions WHERE eleve_id = :eleve_id)
+                  )
+                ORDER BY h.created_at DESC
+            ");
+            $stmtHist->execute([':lycee_id' => $eleve['lycee_id'], ':eleve_id' => $eleve_id]);
+            $history = $stmtHist->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        // 4. Notifications
+        $notifications = [];
+        if ($canViewNotifications) {
+            $stmtNotif = $db->prepare("
+                SELECT
+                    n.*,
+                    CONCAT(u.prenom, ' ', u.nom) AS emetteur_nom,
+                    i.code AS incident_code
+                FROM discipline_notifications n
+                LEFT JOIN utilisateurs u ON u.id_user = n.emetteur_user_id
+                LEFT JOIN discipline_incidents i ON i.id = n.incident_id
+                WHERE n.eleve_id = :eleve_id AND n.lycee_id = :lycee_id
+                ORDER BY n.created_at DESC
+            ");
+            $stmtNotif->execute([':eleve_id' => $eleve_id, ':lycee_id' => $eleve['lycee_id']]);
+            $notifications = $stmtNotif->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        // 5. Documents
+        $documents = [];
+        if ($canViewDocuments) {
+            $stmtDoc = $db->prepare("
+                SELECT
+                    d.*,
+                    CONCAT(u.prenom, ' ', u.nom) AS ajoute_par_nom
+                FROM discipline_documents d
+                LEFT JOIN utilisateurs u ON u.id_user = d.uploaded_by_user_id
+                WHERE d.lycee_id = :lycee_id
+                  AND (
+                    d.incident_id IN (SELECT incident_id FROM discipline_incident_eleves WHERE eleve_id = :eleve_id)
+                    OR d.sanction_id IN (SELECT id FROM discipline_sanctions WHERE eleve_id = :eleve_id)
+                  )
+                ORDER BY d.created_at DESC
+            ");
+            $stmtDoc->execute([':lycee_id' => $eleve['lycee_id'], ':eleve_id' => $eleve_id]);
+            $documents = $stmtDoc->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        // Summary stats
+        $summary = [
+            'total_incidents' => count($incidents),
+            'incidents_signales' => count(array_filter($incidents, fn($i) => $i['statut'] === 'signale')),
+            'incidents_en_instruction' => count(array_filter($incidents, fn($i) => $i['statut'] === 'en_instruction')),
+            'incidents_traites' => count(array_filter($incidents, fn($i) => $i['statut'] === 'traite')),
+            'total_sanctions' => count($sanctions),
+            'sanctions_en_cours' => count(array_filter($sanctions, fn($s) => $s['statut'] === 'en_cours')),
+            'sanctions_executees' => count(array_filter($sanctions, fn($s) => $s['statut'] === 'executee')),
+            'sanctions_levees' => count(array_filter($sanctions, fn($s) => $s['statut'] === 'levee')),
+            'sanctions_annulees' => count(array_filter($sanctions, fn($s) => $s['statut'] === 'annulee')),
+        ];
+
+        View::render('eleves/discipline', [
+            'eleve' => $eleve,
+            'summary' => $summary,
+            'incidents' => $incidents,
+            'sanctions' => $sanctions,
+            'history' => $history,
+            'notifications' => $notifications,
+            'documents' => $documents,
+            'canViewIncidents' => $canViewIncidents,
+            'canViewSanctions' => $canViewSanctions,
+            'canViewHistory' => $canViewHistory,
+            'canViewNotifications' => $canViewNotifications,
+            'canViewDocuments' => $canViewDocuments,
+            'title' => 'Discipline & Vie Scolaire - ' . htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom'])
+        ]);
+    }
 }
 ?>
