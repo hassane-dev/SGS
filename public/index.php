@@ -494,6 +494,12 @@ $router->register('/discipline/incidents/update', 'DisciplineIncidentController'
 $router->register('/discipline/incidents/update-status', 'DisciplineIncidentController', 'updateStatus');
 $router->register('/discipline/incidents/ajax-eleves', 'DisciplineIncidentController', 'searchElevesAjax');
 
+$router->register('/discipline/sanctions', 'DisciplineSanctionController', 'index');
+$router->register('/discipline/sanctions/create', 'DisciplineSanctionController', 'create');
+$router->register('/discipline/sanctions/store', 'DisciplineSanctionController', 'store');
+$router->register('/discipline/sanctions/show', 'DisciplineSanctionController', 'show');
+$router->register('/discipline/sanctions/update-status', 'DisciplineSanctionController', 'updateStatus');
+
 // Affectations Pédagogiques Routes
 $router->register('/affectations-pedagogiques', 'AffectationPedagogiqueController', 'index');
 $router->register('/affectations-pedagogiques/create', 'AffectationPedagogiqueController', 'create');
