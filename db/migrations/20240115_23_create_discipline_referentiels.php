@@ -29,7 +29,7 @@ function migrate_23($db) {
                 actif TINYINT(1) NOT NULL DEFAULT 1,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (lycee_id) REFERENCES lycees(id_lycee) ON DELETE CASCADE,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
                 UNIQUE(lycee_id, code)
             );";
         } else {
@@ -43,7 +43,7 @@ function migrate_23($db) {
                 actif TINYINT(1) NOT NULL DEFAULT 1,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                FOREIGN KEY (lycee_id) REFERENCES lycees(id_lycee) ON DELETE CASCADE,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
                 UNIQUE KEY uk_disc_inc_code (lycee_id, code)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
         }
@@ -51,6 +51,7 @@ function migrate_23($db) {
         echo "Migration 23: Table `discipline_types_incidents` OK.\n";
     } catch (PDOException $e) {
         echo "Migration 23 Error (discipline_types_incidents): " . $e->getMessage() . "\n";
+        throw $e;
     }
 
     // 2. Table discipline_types_sanctions
@@ -69,7 +70,7 @@ function migrate_23($db) {
                 actif TINYINT(1) NOT NULL DEFAULT 1,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (lycee_id) REFERENCES lycees(id_lycee) ON DELETE CASCADE,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
                 UNIQUE(lycee_id, code)
             );";
         } else {
@@ -86,7 +87,7 @@ function migrate_23($db) {
                 actif TINYINT(1) NOT NULL DEFAULT 1,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                FOREIGN KEY (lycee_id) REFERENCES lycees(id_lycee) ON DELETE CASCADE,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
                 UNIQUE KEY uk_disc_sanc_code (lycee_id, code)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
         }
@@ -94,6 +95,7 @@ function migrate_23($db) {
         echo "Migration 23: Table `discipline_types_sanctions` OK.\n";
     } catch (PDOException $e) {
         echo "Migration 23 Error (discipline_types_sanctions): " . $e->getMessage() . "\n";
+        throw $e;
     }
 
     // 3. Seed Phase 1 RBAC Permissions

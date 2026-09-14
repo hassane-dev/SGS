@@ -34,7 +34,7 @@ function migrate_24($db) {
                 statut VARCHAR(30) NOT NULL DEFAULT 'signale',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (lycee_id) REFERENCES lycees(id_lycee) ON DELETE CASCADE,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
                 FOREIGN KEY (annee_academique_id) REFERENCES annees_academiques(id) ON DELETE RESTRICT,
                 FOREIGN KEY (type_incident_id) REFERENCES discipline_types_incidents(id) ON DELETE RESTRICT,
                 FOREIGN KEY (signale_par_user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT
@@ -54,7 +54,7 @@ function migrate_24($db) {
                 statut VARCHAR(30) NOT NULL DEFAULT 'signale',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                FOREIGN KEY (lycee_id) REFERENCES lycees(id_lycee) ON DELETE CASCADE,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
                 FOREIGN KEY (annee_academique_id) REFERENCES annees_academiques(id) ON DELETE RESTRICT,
                 FOREIGN KEY (type_incident_id) REFERENCES discipline_types_incidents(id) ON DELETE RESTRICT,
                 FOREIGN KEY (signale_par_user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
@@ -66,6 +66,7 @@ function migrate_24($db) {
         echo "Migration 24: Table `discipline_incidents` OK.\n";
     } catch (PDOException $e) {
         echo "Migration 24 Error (discipline_incidents): " . $e->getMessage() . "\n";
+        throw $e;
     }
 
     // 2. Table discipline_incident_eleves
@@ -105,6 +106,7 @@ function migrate_24($db) {
         echo "Migration 24: Table `discipline_incident_eleves` OK.\n";
     } catch (PDOException $e) {
         echo "Migration 24 Error (discipline_incident_eleves): " . $e->getMessage() . "\n";
+        throw $e;
     }
 
     // 3. Seed Phase 2 RBAC Permissions
