@@ -31,6 +31,12 @@ $navItems = [
                 'condition' => Auth::can('view_incidents', 'discipline'),
             ],
             [
+                'url' => '/discipline/sanctions',
+                'text' => _('Sanctions Disciplinaires'),
+                'title' => _('Consulter et prononcer les sanctions disciplinaires des élèves.'),
+                'condition' => Auth::can('view_sanctions', 'discipline'),
+            ],
+            [
                 'url' => '/inscriptions',
                 'text' => _('Inscriptions'),
                 'title' => _('Gérer les inscriptions des nouveaux élèves.'),
