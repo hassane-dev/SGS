@@ -190,6 +190,7 @@ $router->register('/eleves/process-assignment', 'EleveController', 'processAssig
 $router->register('/eleves/parametres-financiers', 'EleveController', 'parametresFinanciers');
 $router->register('/eleves/parametres-financiers/update', 'EleveController', 'updateParametresFinanciers');
 $router->register('/eleves/parcours-academique', 'EleveController', 'parcoursAcademique');
+$router->register('/eleves/discipline', 'EleveController', 'discipline');
 
 // Inscriptions / Reinscriptions redirects to student creation flow
 $router->register('/inscriptions', 'EleveController', 'create');

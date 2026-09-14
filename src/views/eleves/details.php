@@ -48,6 +48,9 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="/eleves/parcours-academique?id=<?= $eleve['id_eleve'] ?>"><i class="ph-duotone ph-chart-line-up me-2"></i>Parcours Académique</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/eleves/discipline?id=<?= $eleve['id_eleve'] ?>"><i class="ph-duotone ph-gavel me-2"></i>Vie Scolaire & Discipline</a>
+                            </li>
                         </ul>
                     </div>
                 </div>
