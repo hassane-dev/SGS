@@ -503,6 +503,17 @@ $router->register('/discipline/search', 'DisciplineSearchController', 'index');
 $router->register('/discipline/export/csv', 'DisciplineSearchController', 'exportCsv');
 $router->register('/discipline/export/pdf', 'DisciplineSearchController', 'exportPdf');
 
+// Discipline Councils (Phase 6.1)
+$router->register('/discipline/councils', 'DisciplineConseilController', 'index');
+$router->register('/discipline/councils/create', 'DisciplineConseilController', 'create');
+$router->register('/discipline/councils/store', 'DisciplineConseilController', 'store');
+$router->register('/discipline/councils/show', 'DisciplineConseilController', 'show');
+$router->register('/discipline/councils/update-status', 'DisciplineConseilController', 'updateStatus');
+$router->register('/discipline/councils/add-membre', 'DisciplineConseilController', 'addMembre');
+$router->register('/discipline/councils/remove-membre', 'DisciplineConseilController', 'removeMembre');
+$router->register('/discipline/councils/add-eleve', 'DisciplineConseilController', 'addEleve');
+$router->register('/discipline/councils/add-incident', 'DisciplineConseilController', 'addIncident');
+
 $router->register('/discipline/sanctions', 'DisciplineSanctionController', 'index');
 $router->register('/discipline/sanctions/create', 'DisciplineSanctionController', 'create');
 $router->register('/discipline/sanctions/store', 'DisciplineSanctionController', 'store');
