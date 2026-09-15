@@ -495,6 +495,9 @@ $router->register('/discipline/incidents/update', 'DisciplineIncidentController'
 $router->register('/discipline/incidents/update-status', 'DisciplineIncidentController', 'updateStatus');
 $router->register('/discipline/incidents/ajax-eleves', 'DisciplineIncidentController', 'searchElevesAjax');
 
+// Discipline Dashboard & Statistics (Phase 5.2)
+$router->register('/discipline/dashboard', 'DisciplineDashboardController', 'index');
+
 $router->register('/discipline/sanctions', 'DisciplineSanctionController', 'index');
 $router->register('/discipline/sanctions/create', 'DisciplineSanctionController', 'create');
 $router->register('/discipline/sanctions/store', 'DisciplineSanctionController', 'store');

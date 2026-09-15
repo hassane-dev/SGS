@@ -25,6 +25,12 @@ $navItems = [
                 'condition' => Auth::can('view_all', 'eleve'),
             ],
             [
+                'url' => '/discipline/dashboard',
+                'text' => _('Tableau de Bord Disciplinaire'),
+                'title' => _('Consulter les statistiques et indicateurs disciplinaires.'),
+                'condition' => Auth::can('view_incidents', 'discipline') || Auth::can('view_sanctions', 'discipline'),
+            ],
+            [
                 'url' => '/discipline/incidents',
                 'text' => _('Incidents Disciplinaires'),
                 'title' => _('Consulter et signaler les incidents disciplinaires des élèves.'),

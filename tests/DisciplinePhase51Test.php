@@ -304,6 +304,53 @@ class DisciplinePhase51Test extends TestCase {
         $this->assertStringNotContainsString('MAT-5103', $output);
     }
 
+    /**
+     * TEST F: Non-régression HY093.
+     * Vérifie que le chargement d'un élève possédant incident, sanction, historique, document et notification s'exécute sans exception SQLSTATE[HY093].
+     */
+    public function testTestF_FullStudentDisciplineProfileWithoutHY093(): void {
+        // Create an audit history entry, document, and notification for Student A
+        self::$db->exec("INSERT INTO discipline_historique (lycee_id, annee_academique_id, incident_id, sanction_id, eleve_id, user_id, action, description) VALUES
+            (501, 1, " . self::$incidentId . ", " . self::$sanctionId . ", " . self::$eleveCEG . ", 1, 'TEST_ACTION', 'Description audit non-regression')
+        ");
+
+        self::$db->exec("INSERT INTO discipline_documents (lycee_id, incident_id, sanction_id, eleve_id, uploaded_by_user_id, nom_original, nom_stockage, chemin_interne, mime_type, taille) VALUES
+            (501, " . self::$incidentId . ", " . self::$sanctionId . ", " . self::$eleveCEG . ", 1, 'rapport.pdf', 'rand_rapport.pdf', '/upload/rand_rapport.pdf', 'application/pdf', 1024)
+        ");
+
+        self::$db->exec("INSERT INTO discipline_notifications (lycee_id, eleve_id, incident_id, sanction_id, destinataire_nom, destinataire_contact, mode_notification, objet, message, statut, date_envoi, created_by_user_id) VALUES
+            (501, " . self::$eleveCEG . ", " . self::$incidentId . ", " . self::$sanctionId . ", 'M. KOUASSI', '0102030405', 'sms', 'Notification Test', 'Message de test', 'transmise', '2023-10-10 10:00:00', 1)
+        ");
+
+        $_SESSION['user'] = [
+            'id' => 1,
+            'lycee_id' => 501,
+            'role_name' => 'admin',
+            'permissions' => [
+                'eleve:view_all',
+                'discipline:view_incidents',
+                'discipline:view_sanctions',
+                'discipline:view_history',
+                'discipline:manage_documents',
+                'discipline:manage_notifications'
+            ]
+        ];
+
+        $_GET['id'] = self::$eleveCEG;
+
+        ob_start();
+        $controller = new EleveController();
+        $controller->discipline();
+        $output = ob_get_clean();
+
+        // Must render cleanly without throwing PDOException HY093
+        $this->assertStringContainsString('Vie Scolaire &amp; Discipline', $output);
+        $this->assertStringContainsString('INC-501-TEST', $output);
+        $this->assertStringContainsString('Description audit non-regression', $output);
+        $this->assertStringContainsString('rapport.pdf', $output);
+        $this->assertStringContainsString('Notification Test', $output);
+    }
+
     public static function tearDownAfterClass(): void {
         self::$db->exec("DELETE FROM discipline_notifications WHERE lycee_id IN (501, 502)");
         self::$db->exec("DELETE FROM discipline_documents WHERE lycee_id IN (501, 502)");

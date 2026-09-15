@@ -706,13 +706,18 @@ class EleveController {
                 LEFT JOIN utilisateurs u ON u.id_user = h.user_id
                 WHERE h.lycee_id = :lycee_id
                   AND (
-                    h.incident_id IN (SELECT incident_id FROM discipline_incident_eleves WHERE eleve_id = :eleve_id)
-                    OR h.sanction_id IN (SELECT id FROM discipline_sanctions WHERE eleve_id = :eleve_id)
-                    OR h.eleve_id = :eleve_id
+                    h.incident_id IN (SELECT incident_id FROM discipline_incident_eleves WHERE eleve_id = :eleve_id1)
+                    OR h.sanction_id IN (SELECT id FROM discipline_sanctions WHERE eleve_id = :eleve_id2)
+                    OR h.eleve_id = :eleve_id3
                   )
                 ORDER BY h.created_at DESC
             ");
-            $stmtHist->execute([':lycee_id' => $eleve['lycee_id'], ':eleve_id' => $eleve_id]);
+            $stmtHist->execute([
+                ':lycee_id' => $eleve['lycee_id'],
+                ':eleve_id1' => $eleve_id,
+                ':eleve_id2' => $eleve_id,
+                ':eleve_id3' => $eleve_id
+            ]);
             $history = $stmtHist->fetchAll(PDO::FETCH_ASSOC);
         }
 
@@ -746,13 +751,18 @@ class EleveController {
                 LEFT JOIN utilisateurs u ON u.id_user = d.uploaded_by_user_id
                 WHERE d.lycee_id = :lycee_id
                   AND (
-                    d.incident_id IN (SELECT incident_id FROM discipline_incident_eleves WHERE eleve_id = :eleve_id)
-                    OR d.sanction_id IN (SELECT id FROM discipline_sanctions WHERE eleve_id = :eleve_id)
-                    OR d.eleve_id = :eleve_id
+                    d.incident_id IN (SELECT incident_id FROM discipline_incident_eleves WHERE eleve_id = :eleve_id1)
+                    OR d.sanction_id IN (SELECT id FROM discipline_sanctions WHERE eleve_id = :eleve_id2)
+                    OR d.eleve_id = :eleve_id3
                   )
                 ORDER BY d.created_at DESC
             ");
-            $stmtDoc->execute([':lycee_id' => $eleve['lycee_id'], ':eleve_id' => $eleve_id]);
+            $stmtDoc->execute([
+                ':lycee_id' => $eleve['lycee_id'],
+                ':eleve_id1' => $eleve_id,
+                ':eleve_id2' => $eleve_id,
+                ':eleve_id3' => $eleve_id
+            ]);
             $documents = $stmtDoc->fetchAll(PDO::FETCH_ASSOC);
         }
 
