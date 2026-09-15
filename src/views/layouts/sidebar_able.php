@@ -31,6 +31,12 @@ $navItems = [
                 'condition' => Auth::can('view_incidents', 'discipline') || Auth::can('view_sanctions', 'discipline'),
             ],
             [
+                'url' => '/discipline/councils',
+                'text' => _('Conseil de Discipline'),
+                'title' => _('Gérer les séances et délibérations du Conseil de Discipline.'),
+                'condition' => Auth::can('view_councils', 'discipline'),
+            ],
+            [
                 'url' => '/discipline/search',
                 'text' => _('Recherche & Registres'),
                 'title' => _('Rechercher et exporter les registres d\'incidents et sanctions.'),
