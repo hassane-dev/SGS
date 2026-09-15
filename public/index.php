@@ -498,6 +498,11 @@ $router->register('/discipline/incidents/ajax-eleves', 'DisciplineIncidentContro
 // Discipline Dashboard & Statistics (Phase 5.2)
 $router->register('/discipline/dashboard', 'DisciplineDashboardController', 'index');
 
+// Discipline Search & Exports (Phase 5.3)
+$router->register('/discipline/search', 'DisciplineSearchController', 'index');
+$router->register('/discipline/export/csv', 'DisciplineSearchController', 'exportCsv');
+$router->register('/discipline/export/pdf', 'DisciplineSearchController', 'exportPdf');
+
 $router->register('/discipline/sanctions', 'DisciplineSanctionController', 'index');
 $router->register('/discipline/sanctions/create', 'DisciplineSanctionController', 'create');
 $router->register('/discipline/sanctions/store', 'DisciplineSanctionController', 'store');
