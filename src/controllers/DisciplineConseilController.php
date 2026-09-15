@@ -14,6 +14,8 @@ require_once __DIR__ . '/../models/DisciplineIncident.php';
 require_once __DIR__ . '/../models/DisciplineDocument.php';
 require_once __DIR__ . '/../models/DisciplineNotification.php';
 require_once __DIR__ . '/../models/DisciplineHistorique.php';
+require_once __DIR__ . '/../models/DisciplineNotification.php';
+require_once __DIR__ . '/../models/DisciplineDocument.php';
 require_once __DIR__ . '/../services/AuthorizationScopeService.php';
 
 class DisciplineConseilController {
@@ -361,6 +363,150 @@ class DisciplineConseilController {
             header('Location: /discipline/councils/show?id=' . $councilId);
             exit();
         }
+
+    public function updateMemberPresence(): void {
+        $lyceeId = $this->checkManageAccess();
+        $conseilId = (int)($_POST['conseil_id'] ?? 0);
+        $userId = (int)($_POST['user_id'] ?? 0);
+        $estPresent = isset($_POST['est_present']) ? (int)$_POST['est_present'] : 0;
+
+        try {
+            $conseil = DisciplineConseil::findById($conseilId, $lyceeId);
+            if (!$conseil) {
+                throw new InvalidArgumentException("Conseil introuvable.");
+            }
+
+            DisciplineConseilMembre::updatePresence($conseilId, $userId, $estPresent);
+
+            DisciplineHistorique::log([
+                'lycee_id' => $lyceeId,
+                'evenement' => 'PRESENCE_MEMBRE_CONSEIL',
+                'entity_type' => 'conseil',
+                'entity_id' => $conseilId,
+                'action' => "Mise à jour de la présence du membre ID {$userId} : " . ($estPresent ? 'Présent' : 'Absent'),
+                'user_id' => Auth::getUserId(),
+            ]);
+
+            if ($statutApres === 'convoque') {
+                $existingNotifs = DisciplineNotification::findByConseilId($id);
+                $hasConvocation = false;
+                foreach ($existingNotifs as $n) {
+                    if (($n['mode_notification'] ?? '') === 'convocation_conseil') {
+                        $hasConvocation = true;
+                        break;
+                    }
+                }
+                if (!$hasConvocation) {
+                    $eleves = DisciplineConseilEleve::findByConseilId($id);
+                    foreach ($eleves as $el) {
+                        DisciplineNotification::log([
+                            'lycee_id' => $lyceeId,
+                            'conseil_id' => $id,
+                            'eleve_id' => $el['eleve_id'],
+                            'destinataire_type' => 'parent',
+                            'destinataire_contact' => $el['nom_representant_legal'] ?? 'Tuteur / Représentant Légal',
+                            'mode_notification' => 'convocation_conseil',
+                            'objet' => "Convocation au Conseil de Discipline - " . $conseil['code'],
+                            'contenu' => "Convocation de l'élève " . $el['eleve_nom_complet'] . " au conseil de discipline prévu le " . $conseil['date_conseil'] . ". Motif : " . ($el['motif_convocation'] ?? 'Examen de situation disciplinaire'),
+                            'statut' => 'tracé',
+                            'user_id' => Auth::getUserId(),
+                        ]);
+                    }
+
+                    $membres = DisciplineConseilMembre::findByConseilId($id);
+                    foreach ($membres as $m) {
+                        DisciplineNotification::log([
+                            'lycee_id' => $lyceeId,
+                            'conseil_id' => $id,
+                            'user_id' => $m['user_id'],
+                            'destinataire_type' => 'membre_conseil',
+                            'destinataire_contact' => $m['nom_snapshot'],
+                            'mode_notification' => 'convocation_conseil',
+                            'objet' => "Convocation Membre Conseil de Discipline - " . $conseil['code'],
+                            'contenu' => "Convocation en qualité de " . $m['qualite_membre'] . " au conseil de discipline prévu le " . $conseil['date_conseil'],
+                            'statut' => 'tracé',
+                            'user_id' => Auth::getUserId(),
+                        ]);
+                    }
+                }
+            }
+
+            $_SESSION['flash_success'] = "Présence du membre mise à jour.";
+        } catch (Exception $e) {
+            $_SESSION['flash_error'] = $e->getMessage();
+        }
+
+        header('Location: /discipline/councils/show?id=' . $conseilId);
+        exit;
+    }
+
+    public function updateEleveConvocation(): void {
+        $lyceeId = $this->checkManageAccess();
+        $conseilId = (int)($_POST['conseil_id'] ?? 0);
+        $eleveId = (int)($_POST['eleve_id'] ?? 0);
+
+        try {
+            $conseil = DisciplineConseil::findById($conseilId, $lyceeId);
+            if (!$conseil) {
+                throw new InvalidArgumentException("Conseil introuvable.");
+            }
+
+            DisciplineConseilEleve::updateConvocation($conseilId, $eleveId, [
+                'motif_convocation' => $_POST['motif_convocation'] ?? null,
+                'presence_eleve' => $_POST['presence_eleve'] ?? 'non_specifie',
+                'presence_representant_legal' => $_POST['presence_representant_legal'] ?? 'non_specifie',
+                'nom_representant_legal' => $_POST['nom_representant_legal'] ?? null,
+            ]);
+
+            DisciplineHistorique::log([
+                'lycee_id' => $lyceeId,
+                'evenement' => 'CONVOCATION_ELEVE_CONSEIL',
+                'entity_type' => 'conseil',
+                'entity_id' => $conseilId,
+                'action' => "Mise à jour des informations de convocation pour l'élève ID {$eleveId}",
+                'user_id' => Auth::getUserId(),
+            ]);
+
+            $_SESSION['flash_success'] = "Convocation de l'élève mise à jour.";
+        } catch (Exception $e) {
+            $_SESSION['flash_error'] = $e->getMessage();
+        }
+
+        header('Location: /discipline/councils/show?id=' . $conseilId);
+        exit;
+    }
+
+    public function removeIncident(): void {
+        $lyceeId = $this->checkManageAccess();
+        $conseilId = (int)($_POST['conseil_id'] ?? 0);
+        $incidentId = (int)($_POST['incident_id'] ?? 0);
+        $eleveId = (int)($_POST['eleve_id'] ?? 0);
+
+        try {
+            $conseil = DisciplineConseil::findById($conseilId, $lyceeId);
+            if (!$conseil) {
+                throw new InvalidArgumentException("Conseil introuvable.");
+            }
+
+            DisciplineConseilEleve::unlinkIncident($conseilId, $incidentId, $eleveId);
+
+            DisciplineHistorique::log([
+                'lycee_id' => $lyceeId,
+                'evenement' => 'RETRAIT_INCIDENT_CONSEIL',
+                'entity_type' => 'conseil',
+                'entity_id' => $conseilId,
+                'action' => "Retrait de l'incident ID {$incidentId} pour l'élève ID {$eleveId} du conseil",
+                'user_id' => Auth::getUserId(),
+            ]);
+
+            $_SESSION['flash_success'] = "Incident retiré du conseil.";
+        } catch (Exception $e) {
+            $_SESSION['flash_error'] = $e->getMessage();
+        }
+
+        header('Location: /discipline/councils/show?id=' . $conseilId);
+        exit;
+    }
     }
 
     public function addMembre() {

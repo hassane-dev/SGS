@@ -150,6 +150,85 @@ class DisciplineConseilEleve {
         ]);
     }
 
+    public static function updateConvocation(int $conseilId, int $eleveId, array $data): bool {
+        $db = Database::getInstance();
+
+        $stmtC = $db->prepare("SELECT statut FROM discipline_conseils WHERE id = :id");
+        $stmtC->execute([':id' => $conseilId]);
+        $statut = $stmtC->fetchColumn();
+
+        if (!$statut) {
+            throw new InvalidArgumentException("Conseil de discipline introuvable.");
+        }
+
+        if (in_array($statut, ['cloture', 'annule'], true)) {
+            throw new InvalidArgumentException("Impossible de modifier les informations de convocation pour un conseil clôturé ou annulé.");
+        }
+
+        $stmtE = $db->prepare("SELECT COUNT(*) FROM discipline_conseil_eleves WHERE conseil_id = :conseil_id AND eleve_id = :eleve_id");
+        $stmtE->execute([':conseil_id' => $conseilId, ':eleve_id' => $eleveId]);
+        if ((int)$stmtE->fetchColumn() === 0) {
+            throw new InvalidArgumentException("L'élève n'est pas convoqué à ce conseil.");
+        }
+
+        $stmt = $db->prepare("
+            UPDATE discipline_conseil_eleves
+            SET
+                motif_convocation = :motif_convocation,
+                presence_eleve = :presence_eleve,
+                presence_representant_legal = :presence_representant_legal,
+                nom_representant_legal = :nom_representant_legal
+            WHERE conseil_id = :conseil_id AND eleve_id = :eleve_id
+        ");
+
+        return $stmt->execute([
+            ':motif_convocation' => isset($data['motif_convocation']) ? trim($data['motif_convocation']) : null,
+            ':presence_eleve' => $data['presence_eleve'] ?? 'non_specifie',
+            ':presence_representant_legal' => $data['presence_representant_legal'] ?? 'non_specifie',
+            ':nom_representant_legal' => !empty($data['nom_representant_legal']) ? trim($data['nom_representant_legal']) : null,
+            ':conseil_id' => $conseilId,
+            ':eleve_id' => $eleveId,
+        ]);
+    }
+
+    public static function unlinkIncident(int $conseilId, int $incidentId, int $eleveId): bool {
+        $db = Database::getInstance();
+
+        $stmtC = $db->prepare("SELECT statut FROM discipline_conseils WHERE id = :id");
+        $stmtC->execute([':id' => $conseilId]);
+        $statut = $stmtC->fetchColumn();
+
+        if (!$statut) {
+            throw new InvalidArgumentException("Conseil de discipline introuvable.");
+        }
+
+        if (in_array($statut, ['cloture', 'annule'], true)) {
+            throw new InvalidArgumentException("Impossible de retirer un incident d'un conseil clôturé ou annulé.");
+        }
+
+        $stmtExist = $db->prepare("SELECT COUNT(*) FROM discipline_conseil_incidents WHERE conseil_id = :conseil_id AND incident_id = :incident_id AND eleve_id = :eleve_id");
+        $stmtExist->execute([
+            ':conseil_id' => $conseilId,
+            ':incident_id' => $incidentId,
+            ':eleve_id' => $eleveId,
+        ]);
+
+        if ((int)$stmtExist->fetchColumn() === 0) {
+            throw new InvalidArgumentException("L'association entre cet incident et cet élève dans ce conseil n'existe pas.");
+        }
+
+        $stmt = $db->prepare("
+            DELETE FROM discipline_conseil_incidents
+            WHERE conseil_id = :conseil_id AND incident_id = :incident_id AND eleve_id = :eleve_id
+        ");
+
+        return $stmt->execute([
+            ':conseil_id' => $conseilId,
+            ':incident_id' => $incidentId,
+            ':eleve_id' => $eleveId,
+        ]);
+    }
+
     public static function findByConseilId(int $conseilId): array {
         $db = Database::getInstance();
         $stmt = $db->prepare("
