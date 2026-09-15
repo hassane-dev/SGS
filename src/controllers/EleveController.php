@@ -598,9 +598,21 @@ class EleveController {
             $assignedClassIds = array_keys($assignments);
 
             $db = Database::getInstance();
-            // Check student's active enrollment classes
-            $stmtClass = $db->prepare("SELECT classe_id FROM etudes WHERE eleve_id = :eleve_id");
-            $stmtClass->execute([':eleve_id' => $eleve_id]);
+            // Resolve active academic year SSoT (strict, no fallback to all historical years)
+            $activeYear = AnneeAcademique::findActive();
+            if (!$activeYear || empty($activeYear['id'])) {
+                $this->forbidden();
+            }
+            $anneeId = (int)$activeYear['id'];
+
+            // Check student's class enrollment strictly for the current active academic year
+            $stmtClass = $db->prepare("
+                SELECT classe_id
+                FROM etudes
+                WHERE eleve_id = :eleve_id
+                  AND annee_academique_id = :annee_id
+            ");
+            $stmtClass->execute([':eleve_id' => $eleve_id, ':annee_id' => $anneeId]);
             $studentClassIds = $stmtClass->fetchAll(PDO::FETCH_COLUMN);
 
             $hasSharedClass = !empty(array_intersect($assignedClassIds, $studentClassIds));
@@ -618,18 +630,18 @@ class EleveController {
             $stmtInc = $db->prepare("
                 SELECT
                     i.id AS incident_id,
-                    i.code,
+                    ti.code AS code,
                     i.date_incident,
                     i.heure_incident,
                     i.lieu,
-                    i.description,
+                    i.description_faits AS description,
                     i.statut,
                     i.signale_par_user_id,
                     ti.libelle AS type_incident_libelle,
                     ti.niveau_gravite,
                     ie.role_implication,
-                    ie.observations_eleve,
-                    c.nom_classe AS nom_classe_snapshot,
+                    ie.observation_individuelle AS observations_eleve,
+                    TRIM(CONCAT(COALESCE(c.niveau, ''), ' ', COALESCE(c.serie, ''), ' ', COALESCE(c.numero, ''))) AS nom_classe_snapshot,
                     CONCAT(u.prenom, ' ', u.nom) AS signale_par_nom
                 FROM discipline_incident_eleves ie
                 JOIN discipline_incidents i ON i.id = ie.incident_id
@@ -654,22 +666,23 @@ class EleveController {
                     s.date_debut_execution,
                     s.date_fin_execution,
                     s.statut,
-                    s.motif_decision,
+                    s.motif AS motif_decision,
                     s.motif_levee_annulation,
                     s.date_levee_annulation,
                     s.duree_jours,
                     s.duree_heures,
                     ts.libelle AS type_sanction_libelle,
-                    c.nom_classe AS nom_classe_snapshot,
+                    TRIM(CONCAT(COALESCE(c.niveau, ''), ' ', COALESCE(c.serie, ''), ' ', COALESCE(c.numero, ''))) AS nom_classe_snapshot,
                     CONCAT(u_dec.prenom, ' ', u_dec.nom) AS prononcee_par_nom,
                     CONCAT(u_lev.prenom, ' ', u_lev.nom) AS levee_par_nom,
-                    i.code AS incident_code
+                    ti.code AS incident_code
                 FROM discipline_sanctions s
                 LEFT JOIN discipline_types_sanctions ts ON ts.id = s.type_sanction_id
                 LEFT JOIN classes c ON c.id_classe = s.classe_id
-                LEFT JOIN utilisateurs u_dec ON u_dec.id_user = s.par_user_id
+                LEFT JOIN utilisateurs u_dec ON u_dec.id_user = s.prononcee_par_user_id
                 LEFT JOIN utilisateurs u_lev ON u_lev.id_user = s.par_user_id_levee_annulation
                 LEFT JOIN discipline_incidents i ON i.id = s.incident_id
+                LEFT JOIN discipline_types_incidents ti ON ti.id = i.type_incident_id
                 WHERE s.eleve_id = :eleve_id AND s.lycee_id = :lycee_id
                 ORDER BY s.date_decision DESC, s.created_at DESC
             ");
@@ -678,7 +691,7 @@ class EleveController {
         }
 
         // Permissions for additional sections
-        $canViewHistory = Auth::can('view_history', 'discipline') || Auth::can('manage_config', 'discipline') || Auth::can('view_all', 'eleve');
+        $canViewHistory = Auth::can('view_history', 'discipline') || Auth::can('view_all', 'eleve');
         $canViewDocuments = Auth::can('manage_documents', 'discipline') || Auth::can('view_history', 'discipline') || Auth::can('view_all', 'eleve');
         $canViewNotifications = Auth::can('manage_notifications', 'discipline') || Auth::can('view_history', 'discipline') || Auth::can('view_all', 'eleve');
 
@@ -695,6 +708,7 @@ class EleveController {
                   AND (
                     h.incident_id IN (SELECT incident_id FROM discipline_incident_eleves WHERE eleve_id = :eleve_id)
                     OR h.sanction_id IN (SELECT id FROM discipline_sanctions WHERE eleve_id = :eleve_id)
+                    OR h.eleve_id = :eleve_id
                   )
                 ORDER BY h.created_at DESC
             ");
@@ -709,10 +723,11 @@ class EleveController {
                 SELECT
                     n.*,
                     CONCAT(u.prenom, ' ', u.nom) AS emetteur_nom,
-                    i.code AS incident_code
+                    ti.code AS incident_code
                 FROM discipline_notifications n
-                LEFT JOIN utilisateurs u ON u.id_user = n.emetteur_user_id
+                LEFT JOIN utilisateurs u ON u.id_user = n.created_by_user_id
                 LEFT JOIN discipline_incidents i ON i.id = n.incident_id
+                LEFT JOIN discipline_types_incidents ti ON ti.id = i.type_incident_id
                 WHERE n.eleve_id = :eleve_id AND n.lycee_id = :lycee_id
                 ORDER BY n.created_at DESC
             ");
@@ -733,6 +748,7 @@ class EleveController {
                   AND (
                     d.incident_id IN (SELECT incident_id FROM discipline_incident_eleves WHERE eleve_id = :eleve_id)
                     OR d.sanction_id IN (SELECT id FROM discipline_sanctions WHERE eleve_id = :eleve_id)
+                    OR d.eleve_id = :eleve_id
                   )
                 ORDER BY d.created_at DESC
             ");

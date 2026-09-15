@@ -168,7 +168,7 @@ class DisciplinePhase51Test extends TestCase {
 
     /**
      * TEST B: Ancien rapporteur hors scope.
-     * L'enseignant B a signalé l'incident historiciquement, mais n'a AUCOU NE affectation pédagogique active dans la classe 5001 de l'élève -> ACCÈS REFUSÉ (403).
+     * L'enseignant B a signalé l'incident historiquement, mais n'a AUCUNE affectation pédagogique active dans la classe 5001 de l'élève -> ACCÈS REFUSÉ (403).
      */
     public function testTestB_FormerReporterWithoutActiveAssignmentForbidden(): void {
         $_SESSION['user'] = [
@@ -191,6 +191,37 @@ class DisciplinePhase51Test extends TestCase {
 
         $this->assertStringNotContainsString('MAT-5101', $output);
         $this->assertStringNotContainsString('INC-501-TEST', $output);
+    }
+
+    /**
+     * TEST B2: Ancien enseignant sur ancienne classe de l'élève.
+     * L'enseignant A avait un cours actif dans l'ancienne classe 5003 de l'élève l'année N-1 (annee_academique_id = 99), mais n'a AUCUNE affectation active dans la classe ACTUELLE 5003 (annee_academique_id = 1) de l'élève D -> ACCÈS REFUSÉ (403).
+     */
+    public function testTestB2_FormerClassTeacherInPreviousAcademicYearForbidden(): void {
+        // Create historical enrollment for Student D (5103) in previous academic year 99
+        self::$db->exec("INSERT INTO etudes (eleve_id, classe_id, annee_academique_id) VALUES (5103, 5001, 99)");
+
+        // Teacher A (5201) has an assignment in Class 5001 for current year 1, but Student 5103 is NOW in Class 5003 for current year 1
+        $_SESSION['user'] = [
+            'id' => self::$teacherA,
+            'lycee_id' => 501,
+            'role_name' => 'enseignant',
+            'permissions' => ['discipline:view_incidents', 'discipline:view_sanctions']
+        ];
+
+        $_GET['id'] = self::$eleveOther; // Student 5103 (currently in 5003 for year 1)
+
+        ob_start();
+        $controller = new EleveController();
+        $controller->discipline();
+        $output = ob_get_clean();
+
+        $this->assertSame(403, http_response_code());
+        $this->assertStringContainsString('Accès Refusé', $output);
+        $this->assertStringNotContainsString('MAT-5103', $output);
+
+        // Clean up temporary historical row
+        self::$db->exec("DELETE FROM etudes WHERE eleve_id = 5103 AND annee_academique_id = 99");
     }
 
     /**
