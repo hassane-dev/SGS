@@ -86,6 +86,42 @@ class DisciplineConseilMembre {
         ]);
     }
 
+    public static function updatePresence(int $conseilId, int $userId, int $estPresent): bool {
+        $db = Database::getInstance();
+
+        $stmtC = $db->prepare("SELECT statut FROM discipline_conseils WHERE id = :id");
+        $stmtC->execute([':id' => $conseilId]);
+        $statut = $stmtC->fetchColumn();
+
+        if (!$statut) {
+            throw new InvalidArgumentException("Conseil de discipline introuvable.");
+        }
+
+        if (in_array($statut, ['cloture', 'annule'], true)) {
+            throw new InvalidArgumentException("Impossible de modifier la présence d'un membre pour un conseil clôturé ou annulé.");
+        }
+
+        $stmtM = $db->prepare("SELECT COUNT(*) FROM discipline_conseil_membres WHERE conseil_id = :conseil_id AND user_id = :user_id");
+        $stmtM->execute([
+            ':conseil_id' => $conseilId,
+            ':user_id' => $userId
+        ]);
+        if ((int)$stmtM->fetchColumn() === 0) {
+            throw new InvalidArgumentException("L'utilisateur spécifié n'est pas membre de ce conseil.");
+        }
+
+        $stmt = $db->prepare("
+            UPDATE discipline_conseil_membres
+            SET est_present = :est_present
+            WHERE conseil_id = :conseil_id AND user_id = :user_id
+        ");
+        return $stmt->execute([
+            ':est_present' => $estPresent ? 1 : 0,
+            ':conseil_id' => $conseilId,
+            ':user_id' => $userId
+        ]);
+    }
+
     public static function findByConseilId(int $conseilId): array {
         $db = Database::getInstance();
         $stmt = $db->prepare("
