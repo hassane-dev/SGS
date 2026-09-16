@@ -115,11 +115,24 @@ if ($lang === 'ar') {
 }
 
 // Bind the text domain
-bindtextdomain($domain, $locale_dir);
-bind_textdomain_codeset($domain, 'UTF-8');
+if (function_exists('bindtextdomain')) {
+    bindtextdomain($domain, $locale_dir);
+}
+if (function_exists('bind_textdomain_codeset')) {
+    bind_textdomain_codeset($domain, 'UTF-8');
+}
 
 // Choose the domain
-textdomain($domain);
+if (function_exists('textdomain')) {
+    textdomain($domain);
+}
+
+// Fallback if gettext extension is missing
+if (!function_exists('gettext')) {
+    function gettext($string) {
+        return $string;
+    }
+}
 
 // 5. Create a shorthand function for translation
 if (!function_exists('_')) {

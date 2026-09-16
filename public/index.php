@@ -1,5 +1,11 @@
 <?php
 
+// Polyfill gettext fallback si l'extension n'est pas activée sur le serveur
+if (!function_exists('_')) {
+    function _(string $string): string {
+        return $string;
+    }
+}
 
 // Initialize internationalization (i18n)
 require_once __DIR__ . '/../src/core/bootstrap_i18n.php';

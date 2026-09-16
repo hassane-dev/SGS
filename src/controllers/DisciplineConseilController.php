@@ -363,6 +363,7 @@ class DisciplineConseilController {
             header('Location: /discipline/councils/show?id=' . $councilId);
             exit();
         }
+    }
 
     public function updateMemberPresence(): void {
         $lyceeId = $this->checkManageAccess();
@@ -506,7 +507,6 @@ class DisciplineConseilController {
 
         header('Location: /discipline/councils/show?id=' . $conseilId);
         exit;
-    }
     }
 
     public function addMembre() {
