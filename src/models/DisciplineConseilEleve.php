@@ -2,8 +2,188 @@
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
+require_once __DIR__ . '/../models/DisciplineSanction.php';
+require_once __DIR__ . '/../models/DisciplineHistorique.php';
 
 class DisciplineConseilEleve {
+
+    public static function recordDecision(int $conseilId, int $eleveId, array $data): bool {
+        $db = Database::getInstance();
+
+        // 1. Fetch Council & verify status is 'delibere'
+        $stmtC = $db->prepare("SELECT * FROM discipline_conseils WHERE id = :id");
+        $stmtC->execute([':id' => $conseilId]);
+        $conseil = $stmtC->fetch(PDO::FETCH_ASSOC);
+
+        if (!$conseil) {
+            throw new InvalidArgumentException("Conseil de discipline introuvable.");
+        }
+
+        if ($conseil['statut'] !== 'delibere') {
+            throw new InvalidArgumentException("Les décisions ne peuvent être enregistrées que lorsque le conseil est en statut 'En délibération'.");
+        }
+
+        // 2. Verify student convocation in council
+        $stmtCE = $db->prepare("SELECT * FROM discipline_conseil_eleves WHERE conseil_id = :conseil_id AND eleve_id = :eleve_id");
+        $stmtCE->execute([':conseil_id' => $conseilId, ':eleve_id' => $eleveId]);
+        $convocation = $stmtCE->fetch(PDO::FETCH_ASSOC);
+
+        if (!$convocation) {
+            throw new InvalidArgumentException("L'élève spécifié n'est pas convoqué à ce conseil.");
+        }
+
+        // 3. Extract & validate decision parameters
+        $decisionStatut = trim($data['decision_statut'] ?? '');
+        $allowedStatuts = ['en_attente', 'relaxe', 'averti', 'reoriente', 'sanctionne'];
+        if (!in_array($decisionStatut, $allowedStatuts, true)) {
+            throw new InvalidArgumentException("Statut de décision invalide.");
+        }
+
+        $votesPour = isset($data['votes_pour']) ? (int)$data['votes_pour'] : 0;
+        $votesContre = isset($data['votes_contre']) ? (int)$data['votes_contre'] : 0;
+        $abstentions = isset($data['abstentions']) ? (int)$data['abstentions'] : 0;
+        $motivation = isset($data['motivation_decision']) ? trim($data['motivation_decision']) : '';
+
+        // Voting validation
+        $totalVotes = $votesPour + $votesContre + $abstentions;
+        if ($decisionStatut !== 'en_attente' && $totalVotes <= 0) {
+            throw new InvalidArgumentException("Un vote préalable des membres est obligatoire avant de valider une décision.");
+        }
+
+        // Majority rule for 'sanctionne': votes_pour > votes_contre
+        if ($decisionStatut === 'sanctionne' && $votesPour <= $votesContre) {
+            throw new InvalidArgumentException("Une décision de sanction exige la majorité simple des votes pour (pour > contre).");
+        }
+
+        // Motivation is mandatory except when 'en_attente'
+        if ($decisionStatut !== 'en_attente' && empty($motivation)) {
+            throw new InvalidArgumentException("La motivation de la décision est obligatoire.");
+        }
+
+        // 4. Begin SQL Transaction for atomicity
+        $db->beginTransaction();
+
+        try {
+            $sanctionId = $convocation['sanction_id'] ? (int)$convocation['sanction_id'] : null;
+
+            if ($decisionStatut === 'sanctionne') {
+                $typeSanctionId = isset($data['type_sanction_id']) ? (int)$data['type_sanction_id'] : 0;
+                if ($typeSanctionId <= 0) {
+                    throw new InvalidArgumentException("Le type de sanction est obligatoire pour une décision 'sanctionné'.");
+                }
+
+                // Verify type_sanction belongs to same lycee_id & is active
+                $typeSanction = DisciplineTypeSanction::findById($typeSanctionId, $conseil['lycee_id']);
+                if (!$typeSanction || (int)$typeSanction['actif'] !== 1) {
+                    throw new InvalidArgumentException("Type de sanction introuvable, inactif ou invalide.");
+                }
+
+                // IDEMPOTENCY: create sanction only if sanction_id not already set
+                if (!$sanctionId) {
+                    // Check if an associated incident exists for this council & student
+                    $stmtInc = $db->prepare("
+                        SELECT incident_id
+                        FROM discipline_conseil_incidents
+                        WHERE conseil_id = :conseil_id AND eleve_id = :eleve_id
+                        LIMIT 1
+                    ");
+                    $stmtInc->execute([':conseil_id' => $conseilId, ':eleve_id' => $eleveId]);
+                    $incidentId = $stmtInc->fetchColumn() ?: null;
+
+                    $savedUserId = Auth::getUserId();
+                    $savedLyceeId = Auth::getLyceeId();
+
+                    // Ensure Auth has valid context during creation
+                    Auth::setSessionContext([
+                        'id_user' => $conseil['president_user_id'],
+                        'lycee_id' => $conseil['lycee_id'],
+                    ]);
+
+                    try {
+                        $sanctionData = [
+                            'eleve_id' => $eleveId,
+                            'classe_id' => (int)$convocation['classe_id'],
+                            'type_sanction_id' => $typeSanctionId,
+                            'motif' => $motivation,
+                            'date_decision' => $conseil['date_conseil'],
+                            'annee_academique_id' => $conseil['annee_academique_id'],
+                            'incident_id' => $incidentId,
+                            'duree_jours' => $data['duree_jours'] ?? null,
+                            'duree_heures' => $data['duree_heures'] ?? null,
+                            'date_debut_execution' => $data['date_debut_execution'] ?? null,
+                            'date_fin_execution' => $data['date_fin_execution'] ?? null,
+                            'details' => $data['details'] ?? null,
+                        ];
+
+                        $sanctionId = DisciplineSanction::create($sanctionData);
+                    } finally {
+                        if ($savedUserId && $savedLyceeId) {
+                            Auth::setSessionContext([
+                                'id_user' => $savedUserId,
+                                'lycee_id' => $savedLyceeId,
+                            ]);
+                        }
+                    }
+
+                    // Explicit trace for sanction creation from council
+                    DisciplineHistorique::log([
+                        'lycee_id' => $conseil['lycee_id'],
+                        'user_id' => Auth::getUserId() ?: $conseil['president_user_id'],
+                        'annee_academique_id' => $conseil['annee_academique_id'],
+                        'sanction_id' => $sanctionId,
+                        'eleve_id' => $eleveId,
+                        'action' => 'SANCTION_ISSUE_CONSEIL',
+                        'statut_apres' => 'prononcee',
+                        'description' => "Sanction #{$sanctionId} prononcée suite au Conseil de discipline {$conseil['code']}."
+                    ]);
+                }
+            }
+
+            // Update convocation record in discipline_conseil_eleves
+            $stmtUpd = $db->prepare("
+                UPDATE discipline_conseil_eleves
+                SET
+                    decision_statut = :decision_statut,
+                    motivation_decision = :motivation,
+                    votes_pour = :votes_pour,
+                    votes_contre = :votes_contre,
+                    abstentions = :abstentions,
+                    sanction_id = :sanction_id
+                WHERE conseil_id = :conseil_id AND eleve_id = :eleve_id
+            ");
+
+            $stmtUpd->execute([
+                ':decision_statut' => $decisionStatut,
+                ':motivation' => $motivation,
+                ':votes_pour' => $votesPour,
+                ':votes_contre' => $votesContre,
+                ':abstentions' => $abstentions,
+                ':sanction_id' => $sanctionId,
+                ':conseil_id' => $conseilId,
+                ':eleve_id' => $eleveId,
+            ]);
+
+            // Log decision in discipline_historique
+            DisciplineHistorique::log([
+                'lycee_id' => $conseil['lycee_id'],
+                'user_id' => Auth::getUserId() ?: $conseil['president_user_id'],
+                'annee_academique_id' => $conseil['annee_academique_id'],
+                'eleve_id' => $eleveId,
+                'action' => 'DECISION_CONSEIL',
+                'statut_avant' => $convocation['decision_statut'],
+                'statut_apres' => $decisionStatut,
+                'description' => "Décision '{$decisionStatut}' enregistrée pour l'élève ID {$eleveId} lors du Conseil {$conseil['code']} (Pour: {$votesPour}, Contre: {$votesContre}, Abs: {$abstentions})."
+            ]);
+
+            $db->commit();
+            return true;
+        } catch (Exception $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            throw $e;
+        }
+    }
 
     public static function addEleve(array $data): int {
         $db = Database::getInstance();

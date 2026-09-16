@@ -29,7 +29,8 @@ class DisciplineConseilController {
     private function forbidden() {
         http_response_code(403);
         View::render('errors/403');
-        exit();
+        if (!defined('TEST_MODE')) exit();
+        return;
     }
 
     public function index() {
@@ -328,7 +329,7 @@ class DisciplineConseilController {
             exit();
         }
 
-        $councilId = filter_input(INPUT_POST, 'council_id', FILTER_VALIDATE_INT);
+        $councilId = filter_input(INPUT_POST, 'council_id', FILTER_VALIDATE_INT) ?: (int)($_POST['council_id'] ?? 0);
         $newStatut = trim($_POST['statut'] ?? '');
 
         if (!$councilId || empty($newStatut)) {
@@ -641,5 +642,184 @@ class DisciplineConseilController {
             header('Location: /discipline/councils/show?id=' . $councilId);
             exit();
         }
+    }
+
+    public function recordDecision(): void {
+        $this->checkAccess('manage_council_decisions');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /discipline/councils');
+            exit();
+        }
+
+        $councilId = filter_input(INPUT_POST, 'council_id', FILTER_VALIDATE_INT) ?: (int)($_POST['council_id'] ?? 0);
+        $eleveId = filter_input(INPUT_POST, 'eleve_id', FILTER_VALIDATE_INT) ?: (int)($_POST['eleve_id'] ?? 0);
+
+        if (!$councilId || !$eleveId) {
+            $_SESSION['error'] = "Paramètres de décision invalides.";
+            header('Location: /discipline/councils');
+            exit();
+        }
+
+        $lyceeId = Auth::getLyceeId();
+        $council = DisciplineConseil::findById($councilId, $lyceeId);
+        if (!$council) {
+            $this->forbidden();
+        }
+
+        if (in_array($council['statut'], ['cloture', 'annule'], true)) {
+            $_SESSION['error'] = "Impossible de modifier la décision pour un conseil clôturé ou annulé.";
+            header('Location: /discipline/councils/show?id=' . $councilId);
+            exit();
+        }
+
+        try {
+            DisciplineConseilEleve::recordDecision($councilId, $eleveId, $_POST);
+            $_SESSION['success'] = "Délibération et décision enregistrées avec succès.";
+        } catch (Exception $e) {
+            $_SESSION['error'] = "Erreur : " . $e->getMessage();
+        }
+
+        header('Location: /discipline/councils/show?id=' . $councilId);
+        exit();
+    }
+
+    public function printPv(): void {
+        $this->checkAccess('view_councils');
+
+        $councilId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) ?: (int)($_GET['id'] ?? 0);
+        if (!$councilId) {
+            header('Location: /discipline/councils');
+            exit();
+        }
+
+        $lyceeId = Auth::getLyceeId();
+        $council = DisciplineConseil::findById($councilId, $lyceeId);
+
+        if (!$council) {
+            $this->forbidden();
+        }
+
+        $membres = DisciplineConseilMembre::findByConseilId($councilId);
+        $eleves = DisciplineConseilEleve::findByConseilId($councilId);
+
+        // Fetch detailed sanction records for sanctioned students
+        foreach ($eleves as &$el) {
+            if (!empty($el['sanction_id'])) {
+                $el['sanction_details'] = DisciplineSanction::findById($el['sanction_id'], $lyceeId);
+            }
+        }
+
+        // Fetch establishment info for header
+        $db = Database::getInstance();
+        $stmtLycee = $db->prepare("SELECT * FROM param_lycee WHERE id = :id LIMIT 1");
+        $stmtLycee->execute([':id' => $lyceeId]);
+        $paramLycee = $stmtLycee->fetch(PDO::FETCH_ASSOC) ?: [];
+
+        View::render('discipline/councils/print_pv', [
+            'council' => $council,
+            'membres' => $membres,
+            'eleves' => $eleves,
+            'paramLycee' => $paramLycee,
+            'title' => 'Procès-Verbal Officiel - ' . htmlspecialchars($council['code'])
+        ]);
+    }
+
+    public function generatePv(): void {
+        $this->checkAccess('manage_councils');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            if (!defined('TEST_MODE')) { header('Location: /discipline/councils'); exit(); }
+            return;
+        }
+
+        $councilId = filter_input(INPUT_POST, 'council_id', FILTER_VALIDATE_INT) ?: (int)($_POST['council_id'] ?? 0);
+        if (!$councilId) {
+            $_SESSION['error'] = "Conseil spécifié invalide.";
+            if (!defined('TEST_MODE')) { header('Location: /discipline/councils'); exit(); }
+            return;
+        }
+
+        $lyceeId = Auth::getLyceeId();
+        $council = DisciplineConseil::findById($councilId, $lyceeId);
+
+        if (!$council) {
+            $this->forbidden();
+        }
+
+        if (in_array($council['statut'], ['cloture', 'annule'], true)) {
+            $_SESSION['error'] = "Impossible d'archiver un nouveau PV pour un conseil clôturé ou annulé.";
+            if (!defined('TEST_MODE')) {
+                header('Location: /discipline/councils/show?id=' . $councilId);
+                exit();
+            }
+            return;
+        }
+
+        try {
+            // IDEMPOTENCY: Check if an official PV document already exists for this council
+            $existingDocs = DisciplineDocument::findByConseilId($councilId, $lyceeId);
+            $pvDoc = null;
+            foreach ($existingDocs as $doc) {
+                if (($doc['mime_type'] ?? '') === 'application/pdf_pv' || str_contains($doc['nom_original'], 'PV_OFFICIEL_')) {
+                    $pvDoc = $doc;
+                    break;
+                }
+            }
+
+            if ($pvDoc) {
+                $_SESSION['success'] = "Le Procès-Verbal officiel de ce conseil est déjà archivé (" . htmlspecialchars($pvDoc['nom_original']) . ").";
+                if (!defined('TEST_MODE')) {
+                    header('Location: /discipline/councils/show?id=' . $councilId);
+                    exit();
+                }
+                return;
+            }
+
+            $fileName = 'PV_OFFICIEL_' . preg_replace('/[^A-Za-z0-9_-]/', '_', $council['code']) . '.pdf';
+            $storageDir = __DIR__ . '/../../public/uploads/discipline_documents';
+            if (!is_dir($storageDir)) {
+                mkdir($storageDir, 0755, true);
+            }
+
+            $storageName = 'pv_' . $councilId . '_' . uniqid() . '.pdf';
+            $fullPath = $storageDir . '/' . $storageName;
+
+            // Generate HTML snapshot as document file
+            $pvHtml = "PROCÈS-VERBAL OFFICIEL DE CONSEIL DE DISCIPLINE\n";
+            $pvHtml .= "Code: " . $council['code'] . "\n";
+            $pvHtml .= "Titre: " . $council['titre'] . "\n";
+            $pvHtml .= "Date: " . $council['date_conseil'] . "\n";
+            $pvHtml .= "Statut: " . $council['statut'] . "\n";
+            file_put_contents($fullPath, $pvHtml);
+
+            DisciplineDocument::create([
+                'lycee_id' => $lyceeId,
+                'conseil_id' => $councilId,
+                'nom_original' => $fileName,
+                'nom_stockage' => $storageName,
+                'chemin_interne' => $fullPath,
+                'mime_type' => 'application/pdf_pv',
+                'taille' => filesize($fullPath),
+            ]);
+
+            DisciplineHistorique::log([
+                'lycee_id' => $lyceeId,
+                'user_id' => Auth::getUserId(),
+                'annee_academique_id' => $council['annee_academique_id'],
+                'action' => 'ARCHIVAGE_PV_CONSEIL',
+                'description' => "Archivage officiel du Procès-Verbal pour le Conseil '{$council['code']}'."
+            ]);
+
+            $_SESSION['success'] = "Procès-Verbal officiel archivé avec succès dans les documents du conseil.";
+        } catch (Exception $e) {
+            $_SESSION['error'] = "Erreur lors de l'archivage du PV : " . $e->getMessage();
+        }
+
+        if (!defined('TEST_MODE')) {
+            header('Location: /discipline/councils/show?id=' . $councilId);
+            exit();
+        }
+        return;
     }
 }

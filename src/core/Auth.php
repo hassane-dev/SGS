@@ -188,6 +188,17 @@ class Auth {
     }
 
     /**
+     * Set session context for background testing or automated operations.
+     */
+    public static function setSessionContext(array $userData): void {
+        self::startSession();
+        $_SESSION['user'] = array_merge($_SESSION['user'] ?? [], $userData);
+        if (isset($userData['id_user'])) {
+            $_SESSION['user']['id'] = $userData['id_user'];
+        }
+    }
+
+    /**
      * Enforce permission check. If user lacks permission, return 403 Forbidden.
      * @param string $resource
      * @param string $action

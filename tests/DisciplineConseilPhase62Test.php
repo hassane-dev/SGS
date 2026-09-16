@@ -35,13 +35,13 @@ class DisciplineConseilPhase62Test {
         $db = Database::getInstance();
 
         // 1. Active Academic Year
-        $stmtYear = $db->prepare("SELECT id FROM annees_academiques WHERE lycee_id = :lycee_id AND est_active = 1 LIMIT 1");
-        $stmtYear->execute([':lycee_id' => $lyceeId]);
+        $stmtYear = $db->prepare("SELECT id FROM annees_academiques WHERE est_active = 1 LIMIT 1");
+        $stmtYear->execute();
         $anneeId = $stmtYear->fetchColumn();
 
         if (!$anneeId) {
-            $stmtInsYear = $db->prepare("INSERT INTO annees_academiques (lycee_id, libelle, date_debut, date_fin, est_active) VALUES (:lycee_id, '2025-2026', '2025-09-01', '2026-06-30', 1)");
-            $stmtInsYear->execute([':lycee_id' => $lyceeId]);
+            $stmtInsYear = $db->prepare("INSERT INTO annees_academiques (libelle, date_debut, date_fin, est_active) VALUES ('2025-2026', '2025-09-01', '2026-06-30', 1)");
+            $stmtInsYear->execute();
             $anneeId = (int)$db->lastInsertId();
         }
 
@@ -51,16 +51,25 @@ class DisciplineConseilPhase62Test {
         $classeId = $stmtClass->fetchColumn();
 
         if (!$classeId) {
-            $stmtInsClass = $db->prepare("INSERT INTO classes (lycee_id, nom, mef, niveau, serie, numero) VALUES (:lycee_id, 'Terminales A', 'MEF1', 'Terminales', 'A', '1')");
+            $stmtInsClass = $db->prepare("INSERT INTO classes (lycee_id, cycle_id, niveau, serie, numero) VALUES (:lycee_id, 2, 'Terminales', 'A', '1')");
             $stmtInsClass->execute([':lycee_id' => $lyceeId]);
             $classeId = (int)$db->lastInsertId();
         }
 
         // 3. User (Staff)
         $uniq = rand(1000, 9999);
-        $stmtInsUser = $db->prepare("INSERT INTO utilisateurs (lycee_id, identifiant, nom, prenom, role_id, fonction, actif) VALUES (:lycee_id, :ident, 'Prof', 'Test', 6, 'Enseignant', 1)");
-        $stmtInsUser->execute([':lycee_id' => $lyceeId, ':ident' => 'prof_' . $uniq]);
+        $stmtInsUser = $db->prepare("INSERT INTO utilisateurs (lycee_id, nom, prenom, email, role_id, fonction, actif) VALUES (:lycee_id, 'Prof', 'Test', :email, 6, 'Enseignant', 1)");
+        $stmtInsUser->execute([':lycee_id' => $lyceeId, ':email' => 'prof_' . $uniq . '@test.ci']);
         $userId = (int)$db->lastInsertId();
+
+        Auth::setSessionContext([
+            'id_user' => $userId,
+            'lycee_id' => $lyceeId,
+            'role_id' => 1,
+            'permissions' => [
+                'discipline' => ['view_councils', 'manage_councils', 'manage_council_decisions', 'report_incident', 'manage_incident']
+            ],
+        ]);
 
         // 4. Student
         $stmtInsEleve = $db->prepare("INSERT INTO eleves (lycee_id, nom, prenom, identifiant_public, statut) VALUES (:lycee_id, 'Doe', 'John', :ident, 'actif')");
@@ -68,8 +77,8 @@ class DisciplineConseilPhase62Test {
         $eleveId = (int)$db->lastInsertId();
 
         // Enroll Student in Etudes
-        $stmtInsEtude = $db->prepare("INSERT INTO etudes (eleve_id, classe_id, annee_academique_id, statut) VALUES (:eleve_id, :classe_id, :annee_id, 'actif')");
-        $stmtInsEtude->execute([':eleve_id' => $eleveId, ':classe_id' => $classeId, ':annee_id' => $anneeId]);
+        $stmtInsEtude = $db->prepare("INSERT INTO etudes (eleve_id, classe_id, lycee_id, annee_academique_id, status, is_active) VALUES (:eleve_id, :classe_id, :lycee_id, :annee_id, 'actif', 1)");
+        $stmtInsEtude->execute([':eleve_id' => $eleveId, ':classe_id' => $classeId, ':lycee_id' => $lyceeId, ':annee_id' => $anneeId]);
 
         // 5. Incident Type
         $stmtType = $db->prepare("SELECT id FROM discipline_types_incidents WHERE lycee_id = :lycee_id LIMIT 1");
@@ -77,13 +86,14 @@ class DisciplineConseilPhase62Test {
         $typeIncId = $stmtType->fetchColumn();
 
         if (!$typeIncId) {
-            $typeIncId = DisciplineTypeIncident::create([
-                'lycee_id' => $lyceeId,
+            DisciplineTypeIncident::save([
                 'code' => 'INC_' . $uniq,
                 'libelle' => 'Bagarre grave',
                 'niveau_gravite' => 'tres_grave',
                 'actif' => 1,
             ]);
+            $incRec = DisciplineTypeIncident::findByCode('INC_' . $uniq, $lyceeId);
+            $typeIncId = (int)$incRec['id'];
         }
 
         // 6. Create Incident
@@ -97,12 +107,11 @@ class DisciplineConseilPhase62Test {
             'description_faits' => 'Bagarre entre deux élèves',
             'statut' => 'signale',
             'signale_par_user_id' => $userId,
-            'eleves' => [
-                [
-                    'eleve_id' => $eleveId,
-                    'role_eleve' => 'auteur_principal',
-                    'observation' => 'Auteur de la bagarre'
-                ]
+        ], [
+            [
+                'eleve_id' => $eleveId,
+                'role_eleve' => 'auteur_principal',
+                'observation' => 'Auteur de la bagarre'
             ]
         ]);
 
@@ -149,7 +158,10 @@ class DisciplineConseilPhase62Test {
             throw new Exception("Le membre aurait dû être marqué présent (1).");
         }
 
-        // 2. Lock council (cloture) and attempt update
+        // 2. Lock council (transition planifie -> convoque -> en_session -> delibere -> cloture) and attempt update
+        DisciplineConseil::updateStatus($conseilId, 'convoque', $ctx['lycee_id']);
+        DisciplineConseil::updateStatus($conseilId, 'en_session', $ctx['lycee_id']);
+        DisciplineConseil::updateStatus($conseilId, 'delibere', $ctx['lycee_id']);
         DisciplineConseil::updateStatus($conseilId, 'cloture', $ctx['lycee_id']);
 
         try {
@@ -235,6 +247,7 @@ class DisciplineConseilPhase62Test {
         DisciplineConseilEleve::addEleve([
             'conseil_id' => $conseilId,
             'eleve_id' => $ctx['eleve_id'],
+            'motif_convocation' => 'Motif convocation test',
         ]);
 
         DisciplineConseilEleve::linkIncident($conseilId, $ctx['incident_id'], $ctx['eleve_id']);
@@ -296,7 +309,7 @@ class DisciplineConseilPhase62Test {
         $_POST['id'] = $conseilId;
         $_POST['statut'] = 'convoque';
 
-        Auth::login(['id_user' => $ctx['user_id'], 'lycee_id' => $ctx['lycee_id'], 'role_id' => 1, 'permissions' => ['discipline:view_councils', 'discipline:manage_councils']]);
+        Auth::setSessionContext(['id_user' => $ctx['user_id'], 'lycee_id' => $ctx['lycee_id'], 'role_id' => 1, 'permissions' => ['discipline' => ['view_councils', 'manage_councils']]]);
 
         // Execute status update logic
         $ctrl = new DisciplineConseilController();

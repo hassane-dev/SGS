@@ -132,7 +132,7 @@ class DisciplineTypeIncident {
                         libelle = :libelle,
                         niveau_gravite = :niveau_gravite,
                         actif = :actif,
-                        updated_at = NOW()
+                        updated_at = CURRENT_TIMESTAMP
                     WHERE id = :id AND lycee_id = :lycee_id";
             $params = [
                 'code' => $code,
@@ -149,7 +149,7 @@ class DisciplineTypeIncident {
             }
 
             $sql = "INSERT INTO discipline_types_incidents (lycee_id, code, libelle, niveau_gravite, actif, created_at, updated_at)
-                    VALUES (:lycee_id, :code, :libelle, :niveau_gravite, :actif, NOW(), NOW())";
+                    VALUES (:lycee_id, :code, :libelle, :niveau_gravite, :actif, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
             $params = [
                 'lycee_id' => $lycee_id,
                 'code' => $code,
@@ -175,7 +175,7 @@ class DisciplineTypeIncident {
             return false;
         }
 
-        $sql = "UPDATE discipline_types_incidents SET actif = 1 - actif, updated_at = NOW() WHERE id = :id AND lycee_id = :lycee_id";
+        $sql = "UPDATE discipline_types_incidents SET actif = 1 - actif, updated_at = CURRENT_TIMESTAMP WHERE id = :id AND lycee_id = :lycee_id";
         try {
             $stmt = $db->prepare($sql);
             return $stmt->execute(['id' => $id, 'lycee_id' => $lycee_id]);
