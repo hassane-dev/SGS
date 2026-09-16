@@ -111,10 +111,16 @@ $navItems = [
                 'condition' => Auth::get('role_name') === 'enseignant' || Auth::can('view_all', 'cahier_texte') || Auth::can('manage', 'cahier_texte'),
             ],
             [
+                'url' => '/evaluations/dashboard',
+                'text' => _('Tableau de bord des notes'),
+                'title' => _('Consulter les statistiques, complétude et synthèses académiques des notes.'),
+                'condition' => Auth::can('view_all', 'note') || Auth::can('create_own', 'note') || Auth::can('generate', 'bulletin'),
+            ],
+            [
                 'url' => '/evaluations/select_class',
                 'text' => _('Notes'),
                 'title' => _('Saisir et consulter les notes des élèves.'),
-                'condition' => Auth::can('view_all', 'note'),
+                'condition' => Auth::can('view_all', 'note') || Auth::can('create_own', 'note'),
             ],
             [
                 'url' => '/evaluations/types',
