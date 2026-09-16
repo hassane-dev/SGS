@@ -1,6 +1,6 @@
 <?php
 /**
- * Vue : Fiche Détillée d'un Conseil de Discipline (Phase 6.1)
+ * Vue : Fiche Détillée d'un Conseil de Discipline (Phase 6.1, 6.2 & 6.4)
  */
 require_once __DIR__ . '/../../layouts/header_able.php';
 require_once __DIR__ . '/../../layouts/sidebar_able.php';
@@ -32,6 +32,7 @@ $roleLabels = [
 ];
 
 $isEditable = !in_array($council['statut'], ['cloture', 'annule'], true);
+$activeSanctionTypes = $activeSanctionTypes ?? [];
 ?>
 
 <!-- [ Main Content ] start -->
@@ -101,7 +102,7 @@ $isEditable = !in_array($council['statut'], ['cloture', 'annule'], true);
                 </div>
 
                 <!-- Barre d'Actions / Transitions de Statut pour les Gestionnaires -->
-                <?php if ($canManage && $isEditable): ?>
+                <?php if ($canManage): ?>
                     <div class="border-top mt-3 pt-3 d-flex justify-content-between align-items-center">
                         <div>
                             <span class="text-muted fs-7 fw-semibold me-2">Actions de Session :</span>
@@ -109,7 +110,7 @@ $isEditable = !in_array($council['statut'], ['cloture', 'annule'], true);
                                 <form method="POST" action="/discipline/councils/update-status" class="d-inline">
                                     <input type="hidden" name="council_id" value="<?= $council['id'] ?>">
                                     <input type="hidden" name="statut" value="convoque">
-                                    <button type="submit" class="btn btn-sm btn-info text-white">
+                                    <button type="submit" class="btn btn-sm btn-info text-white me-1">
                                         <i class="ph-duotone ph-paper-plane me-1"></i>Émettre Convocations (Convoquer)
                                     </button>
                                 </form>
@@ -117,22 +118,54 @@ $isEditable = !in_array($council['statut'], ['cloture', 'annule'], true);
                                 <form method="POST" action="/discipline/councils/update-status" class="d-inline">
                                     <input type="hidden" name="council_id" value="<?= $council['id'] ?>">
                                     <input type="hidden" name="statut" value="en_session">
-                                    <button type="submit" class="btn btn-sm btn-primary">
+                                    <button type="submit" class="btn btn-sm btn-primary me-1">
                                         <i class="ph-duotone ph-play me-1"></i>Ouvrir la Séance (En session)
+                                    </button>
+                                </form>
+                            <?php elseif ($council['statut'] === 'en_session'): ?>
+                                <form method="POST" action="/discipline/councils/update-status" class="d-inline">
+                                    <input type="hidden" name="council_id" value="<?= $council['id'] ?>">
+                                    <input type="hidden" name="statut" value="delibere">
+                                    <button type="submit" class="btn btn-sm me-1 text-white" style="background-color: #6f42c1;">
+                                        <i class="ph-duotone ph-gavel me-1"></i>Passer en Délibération
+                                    </button>
+                                </form>
+                            <?php elseif ($council['statut'] === 'delibere'): ?>
+                                <form method="POST" action="/discipline/councils/update-status" class="d-inline" onsubmit="return confirm('Clôturer définitivement la séance ? Aucune modification ultérieure ne sera permise.');">
+                                    <input type="hidden" name="council_id" value="<?= $council['id'] ?>">
+                                    <input type="hidden" name="statut" value="cloture">
+                                    <button type="submit" class="btn btn-sm btn-success me-1">
+                                        <i class="ph-duotone ph-lock-key me-1"></i>Clôturer le Conseil
+                                    </button>
+                                </form>
+                            <?php endif; ?>
+
+                            <!-- PV Buttons (Preview & Generate) -->
+                            <a href="/discipline/councils/print-pv?id=<?= $council['id'] ?>" target="_blank" class="btn btn-sm btn-outline-dark me-1">
+                                <i class="ph-duotone ph-printer me-1"></i>Aperçu / Imprimer PV
+                            </a>
+
+                            <?php if ($council['statut'] !== 'cloture' && $council['statut'] !== 'annule'): ?>
+                                <form method="POST" action="/discipline/councils/generate-pv" class="d-inline">
+                                    <input type="hidden" name="council_id" value="<?= $council['id'] ?>">
+                                    <button type="submit" class="btn btn-sm btn-outline-success me-1" title="Archiver officiellement le PV">
+                                        <i class="ph-duotone ph-file-arrow-up me-1"></i>Archiver PV Officiel
                                     </button>
                                 </form>
                             <?php endif; ?>
                         </div>
 
-                        <div>
-                            <form method="POST" action="/discipline/councils/update-status" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ce conseil de discipline ?');">
-                                <input type="hidden" name="council_id" value="<?= $council['id'] ?>">
-                                <input type="hidden" name="statut" value="annule">
-                                <button type="submit" class="btn btn-sm btn-outline-danger">
-                                    <i class="ph-duotone ph-x-circle me-1"></i>Annuler le Conseil
-                                </button>
-                            </form>
-                        </div>
+                        <?php if ($isEditable): ?>
+                            <div>
+                                <form method="POST" action="/discipline/councils/update-status" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ce conseil de discipline ?');">
+                                    <input type="hidden" name="council_id" value="<?= $council['id'] ?>">
+                                    <input type="hidden" name="statut" value="annule">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="ph-duotone ph-x-circle me-1"></i>Annuler le Conseil
+                                    </button>
+                                </form>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
             </div>
@@ -231,12 +264,52 @@ $isEditable = !in_array($council['statut'], ['cloture', 'annule'], true);
                                                 <strong class="fs-6 text-dark d-block"><?= htmlspecialchars($el['eleve_nom_complet']) ?></strong>
                                                 <small class="text-muted">Matricule : <?= htmlspecialchars($el['eleve_matricule']) ?> &bull; Classe : <span class="badge bg-light-primary text-primary"><?= htmlspecialchars($el['nom_classe_snapshot']) ?></span></small>
                                             </div>
-                                            <span class="badge bg-light-warning text-warning fw-bold"><?= ucfirst(str_replace('_', ' ', $el['decision_statut'])) ?></span>
+                                            <div>
+                                                <?php
+                                                $st = $el['decision_statut'];
+                                                $badgeClass = match($st) {
+                                                    'sanctionne' => 'bg-light-danger text-danger',
+                                                    'relaxe' => 'bg-light-success text-success',
+                                                    'averti' => 'bg-light-warning text-warning',
+                                                    'reoriente' => 'bg-light-info text-info',
+                                                    default => 'bg-light-secondary text-secondary'
+                                                };
+                                                ?>
+                                                <span class="badge <?= $badgeClass ?> fw-bold fs-7"><?= ucfirst(str_replace('_', ' ', $st)) ?></span>
+                                            </div>
                                         </div>
 
                                         <p class="mb-2 fs-7 text-muted bg-light p-2 rounded">
                                             <strong>Motif Convocation :</strong> <?= htmlspecialchars($el['motif_convocation']) ?>
                                         </p>
+
+                                        <!-- Détails de la Délibération & Votes si décision saisie -->
+                                        <?php if ($el['decision_statut'] !== 'en_attente'): ?>
+                                            <div class="p-2 mb-2 rounded border bg-white fs-8">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="fw-bold text-dark"><i class="ph-duotone ph-check-square me-1 text-primary"></i>Délibération du Conseil :</span>
+                                                    <small class="text-muted">Votes: <strong class="text-success"><?= (int)$el['votes_pour'] ?> Pour</strong> / <strong class="text-danger"><?= (int)$el['votes_contre'] ?> Contre</strong> / <strong><?= (int)$el['abstentions'] ?> Abs.</strong></small>
+                                                </div>
+                                                <div class="text-muted italic mb-1">
+                                                    <strong>Motivation :</strong> <?= htmlspecialchars($el['motivation_decision'] ?? 'Non renseignée') ?>
+                                                </div>
+                                                <?php if (!empty($el['sanction_id'])): ?>
+                                                    <div class="mt-1">
+                                                        <a href="/discipline/sanctions/show?id=<?= $el['sanction_id'] ?>" class="btn btn-xs btn-outline-danger py-0 px-2" target="_blank">
+                                                            <i class="ph-duotone ph-warning-circle me-1"></i>Voir Sanction Prononcée #<?= $el['sanction_id'] ?>
+                                                        </a>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endif; ?>
+
+                                        <?php if (!empty($canManageDecisions) && $council['statut'] === 'delibere'): ?>
+                                            <div class="mt-2 text-end">
+                                                <button type="button" class="btn btn-xs btn-primary" data-bs-toggle="modal" data-bs-target="#modalRecordDecision_<?= $el['eleve_id'] ?>">
+                                                    <i class="ph-duotone ph-gavel me-1"></i>Enregistrer Délibération / Décision
+                                                </button>
+                                            </div>
+                                        <?php endif; ?>
 
                                         <!-- Incidents Rattachés à cet Élève -->
                                         <div class="mb-2">
@@ -354,6 +427,104 @@ $isEditable = !in_array($council['statut'], ['cloture', 'annule'], true);
             </div>
         </div>
     </div>
+
+    <!-- Modals Prise de Décision / Délibération pour chaque élève -->
+    <?php if (!empty($canManageDecisions) && $council['statut'] === 'delibere'): ?>
+        <?php foreach ($eleves as $el): ?>
+            <div class="modal fade" id="modalRecordDecision_<?= $el['eleve_id'] ?>" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <form method="POST" action="/discipline/councils/record-decision">
+                            <input type="hidden" name="council_id" value="<?= $council['id'] ?>">
+                            <input type="hidden" name="eleve_id" value="<?= $el['eleve_id'] ?>">
+
+                            <div class="modal-header bg-light">
+                                <h5 class="modal-title"><i class="ph-duotone ph-gavel me-2 text-primary"></i>Délibération & Décision pour <?= htmlspecialchars($el['eleve_nom_complet']) ?></h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Décision du Conseil <span class="text-danger">*</span></label>
+                                        <select name="decision_statut" class="form-select" id="select_decision_<?= $el['eleve_id'] ?>" onchange="toggleSanctionFields(<?= $el['eleve_id'] ?>)" required>
+                                            <option value="en_attente" <?= $el['decision_statut'] === 'en_attente' ? 'selected' : '' ?>>En attente</option>
+                                            <option value="relaxe" <?= $el['decision_statut'] === 'relaxe' ? 'selected' : '' ?>>Relaxé / Non lieu</option>
+                                            <option value="averti" <?= $el['decision_statut'] === 'averti' ? 'selected' : '' ?>>Avertissement / Mise en garde</option>
+                                            <option value="reoriente" <?= $el['decision_statut'] === 'reoriente' ? 'selected' : '' ?>>Réorientation</option>
+                                            <option value="sanctionne" <?= $el['decision_statut'] === 'sanctionne' ? 'selected' : '' ?>>Sanctionné (Prononcer une sanction)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Décompte des Votes du Conseil</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light-success text-success">Pour</span>
+                                            <input type="number" name="votes_pour" class="form-control" value="<?= (int)$el['votes_pour'] ?>" min="0" required>
+                                            <span class="input-group-text bg-light-danger text-danger">Contre</span>
+                                            <input type="number" name="votes_contre" class="form-control" value="<?= (int)$el['votes_contre'] ?>" min="0" required>
+                                            <span class="input-group-text bg-light">Abs.</span>
+                                            <input type="number" name="abstentions" class="form-control" value="<?= (int)$el['abstentions'] ?>" min="0" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Dynamic Sanction Type Selection (Visible only if decision_statut === 'sanctionne') -->
+                                <div id="sanctionFields_<?= $el['eleve_id'] ?>" class="border rounded p-3 mb-3 bg-light-danger" style="display: <?= $el['decision_statut'] === 'sanctionne' ? 'block' : 'none' ?>;">
+                                    <h6 class="fw-bold text-danger mb-2"><i class="ph-duotone ph-warning-circle me-1"></i>Configuration de la Sanction à Prononcer</h6>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label fw-semibold">Type de Sanction Officiel <span class="text-danger">*</span></label>
+                                            <select name="type_sanction_id" class="form-select">
+                                                <option value="">Sélectionner un type de sanction...</option>
+                                                <?php foreach ($activeSanctionTypes as $st): ?>
+                                                    <option value="<?= $st['id'] ?>">
+                                                        <?= htmlspecialchars($st['code']) ?> - <?= htmlspecialchars($st['libelle']) ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3 mb-2">
+                                            <label class="form-label fw-semibold">Durée (Jours)</label>
+                                            <input type="number" name="duree_jours" class="form-control" placeholder="ex: 3" min="0">
+                                        </div>
+                                        <div class="col-md-3 mb-2">
+                                            <label class="form-label fw-semibold">Durée (Heures)</label>
+                                            <input type="number" name="duree_heures" class="form-control" placeholder="ex: 12" min="0">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Motivation / Considérants et Justification de la décision <span class="text-danger">*</span></label>
+                                    <textarea name="motivation_decision" class="form-control" rows="3" placeholder="Insérer les considérants de droit et de fait motivant la décision finale du Conseil..." required><?= htmlspecialchars($el['motivation_decision'] ?? '') ?></textarea>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annuler</button>
+                                <button type="submit" class="btn btn-primary btn-sm"><i class="ph-duotone ph-floppy-disk me-1"></i>Enregistrer Délibération</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+
+        <script>
+            function toggleSanctionFields(eleveId) {
+                var select = document.getElementById('select_decision_' + eleveId);
+                var container = document.getElementById('sanctionFields_' + eleveId);
+                if (select && container) {
+                    if (select.value === 'sanctionne') {
+                        container.style.display = 'block';
+                    } else {
+                        container.style.display = 'none';
+                    }
+                }
+            }
+        </script>
+    <?php endif; ?>
 
     <!-- Modal Rattacher Incident -->
     <div class="modal fade" id="modalAddIncident" tabindex="-1">

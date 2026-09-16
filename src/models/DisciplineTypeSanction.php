@@ -140,7 +140,7 @@ class DisciplineTypeSanction {
                         affiche_sur_bulletin = :affiche_bulletin,
                         autorite_min_requise = :autorite,
                         actif = :actif,
-                        updated_at = NOW()
+                        updated_at = CURRENT_TIMESTAMP
                     WHERE id = :id AND lycee_id = :lycee_id";
             $params = [
                 'code' => $code,
@@ -160,7 +160,7 @@ class DisciplineTypeSanction {
             }
 
             $sql = "INSERT INTO discipline_types_sanctions (lycee_id, code, libelle, demande_duree_jours, demande_heures, affiche_sur_bulletin, autorite_min_requise, actif, created_at, updated_at)
-                    VALUES (:lycee_id, :code, :libelle, :demande_duree, :demande_heures, :affiche_bulletin, :autorite, :actif, NOW(), NOW())";
+                    VALUES (:lycee_id, :code, :libelle, :demande_duree, :demande_heures, :affiche_bulletin, :autorite, :actif, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
             $params = [
                 'lycee_id' => $lycee_id,
                 'code' => $code,
@@ -189,7 +189,7 @@ class DisciplineTypeSanction {
             return false;
         }
 
-        $sql = "UPDATE discipline_types_sanctions SET actif = 1 - actif, updated_at = NOW() WHERE id = :id AND lycee_id = :lycee_id";
+        $sql = "UPDATE discipline_types_sanctions SET actif = 1 - actif, updated_at = CURRENT_TIMESTAMP WHERE id = :id AND lycee_id = :lycee_id";
         try {
             $stmt = $db->prepare($sql);
             return $stmt->execute(['id' => $id, 'lycee_id' => $lycee_id]);

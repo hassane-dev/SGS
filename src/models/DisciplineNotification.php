@@ -5,6 +5,63 @@ require_once __DIR__ . '/../core/Auth.php';
 
 class DisciplineNotification {
 
+    public static function findByConseilId(int $conseilId, ?int $lyceeId = null): array {
+        $db = Database::getInstance();
+        $lyceeId = $lyceeId ?? Auth::getLyceeId();
+        if (!$lyceeId || !$conseilId) {
+            return [];
+        }
+
+        $sql = "SELECT n.*, CONCAT(u.prenom, ' ', u.nom) AS emetteur_nom
+                FROM discipline_notifications n
+                LEFT JOIN utilisateurs u ON n.created_by_user_id = u.id_user
+                WHERE n.lycee_id = :lycee_id AND n.conseil_id = :conseil_id
+                ORDER BY n.id DESC";
+
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->execute(['lycee_id' => $lyceeId, 'conseil_id' => $conseilId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error in DisciplineNotification::findByConseilId: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public static function log(array $data): bool {
+        $db = Database::getInstance();
+        $lyceeId = $data['lycee_id'] ?? Auth::getLyceeId();
+        $userId = $data['user_id'] ?? Auth::getUserId();
+
+        if (!$lyceeId) {
+            return false;
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $sql = "INSERT INTO discipline_notifications
+                (lycee_id, conseil_id, eleve_id, destinataire_nom, destinataire_contact, mode_notification, objet, message, statut, date_envoi, created_by_user_id, created_at)
+                VALUES (:lycee_id, :conseil_id, :eleve_id, :dest_nom, :dest_contact, :mode, :objet, :message, :statut, '$now', :user_id, '$now')";
+
+        try {
+            $stmt = $db->prepare($sql);
+            return $stmt->execute([
+                ':lycee_id' => $lyceeId,
+                ':conseil_id' => $data['conseil_id'] ?? null,
+                ':eleve_id' => $data['eleve_id'] ?? null,
+                ':dest_nom' => $data['destinataire_type'] ?? 'Parent / Tuteur',
+                ':dest_contact' => $data['destinataire_contact'] ?? null,
+                ':mode' => $data['mode_notification'] ?? 'convocation_conseil',
+                ':objet' => $data['objet'] ?? 'Notification Conseil',
+                ':message' => $data['contenu'] ?? null,
+                ':statut' => $data['statut'] ?? 'tracé',
+                ':user_id' => $userId
+            ]);
+        } catch (PDOException $e) {
+            error_log("Error in DisciplineNotification::log: " . $e->getMessage());
+            return false;
+        }
+    }
+
     public static function findByTarget($targetType, $targetId, $lyceeId = null) {
         $db = Database::getInstance();
         $lyceeId = $lyceeId ?? Auth::getLyceeId();

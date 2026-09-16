@@ -27,6 +27,29 @@ class DisciplineDocument {
         }
     }
 
+    public static function findByConseilId(int $conseilId, ?int $lyceeId = null): array {
+        $db = Database::getInstance();
+        $lyceeId = $lyceeId ?? Auth::getLyceeId();
+        if (!$lyceeId || !$conseilId) {
+            return [];
+        }
+
+        $sql = "SELECT d.*, CONCAT(u.prenom, ' ', u.nom) AS uploader_nom
+                FROM discipline_documents d
+                LEFT JOIN utilisateurs u ON d.uploaded_by_user_id = u.id_user
+                WHERE d.lycee_id = :lycee_id AND d.conseil_id = :conseil_id
+                ORDER BY d.id DESC";
+
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->execute(['lycee_id' => $lyceeId, 'conseil_id' => $conseilId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error in DisciplineDocument::findByConseilId: " . $e->getMessage());
+            return [];
+        }
+    }
+
     public static function findByTarget($targetType, $targetId, $lyceeId = null) {
         $db = Database::getInstance();
         $lyceeId = $lyceeId ?? Auth::getLyceeId();
@@ -38,6 +61,7 @@ class DisciplineDocument {
             'incident' => 'incident_id',
             'sanction' => 'sanction_id',
             'eleve' => 'eleve_id',
+            'conseil' => 'conseil_id',
             default => null
         };
 
@@ -61,6 +85,16 @@ class DisciplineDocument {
         }
     }
 
+    public static function upload($data) {
+        if (!isset($data['chemin_interne']) && isset($data['chemin_relatif'])) {
+            $data['chemin_interne'] = $data['chemin_relatif'];
+        }
+        if (!isset($data['taille']) && isset($data['taille_octets'])) {
+            $data['taille'] = $data['taille_octets'];
+        }
+        return self::create($data);
+    }
+
     public static function create($data) {
         $db = Database::getInstance();
         $lyceeId = Auth::getLyceeId();
@@ -76,13 +110,14 @@ class DisciplineDocument {
 
         $now = date('Y-m-d H:i:s');
         $sql = "INSERT INTO discipline_documents
-                (lycee_id, incident_id, sanction_id, eleve_id, uploaded_by_user_id, nom_original, nom_stockage, chemin_interne, mime_type, taille, created_at)
-                VALUES (:lycee_id, :incident_id, :sanction_id, :eleve_id, :user_id, :nom_orig, :nom_stock, :chemin, :mime, :taille, '$now')";
+                (lycee_id, conseil_id, incident_id, sanction_id, eleve_id, uploaded_by_user_id, nom_original, nom_stockage, chemin_interne, mime_type, taille, created_at)
+                VALUES (:lycee_id, :conseil_id, :incident_id, :sanction_id, :eleve_id, :user_id, :nom_orig, :nom_stock, :chemin, :mime, :taille, '$now')";
 
         try {
             $stmt = $db->prepare($sql);
             $stmt->execute([
                 'lycee_id' => $lyceeId,
+                'conseil_id' => $data['conseil_id'] ?? null,
                 'incident_id' => $data['incident_id'] ?? null,
                 'sanction_id' => $data['sanction_id'] ?? null,
                 'eleve_id' => $data['eleve_id'] ?? null,
