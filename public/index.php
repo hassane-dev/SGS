@@ -369,6 +369,8 @@ $router->register('/recu/inscription', 'RecuController', 'showInscriptionRecu');
 $router->register('/recu/print', 'RecuController', 'print');
 
 // Evaluations (Grades)
+$router->register('/evaluations/dashboard', 'GradeDashboardController', 'index');
+$router->register('/evaluations/dashboard/data', 'GradeDashboardController', 'data');
 $router->register('/evaluations/select_class', 'EvaluationController', 'selectClass');
 $router->register('/evaluations/select_evaluation', 'EvaluationController', 'selectEvaluation');
 $router->register('/evaluations/form', 'EvaluationController', 'showForm');
