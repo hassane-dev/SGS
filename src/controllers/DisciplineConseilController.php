@@ -308,10 +308,15 @@ class DisciplineConseilController {
         $stmtNotif->execute([':lycee_id' => $lyceeId, ':conseil_id' => $councilId]);
         $notifications = $stmtNotif->fetchAll(PDO::FETCH_ASSOC);
 
+        // Fetch eligible students for convocation dropdown
+        $teacherAllowedClassIds = ($isTeacher && !$hasGlobalView) ? array_keys(User::getTeacherAssignments($userId)) : [];
+        $eligibleEleves = DisciplineConseilEleve::findEligibleElevesForCouncil($councilId, $teacherAllowedClassIds);
+
         View::render('discipline/councils/show', [
             'council' => $council,
             'membres' => $membres,
             'eleves' => $eleves,
+            'eligibleEleves' => $eligibleEleves,
             'staffUsers' => $staffUsers,
             'availableIncidents' => $availableIncidents,
             'documents' => $documents,

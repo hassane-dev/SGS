@@ -519,6 +519,9 @@ $router->register('/discipline/councils/add-membre', 'DisciplineConseilControlle
 $router->register('/discipline/councils/remove-membre', 'DisciplineConseilController', 'removeMembre');
 $router->register('/discipline/councils/add-eleve', 'DisciplineConseilController', 'addEleve');
 $router->register('/discipline/councils/add-incident', 'DisciplineConseilController', 'addIncident');
+$router->register('/discipline/councils/record-decision', 'DisciplineConseilController', 'recordDecision');
+$router->register('/discipline/councils/print-pv', 'DisciplineConseilController', 'printPv');
+$router->register('/discipline/councils/generate-pv', 'DisciplineConseilController', 'generatePv');
 
 $router->register('/discipline/sanctions', 'DisciplineSanctionController', 'index');
 $router->register('/discipline/sanctions/create', 'DisciplineSanctionController', 'create');
