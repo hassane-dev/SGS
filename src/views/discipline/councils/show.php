@@ -406,9 +406,23 @@ $activeSanctionTypes = $activeSanctionTypes ?? [];
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Élève à Convoquer <span class="text-danger">*</span></label>
-                            <input type="number" name="eleve_id" class="form-control" placeholder="ID de l'élève" required>
-                            <small class="text-muted fs-8">La classe active sera résolue automatiquement côté serveur (Snapshot)</small>
+                            <label class="form-label fw-semibold">Élève éligible à Convoquer <span class="text-danger">*</span></label>
+                            <?php if (!empty($eligibleEleves)): ?>
+                                <select name="eleve_id" class="form-select" required>
+                                    <option value="">Sélectionner un élève éligible...</option>
+                                    <?php foreach ($eligibleEleves as $elElg): ?>
+                                        <option value="<?= $elElg['id_eleve'] ?>">
+                                            <?= htmlspecialchars($elElg['nom'] . ' ' . $elElg['prenom']) ?> &mdash; Matricule : <?= htmlspecialchars($elElg['identifiant_public']) ?> &mdash; Classe : <?= htmlspecialchars($elElg['nom_classe']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <small class="text-muted fs-8 d-block mt-1">Sont affichés uniquement les élèves ayant au moins un incident signalé ou une sanction active (prononcée/en cours), non encore convoqués à ce conseil.</small>
+                            <?php else: ?>
+                                <div class="alert alert-info py-2 px-3 mb-0 fs-8">
+                                    <i class="ph-duotone ph-info me-1 fs-6"></i>
+                                    Aucun élève éligible disponible à la convocation pour ce conseil (aucun incident/sanction active en cours ou tous les élèves éligibles sont déjà convoqués).
+                                </div>
+                            <?php endif; ?>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Motif de Convocation <span class="text-danger">*</span></label>

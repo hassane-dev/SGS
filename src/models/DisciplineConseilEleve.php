@@ -185,6 +185,82 @@ class DisciplineConseilEleve {
         }
     }
 
+    public static function findEligibleElevesForCouncil(int $conseilId, array $allowedClassIds = []): array {
+        $db = Database::getInstance();
+
+        // 1. Fetch Council details
+        $stmtC = $db->prepare("SELECT lycee_id, annee_academique_id FROM discipline_conseils WHERE id = :id");
+        $stmtC->execute([':id' => $conseilId]);
+        $conseil = $stmtC->fetch(PDO::FETCH_ASSOC);
+
+        if (!$conseil) {
+            return [];
+        }
+
+        $lyceeId = (int)$conseil['lycee_id'];
+        $anneeId = (int)$conseil['annee_academique_id'];
+
+        $whereTeacherScope = "";
+        $params = [
+            ':lycee_id' => $lyceeId,
+            ':annee_id' => $anneeId,
+            ':conseil_id' => $conseilId,
+        ];
+
+        if (!empty($allowedClassIds)) {
+            $placeholders = [];
+            foreach (array_values($allowedClassIds) as $idx => $cid) {
+                $pName = ':cls_' . $idx;
+                $placeholders[] = $pName;
+                $params[$pName] = (int)$cid;
+            }
+            $whereTeacherScope = " AND et.classe_id IN (" . implode(',', $placeholders) . ") ";
+        }
+
+        $sql = "
+            SELECT DISTINCT
+                e.id_eleve,
+                e.nom,
+                e.prenom,
+                COALESCE(e.identifiant_public, 'N/A') AS identifiant_public,
+                et.classe_id,
+                TRIM(CONCAT(COALESCE(c.niveau, ''), ' ', COALESCE(c.serie, ''), ' ', COALESCE(c.numero, ''))) AS nom_classe
+            FROM eleves e
+            JOIN etudes et ON et.eleve_id = e.id_eleve AND et.annee_academique_id = :annee_id
+            JOIN classes c ON c.id_classe = et.classe_id
+            WHERE e.lycee_id = :lycee_id
+              {$whereTeacherScope}
+              AND NOT EXISTS (
+                  SELECT 1 FROM discipline_conseil_eleves ce
+                  WHERE ce.conseil_id = :conseil_id AND ce.eleve_id = e.id_eleve
+              )
+              AND (
+                  EXISTS (
+                      SELECT 1 FROM discipline_incident_eleves ie
+                      JOIN discipline_incidents i ON i.id = ie.incident_id
+                      WHERE ie.eleve_id = e.id_eleve
+                        AND i.lycee_id = :lycee_id
+                  )
+                  OR EXISTS (
+                      SELECT 1 FROM discipline_sanctions s
+                      WHERE s.eleve_id = e.id_eleve
+                        AND s.lycee_id = :lycee_id
+                        AND s.statut IN ('prononcee', 'en_cours')
+                  )
+              )
+            ORDER BY e.nom ASC, e.prenom ASC
+        ";
+
+        try {
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error in DisciplineConseilEleve::findEligibleElevesForCouncil: " . $e->getMessage());
+            return [];
+        }
+    }
+
     public static function addEleve(array $data): int {
         $db = Database::getInstance();
 
@@ -201,7 +277,7 @@ class DisciplineConseilEleve {
             throw new InvalidArgumentException("Impossible d'ajouter un élève à un conseil clôturé ou annulé.");
         }
 
-        // 2. Verify student exists and belongs to the same tenant
+        // 2. Verify student exists, belongs to same tenant, and is SERVER-SIDE ELIGIBLE
         $stmtE = $db->prepare("SELECT id_eleve, lycee_id FROM eleves WHERE id_eleve = :eleve_id");
         $stmtE->execute([':eleve_id' => $data['eleve_id']]);
         $eleve = $stmtE->fetch(PDO::FETCH_ASSOC);
@@ -212,6 +288,14 @@ class DisciplineConseilEleve {
 
         if ((int)$eleve['lycee_id'] !== (int)$conseil['lycee_id']) {
             throw new InvalidArgumentException("L'élève doit appartenir au même établissement que le conseil.");
+        }
+
+        // Server-side recalculation & eligibility verification
+        $eligibleList = self::findEligibleElevesForCouncil((int)$data['conseil_id'], $data['allowed_class_ids'] ?? []);
+        $eligibleIds = array_map('intval', array_column($eligibleList, 'id_eleve'));
+
+        if (!in_array((int)$data['eleve_id'], $eligibleIds, true)) {
+            throw new InvalidArgumentException("L'élève sélectionné n'est pas éligible à la convocation en Conseil de discipline (aucun incident signalé ou sanction active requise, ou déjà convoqué/hors périmètre).");
         }
 
         // 3. Resolve student active class snapshot server-side (ignore client-supplied classe_id)

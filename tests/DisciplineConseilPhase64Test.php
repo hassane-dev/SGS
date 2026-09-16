@@ -32,11 +32,13 @@ class DisciplineConseilPhase64Test {
         $this->testLockingPostClotureAndAnnule();
         $this->testPvGenerationAndIdempotency();
         $this->testMultiTenantIsolationAndIdorProtection();
+        $this->testEligibleElevesFilteringAndServerValidation();
 
         $this->log("ALL Discipline Conseil Phase 6.4 Integration Tests PASSED (100% SUCCESS)!");
     }
 
     private function createDummyContext(int $lyceeId = 901): array {
+        $uniq = rand(10000, 99999);
         $db = Database::getInstance();
 
         // 1. Academic Year
@@ -139,7 +141,7 @@ class DisciplineConseilPhase64Test {
 
     public function testSanctionCreationAndFieldsMapping(): void {
         $ctx = $this->createDummyContext();
-        $code = 'CD64_' . rand(1000, 9999);
+        $code = 'CD64_' . rand(10000, 99999);
 
         $conseilId = DisciplineConseil::create([
             'lycee_id' => $ctx['lycee_id'],
@@ -457,6 +459,74 @@ class DisciplineConseilPhase64Test {
         }
 
         $this->log("testPvGenerationAndIdempotency passed.");
+    }
+
+    public function testEligibleElevesFilteringAndServerValidation(): void {
+        $db = Database::getInstance();
+        $ctx = $this->createDummyContext();
+        $code = 'CD64_ELG_' . rand(1000, 9999);
+
+        $conseilId = DisciplineConseil::create([
+            'lycee_id' => $ctx['lycee_id'],
+            'annee_academique_id' => $ctx['annee_id'],
+            'code' => $code,
+            'titre' => 'Conseil Eligible Test',
+            'date_conseil' => date('Y-m-d'),
+            'president_user_id' => $ctx['president_user_id'],
+            'statut' => 'planifie',
+        ]);
+
+        // Student A (ctx['eleve_id']) has an incident -> ELIGIBLE
+        $eligibleList = DisciplineConseilEleve::findEligibleElevesForCouncil($conseilId);
+        $eligibleIds = array_column($eligibleList, 'id_eleve');
+
+        if (!in_array($ctx['eleve_id'], $eligibleIds)) {
+            throw new Exception("L élève ayant un incident signalé DOIT figurer dans la liste des éligibles !");
+        }
+
+        // Student B: Clean student without incidents or active sanctions -> NOT ELIGIBLE
+        $uniq = rand(10000, 99999);
+        $stmtInsEleveB = $db->prepare("INSERT INTO eleves (lycee_id, nom, prenom, identifiant_public, statut) VALUES (:lycee_id, 'Clean', 'Student', :ident, 'actif')");
+        $stmtInsEleveB->execute([':lycee_id' => $ctx['lycee_id'], ':ident' => 'MAT_CLEAN_' . $uniq]);
+        $eleveCleanId = (int)$db->lastInsertId();
+
+        $stmtInsEtudeB = $db->prepare("INSERT INTO etudes (eleve_id, classe_id, lycee_id, annee_academique_id, status, is_active) VALUES (:eleve_id, :classe_id, :lycee_id, :annee_id, 'actif', 1)");
+        $stmtInsEtudeB->execute([':eleve_id' => $eleveCleanId, ':classe_id' => $ctx['classe_id'], ':lycee_id' => $ctx['lycee_id'], ':annee_id' => $ctx['annee_id']]);
+
+        $eligibleList2 = DisciplineConseilEleve::findEligibleElevesForCouncil($conseilId);
+        $eligibleIds2 = array_column($eligibleList2, 'id_eleve');
+
+        if (in_array($eleveCleanId, $eligibleIds2)) {
+            throw new Exception("L élève sans incident ni sanction active NE DOIT PAS figurer dans la liste des éligibles !");
+        }
+
+        // Test Server-side rejection when attempting to convoke an ineligible student
+        try {
+            DisciplineConseilEleve::addEleve([
+                'conseil_id' => $conseilId,
+                'eleve_id' => $eleveCleanId,
+                'motif_convocation' => 'Tentative convocation élève inéligible',
+            ]);
+            throw new Exception("Le serveur doit strictement rejeter la convocation d un élève non éligible !");
+        } catch (InvalidArgumentException $e) {
+            // Expected
+        }
+
+        // Convoke Student A -> verify Student A is now EXCLUDED from eligible list (no duplicates)
+        DisciplineConseilEleve::addEleve([
+            'conseil_id' => $conseilId,
+            'eleve_id' => $ctx['eleve_id'],
+            'motif_convocation' => 'Convocation valide',
+        ]);
+
+        $eligibleList3 = DisciplineConseilEleve::findEligibleElevesForCouncil($conseilId);
+        $eligibleIds3 = array_column($eligibleList3, 'id_eleve');
+
+        if (in_array($ctx['eleve_id'], $eligibleIds3)) {
+            throw new Exception("Un élève DÉJÀ convoqué à ce conseil NE DOIT PLUS figurer dans la liste des éligibles !");
+        }
+
+        $this->log("testEligibleElevesFilteringAndServerValidation passed.");
     }
 
     public function testMultiTenantIsolationAndIdorProtection(): void {
