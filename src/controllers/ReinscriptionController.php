@@ -99,6 +99,7 @@ class ReinscriptionController {
         Notification::notifyAccountants($eleve['lycee_id'], $message, $link);
 
         header('Location: /reinscription?success=1');
-        exit();
+        if (!defined('TEST_MODE')) exit();
+        return;
     }
 }

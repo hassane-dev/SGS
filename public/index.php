@@ -44,9 +44,6 @@ try {
         $db = Database::getInstance();
         $sql = file_get_contents(__DIR__ . '/../db/seeds.sql');
         if ($sql) {
-            if ($db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
-                $sql = preg_replace('/ON DUPLICATE KEY UPDATE[^;]+;/i', ';', $sql);
-            }
             $db->exec($sql);
         }
     }
@@ -59,6 +56,10 @@ try {
 // Require necessary files
 require_once __DIR__ . '/../src/core/Router.php';
 require_once __DIR__ . '/../src/core/Auth.php';
+require_once __DIR__ . '/../src/core/CsrfService.php';
+
+// Enforce CSRF protection on mutating HTTP requests
+CsrfService::requireValid();
 
 // Basic autoloader for our classes
 spl_autoload_register(function ($class_name) {
@@ -198,10 +199,13 @@ $router->register('/eleves/parametres-financiers/update', 'EleveController', 'up
 $router->register('/eleves/parcours-academique', 'EleveController', 'parcoursAcademique');
 $router->register('/eleves/discipline', 'EleveController', 'discipline');
 
-// Inscriptions / Reinscriptions redirects to student creation flow
+// Inscriptions & Reinscriptions Workflow
 $router->register('/inscriptions', 'EleveController', 'create');
-$router->register('/reinscriptions', 'EleveController', 'archives');
-$router->register('/reinscription', 'EleveController', 'archives');
+$router->register('/reinscriptions', 'ReinscriptionController', 'index');
+$router->register('/reinscription', 'ReinscriptionController', 'index');
+$router->register('/reinscription/search', 'ReinscriptionController', 'search');
+$router->register('/reinscription/confirm', 'ReinscriptionController', 'confirm');
+$router->register('/reinscription/process', 'ReinscriptionController', 'process');
 
 // Exercices et Périodes Comptables
 $router->register('/comptabilite/exercices', 'ExerciceFinancierController', 'index');
@@ -521,6 +525,9 @@ $router->register('/discipline/councils/add-membre', 'DisciplineConseilControlle
 $router->register('/discipline/councils/remove-membre', 'DisciplineConseilController', 'removeMembre');
 $router->register('/discipline/councils/add-eleve', 'DisciplineConseilController', 'addEleve');
 $router->register('/discipline/councils/add-incident', 'DisciplineConseilController', 'addIncident');
+$router->register('/discipline/councils/remove-incident', 'DisciplineConseilController', 'removeIncident');
+$router->register('/discipline/councils/update-presence', 'DisciplineConseilController', 'updateMemberPresence');
+$router->register('/discipline/councils/update-convocation', 'DisciplineConseilController', 'updateEleveConvocation');
 $router->register('/discipline/councils/record-decision', 'DisciplineConseilController', 'recordDecision');
 $router->register('/discipline/councils/print-pv', 'DisciplineConseilController', 'printPv');
 $router->register('/discipline/councils/generate-pv', 'DisciplineConseilController', 'generatePv');
