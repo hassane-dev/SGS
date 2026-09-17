@@ -155,6 +155,18 @@ class DisciplineConseil {
         ];
 
         if ($newStatut === 'cloture') {
+            // Server-side check of all convoked students
+            $stmtPending = $db->prepare("
+                SELECT COUNT(*)
+                FROM discipline_conseil_eleves
+                WHERE conseil_id = :conseil_id
+                  AND (decision_statut = 'en_attente' OR decision_statut NOT IN ('relaxe', 'averti', 'reoriente', 'sanctionne'))
+            ");
+            $stmtPending->execute([':conseil_id' => $id]);
+            if ((int)$stmtPending->fetchColumn() > 0) {
+                throw new InvalidArgumentException("Impossible de clôturer le conseil : tous les élèves convoqués doivent avoir une décision enregistrée (aucune décision en attente).");
+            }
+
             $extraSql = ", cloture_par_user_id = :cloture_by, date_cloture = CURRENT_TIMESTAMP ";
             $params[':cloture_by'] = $userId;
         }
