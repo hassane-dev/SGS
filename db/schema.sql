@@ -770,7 +770,7 @@ CREATE TABLE `presences` (
 
 -- Table for configurable evaluation types per school
 CREATE TABLE IF NOT EXISTS `param_type_evaluation` (
-    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
     `lycee_id` INT NOT NULL,
     `code` VARCHAR(50) NOT NULL,
     `libelle` VARCHAR(100) NOT NULL,
@@ -927,5 +927,854 @@ CREATE TABLE `parametres_utilisateurs` (
     FOREIGN KEY (`user_id`) REFERENCES `utilisateurs`(`id_user`) ON DELETE CASCADE,
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+-- =================================================================
+
+-- =================================================================
+-- Supplemental MySQL Tables (Synchronized from Migrations 01-27)
+-- =================================================================
+
+-- Table `exercices_financiers`
+CREATE TABLE exercices_financiers (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NOT NULL,
+            libelle VARCHAR(100) NOT NULL,
+            date_debut DATE NOT NULL,
+            date_fin DATE NOT NULL,
+            est_actif BOOLEAN NOT NULL DEFAULT FALSE,
+            cloture BOOLEAN NOT NULL DEFAULT FALSE,
+            type_exercice ENUM('normal', 'historique_transition') NOT NULL DEFAULT 'normal',
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            CONSTRAINT chk_dates_exercice CHECK (date_fin >= date_debut)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `comptes_financiers`
+CREATE TABLE comptes_financiers (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NOT NULL,
+            nom_compte VARCHAR(150) NOT NULL,
+            type_compte ENUM('caisse', 'banque', 'mobile_money', 'autre') NOT NULL,
+            solde_courant DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+            devise VARCHAR(10) NOT NULL DEFAULT 'FCFA',
+            responsable_id INT DEFAULT NULL,
+            statut ENUM('actif', 'suspendu') NOT NULL DEFAULT 'actif',
+            cree_le TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (responsable_id) REFERENCES utilisateurs(id_user) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `sessions_caisse`
+CREATE TABLE sessions_caisse (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NOT NULL,
+            user_id INT NOT NULL,
+            compte_id INT NOT NULL,
+            date_ouverture DATETIME NOT NULL,
+            date_fermeture DATETIME DEFAULT NULL,
+            solde_ouverture DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+            solde_theorique DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+            solde_reel DECIMAL(15, 2) DEFAULT NULL,
+            ecart DECIMAL(15, 2) DEFAULT 0.00,
+            justificatif_ecart TEXT DEFAULT NULL,
+            statut ENUM('ouverte', 'fermee_a_valider', 'fermee_validee') NOT NULL DEFAULT 'ouverte',
+            valide_par INT DEFAULT NULL,
+            valide_le DATETIME DEFAULT NULL,
+            is_active TINYINT GENERATED ALWAYS AS (
+                CASE WHEN statut IN ('ouverte', 'fermee_a_valider') THEN 1 ELSE NULL END
+            ) STORED,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+            FOREIGN KEY (compte_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
+            FOREIGN KEY (valide_par) REFERENCES utilisateurs(id_user) ON DELETE SET NULL,
+            UNIQUE KEY unique_active_session_per_account (compte_id, is_active)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `transferts_financiers`
+CREATE TABLE transferts_financiers (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NOT NULL,
+            compte_source_id INT NOT NULL,
+            compte_destination_id INT NOT NULL,
+            montant DECIMAL(15, 2) NOT NULL,
+            motif VARCHAR(255) NOT NULL,
+            statut ENUM('demande', 'autorise', 'complete', 'rejete') NOT NULL DEFAULT 'demande',
+            demande_par INT NOT NULL,
+            autorise_par INT DEFAULT NULL,
+            date_demande TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            date_execution DATETIME DEFAULT NULL,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (compte_source_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
+            FOREIGN KEY (compte_destination_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
+            FOREIGN KEY (demande_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+            FOREIGN KEY (autorise_par) REFERENCES utilisateurs(id_user) ON DELETE SET NULL,
+            CONSTRAINT chk_montant_transfert CHECK (montant > 0.00),
+            CONSTRAINT chk_different_accounts CHECK (compte_source_id <> compte_destination_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `mouvements_tresorerie`
+CREATE TABLE mouvements_tresorerie (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NOT NULL,
+            compte_id INT NOT NULL,
+            session_caisse_id INT DEFAULT NULL,
+            exercice_financier_id INT NOT NULL,
+            transfert_id INT DEFAULT NULL,
+            type_mouvement ENUM('entree', 'sortie') NOT NULL,
+            montant DECIMAL(15, 2) NOT NULL,
+            mode_paiement VARCHAR(50) NOT NULL,
+            reference_transaction VARCHAR(150) DEFAULT NULL,
+            source_type VARCHAR(100) NOT NULL,
+            source_id INT NOT NULL,
+            evenement_type ENUM('encaissement', 'annulation', 'remboursement', 'correction', 'remise_coffre_sortie', 'remise_coffre_entree', 'reglement_fournisseur') NOT NULL,
+            motif VARCHAR(255) NOT NULL,
+            date_mouvement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            user_id INT NOT NULL,
+            is_aggregate_data BOOLEAN NOT NULL DEFAULT FALSE,
+            date_reconstruite BOOLEAN NOT NULL DEFAULT FALSE,
+            is_historical_migration BOOLEAN NOT NULL DEFAULT FALSE,
+            mode_paiement_reconstruit BOOLEAN NOT NULL DEFAULT FALSE,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (compte_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
+            FOREIGN KEY (session_caisse_id) REFERENCES sessions_caisse(id) ON DELETE SET NULL,
+            FOREIGN KEY (exercice_financier_id) REFERENCES exercices_financiers(id) ON DELETE RESTRICT,
+            FOREIGN KEY (transfert_id) REFERENCES transferts_financiers(id) ON DELETE SET NULL,
+            FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+            UNIQUE KEY unique_idempotence_flux (compte_id, source_type, source_id, evenement_type),
+            CONSTRAINT chk_montant_positif CHECK (montant > 0.00)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `regularisations_ecarts`
+CREATE TABLE regularisations_ecarts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NOT NULL,
+            session_caisse_id INT NOT NULL,
+            montant DECIMAL(15, 2) NOT NULL,
+            type_ecart ENUM('negatif', 'positif') NOT NULL,
+            motif TEXT NOT NULL,
+            constate_par INT NOT NULL,
+            approuve_par INT NOT NULL,
+            date_constat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            reference_audit VARCHAR(100) NOT NULL,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (session_caisse_id) REFERENCES sessions_caisse(id) ON DELETE RESTRICT,
+            FOREIGN KEY (constate_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+            FOREIGN KEY (approuve_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+            UNIQUE KEY unique_audit_ref (reference_audit),
+            CONSTRAINT chk_montant_ecart CHECK (montant > 0.00)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `fournisseurs`
+CREATE TABLE fournisseurs (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NULL,
+            raison_sociale VARCHAR(255) NOT NULL,
+            code_fournisseur VARCHAR(50) NOT NULL UNIQUE,
+            nif VARCHAR(100) NULL,
+            rccm VARCHAR(100) NULL,
+            adresse TEXT NULL,
+            telephone VARCHAR(50) NULL,
+            email VARCHAR(255) NULL,
+            contact_nom VARCHAR(150) NULL,
+            compte_comptable_tiers VARCHAR(20) DEFAULT NULL,
+            actif TINYINT(1) DEFAULT 1,
+            cree_par INT DEFAULT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (cree_par) REFERENCES utilisateurs(id_user) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `achat_categories`
+CREATE TABLE achat_categories (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            libelle VARCHAR(150) NOT NULL,
+            compte_comptable_charge VARCHAR(20) NOT NULL,
+            actif TINYINT(1) DEFAULT 1
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `achat_articles`
+CREATE TABLE achat_articles (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            categorie_id INT NOT NULL,
+            libelle VARCHAR(255) NOT NULL,
+            reference VARCHAR(100) NOT NULL UNIQUE,
+            unite_mesure VARCHAR(50) NOT NULL,
+            prix_unitaire_estime DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
+            is_service TINYINT(1) DEFAULT 0,
+            actif TINYINT(1) DEFAULT 1,
+            FOREIGN KEY (categorie_id) REFERENCES achat_categories(id) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `achat_demandes`
+CREATE TABLE achat_demandes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NOT NULL,
+            demandeur_id INT NOT NULL,
+            justification TEXT NOT NULL,
+            date_demande DATE NOT NULL,
+            statut VARCHAR(50) NOT NULL DEFAULT 'brouillon', -- 'brouillon', 'en_attente_approbation', 'approuvee', 'rejete', 'annule'
+            approuve_par INT DEFAULT NULL,
+            date_approbation DATETIME DEFAULT NULL,
+            motif_statut TEXT DEFAULT NULL,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (demandeur_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+            FOREIGN KEY (approuve_par) REFERENCES utilisateurs(id_user) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `achat_demande_lignes`
+CREATE TABLE achat_demande_lignes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            demande_id INT NOT NULL,
+            article_id INT NOT NULL,
+            quantite_demandee DECIMAL(12,4) NOT NULL,
+            prix_unitaire_estime DECIMAL(15,4) NOT NULL,
+            budget_ligne_id INT DEFAULT NULL,
+            FOREIGN KEY (demande_id) REFERENCES achat_demandes(id) ON DELETE CASCADE,
+            FOREIGN KEY (article_id) REFERENCES achat_articles(id) ON DELETE RESTRICT,
+            FOREIGN KEY (budget_ligne_id) REFERENCES budget_lignes(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `achat_commandes`
+CREATE TABLE achat_commandes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NOT NULL,
+            demande_id INT DEFAULT NULL,
+            fournisseur_id INT NOT NULL,
+            numero_commande VARCHAR(100) NOT NULL,
+            date_commande DATE NOT NULL,
+            statut VARCHAR(50) NOT NULL DEFAULT 'brouillon', -- 'brouillon', 'emis', 'reception_partielle', 'executee', 'annulee'
+            cree_par INT NOT NULL,
+            valide_par INT DEFAULT NULL,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (demande_id) REFERENCES achat_demandes(id) ON DELETE SET NULL,
+            FOREIGN KEY (fournisseur_id) REFERENCES fournisseurs(id) ON DELETE RESTRICT,
+            FOREIGN KEY (cree_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+            FOREIGN KEY (valide_par) REFERENCES utilisateurs(id_user) ON DELETE SET NULL,
+            UNIQUE (lycee_id, numero_commande)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `achat_commande_lignes`
+CREATE TABLE achat_commande_lignes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            commande_id INT NOT NULL,
+            demande_ligne_id INT DEFAULT NULL,
+            article_id INT NOT NULL,
+            quantite_commandee DECIMAL(12,4) NOT NULL,
+            prix_unitaire_negocie DECIMAL(15,4) NOT NULL,
+            FOREIGN KEY (commande_id) REFERENCES achat_commandes(id) ON DELETE CASCADE,
+            FOREIGN KEY (demande_ligne_id) REFERENCES achat_demande_lignes(id) ON DELETE SET NULL,
+            FOREIGN KEY (article_id) REFERENCES achat_articles(id) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `achat_receptions`
+CREATE TABLE achat_receptions (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NOT NULL,
+            commande_id INT NOT NULL,
+            numero_reception VARCHAR(100) NOT NULL,
+            date_reception DATE NOT NULL,
+            statut VARCHAR(50) NOT NULL DEFAULT 'brouillon', -- 'brouillon', 'valide'
+            receptionne_par INT NOT NULL,
+            details TEXT DEFAULT NULL,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (commande_id) REFERENCES achat_commandes(id) ON DELETE RESTRICT,
+            FOREIGN KEY (receptionne_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+            UNIQUE (lycee_id, numero_reception)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `achat_reception_lignes`
+CREATE TABLE achat_reception_lignes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            reception_id INT NOT NULL,
+            commande_ligne_id INT NOT NULL,
+            quantite_receptionnee DECIMAL(12,4) NOT NULL,
+            quantite_refusee DECIMAL(12,4) DEFAULT 0.0000,
+            motif_refus TEXT DEFAULT NULL,
+            FOREIGN KEY (reception_id) REFERENCES achat_receptions(id) ON DELETE CASCADE,
+            FOREIGN KEY (commande_ligne_id) REFERENCES achat_commande_lignes(id) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `achat_factures`
+CREATE TABLE achat_factures (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NOT NULL,
+            fournisseur_id INT NOT NULL,
+            commande_id INT DEFAULT NULL,
+            reception_id INT DEFAULT NULL,
+            piece_comptable_id INT DEFAULT NULL,
+            reference_facture VARCHAR(150) NOT NULL,
+            date_facture DATE NOT NULL,
+            date_echeance DATE NOT NULL,
+            montant_ht DECIMAL(15,2) NOT NULL,
+            montant_ttc DECIMAL(15,2) NOT NULL,
+            statut VARCHAR(50) NOT NULL DEFAULT 'enregistree', -- 'enregistree', 'payee_partiellement', 'payee', 'annulee'
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (fournisseur_id) REFERENCES fournisseurs(id) ON DELETE RESTRICT,
+            FOREIGN KEY (commande_id) REFERENCES achat_commandes(id) ON DELETE SET NULL,
+            FOREIGN KEY (reception_id) REFERENCES achat_receptions(id) ON DELETE SET NULL,
+            FOREIGN KEY (piece_comptable_id) REFERENCES pieces_comptables(id) ON DELETE SET NULL,
+            UNIQUE (lycee_id, fournisseur_id, reference_facture)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `achat_facture_lignes`
+CREATE TABLE achat_facture_lignes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            facture_id INT NOT NULL,
+            reception_ligne_id INT NOT NULL,
+            quantite_facturee DECIMAL(12,4) NOT NULL,
+            prix_unitaire_facture DECIMAL(15,4) NOT NULL,
+            taux_tva_facture DECIMAL(5,4) DEFAULT 0.0000,
+            montant_ht_ligne DECIMAL(15,2) NOT NULL,
+            montant_ttc_ligne DECIMAL(15,2) NOT NULL,
+            FOREIGN KEY (facture_id) REFERENCES achat_factures(id) ON DELETE CASCADE,
+            FOREIGN KEY (reception_ligne_id) REFERENCES achat_reception_lignes(id) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `achat_facture_reglements`
+CREATE TABLE achat_facture_reglements (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            facture_id INT NOT NULL,
+            mouvement_tresorerie_id INT NOT NULL,
+            montant_alloue DECIMAL(15,2) NOT NULL,
+            idempotency_key VARCHAR(100) NOT NULL UNIQUE,
+            FOREIGN KEY (facture_id) REFERENCES achat_factures(id) ON DELETE RESTRICT,
+            FOREIGN KEY (mouvement_tresorerie_id) REFERENCES mouvements_tresorerie(id) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `achat_avoirs_fournisseurs`
+CREATE TABLE achat_avoirs_fournisseurs (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lycee_id INT NOT NULL,
+            fournisseur_id INT NOT NULL,
+            facture_id INT NOT NULL,
+            reference_avoir VARCHAR(150) NOT NULL,
+            date_avoir DATE NOT NULL,
+            montant_ht DECIMAL(15,2) NOT NULL,
+            montant_ttc DECIMAL(15,2) NOT NULL,
+            statut VARCHAR(50) NOT NULL DEFAULT 'enregistre', -- 'enregistre', 'valide'
+            piece_comptable_id INT DEFAULT NULL,
+            FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+            FOREIGN KEY (fournisseur_id) REFERENCES fournisseurs(id) ON DELETE RESTRICT,
+            FOREIGN KEY (facture_id) REFERENCES achat_factures(id) ON DELETE RESTRICT,
+            FOREIGN KEY (piece_comptable_id) REFERENCES pieces_comptables(id) ON DELETE SET NULL,
+            UNIQUE (lycee_id, fournisseur_id, reference_avoir)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `achat_avoir_fournisseur_lignes`
+CREATE TABLE achat_avoir_fournisseur_lignes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            avoir_id INT NOT NULL,
+            facture_ligne_id INT NOT NULL,
+            quantite_avoir DECIMAL(12,4) NOT NULL,
+            prix_unitaire_avoir DECIMAL(15,4) NOT NULL,
+            montant_ht_ligne DECIMAL(15,2) NOT NULL,
+            montant_ttc_ligne DECIMAL(15,2) NOT NULL,
+            FOREIGN KEY (avoir_id) REFERENCES achat_avoirs_fournisseurs(id) ON DELETE CASCADE,
+            FOREIGN KEY (facture_ligne_id) REFERENCES achat_facture_lignes(id) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `discipline_types_incidents`
+CREATE TABLE discipline_types_incidents (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                lycee_id INT NOT NULL,
+                code VARCHAR(50) NOT NULL,
+                libelle VARCHAR(150) NOT NULL,
+                niveau_gravite VARCHAR(20) NOT NULL DEFAULT 'moyen',
+                actif TINYINT(1) NOT NULL DEFAULT 1,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+                UNIQUE(lycee_id, code)
+            );";
+        } else {
+            $sql_incidents = "
+            CREATE TABLE discipline_types_incidents (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                lycee_id INT NOT NULL,
+                code VARCHAR(50) NOT NULL,
+                libelle VARCHAR(150) NOT NULL,
+                niveau_gravite VARCHAR(20) NOT NULL DEFAULT 'moyen',
+                actif TINYINT(1) NOT NULL DEFAULT 1,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+                UNIQUE KEY uk_disc_inc_code (lycee_id, code)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table `discipline_types_sanctions`
+CREATE TABLE discipline_types_sanctions (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                lycee_id INT NOT NULL,
+                code VARCHAR(50) NOT NULL,
+                libelle VARCHAR(150) NOT NULL,
+                demande_duree_jours TINYINT(1) NOT NULL DEFAULT 0,
+                demande_heures TINYINT(1) NOT NULL DEFAULT 0,
+                affiche_sur_bulletin TINYINT(1) NOT NULL DEFAULT 0,
+                autorite_min_requise VARCHAR(50) NOT NULL DEFAULT 'surveillant_general',
+                actif TINYINT(1) NOT NULL DEFAULT 1,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+                UNIQUE(lycee_id, code)
+            );";
+        } else {
+            $sql_sanctions = "
+            CREATE TABLE discipline_types_sanctions (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                lycee_id INT NOT NULL,
+                code VARCHAR(50) NOT NULL,
+                libelle VARCHAR(150) NOT NULL,
+                demande_duree_jours TINYINT(1) NOT NULL DEFAULT 0,
+                demande_heures TINYINT(1) NOT NULL DEFAULT 0,
+                affiche_sur_bulletin TINYINT(1) NOT NULL DEFAULT 0,
+                autorite_min_requise VARCHAR(50) NOT NULL DEFAULT 'surveillant_general',
+                actif TINYINT(1) NOT NULL DEFAULT 1,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+                UNIQUE KEY uk_disc_sanc_code (lycee_id, code)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table `discipline_incidents`
+CREATE TABLE discipline_incidents (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                lycee_id INT NOT NULL,
+                annee_academique_id INT NOT NULL,
+                type_incident_id INT NOT NULL,
+                date_incident DATE NOT NULL,
+                heure_incident TIME NULL,
+                lieu VARCHAR(150) NULL,
+                description_faits TEXT NOT NULL,
+                signale_par_user_id INT NOT NULL,
+                statut VARCHAR(30) NOT NULL DEFAULT 'signale',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+                FOREIGN KEY (annee_academique_id) REFERENCES annees_academiques(id) ON DELETE RESTRICT,
+                FOREIGN KEY (type_incident_id) REFERENCES discipline_types_incidents(id) ON DELETE RESTRICT,
+                FOREIGN KEY (signale_par_user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT
+            );";
+        } else {
+            $sql_incidents = "
+            CREATE TABLE discipline_incidents (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                lycee_id INT NOT NULL,
+                annee_academique_id INT NOT NULL,
+                type_incident_id INT NOT NULL,
+                date_incident DATE NOT NULL,
+                heure_incident TIME NULL,
+                lieu VARCHAR(150) NULL,
+                description_faits TEXT NOT NULL,
+                signale_par_user_id INT NOT NULL,
+                statut VARCHAR(30) NOT NULL DEFAULT 'signale',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+                FOREIGN KEY (annee_academique_id) REFERENCES annees_academiques(id) ON DELETE RESTRICT,
+                FOREIGN KEY (type_incident_id) REFERENCES discipline_types_incidents(id) ON DELETE RESTRICT,
+                FOREIGN KEY (signale_par_user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+                INDEX idx_disc_inc_dates (lycee_id, annee_academique_id, date_incident),
+                INDEX idx_disc_inc_statut (lycee_id, statut)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table `discipline_incident_eleves`
+CREATE TABLE discipline_incident_eleves (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                incident_id INT NOT NULL,
+                eleve_id INT NOT NULL,
+                classe_id INT NOT NULL,
+                role_implication VARCHAR(30) NOT NULL DEFAULT 'auteur_principal',
+                observation_individuelle TEXT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (incident_id) REFERENCES discipline_incidents(id) ON DELETE CASCADE,
+                FOREIGN KEY (eleve_id) REFERENCES eleves(id_eleve) ON DELETE CASCADE,
+                FOREIGN KEY (classe_id) REFERENCES classes(id_classe) ON DELETE RESTRICT
+            );";
+        } else {
+            $sql_incident_eleves = "
+            CREATE TABLE discipline_incident_eleves (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                incident_id INT NOT NULL,
+                eleve_id INT NOT NULL,
+                classe_id INT NOT NULL,
+                role_implication VARCHAR(30) NOT NULL DEFAULT 'auteur_principal',
+                observation_individuelle TEXT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (incident_id) REFERENCES discipline_incidents(id) ON DELETE CASCADE,
+                FOREIGN KEY (eleve_id) REFERENCES eleves(id_eleve) ON DELETE CASCADE,
+                FOREIGN KEY (classe_id) REFERENCES classes(id_classe) ON DELETE RESTRICT,
+                INDEX idx_disc_eleve_inc (eleve_id, classe_id),
+                INDEX idx_disc_inc_eleve (incident_id, eleve_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table `discipline_sanctions`
+CREATE TABLE discipline_sanctions (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                lycee_id INT NOT NULL,
+                annee_academique_id INT NOT NULL,
+                incident_id INT NULL,
+                eleve_id INT NOT NULL,
+                classe_id INT NOT NULL,
+                type_sanction_id INT NOT NULL,
+                motif VARCHAR(255) NOT NULL,
+                details TEXT NULL,
+                prononcee_par_user_id INT NOT NULL,
+                date_decision DATE NOT NULL,
+                date_debut_execution DATE NULL,
+                date_fin_execution DATE NULL,
+                duree_jours INT NULL,
+                duree_heures INT NULL,
+                statut VARCHAR(30) NOT NULL DEFAULT 'prononcee',
+                date_levee_annulation DATETIME NULL,
+                motif_levee_annulation TEXT NULL,
+                par_user_id_levee_annulation INT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+                FOREIGN KEY (annee_academique_id) REFERENCES annees_academiques(id) ON DELETE RESTRICT,
+                FOREIGN KEY (incident_id) REFERENCES discipline_incidents(id) ON DELETE SET NULL,
+                FOREIGN KEY (eleve_id) REFERENCES eleves(id_eleve) ON DELETE CASCADE,
+                FOREIGN KEY (classe_id) REFERENCES classes(id_classe) ON DELETE RESTRICT,
+                FOREIGN KEY (type_sanction_id) REFERENCES discipline_types_sanctions(id) ON DELETE RESTRICT,
+                FOREIGN KEY (prononcee_par_user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT
+            );";
+        } else {
+            $sql_sanctions = "
+            CREATE TABLE discipline_sanctions (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                lycee_id INT NOT NULL,
+                annee_academique_id INT NOT NULL,
+                incident_id INT NULL,
+                eleve_id INT NOT NULL,
+                classe_id INT NOT NULL,
+                type_sanction_id INT NOT NULL,
+                motif VARCHAR(255) NOT NULL,
+                details TEXT NULL,
+                prononcee_par_user_id INT NOT NULL,
+                date_decision DATE NOT NULL,
+                date_debut_execution DATE NULL,
+                date_fin_execution DATE NULL,
+                duree_jours INT NULL,
+                duree_heures INT NULL,
+                statut VARCHAR(30) NOT NULL DEFAULT 'prononcee',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+                FOREIGN KEY (annee_academique_id) REFERENCES annees_academiques(id) ON DELETE RESTRICT,
+                FOREIGN KEY (incident_id) REFERENCES discipline_incidents(id) ON DELETE SET NULL,
+                FOREIGN KEY (eleve_id) REFERENCES eleves(id_eleve) ON DELETE CASCADE,
+                FOREIGN KEY (classe_id) REFERENCES classes(id_classe) ON DELETE RESTRICT,
+                FOREIGN KEY (type_sanction_id) REFERENCES discipline_types_sanctions(id) ON DELETE RESTRICT,
+                FOREIGN KEY (prononcee_par_user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+                INDEX idx_disc_sanc_eleve (eleve_id, lycee_id),
+                INDEX idx_disc_sanc_decision (lycee_id, date_decision),
+                INDEX idx_disc_sanc_statut (lycee_id, statut)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table `discipline_historique`
+CREATE TABLE discipline_historique (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                lycee_id INT NOT NULL,
+                annee_academique_id INT NULL,
+                incident_id INT NULL,
+                sanction_id INT NULL,
+                eleve_id INT NULL,
+                user_id INT NOT NULL,
+                action VARCHAR(50) NOT NULL,
+                statut_avant VARCHAR(50) NULL,
+                statut_apres VARCHAR(50) NULL,
+                description TEXT NOT NULL,
+                metadata TEXT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+                FOREIGN KEY (annee_academique_id) REFERENCES annees_academiques(id) ON DELETE SET NULL,
+                FOREIGN KEY (incident_id) REFERENCES discipline_incidents(id) ON DELETE SET NULL,
+                FOREIGN KEY (sanction_id) REFERENCES discipline_sanctions(id) ON DELETE SET NULL,
+                FOREIGN KEY (eleve_id) REFERENCES eleves(id_eleve) ON DELETE SET NULL,
+                FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT
+            );";
+        } else {
+            $sql_historique = "
+            CREATE TABLE discipline_historique (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                lycee_id INT NOT NULL,
+                annee_academique_id INT NULL,
+                incident_id INT NULL,
+                sanction_id INT NULL,
+                eleve_id INT NULL,
+                user_id INT NOT NULL,
+                action VARCHAR(50) NOT NULL,
+                statut_avant VARCHAR(50) NULL,
+                statut_apres VARCHAR(50) NULL,
+                description TEXT NOT NULL,
+                metadata TEXT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+                FOREIGN KEY (annee_academique_id) REFERENCES annees_academiques(id) ON DELETE SET NULL,
+                FOREIGN KEY (incident_id) REFERENCES discipline_incidents(id) ON DELETE SET NULL,
+                FOREIGN KEY (sanction_id) REFERENCES discipline_sanctions(id) ON DELETE SET NULL,
+                FOREIGN KEY (eleve_id) REFERENCES eleves(id_eleve) ON DELETE SET NULL,
+                FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+                INDEX idx_disc_hist_target (lycee_id, incident_id, sanction_id),
+                INDEX idx_disc_hist_eleve (lycee_id, eleve_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table `discipline_documents`
+CREATE TABLE discipline_documents (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                lycee_id INT NOT NULL,
+                incident_id INT NULL,
+                sanction_id INT NULL,
+                eleve_id INT NULL,
+                uploaded_by_user_id INT NOT NULL,
+                nom_original VARCHAR(255) NOT NULL,
+                nom_stockage VARCHAR(255) NOT NULL,
+                chemin_interne VARCHAR(255) NOT NULL,
+                mime_type VARCHAR(100) NOT NULL,
+                taille INT NOT NULL DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+                FOREIGN KEY (incident_id) REFERENCES discipline_incidents(id) ON DELETE CASCADE,
+                FOREIGN KEY (sanction_id) REFERENCES discipline_sanctions(id) ON DELETE CASCADE,
+                FOREIGN KEY (eleve_id) REFERENCES eleves(id_eleve) ON DELETE CASCADE,
+                FOREIGN KEY (uploaded_by_user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT
+            );";
+        } else {
+            $sql_documents = "
+            CREATE TABLE discipline_documents (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                lycee_id INT NOT NULL,
+                incident_id INT NULL,
+                sanction_id INT NULL,
+                eleve_id INT NULL,
+                uploaded_by_user_id INT NOT NULL,
+                nom_original VARCHAR(255) NOT NULL,
+                nom_stockage VARCHAR(255) NOT NULL,
+                chemin_interne VARCHAR(255) NOT NULL,
+                mime_type VARCHAR(100) NOT NULL,
+                taille INT NOT NULL DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+                FOREIGN KEY (incident_id) REFERENCES discipline_incidents(id) ON DELETE CASCADE,
+                FOREIGN KEY (sanction_id) REFERENCES discipline_sanctions(id) ON DELETE CASCADE,
+                FOREIGN KEY (eleve_id) REFERENCES eleves(id_eleve) ON DELETE CASCADE,
+                FOREIGN KEY (uploaded_by_user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+                INDEX idx_disc_doc_target (lycee_id, incident_id, sanction_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table `discipline_notifications`
+CREATE TABLE discipline_notifications (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                lycee_id INT NOT NULL,
+                eleve_id INT NOT NULL,
+                incident_id INT NULL,
+                sanction_id INT NULL,
+                destinataire_nom VARCHAR(150) NOT NULL,
+                destinataire_contact VARCHAR(150) NULL,
+                mode_notification VARCHAR(50) NOT NULL DEFAULT 'main_propre',
+                objet VARCHAR(255) NOT NULL,
+                message TEXT NULL,
+                statut VARCHAR(30) NOT NULL DEFAULT 'transmise',
+                date_envoi DATETIME NOT NULL,
+                created_by_user_id INT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+                FOREIGN KEY (eleve_id) REFERENCES eleves(id_eleve) ON DELETE CASCADE,
+                FOREIGN KEY (incident_id) REFERENCES discipline_incidents(id) ON DELETE SET NULL,
+                FOREIGN KEY (sanction_id) REFERENCES discipline_sanctions(id) ON DELETE SET NULL,
+                FOREIGN KEY (created_by_user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT
+            );";
+        } else {
+            $sql_notifications = "
+            CREATE TABLE discipline_notifications (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                lycee_id INT NOT NULL,
+                eleve_id INT NOT NULL,
+                incident_id INT NULL,
+                sanction_id INT NULL,
+                destinataire_nom VARCHAR(150) NOT NULL,
+                destinataire_contact VARCHAR(150) NULL,
+                mode_notification VARCHAR(50) NOT NULL DEFAULT 'main_propre',
+                objet VARCHAR(255) NOT NULL,
+                message TEXT NULL,
+                statut VARCHAR(30) NOT NULL DEFAULT 'transmise',
+                date_envoi DATETIME NOT NULL,
+                created_by_user_id INT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+                FOREIGN KEY (eleve_id) REFERENCES eleves(id_eleve) ON DELETE CASCADE,
+                FOREIGN KEY (incident_id) REFERENCES discipline_incidents(id) ON DELETE SET NULL,
+                FOREIGN KEY (sanction_id) REFERENCES discipline_sanctions(id) ON DELETE SET NULL,
+                FOREIGN KEY (created_by_user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+                INDEX idx_disc_notif_target (lycee_id, eleve_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table `discipline_conseils`
+CREATE TABLE discipline_conseils (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                lycee_id INT NOT NULL,
+                annee_academique_id INT NOT NULL,
+                code VARCHAR(50) NOT NULL,
+                titre VARCHAR(255) NOT NULL,
+                date_conseil DATE NOT NULL,
+                heure_debut TIME NULL,
+                heure_fin TIME NULL,
+                lieu VARCHAR(150) NULL,
+                president_user_id INT NOT NULL,
+                secretaire_user_id INT NULL,
+                statut VARCHAR(30) NOT NULL DEFAULT 'planifie',
+                observations_generales TEXT NULL,
+                cloture_par_user_id INT NULL,
+                date_cloture DATETIME NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+                FOREIGN KEY (annee_academique_id) REFERENCES annees_academiques(id) ON DELETE RESTRICT,
+                FOREIGN KEY (president_user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+                FOREIGN KEY (secretaire_user_id) REFERENCES utilisateurs(id_user) ON DELETE SET NULL,
+                FOREIGN KEY (cloture_par_user_id) REFERENCES utilisateurs(id_user) ON DELETE SET NULL,
+                UNIQUE (lycee_id, code)
+            );";
+        } else {
+            $sql_conseils = "
+            CREATE TABLE discipline_conseils (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                lycee_id INT NOT NULL,
+                annee_academique_id INT NOT NULL,
+                code VARCHAR(50) NOT NULL,
+                titre VARCHAR(255) NOT NULL,
+                date_conseil DATE NOT NULL,
+                heure_debut TIME NULL,
+                heure_fin TIME NULL,
+                lieu VARCHAR(150) NULL,
+                president_user_id INT NOT NULL,
+                secretaire_user_id INT NULL,
+                statut VARCHAR(30) NOT NULL DEFAULT 'planifie',
+                observations_generales TEXT NULL,
+                cloture_par_user_id INT NULL,
+                date_cloture DATETIME NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+                FOREIGN KEY (annee_academique_id) REFERENCES annees_academiques(id) ON DELETE RESTRICT,
+                FOREIGN KEY (president_user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+                FOREIGN KEY (secretaire_user_id) REFERENCES utilisateurs(id_user) ON DELETE SET NULL,
+                FOREIGN KEY (cloture_par_user_id) REFERENCES utilisateurs(id_user) ON DELETE SET NULL,
+                UNIQUE KEY uk_disc_cons_code (lycee_id, code),
+                INDEX idx_disc_cons_tenant (lycee_id, annee_academique_id, date_conseil)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table `discipline_conseil_membres`
+CREATE TABLE discipline_conseil_membres (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                conseil_id INT NOT NULL,
+                user_id INT NOT NULL,
+                qualite_membre VARCHAR(50) NOT NULL,
+                a_droit_vote TINYINT(1) NOT NULL DEFAULT 1,
+                est_present TINYINT(1) NOT NULL DEFAULT 0,
+                nom_snapshot VARCHAR(150) NOT NULL,
+                fonction_snapshot VARCHAR(100) NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (conseil_id) REFERENCES discipline_conseils(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+                UNIQUE (conseil_id, user_id)
+            );";
+        } else {
+            $sql_membres = "
+            CREATE TABLE discipline_conseil_membres (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                conseil_id INT NOT NULL,
+                user_id INT NOT NULL,
+                qualite_membre VARCHAR(50) NOT NULL,
+                a_droit_vote TINYINT(1) NOT NULL DEFAULT 1,
+                est_present TINYINT(1) NOT NULL DEFAULT 0,
+                nom_snapshot VARCHAR(150) NOT NULL,
+                fonction_snapshot VARCHAR(100) NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (conseil_id) REFERENCES discipline_conseils(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+                UNIQUE KEY uk_disc_cons_user (conseil_id, user_id),
+                INDEX idx_disc_cons_membre (conseil_id, user_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table `discipline_conseil_eleves`
+CREATE TABLE discipline_conseil_eleves (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                conseil_id INT NOT NULL,
+                eleve_id INT NOT NULL,
+                classe_id INT NOT NULL,
+                motif_convocation TEXT NOT NULL,
+                presence_eleve TINYINT(1) NOT NULL DEFAULT 0,
+                presence_representant_legal TINYINT(1) NOT NULL DEFAULT 0,
+                nom_representant_legal VARCHAR(150) NULL,
+                decision_statut VARCHAR(30) NOT NULL DEFAULT 'en_attente',
+                sanction_id INT NULL,
+                motivation_decision TEXT NULL,
+                votes_pour INT NOT NULL DEFAULT 0,
+                votes_contre INT NOT NULL DEFAULT 0,
+                abstentions INT NOT NULL DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (conseil_id) REFERENCES discipline_conseils(id) ON DELETE CASCADE,
+                FOREIGN KEY (eleve_id) REFERENCES eleves(id_eleve) ON DELETE CASCADE,
+                FOREIGN KEY (classe_id) REFERENCES classes(id_classe) ON DELETE RESTRICT,
+                FOREIGN KEY (sanction_id) REFERENCES discipline_sanctions(id) ON DELETE SET NULL,
+                UNIQUE (conseil_id, eleve_id)
+            );";
+        } else {
+            $sql_eleves = "
+            CREATE TABLE discipline_conseil_eleves (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                conseil_id INT NOT NULL,
+                eleve_id INT NOT NULL,
+                classe_id INT NOT NULL,
+                motif_convocation TEXT NOT NULL,
+                presence_eleve TINYINT(1) NOT NULL DEFAULT 0,
+                presence_representant_legal TINYINT(1) NOT NULL DEFAULT 0,
+                nom_representant_legal VARCHAR(150) NULL,
+                decision_statut VARCHAR(30) NOT NULL DEFAULT 'en_attente',
+                sanction_id INT NULL,
+                motivation_decision TEXT NULL,
+                votes_pour INT NOT NULL DEFAULT 0,
+                votes_contre INT NOT NULL DEFAULT 0,
+                abstentions INT NOT NULL DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (conseil_id) REFERENCES discipline_conseils(id) ON DELETE CASCADE,
+                FOREIGN KEY (eleve_id) REFERENCES eleves(id_eleve) ON DELETE CASCADE,
+                FOREIGN KEY (classe_id) REFERENCES classes(id_classe) ON DELETE RESTRICT,
+                FOREIGN KEY (sanction_id) REFERENCES discipline_sanctions(id) ON DELETE SET NULL,
+                UNIQUE KEY uk_disc_cons_eleve (conseil_id, eleve_id),
+                INDEX idx_disc_cons_eleve_target (conseil_id, eleve_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table `discipline_conseil_incidents`
+CREATE TABLE discipline_conseil_incidents (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                conseil_id INT NOT NULL,
+                incident_id INT NOT NULL,
+                eleve_id INT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (conseil_id) REFERENCES discipline_conseils(id) ON DELETE CASCADE,
+                FOREIGN KEY (incident_id) REFERENCES discipline_incidents(id) ON DELETE CASCADE,
+                FOREIGN KEY (eleve_id) REFERENCES eleves(id_eleve) ON DELETE CASCADE,
+                UNIQUE (conseil_id, incident_id, eleve_id)
+            );";
+        } else {
+            $sql_incidents = "
+            CREATE TABLE discipline_conseil_incidents (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                conseil_id INT NOT NULL,
+                incident_id INT NOT NULL,
+                eleve_id INT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (conseil_id) REFERENCES discipline_conseils(id) ON DELETE CASCADE,
+                FOREIGN KEY (incident_id) REFERENCES discipline_incidents(id) ON DELETE CASCADE,
+                FOREIGN KEY (eleve_id) REFERENCES eleves(id_eleve) ON DELETE CASCADE,
+                UNIQUE KEY uk_disc_cons_inc_eleve (conseil_id, incident_id, eleve_id),
+                INDEX idx_disc_cons_inc (conseil_id, incident_id, eleve_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
