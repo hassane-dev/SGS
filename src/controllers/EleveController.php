@@ -236,7 +236,8 @@ class EleveController {
     private function forbidden() {
         http_response_code(403);
         View::render('errors/403');
-        exit();
+        if (!defined('TEST_MODE')) exit();
+        return;
     }
 
     private function handleCroppedPhoto($base64_string) {
@@ -510,14 +511,14 @@ class EleveController {
 
         $eleve_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
         if (!$eleve_id) {
-            header('Location: /eleves');
-            exit();
+            if (!defined('TEST_MODE')) header('Location: /eleves');
+            return;
         }
 
         $eleve = Eleve::findById($eleve_id);
         if (!$eleve) {
-            header('Location: /eleves');
-            exit();
+            if (!defined('TEST_MODE')) header('Location: /eleves');
+            return;
         }
 
         // Contrôle de sécurité du périmètre multi-tenant et cycle
@@ -562,8 +563,9 @@ class EleveController {
     public function discipline() {
         $canViewIncidents = Auth::can('view_incidents', 'discipline') || Auth::can('report_incident', 'discipline') || Auth::can('manage_incident', 'discipline') || Auth::can('view_all', 'eleve');
         $canViewSanctions = Auth::can('view_sanctions', 'discipline') || Auth::can('manage_sanctions', 'discipline') || Auth::can('view_all', 'eleve');
+        $canViewCouncils = Auth::can('view_councils', 'discipline') || Auth::can('manage_councils', 'discipline') || Auth::can('view_all', 'eleve');
 
-        if (!$canViewIncidents && !$canViewSanctions) {
+        if (!$canViewIncidents && !$canViewSanctions && !$canViewCouncils) {
             $this->forbidden();
         }
 
@@ -690,6 +692,37 @@ class EleveController {
             $sanctions = $stmtSanc->fetchAll(PDO::FETCH_ASSOC);
         }
 
+        // 2b. Discipline Councils for this student
+        $councils = [];
+        if ($canViewCouncils) {
+            $stmtC = $db->prepare("
+                SELECT
+                    c.id AS conseil_id,
+                    c.code AS conseil_code,
+                    c.titre AS conseil_titre,
+                    c.date_conseil,
+                    c.statut AS conseil_statut,
+                    ce.motif_convocation,
+                    ce.presence_eleve,
+                    ce.presence_representant_legal,
+                    ce.nom_representant_legal,
+                    ce.decision_statut,
+                    ce.motivation_decision,
+                    ce.sanction_id,
+                    ts.libelle AS type_sanction_libelle,
+                    s.statut AS sanction_statut,
+                    s.motif AS sanction_motif
+                FROM discipline_conseil_eleves ce
+                JOIN discipline_conseils c ON c.id = ce.conseil_id
+                LEFT JOIN discipline_sanctions s ON s.id = ce.sanction_id
+                LEFT JOIN discipline_types_sanctions ts ON ts.id = s.type_sanction_id
+                WHERE ce.eleve_id = :eleve_id AND c.lycee_id = :lycee_id
+                ORDER BY c.date_conseil DESC, c.created_at DESC
+            ");
+            $stmtC->execute([':eleve_id' => $eleve_id, ':lycee_id' => $eleve['lycee_id']]);
+            $councils = $stmtC->fetchAll(PDO::FETCH_ASSOC);
+        }
+
         // Permissions for additional sections
         $canViewHistory = Auth::can('view_history', 'discipline') || Auth::can('view_all', 'eleve');
         $canViewDocuments = Auth::can('manage_documents', 'discipline') || Auth::can('view_history', 'discipline') || Auth::can('view_all', 'eleve');
@@ -777,6 +810,7 @@ class EleveController {
             'sanctions_executees' => count(array_filter($sanctions, fn($s) => $s['statut'] === 'executee')),
             'sanctions_levees' => count(array_filter($sanctions, fn($s) => $s['statut'] === 'levee')),
             'sanctions_annulees' => count(array_filter($sanctions, fn($s) => $s['statut'] === 'annulee')),
+            'total_conseils' => count($councils),
         ];
 
         View::render('eleves/discipline', [
@@ -784,11 +818,13 @@ class EleveController {
             'summary' => $summary,
             'incidents' => $incidents,
             'sanctions' => $sanctions,
+            'councils' => $councils,
             'history' => $history,
             'notifications' => $notifications,
             'documents' => $documents,
             'canViewIncidents' => $canViewIncidents,
             'canViewSanctions' => $canViewSanctions,
+            'canViewCouncils' => $canViewCouncils,
             'canViewHistory' => $canViewHistory,
             'canViewNotifications' => $canViewNotifications,
             'canViewDocuments' => $canViewDocuments,

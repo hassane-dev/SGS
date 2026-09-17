@@ -35,6 +35,31 @@ $sanctStatutBadges = [
     'levee' => 'bg-info text-white',
     'annulee' => 'bg-secondary',
 ];
+
+$conseilStatutBadges = [
+    'planifie' => 'bg-secondary',
+    'convoque' => 'bg-info text-white',
+    'en_session' => 'bg-primary',
+    'delibere' => 'bg-warning text-dark',
+    'cloture' => 'bg-success',
+    'annule' => 'bg-danger',
+];
+
+$decisionStatutBadges = [
+    'en_attente' => 'bg-warning text-dark',
+    'relaxe' => 'bg-success',
+    'averti' => 'bg-info text-white',
+    'reoriente' => 'bg-secondary',
+    'sanctionne' => 'bg-danger',
+];
+
+$decisionStatutLabels = [
+    'en_attente' => 'En attente',
+    'relaxe' => 'Relaxé(e)',
+    'averti' => 'Averti(e)',
+    'reoriente' => 'Réorienté(e)',
+    'sanctionne' => 'Sanctionné(e)',
+];
 ?>
 
 <!-- [ Main Content ] start -->
@@ -127,6 +152,21 @@ $sanctStatutBadges = [
                     <div class="card-body">
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
+                                <h6 class="text-muted mb-1">Conseils Discipline</h6>
+                                <h3 class="mb-0 text-purple"><?= $summary['total_conseils'] ?? 0 ?></h3>
+                            </div>
+                            <div class="avtar bg-light-purple text-purple">
+                                <i class="ph-duotone ph-scales fs-3"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
                                 <h6 class="text-muted mb-1">Total Sanctions</h6>
                                 <h3 class="mb-0 text-warning"><?= $summary['total_sanctions'] ?></h3>
                             </div>
@@ -147,21 +187,6 @@ $sanctStatutBadges = [
                             </div>
                             <div class="avtar bg-light-danger text-danger">
                                 <i class="ph-duotone ph-clock fs-3"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <h6 class="text-muted mb-1">Sanctions Exécutées</h6>
-                                <h3 class="mb-0 text-success"><?= $summary['sanctions_executees'] ?></h3>
-                            </div>
-                            <div class="avtar bg-light-success text-success">
-                                <i class="ph-duotone ph-check-circle fs-3"></i>
                             </div>
                         </div>
                     </div>
@@ -227,6 +252,96 @@ $sanctStatutBadges = [
                                             </td>
                                             <td class="text-end">
                                                 <a href="/discipline/incidents/show?id=<?= $inc['incident_id'] ?>" class="btn btn-sm btn-outline-primary" title="Voir la fiche incident">
+                                                    <i class="ph-duotone ph-eye me-1"></i>Voir
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <!-- Conseils de Discipline -->
+        <?php if (!empty($canViewCouncils)): ?>
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="ph-duotone ph-scales me-2 text-primary"></i>Conseils de Discipline</h5>
+                    <span class="badge bg-light-secondary text-secondary"><?= count($councils ?? []) ?> convocation(s) / séance(s)</span>
+                </div>
+                <div class="card-body p-0">
+                    <?php if (empty($councils)): ?>
+                        <div class="p-4 text-center text-muted">
+                            <i class="ph-duotone ph-check-circle fs-1 text-success mb-2 d-block"></i>
+                            Aucun conseil de discipline enregistré pour cet élève.
+                        </div>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Code & Titre</th>
+                                        <th>Date</th>
+                                        <th>Statut Conseil</th>
+                                        <th>Motif Convocation</th>
+                                        <th>Présence Élève / Tuteur</th>
+                                        <th>Décision & Motivation</th>
+                                        <th>Sanction Liée</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($councils as $csl): ?>
+                                        <tr>
+                                            <td>
+                                                <strong class="d-block text-dark"><?= htmlspecialchars($csl['conseil_code']) ?></strong>
+                                                <small class="text-muted"><?= htmlspecialchars($csl['conseil_titre']) ?></small>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted"><i class="ph-duotone ph-calendar me-1"></i><?= date('d/m/Y', strtotime($csl['date_conseil'])) ?></small>
+                                            </td>
+                                            <td>
+                                                <span class="badge <?= $conseilStatutBadges[$csl['conseil_statut']] ?? 'bg-secondary' ?>">
+                                                    <?= ucfirst(str_replace('_', ' ', $csl['conseil_statut'])) ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <small class="text-dark d-block text-truncate" style="max-width: 200px;" title="<?= htmlspecialchars($csl['motif_convocation']) ?>">
+                                                    <?= htmlspecialchars($csl['motif_convocation']) ?>
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <small class="d-block">Élève : <?= $csl['presence_eleve'] ? '<span class="text-success fw-bold"><i class="ph-duotone ph-check-circle me-1"></i>Présent</span>' : '<span class="text-danger fw-bold"><i class="ph-duotone ph-x-circle me-1"></i>Absent</span>' ?></small>
+                                                <small class="d-block text-muted">Représentant : <?= $csl['presence_representant_legal'] ? '<span class="text-success fw-bold"><i class="ph-duotone ph-check-circle me-1"></i>Présent</span>' : '<span class="text-muted"><i class="ph-duotone ph-x-circle me-1"></i>Absent</span>' ?></small>
+                                                <?php if (!empty($csl['nom_representant_legal'])): ?>
+                                                    <small class="d-block text-muted">(<?= htmlspecialchars($csl['nom_representant_legal']) ?>)</small>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <span class="badge <?= $decisionStatutBadges[$csl['decision_statut']] ?? 'bg-secondary' ?>">
+                                                    <?= htmlspecialchars($decisionStatutLabels[$csl['decision_statut']] ?? $csl['decision_statut']) ?>
+                                                </span>
+                                                <?php if (!empty($csl['motivation_decision'])): ?>
+                                                    <small class="d-block text-muted text-truncate mt-1" style="max-width: 200px;" title="<?= htmlspecialchars($csl['motivation_decision']) ?>">
+                                                        <?= htmlspecialchars($csl['motivation_decision']) ?>
+                                                    </small>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <?php if (!empty($csl['sanction_id'])): ?>
+                                                    <span class="fw-bold text-dark d-block"><?= htmlspecialchars($csl['type_sanction_libelle'] ?? 'Sanction #' . $csl['sanction_id']) ?></span>
+                                                    <span class="badge <?= $sanctStatutBadges[$csl['sanction_statut']] ?? 'bg-secondary' ?>">
+                                                        <?= ucfirst(str_replace('_', ' ', $csl['sanction_statut'] ?? 'prononcee')) ?>
+                                                    </span>
+                                                <?php else: ?>
+                                                    <small class="text-muted">Aucune</small>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="/discipline/councils/show?id=<?= $csl['conseil_id'] ?>" class="btn btn-sm btn-outline-primary" title="Voir la fiche du conseil">
                                                     <i class="ph-duotone ph-eye me-1"></i>Voir
                                                 </a>
                                             </td>
