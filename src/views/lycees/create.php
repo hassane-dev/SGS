@@ -5,6 +5,7 @@
 
     <div class="bg-white p-8 rounded-lg shadow-lg">
         <form action="/lycees/store" method="POST" enctype="multipart/form-data">
+    <?= csrf_field() ?>
             <div class="grid grid-cols-1 gap-6">
 
                 <div>

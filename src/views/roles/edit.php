@@ -24,6 +24,7 @@
                 <div class="card">
                     <div class="card-body">
                         <form action="/roles/update" method="POST">
+    <?= csrf_field() ?>
                             <input type="hidden" name="id_role" value="<?= htmlspecialchars($role['id_role'] ?? '') ?>">
 
                             <div class="row">

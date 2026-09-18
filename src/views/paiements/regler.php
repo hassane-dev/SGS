@@ -72,6 +72,7 @@
 
             <!-- Form -->
             <form id="reglerPaymentForm" action="/paiements/process-payment/<?= $eleve['id_eleve'] ?>" method="POST" class="col-12 row">
+    <?= csrf_field() ?>
                 <!-- Section Dettes & Détails (Gauche) -->
                 <div class="col-lg-7">
                     <!-- Reste d'Inscription -->

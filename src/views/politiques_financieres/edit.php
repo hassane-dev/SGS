@@ -55,6 +55,7 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                         <?php endif; ?>
 
                         <form action="/settings/politique-financiere/update" method="POST">
+    <?= csrf_field() ?>
 
                             <!-- 1. Activation de l'élève -->
                             <h5 class="text-primary mb-3 mt-2"><i class="ph-duotone ph-user-check me-2"></i><?= _("Activation de l'Élève") ?></h5>

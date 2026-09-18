@@ -33,6 +33,7 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
                     </div>
                     <div class="card-body">
                         <form method="POST" action="/discipline/councils/store">
+    <?= csrf_field() ?>
 
                             <div class="row mb-3">
                                 <div class="col-md-4">

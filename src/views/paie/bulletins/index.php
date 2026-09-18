@@ -99,6 +99,7 @@ require_once __DIR__ . '/../../layouts/header_able.php';
                 <div class="text-muted small mb-2"><?= _("Aucun bulletin généré pour cet enseignant pour cette période.") ?></div>
                 <?php if (Auth::can('calculate', 'paie')): ?>
                   <form action="/paie/bulletins/generate-individual" method="POST" class="d-inline">
+    <?= csrf_field() ?>
                     <input type="hidden" name="personnel_id" value="<?= $selectedTeacher['id_user'] ?>" />
                     <input type="hidden" name="periode_id" value="<?= $selectedPeriode['id'] ?>" />
                     <button type="submit" class="btn btn-success d-inline-flex align-items-center gap-1">

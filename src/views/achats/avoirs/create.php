@@ -49,6 +49,7 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
                         </div>
 
                         <form action="/achats/avoirs/create" method="POST" id="avoirForm">
+    <?= csrf_field() ?>
                             <input type="hidden" name="facture_id" value="<?= $facture['id'] ?>">
                             <input type="hidden" name="fournisseur_id" value="<?= $facture['fournisseur_id'] ?>">
 

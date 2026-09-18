@@ -37,6 +37,7 @@
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <a href="/licences/edit?id=<?= $licence['id_licence'] ?>" class="text-indigo-600 hover:text-indigo-900"><?= _('Edit') ?></a>
                             <form action="/licences/destroy" method="POST" class="inline-block ml-4" onsubmit="return confirm('<?= _('Are you sure?') ?>');">
+    <?= csrf_field() ?>
                                 <input type="hidden" name="id" value="<?= $licence['id_licence'] ?>">
                                 <button type="submit" class="text-red-600 hover:text-red-900"><?= _('Delete') ?></button>
                             </form>

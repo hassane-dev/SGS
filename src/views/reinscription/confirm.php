@@ -13,6 +13,7 @@
         </div>
         <div class="card-body">
             <form action="/reinscription/process" method="POST">
+    <?= csrf_field() ?>
                 <input type="hidden" name="eleve_id" value="<?= $eleve['id_eleve'] ?>">
                 <input type="hidden" name="annee_academique_id" value="<?= $active_year['id'] ?>">
 

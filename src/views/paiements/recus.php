@@ -122,6 +122,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="cancelRecuForm" method="POST" action="/paiements/annuler-recu">
+    <?= csrf_field() ?>
                 <div class="modal-body">
                     <div class="alert alert-warning border-0 small">
                         <i class="ph-duotone ph-info me-1"></i><?= _("L'annulation est définitive. Elle recréera automatiquement les dettes (inscription ou mensualités) associées à ce reçu dans la fiche de l'élève.") ?>

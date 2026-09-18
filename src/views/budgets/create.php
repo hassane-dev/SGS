@@ -32,6 +32,7 @@ include __DIR__ . '/../layouts/header_able.php';
                     </div>
                     <div class="card-body">
                         <form action="/budgets/store" method="POST">
+    <?= csrf_field() ?>
                             <div class="mb-3">
                                 <label class="form-label" for="exercice_financier_id">Exercice Financier Principal <span class="text-danger">*</span></label>
                                 <select class="form-select" id="exercice_financier_id" name="exercice_financier_id" required>

@@ -11,6 +11,7 @@
         <div class="card-header">Rechercher un élève</div>
         <div class="card-body">
             <form action="/reinscription/search" method="POST">
+    <?= csrf_field() ?>
                 <div class="mb-3">
                     <label for="search_term" class="form-label">Entrez le matricule, le nom ou le prénom de l'élève</label>
                     <input type="text" class="form-control" id="search_term" name="search_term" required>

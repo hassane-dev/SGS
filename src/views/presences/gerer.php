@@ -36,6 +36,7 @@
                         <?php endif; ?>
 
                         <form action="/presences/store" method="POST">
+    <?= csrf_field() ?>
                             <input type="hidden" name="classe_id" value="<?= $data['classe']['id_classe'] ?>">
                             <input type="hidden" name="date_presence" value="<?= $data['date'] ?>">
 

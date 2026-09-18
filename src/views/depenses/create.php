@@ -27,6 +27,7 @@
             <div class="col-md-8">
                 <div class="card">
                     <form action="/depenses/store" method="POST" enctype="multipart/form-data" class="card-body">
+    <?= csrf_field() ?>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label"><?= _('Numéro de pièce (Optionnel)') ?></label>

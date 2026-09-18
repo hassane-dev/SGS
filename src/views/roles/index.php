@@ -87,6 +87,7 @@
                                                         </a>
                                                         <?php if (!$is_target_default && $has_role_delete): ?>
                                                             <form action="/roles/destroy" method="POST" class="d-inline ms-2" onsubmit="return confirm('<?= _('Êtes-vous sûr ?') ?>');">
+    <?= csrf_field() ?>
                                                                 <input type="hidden" name="id" value="<?= $target_role_id ?>">
                                                                 <button type="submit" class="btn btn-sm btn-danger"><?= _('Supprimer') ?></button>
                                                             </form>

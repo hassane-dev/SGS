@@ -33,6 +33,7 @@
                         <?php endif; ?>
 
                         <form action="/settings" method="POST" enctype="multipart/form-data">
+    <?= csrf_field() ?>
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="nom_lycee" class="form-label"><?= _('Nom du Lycée') ?></label>

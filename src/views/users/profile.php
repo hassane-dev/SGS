@@ -44,6 +44,7 @@
                             </div>
 
                             <form id="form-update-photo" action="/profile/update-photo" method="POST">
+    <?= csrf_field() ?>
                                 <input type="hidden" name="cropped_photo" id="cropped_photo">
                             </form>
 
@@ -74,6 +75,7 @@
                     </div>
                     <div class="card-body">
                         <form action="/profile/update-settings" method="POST" enctype="multipart/form-data">
+    <?= csrf_field() ?>
                             <div class="row g-3">
                                 <!-- Language selection -->
                                 <div class="col-md-6 mb-3">
@@ -152,6 +154,7 @@
                     </div>
                     <div class="card-body">
                         <form action="/profile/update-password" method="POST">
+    <?= csrf_field() ?>
                             <div class="mb-3">
                                 <label for="current_password" class="form-label"><?= _('Mot de passe actuel') ?></label>
                                 <input type="password" class="form-control" id="current_password" name="current_password" required>

@@ -10,6 +10,7 @@
             <?php endif; ?>
             <h1 class="h2 fw-bold mb-4"><?= _('Configuration de l\'école') ?></h1>
             <form action="/setup/finish" method="POST">
+    <?= csrf_field() ?>
                 <input type="hidden" name="install_mode" value="single">
                 <fieldset class="mb-4">
                     <legend class="h5 fw-bold border-bottom pb-2 mb-3"><?= _('Informations sur l\'école') ?></legend>

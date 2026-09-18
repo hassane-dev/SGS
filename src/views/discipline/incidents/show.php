@@ -326,6 +326,7 @@ $canViewHistory = Auth::can('view_history', 'discipline');
                             <div class="d-grid gap-2">
                                 <?php if ($incident['statut'] === 'signale'): ?>
                                     <form action="/discipline/incidents/update-status" method="POST">
+    <?= csrf_field() ?>
                                         <input type="hidden" name="id" value="<?= $incident['id'] ?>">
                                         <input type="hidden" name="statut" value="en_instruction">
                                         <button type="submit" class="btn btn-info w-100 d-inline-flex align-items-center justify-content-center gap-2">
@@ -336,6 +337,7 @@ $canViewHistory = Auth::can('view_history', 'discipline');
 
                                 <?php if (in_array($incident['statut'], ['signale', 'en_instruction'], true)): ?>
                                     <form action="/discipline/incidents/update-status" method="POST" onsubmit="return confirm('<?= _('Confirmer le traitement terminé de cet incident ?') ?>')">
+    <?= csrf_field() ?>
                                         <input type="hidden" name="id" value="<?= $incident['id'] ?>">
                                         <input type="hidden" name="statut" value="traite">
                                         <button type="submit" class="btn btn-success w-100 d-inline-flex align-items-center justify-content-center gap-2">
@@ -344,6 +346,7 @@ $canViewHistory = Auth::can('view_history', 'discipline');
                                     </form>
 
                                     <form action="/discipline/incidents/update-status" method="POST" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir classer cet incident sans suite ?') ?>')">
+    <?= csrf_field() ?>
                                         <input type="hidden" name="id" value="<?= $incident['id'] ?>">
                                         <input type="hidden" name="statut" value="classe_sans_suite">
                                         <button type="submit" class="btn btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2">
@@ -369,6 +372,7 @@ $canViewHistory = Auth::can('view_history', 'discipline');
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form action="/discipline/documents/upload" method="POST" enctype="multipart/form-data">
+    <?= csrf_field() ?>
                 <input type="hidden" name="incident_id" value="<?= $incident['id'] ?>">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="ph-duotone ph-paperclip me-2 text-primary"></i><?= _("Ajouter une pièce jointe") ?></h5>
@@ -397,6 +401,7 @@ $canViewHistory = Auth::can('view_history', 'discipline');
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form action="/discipline/notifications/store" method="POST">
+    <?= csrf_field() ?>
                 <input type="hidden" name="incident_id" value="<?= $incident['id'] ?>">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="ph-duotone ph-bell-ringing me-2 text-primary"></i><?= _("Consigner une notification parent") ?></h5>

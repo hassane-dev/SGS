@@ -78,6 +78,7 @@
                                                     if ($isAuthorized):
                                                     ?>
                                                         <form action="/annees-academiques/toggle-cloture" method="POST" class="d-inline" onsubmit="return confirm('<?= $annee['cloturee'] ? _('Êtes-vous sûr de vouloir réouvrir cette année ?') : _('Êtes-vous sûr de vouloir clôturer cette année ?') ?>');">
+    <?= csrf_field() ?>
                                                             <input type="hidden" name="id" value="<?= $annee['id'] ?>">
                                                             <button type="submit" class="btn btn-sm btn-<?= $annee['cloturee'] ? 'warning' : 'danger' ?>" title="<?= $annee['cloturee'] ? _('Réouvrir') : _('Clôturer') ?>">
                                                                 <i class="ph-duotone ph-<?= $annee['cloturee'] ? 'lock-key-open' : 'lock' ?>"></i>
@@ -86,6 +87,7 @@
                                                     <?php endif; ?>
                                                     <?php if (!$annee['est_active']): ?>
                                                         <form action="/annees-academiques/activate" method="POST" class="d-inline">
+    <?= csrf_field() ?>
                                                             <input type="hidden" name="id" value="<?= $annee['id'] ?>">
                                                             <button type="submit" class="btn btn-sm btn-success" title="<?= _('Activer cette année') ?>">
                                                                 <i class="ph-duotone ph-check-circle"></i>
@@ -96,6 +98,7 @@
                                                         <i class="ph-duotone ph-pencil"></i>
                                                     </a>
                                                     <form action="/annees-academiques/destroy" method="POST" class="d-inline" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer cette année ?') ?>');">
+    <?= csrf_field() ?>
                                                         <input type="hidden" name="id" value="<?= $annee['id'] ?>">
                                                         <button type="submit" class="btn btn-sm btn-danger" title="<?= _('Supprimer') ?>">
                                                             <i class="ph-duotone ph-trash"></i>

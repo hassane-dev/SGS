@@ -24,6 +24,7 @@
                 <div class="card">
                     <div class="card-body">
                         <form action="/eleves/update" method="POST" enctype="multipart/form-data">
+    <?= csrf_field() ?>
                             <input type="hidden" name="id_eleve" value="<?= $eleve['id_eleve'] ?>">
                             <?php
                                 $eleve = $eleve ?? []; // Ensure $eleve is an array

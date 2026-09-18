@@ -97,6 +97,7 @@ require_once __DIR__ . '/../../layouts/header_able.php';
             <?php if ($periode['statut'] !== 'cloture'): ?>
               <?php if (Auth::can('calculate', 'paie')): ?>
                 <form action="/paie/periodes/calculate" method="POST" class="mb-2">
+    <?= csrf_field() ?>
                   <input type="hidden" name="periode_id" value="<?= $periode['id'] ?>"/>
                   <button type="submit" class="btn btn-warning w-100 d-inline-flex align-items-center justify-content-center gap-1">
                     <i class="ph-duotone ph-calculator fs-5"></i>
@@ -107,6 +108,7 @@ require_once __DIR__ . '/../../layouts/header_able.php';
 
               <?php if (Auth::can('create', 'paie')): ?>
                 <form action="/paie/legacy/import" method="POST" class="mb-2">
+    <?= csrf_field() ?>
                   <input type="hidden" name="periode_id" value="<?= $periode['id'] ?>"/>
                   <button type="submit" class="btn btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-1">
                     <i class="ph-duotone ph-download-simple fs-5"></i>
@@ -117,6 +119,7 @@ require_once __DIR__ . '/../../layouts/header_able.php';
 
               <?php if (Auth::can('close', 'paie')): ?>
                 <form action="/paie/periodes/<?= $periode['id'] ?>/cloture" method="POST" onsubmit="return confirm('<?= _("Êtes-vous sûr de vouloir clôturer cette période ? Cette action est irréversible.") ?>');">
+    <?= csrf_field() ?>
                   <input type="hidden" name="periode_id" value="<?= $periode['id'] ?>"/>
                   <button type="submit" class="btn btn-danger w-100 d-inline-flex align-items-center justify-content-center gap-1">
                     <i class="ph-duotone ph-lock-key fs-5"></i>

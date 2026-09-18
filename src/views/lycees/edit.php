@@ -5,6 +5,7 @@
 
     <div class="bg-white p-8 rounded-lg shadow-lg">
         <form action="/lycees/update" method="POST" enctype="multipart/form-data">
+    <?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= htmlspecialchars($lycee['id']) ?>">
             <input type="hidden" name="current_logo" value="<?= htmlspecialchars($lycee['logo']) ?>">
 

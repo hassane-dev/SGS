@@ -8,6 +8,7 @@
 // $is_edit (boolean)
 ?>
 <form action="<?= $form_action ?>" method="POST" enctype="multipart/form-data">
+    <?= csrf_field() ?>
     <?php if ($is_edit): ?>
         <input type="hidden" name="id_user" value="<?= htmlspecialchars($user['id_user'] ?? '') ?>">
     <?php endif; ?>

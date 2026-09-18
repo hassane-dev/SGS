@@ -11,6 +11,7 @@
         </div>
         <div class="card-body">
             <form action="/evaluations/settings/save-legacy" method="POST">
+    <?= csrf_field() ?>
                 <input type="hidden" name="classe_id" value="<?= $classe['id_classe'] ?>">
                 <input type="hidden" name="matiere_id" value="<?= $matiere['id_matiere'] ?>">
                 <input type="hidden" name="enseignant_id" value="<?= $enseignant_id ?>">

@@ -33,6 +33,7 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                     </div>
                     <div class="card-body">
                         <form action="/sequences/update" method="POST">
+    <?= csrf_field() ?>
                             <input type="hidden" name="id" value="<?= htmlspecialchars($sequence['id']) ?>">
                             <?php include '_form.php'; ?>
                         </form>

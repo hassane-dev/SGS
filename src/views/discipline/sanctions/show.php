@@ -346,6 +346,7 @@ $canViewHistory = Auth::can('view_history', 'discipline');
                             <div class="d-grid gap-2">
                                 <?php if ($sanction['statut'] === 'prononcee'): ?>
                                     <form action="/discipline/sanctions/update-status" method="POST">
+    <?= csrf_field() ?>
                                         <input type="hidden" name="id" value="<?= $sanction['id'] ?>">
                                         <input type="hidden" name="statut" value="en_cours">
                                         <button type="submit" class="btn btn-warning w-100 d-inline-flex align-items-center justify-content-center gap-2">
@@ -356,6 +357,7 @@ $canViewHistory = Auth::can('view_history', 'discipline');
 
                                 <?php if (in_array($sanction['statut'], ['prononcee', 'en_cours'], true)): ?>
                                     <form action="/discipline/sanctions/update-status" method="POST" onsubmit="return confirm('<?= _('Confirmer que cette sanction a été pleinement exécutée ?') ?>')">
+    <?= csrf_field() ?>
                                         <input type="hidden" name="id" value="<?= $sanction['id'] ?>">
                                         <input type="hidden" name="statut" value="executee">
                                         <button type="submit" class="btn btn-success w-100 d-inline-flex align-items-center justify-content-center gap-2">
@@ -393,6 +395,7 @@ $canViewHistory = Auth::can('view_history', 'discipline');
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form action="/discipline/documents/upload" method="POST" enctype="multipart/form-data">
+    <?= csrf_field() ?>
                 <input type="hidden" name="sanction_id" value="<?= $sanction['id'] ?>">
                 <input type="hidden" name="eleve_id" value="<?= $sanction['eleve_id'] ?>">
                 <div class="modal-header">
@@ -422,6 +425,7 @@ $canViewHistory = Auth::can('view_history', 'discipline');
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form action="/discipline/notifications/store" method="POST">
+    <?= csrf_field() ?>
                 <input type="hidden" name="sanction_id" value="<?= $sanction['id'] ?>">
                 <input type="hidden" name="eleve_id" value="<?= $sanction['eleve_id'] ?>">
                 <div class="modal-header">
@@ -472,6 +476,7 @@ $canViewHistory = Auth::can('view_history', 'discipline');
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form action="/discipline/sanctions/update-status" method="POST">
+    <?= csrf_field() ?>
                 <input type="hidden" name="id" value="<?= $sanction['id'] ?>">
                 <input type="hidden" name="statut" value="levee">
                 <div class="modal-header">
@@ -503,6 +508,7 @@ $canViewHistory = Auth::can('view_history', 'discipline');
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form action="/discipline/sanctions/update-status" method="POST">
+    <?= csrf_field() ?>
                 <input type="hidden" name="id" value="<?= $sanction['id'] ?>">
                 <input type="hidden" name="statut" value="annulee">
                 <div class="modal-header">

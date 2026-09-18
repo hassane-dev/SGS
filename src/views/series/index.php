@@ -29,6 +29,7 @@
                     </div>
                     <div class="card-body">
                         <form action="/series/store" method="POST">
+    <?= csrf_field() ?>
                             <div class="mb-3">
                                 <label class="form-label"><?= _('Nom de la Série') ?></label>
                                 <input type="text" name="nom_serie" class="form-control" placeholder="Ex: A1, C, D, G2..." required>
@@ -74,6 +75,7 @@
                                                         <i class="ph-duotone ph-pencil"></i>
                                                     </button>
                                                     <form action="/series/destroy" method="POST" class="d-inline" onsubmit="return confirm('<?= _('Supprimer cette série ?') ?>');">
+    <?= csrf_field() ?>
                                                         <input type="hidden" name="id" value="<?= $s['id'] ?>">
                                                         <button type="submit" class="btn btn-sm btn-icon btn-outline-danger">
                                                             <i class="ph-duotone ph-trash"></i>
@@ -91,6 +93,7 @@
                                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                         </div>
                                                         <form action="/series/update" method="POST">
+    <?= csrf_field() ?>
                                                             <div class="modal-body">
                                                                 <input type="hidden" name="id" value="<?= $s['id'] ?>">
                                                                 <div class="mb-3">

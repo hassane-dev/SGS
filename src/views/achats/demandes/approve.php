@@ -139,6 +139,7 @@ foreach ($lignes as $ligne) {
                         </div>
                         <div class="card-body">
                             <form action="/achats/demandes/approve" method="POST">
+    <?= csrf_field() ?>
                                 <input type="hidden" name="id" value="<?= $demande['id'] ?>">
 
                                 <div class="mb-3">

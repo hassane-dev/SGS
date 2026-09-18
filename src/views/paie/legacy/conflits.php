@@ -109,6 +109,7 @@ require_once __DIR__ . '/../../layouts/header_able.php';
   <div class="modal-dialog">
     <div class="modal-content">
       <form action="/paie/legacy/import" method="POST">
+    <?= csrf_field() ?>
         <div class="modal-header">
           <h5 class="modal-title"><?= _("Importer Salaires Historiques vers la Paie") ?></h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

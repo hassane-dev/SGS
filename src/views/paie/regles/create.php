@@ -42,6 +42,7 @@ require_once __DIR__ . '/../../layouts/header_able.php';
     <?php endif; ?>
 
     <form action="/paie/regles/store" method="POST" id="ruleForm">
+    <?= csrf_field() ?>
       <div class="row g-4">
 
         <!-- Colonne Principale: Identification & Mode -->

@@ -11,6 +11,7 @@
             <h1 class="h2 fw-bold mb-3"><?= _('Bienvenue dans l\'installation') ?></h1>
             <p class="text-muted mb-4"><?= _('Veuillez choisir le mode d\'installation.') ?></p>
             <form action="/setup/choice" method="POST">
+    <?= csrf_field() ?>
                 <div class="list-group">
                     <label class="list-group-item list-group-item-action">
                         <h5 class="mb-1"><input type="radio" name="install_mode" value="single" class="form-check-input me-2" checked> <?= _('Installation Mono-école') ?></h5>

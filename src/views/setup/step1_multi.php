@@ -4,6 +4,7 @@
         <div class="card-body p-5">
             <h1 class="h2 fw-bold mb-4"><?= _('Configuration Multi-écoles') ?></h1>
             <form action="/setup/finish" method="POST">
+    <?= csrf_field() ?>
                 <input type="hidden" name="install_mode" value="multi">
                 <fieldset>
                     <legend class="h5 fw-bold border-bottom pb-2 mb-3"><?= _('Compte Administrateur National') ?></legend>

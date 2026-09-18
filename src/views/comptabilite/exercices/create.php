@@ -43,6 +43,7 @@ require_once __DIR__ . '/../../layouts/header_able.php';
           </div>
           <div class="card-body">
             <form action="/comptabilite/exercices/store" method="POST">
+    <?= csrf_field() ?>
               <div class="mb-3">
                 <label class="form-label"><?= _("Libellé de l'Exercice") ?> <span class="text-danger">*</span></label>
                 <input type="text" name="libelle" class="form-control" placeholder="Ex: Exercice 2026" value="<?= htmlspecialchars($_POST['libelle'] ?? '') ?>" required />

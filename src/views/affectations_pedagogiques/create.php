@@ -41,6 +41,7 @@
                         <?php endif; ?>
 
                         <form action="/affectations-pedagogiques/store" method="POST" id="affectationForm">
+    <?= csrf_field() ?>
                             <!-- Hidden resolved Class ID -->
                             <input type="hidden" name="classe_id" id="classe_id" value="">
 

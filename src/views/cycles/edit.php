@@ -24,6 +24,7 @@
                 <div class="card">
                     <div class="card-body">
                         <form action="/cycles/update" method="POST">
+    <?= csrf_field() ?>
                             <input type="hidden" name="id_cycle" value="<?= htmlspecialchars($cycle['id_cycle']) ?>">
                             <div class="row g-3">
                                 <div class="col-12">

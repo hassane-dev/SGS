@@ -5,6 +5,7 @@
 
     <div class="bg-white p-8 rounded-lg shadow-lg">
         <form action="/licences/store" method="POST">
+    <?= csrf_field() ?>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                 <div class="md:col-span-2">

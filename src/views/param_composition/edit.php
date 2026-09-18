@@ -40,6 +40,7 @@
                         </div>
 
                         <form action="/param-composition/update" method="POST">
+    <?= csrf_field() ?>
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="nombre_composition_par_sequence" class="form-label"><?= _('Nombre de compositions autorisées par séquence') ?></label>

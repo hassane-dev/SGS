@@ -56,6 +56,7 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
                         </div>
 
                         <form action="/achats/factures/rapprochement" method="POST" id="matchingForm">
+    <?= csrf_field() ?>
                             <!-- Hidden pointers -->
                             <input type="hidden" name="fournisseur_id" value="<?= $fournisseur['id'] ?>">
                             <input type="hidden" name="commande_id" value="<?= $commande['id'] ?>">

@@ -28,6 +28,7 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                     </div>
                     <div class="card-body">
                         <form action="/bulletins/class_results" method="POST">
+    <?= csrf_field() ?>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">

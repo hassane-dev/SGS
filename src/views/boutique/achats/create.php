@@ -28,6 +28,7 @@
                     <div class="card-body">
                         <h5 class="mb-4"><?= _('Élève') ?>: <?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?></h5>
                         <form action="/boutique/achats/store" method="POST">
+    <?= csrf_field() ?>
                             <input type="hidden" name="eleve_id" value="<?= htmlspecialchars($eleve['id_eleve']) ?>">
 
                             <div class="row">

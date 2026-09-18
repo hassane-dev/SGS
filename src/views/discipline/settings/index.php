@@ -265,6 +265,7 @@ $canManage = Auth::can('manage_config', 'discipline');
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form action="/discipline/settings/incidents/store" method="POST" id="formIncident">
+    <?= csrf_field() ?>
                 <input type="hidden" name="id" id="inc_id" value="">
                 <div class="modal-header">
                     <h5 class="modal-title" id="titleIncidentModal"><?= _("Nouveau Type d'Incident") ?></h5>
@@ -308,6 +309,7 @@ $canManage = Auth::can('manage_config', 'discipline');
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form action="/discipline/settings/sanctions/store" method="POST" id="formSanction">
+    <?= csrf_field() ?>
                 <input type="hidden" name="id" id="sanc_id" value="">
                 <div class="modal-header">
                     <h5 class="modal-title" id="titleSanctionModal"><?= _("Nouveau Type de Sanction") ?></h5>

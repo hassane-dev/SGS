@@ -268,6 +268,7 @@ $searchMode = $searchMode ?? 'pedagogique';
     <!-- Main Sessions Table Card -->
     <div class="card border-0 shadow-sm">
       <form action="/paie/cahier-texte/bulk-validate" method="POST" id="bulkForm">
+    <?= csrf_field() ?>
         <div class="card-header bg-transparent py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
           <h5 class="mb-0 d-flex align-items-center gap-2">
             <i class="ph-duotone ph-book-open-text text-primary"></i>
@@ -377,6 +378,7 @@ $searchMode = $searchMode ?? 'pedagogique';
                       <td class="text-end">
                         <?php if (in_array($s['status_code'], ['a_valider', 'en_attente'], true) && Auth::can('validate', 'paie')): ?>
                           <form action="/paie/cahier-texte/validate" method="POST" class="d-inline">
+    <?= csrf_field() ?>
                             <input type="hidden" name="cahier_id" value="<?= $s['cahier_id'] ?>" />
                             <button type="submit" class="btn btn-sm btn-success d-inline-flex align-items-center gap-1">
                               <i class="ph-duotone ph-check fs-6"></i>

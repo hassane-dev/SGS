@@ -38,6 +38,7 @@
                 <div class="card">
                     <div class="card-body">
                         <form action="/modele-carte/edit" method="POST" enctype="multipart/form-data">
+    <?= csrf_field() ?>
                             <input type="hidden" name="nom_modele" value="Default Card Model">
                             <input type="hidden" name="layout_data" id="layout_data_input" value="<?= htmlspecialchars($modele['layout_data'] ?? '{}') ?>">
                              <input type="hidden" name="current_background" value="<?= htmlspecialchars($modele['background'] ?? '') ?>">

@@ -6,6 +6,7 @@
 // $is_edit (boolean)
 ?>
 <form action="<?= $form_action ?>" method="POST">
+    <?= csrf_field() ?>
     <?php if ($is_edit): ?>
         <input type="hidden" name="id_contrat" value="<?= htmlspecialchars($contrat['id_contrat'] ?? '') ?>">
     <?php endif; ?>

@@ -39,6 +39,7 @@
                     <div class="card-body">
                         <?php if (Auth::can('edit', 'class') && $active_year): ?>
                         <form action="/classes/updateParams" method="POST">
+    <?= csrf_field() ?>
                             <input type="hidden" name="classe_id" value="<?= $classe['id_classe'] ?>">
                             <input type="hidden" name="annee_academique_id" value="<?= $active_year['id'] ?>">
                             <div class="row">
@@ -84,6 +85,7 @@
                     <div class="card-body">
                         <?php if (Auth::can('edit', 'class')): ?>
                         <form action="/classes/assignMatiere" method="POST">
+    <?= csrf_field() ?>
                             <input type="hidden" name="classe_id" value="<?= $classe['id_classe'] ?>">
                             <div class="mb-3">
                                 <label for="matiere_id" class="form-label"><?= _('Matière') ?></label>

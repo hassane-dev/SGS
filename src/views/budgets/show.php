@@ -21,6 +21,7 @@ include __DIR__ . '/../layouts/header_able.php';
                             <h2 class="mb-0"><?= htmlspecialchars($budget['libelle']) ?></h2>
                             <div class="d-flex gap-2">
                                 <form action="/budgets/rebuild/<?= $budget['id'] ?>" method="POST" class="d-inline">
+    <?= csrf_field() ?>
                                     <button type="submit" class="btn btn-outline-secondary d-inline-flex align-items-center">
                                         <i class="ph-duotone ph-arrows-counter-clockwise me-2"></i> Recalculer les Lignes
                                     </button>
@@ -28,6 +29,7 @@ include __DIR__ . '/../layouts/header_able.php';
 
                                 <?php if ($budget['statut'] === 'brouillon' && Auth::can('update', 'budget')): ?>
                                     <form action="/budgets/submit/<?= $budget['id'] ?>" method="POST" class="d-inline">
+    <?= csrf_field() ?>
                                         <button type="submit" class="btn btn-warning d-inline-flex align-items-center">
                                             <i class="ph-duotone ph-paper-plane me-2"></i> Soumettre pour Validation
                                         </button>
@@ -36,6 +38,7 @@ include __DIR__ . '/../layouts/header_able.php';
 
                                 <?php if ($budget['statut'] === 'soumis' && Auth::can('activate', 'budget')): ?>
                                     <form action="/budgets/approve/<?= $budget['id'] ?>" method="POST" class="d-inline">
+    <?= csrf_field() ?>
                                         <button type="submit" class="btn btn-success d-inline-flex align-items-center">
                                             <i class="ph-duotone ph-check-square me-2"></i> Valider & Activer
                                         </button>
@@ -44,6 +47,7 @@ include __DIR__ . '/../layouts/header_able.php';
 
                                 <?php if ($budget['statut'] === 'actif' && Auth::can('close', 'budget')): ?>
                                     <form action="/budgets/close/<?= $budget['id'] ?>" method="POST" class="d-inline">
+    <?= csrf_field() ?>
                                         <button type="submit" class="btn btn-danger d-inline-flex align-items-center" onclick="return confirm('Êtes-vous sûr de vouloir clôturer ce budget définitivement ?');">
                                             <i class="ph-duotone ph-lock me-2"></i> Clôturer le Budget
                                         </button>
@@ -147,6 +151,7 @@ include __DIR__ . '/../layouts/header_able.php';
                         </div>
                         <div class="card-body">
                             <form action="/budgets/lines/store" method="POST">
+    <?= csrf_field() ?>
                                 <input type="hidden" name="budget_id" value="<?= $budget['id'] ?>">
 
                                 <div class="mb-3">
@@ -244,6 +249,7 @@ include __DIR__ . '/../layouts/header_able.php';
                                                 <?php if ($budget['statut'] === 'brouillon' && Auth::can('update', 'budget')): ?>
                                                     <td class="text-end">
                                                         <form action="/budgets/lines/delete" method="POST" class="d-inline" onsubmit="return confirm('Supprimer cette ligne budgétaire ?');">
+    <?= csrf_field() ?>
                                                             <input type="hidden" name="ligne_id" value="<?= $line['id'] ?>">
                                                             <input type="hidden" name="budget_id" value="<?= $budget['id'] ?>">
                                                             <button type="submit" class="btn btn-icon btn-link-danger">

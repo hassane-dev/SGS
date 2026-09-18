@@ -43,6 +43,7 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
                     </div>
                     <div class="card-body">
                         <form action="/achats/categories/edit?id=<?= $category['id'] ?>" method="POST">
+    <?= csrf_field() ?>
                             <!-- Libellé -->
                             <div class="mb-3">
                                 <label class="form-label font-weight-bold" for="libelle"><?= _("Nom / Libellé de la catégorie d'achats") ?> <span class="text-danger">*</span></label>

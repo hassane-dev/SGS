@@ -36,6 +36,7 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
         <?php endif; ?>
 
         <form action="/discipline/incidents/store" method="POST" id="formIncidentCreate">
+    <?= csrf_field() ?>
             <div class="row">
 
                 <!-- Contexte & faits -->

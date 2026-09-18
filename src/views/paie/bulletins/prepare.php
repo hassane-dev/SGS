@@ -62,6 +62,7 @@ $isPreviewStage = isset($previewItems) && is_array($previewItems);
         </div>
         <div class="card-body">
           <form method="POST" action="/paie/bulletins/preview" id="prepForm">
+    <?= csrf_field() ?>
             <!-- Period Selector -->
             <div class="row g-3 mb-4">
               <div class="col-md-6 col-lg-5">
@@ -284,6 +285,7 @@ $isPreviewStage = isset($previewItems) && is_array($previewItems);
 
           <!-- Final Confirmation Action Form -->
           <form method="POST" action="/paie/bulletins/calculate" id="calcForm">
+    <?= csrf_field() ?>
             <input type="hidden" name="periode_id" value="<?= $selectedPeriode['id'] ?>" />
             <input type="hidden" name="scope" value="<?= htmlspecialchars($_POST['scope'] ?? 'all') ?>" />
             <input type="hidden" name="idempotency_key" value="BULK-GEN-<?= $selectedPeriode['id'] ?>-<?= time() ?>" />

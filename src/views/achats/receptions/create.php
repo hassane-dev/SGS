@@ -48,6 +48,7 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
                         </div>
 
                         <form action="/achats/receptions/create" method="POST" id="receptionForm">
+    <?= csrf_field() ?>
                             <input type="hidden" name="commande_id" value="<?= $commande['id'] ?>">
 
                             <div class="table-responsive mb-4">

@@ -32,6 +32,7 @@
                     </div>
                     <div class="card-body">
                         <form action="/evaluations/deblocage/store" method="POST">
+    <?= csrf_field() ?>
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label" for="type"><?= _('Niveau de ciblage') ?></label>

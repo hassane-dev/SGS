@@ -99,6 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
+                'csrf_token': '<?= csrf_token() ?>',
                 'template_id': templateId,
                 'layout_order[]': order.join(',') // Sending as comma-separated string
             })

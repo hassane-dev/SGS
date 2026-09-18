@@ -46,6 +46,7 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
                     </div>
                     <div class="card-body">
                         <form action="/comptes-financiers/store" method="POST">
+    <?= csrf_field() ?>
                             <!-- Nom du compte -->
                             <div class="mb-3">
                                 <label for="nom_compte" class="form-label font-weight-bold"><?= _("Nom du Compte *") ?></label>

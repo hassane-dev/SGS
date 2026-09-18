@@ -45,6 +45,7 @@ require_once __DIR__ . '/../../layouts/header_able.php';
           </div>
           <div class="card-body">
             <form action="/paie/periodes/<?= $periode['id'] ?>/update" method="POST">
+    <?= csrf_field() ?>
               <input type="hidden" name="id" value="<?= $periode['id'] ?>"/>
 
               <div class="row mb-3">

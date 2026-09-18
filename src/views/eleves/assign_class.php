@@ -30,6 +30,7 @@
                         <h4 class="mb-4"><?= _('Élève') ?>: <?= htmlspecialchars($eleve['prenom'] . ' ' . $eleve['nom']) ?></h4>
 
                         <form id="assign-class-form" action="/eleves/process-assignment" method="POST">
+    <?= csrf_field() ?>
                             <input type="hidden" name="eleve_id" value="<?= $eleve['id_eleve'] ?>">
 
                             <div class="row g-3">

@@ -155,6 +155,7 @@ require_once __DIR__ . '/../../layouts/header_able.php';
                           <i class="ph-duotone ph-pencil"></i>
                         </a>
                         <form action="/paie/regles/toggle" method="POST" class="d-inline">
+    <?= csrf_field() ?>
                           <input type="hidden" name="id" value="<?= $r['id'] ?>">
                           <button type="submit" class="btn btn-light-<?= $r['actif'] ? 'warning' : 'success' ?>" title="<?= $r['actif'] ? _("Désactiver") : _("Activer") ?>">
                             <i class="ph-duotone ph-power"></i>

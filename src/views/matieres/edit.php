@@ -27,6 +27,7 @@
                     </div>
                     <div class="card-body">
                         <form action="/matieres/update" method="POST">
+    <?= csrf_field() ?>
                             <input type="hidden" name="id_matiere" value="<?= htmlspecialchars($matiere['id_matiere']) ?>">
                             <?php
                                 $matiere = $matiere ?? []; // Ensure $matiere is an array

@@ -138,6 +138,7 @@
                                             <?php if ($d['statut'] === 'brouillon' && Auth::can('create', 'depense')): ?>
                                                 <!-- Action form to submit to validation directly -->
                                                 <form action="/depenses/store" method="POST" class="d-inline">
+    <?= csrf_field() ?>
                                                     <input type="hidden" name="id" value="<?= $d['id'] ?>">
                                                     <input type="hidden" name="submit_direct" value="1">
                                                     <!-- Keep existing data -->
@@ -173,6 +174,7 @@
                                                 <div class="modal fade" id="cancelModal<?= $d['id'] ?>" tabindex="-1" aria-hidden="true">
                                                     <div class="modal-dialog">
                                                         <form action="/depenses/cancel/<?= $d['id'] ?>" method="POST" class="modal-content text-start">
+    <?= csrf_field() ?>
                                                             <div class="modal-header">
                                                                 <h5 class="modal-title"><?= _('Annulation et Contre-passation de Dépense') ?></h5>
                                                                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>

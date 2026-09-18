@@ -79,6 +79,7 @@
                                                     <?php endif; ?>
                                                     <?php if (Auth::can('delete', 'class')): ?>
                                                         <form action="/classes/destroy" method="POST" class="d-inline ms-2" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer cette classe ?') ?>');">
+    <?= csrf_field() ?>
                                                             <input type="hidden" name="id" value="<?= $classe['id_classe'] ?>">
                                                             <button type="submit" class="btn btn-sm btn-danger" title="<?= _('Supprimer') ?>">
                                                                 <?= _('Supprimer') ?>

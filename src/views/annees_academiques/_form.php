@@ -13,6 +13,7 @@ $date_fin = $old_post['date_fin'] ?? $annee['date_fin'] ?? '';
 
 ?>
 <form action="<?= htmlspecialchars($form_action) ?>" method="POST">
+    <?= csrf_field() ?>
     <?php if ($is_edit): ?>
         <input type="hidden" name="id" value="<?= htmlspecialchars($annee['id'] ?? '') ?>">
     <?php endif; ?>

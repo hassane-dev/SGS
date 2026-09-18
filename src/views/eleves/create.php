@@ -24,6 +24,7 @@
                 <div class="card">
                     <div class="card-body">
                         <form action="/eleves/store" method="POST" enctype="multipart/form-data">
+    <?= csrf_field() ?>
                             <?php
                                 $eleve = $eleve ?? []; // Ensure $eleve is an array
                                 include '_form.php';

@@ -106,6 +106,7 @@
                                     <tr class="collapse d-print-none bg-light" id="collapseSeuil_<?= htmlspecialchars($code) ?>">
                                         <td colspan="7">
                                             <form action="/reporting/threshold/save" method="POST" class="p-3">
+    <?= csrf_field() ?>
                                                 <input type="hidden" name="lycee_id" value="<?= htmlspecialchars($selectedLyceeId) ?>">
                                                 <input type="hidden" name="kpi_code" value="<?= htmlspecialchars($code) ?>">
                                                 <div class="row">

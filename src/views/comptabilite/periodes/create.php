@@ -43,6 +43,7 @@ require_once __DIR__ . '/../../layouts/header_able.php';
           </div>
           <div class="card-body">
             <form action="/comptabilite/periodes/store" method="POST">
+    <?= csrf_field() ?>
               <div class="mb-3">
                 <label class="form-label"><?= _("Exercice Financier") ?> <span class="text-danger">*</span></label>
                 <select name="exercice_financier_id" class="form-select" required>

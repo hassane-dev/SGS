@@ -43,6 +43,7 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
                     </div>
                     <div class="card-body">
                         <form action="/achats/commandes/create" method="POST">
+    <?= csrf_field() ?>
                             <!-- Hidden inputs for mapping DA -->
                             <input type="hidden" name="demande_id" value="">
 

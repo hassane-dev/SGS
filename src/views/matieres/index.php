@@ -75,6 +75,7 @@
                                                     <?php endif; ?>
                                                     <?php if (Auth::can('delete', 'matiere')): ?>
                                                         <form action="/matieres/delete" method="POST" class="d-inline ms-2" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer cette matière ?') ?>');">
+    <?= csrf_field() ?>
                                                             <input type="hidden" name="id" value="<?= $matiere['id_matiere'] ?>">
                                                             <button type="submit" class="btn btn-sm btn-danger"><?= _('Supprimer') ?></button>
                                                         </form>

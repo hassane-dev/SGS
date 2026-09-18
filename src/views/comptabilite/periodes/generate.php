@@ -46,6 +46,7 @@ require_once __DIR__ . '/../../layouts/header_able.php';
               <?= _("Cet outil va créer automatiquement les périodes mensuelles ouvertes pour toute la durée de l'exercice financier sélectionné, en sautant les plages déjà créées pour éviter les chevauchements.") ?>
             </p>
             <form action="/comptabilite/periodes/generate" method="POST">
+    <?= csrf_field() ?>
               <div class="mb-4">
                 <label class="form-label"><?= _("Sélectionner l'Exercice Financier Target") ?> <span class="text-danger">*</span></label>
                 <select name="exercice_financier_id" class="form-select" required>

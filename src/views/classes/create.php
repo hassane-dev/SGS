@@ -24,6 +24,7 @@
                 <div class="card">
                     <div class="card-body">
                         <form action="/classes/store" method="POST">
+    <?= csrf_field() ?>
                             <div class="row g-3">
                                 <!-- Cycle -->
                                 <div class="col-md-6">
