@@ -54,6 +54,7 @@
                         <h5><?= _('Sélection de la Source de Trésorerie') ?></h5>
                     </div>
                     <form action="/depenses/process-payment/<?= $depense['id'] ?>" method="POST" class="card-body">
+    <?= csrf_field() ?>
                         <div class="mb-3">
                             <label class="form-label required"><?= _('Compte financier de décaissement') ?></label>
                             <select name="compte_id" class="form-select" required>

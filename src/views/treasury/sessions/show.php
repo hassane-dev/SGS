@@ -102,6 +102,7 @@
                         <?php if ($session['statut'] === 'ouverte' && $session['user_id'] == Auth::getUserId()): ?>
                             <hr>
                             <form action="/treasury/sessions/close" method="POST" id="close_session_form">
+    <?= csrf_field() ?>
                                 <input type="hidden" name="id" value="<?= $session['id'] ?>">
 
                                 <div class="mb-3">
@@ -224,6 +225,7 @@
                                 </div>
 
                                 <form action="/treasury/sessions/approve" method="POST">
+    <?= csrf_field() ?>
                                     <input type="hidden" name="id" value="<?= $session['id'] ?>">
 
                                     <div class="mb-3">

@@ -44,6 +44,7 @@
         <?php endif; ?>
 
         <form action="/paiements/process-payment/<?= $eleve['id_eleve'] ?>" method="POST">
+    <?= csrf_field() ?>
             <div class="row">
                 <div class="col-lg-6">
                     <div class="card">

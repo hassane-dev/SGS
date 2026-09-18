@@ -46,6 +46,7 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
                     </div>
                     <div class="card-body">
                         <form action="/comptes-comptables/store" method="POST">
+    <?= csrf_field() ?>
                             <div class="row">
                                 <!-- Numéro de compte -->
                                 <div class="col-md-6 mb-3">

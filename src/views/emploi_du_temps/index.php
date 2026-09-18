@@ -224,6 +224,7 @@
                                                                             <i class="ph-duotone ph-pencil"></i>
                                                                         </a>
                                                                         <form action="/emploi-du-temps/destroy" method="POST" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer ce cours ?') ?>');" class="d-inline">
+    <?= csrf_field() ?>
                                                                             <input type="hidden" name="id" value="<?= $entry['id'] ?>">
                                                                             <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" title="<?= _('Supprimer') ?>">&times;</button>
                                                                         </form>
@@ -252,6 +253,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form action="/emploi-du-temps/swap" method="POST">
+    <?= csrf_field() ?>
                 <div class="modal-header">
                     <h5 class="modal-title" id="swapModalLabel"><i class="ti ti-arrows-exchange me-1"></i><?= _('Permuter 2 Cours') ?></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

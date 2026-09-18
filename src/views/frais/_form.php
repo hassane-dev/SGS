@@ -1,4 +1,5 @@
 <form action="/frais/store" method="POST">
+    <?= csrf_field() ?>
 
     <?php if (isset($_SESSION['error_message'])): ?>
         <div class="alert alert-danger"><?= $_SESSION['error_message'] ?></div>

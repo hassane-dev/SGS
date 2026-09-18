@@ -24,6 +24,7 @@
                 <div class="card">
                     <div class="card-body">
                         <form action="/roles/store" method="POST">
+    <?= csrf_field() ?>
                             <div class="row g-3">
                                 <div class="col-12">
                                     <label for="nom_role" class="form-label"><?= _('Nom du Rôle') ?></label>

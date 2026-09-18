@@ -34,6 +34,7 @@
                     </div>
                     <div class="card-body">
                         <form action="<?= $isEdit ? '/evaluations/types/update?id=' . $type['id'] : '/evaluations/types/store' ?>" method="POST">
+    <?= csrf_field() ?>
                             <?php if ($isEdit): ?>
                                 <input type="hidden" name="id" value="<?= $type['id'] ?>">
                             <?php endif; ?>

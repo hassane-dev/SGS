@@ -53,6 +53,7 @@ $idempotencyKey = 'pay_opt_' . bin2hex(random_bytes(16));
                         </div>
 
                         <form action="/achats/factures/pay" method="POST" id="paymentForm">
+    <?= csrf_field() ?>
                             <!-- Hidden inputs for validation & security -->
                             <input type="hidden" name="facture_id" value="<?= $facture['id'] ?>">
                             <input type="hidden" name="idempotency_key" value="<?= $idempotencyKey ?>">

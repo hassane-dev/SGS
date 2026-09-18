@@ -44,6 +44,7 @@
             </div>
             <div class="card-body">
                 <form method="POST" action="/drh/update" enctype="multipart/form-data">
+    <?= csrf_field() ?>
                     <input type="hidden" name="id_user" value="<?= $p['id_user'] ?>">
 
                     <!-- Section 1 -->

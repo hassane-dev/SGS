@@ -165,6 +165,7 @@
                                                             <i class="ph-duotone ph-pencil-simple"></i>
                                                         </a>
                                                         <form action="/cahier-texte/destroy" method="POST" class="d-inline-block" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer cette entrée ?') ?>');">
+    <?= csrf_field() ?>
                                                             <input type="hidden" name="id" value="<?= $entry['cahier_id'] ?>">
                                                             <button type="submit" class="btn btn-sm btn-light-danger" title="<?= _('Supprimer') ?>">
                                                                 <i class="ph-duotone ph-trash"></i>

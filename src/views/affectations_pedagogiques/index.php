@@ -199,15 +199,18 @@
                                                         </a>
                                                         <?php if ($aff['statut'] === 'actif'): ?>
                                                             <form action="/affectations-pedagogiques/suspend" method="POST" class="d-inline-block" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir suspendre cette affectation ?') ?>');">
+    <?= csrf_field() ?>
                                                                 <input type="hidden" name="id" value="<?= $aff['id'] ?>">
                                                                 <button type="submit" class="btn btn-sm btn-outline-warning me-1" title="<?= _('Suspendre l\'affectation') ?>"><?= _('Suspendre') ?></button>
                                                             </form>
                                                             <form action="/affectations-pedagogiques/terminate" method="POST" class="d-inline-block" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir clôturer cette affectation ?') ?>');">
+    <?= csrf_field() ?>
                                                                 <input type="hidden" name="id" value="<?= $aff['id'] ?>">
                                                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="<?= _('Clôturer l\'affectation') ?>"><?= _('Clôturer') ?></button>
                                                             </form>
                                                         <?php elseif ($aff['statut'] === 'suspendu'): ?>
                                                             <form action="/affectations-pedagogiques/reactivate" method="POST" class="d-inline-block" onsubmit="return confirm('<?= _('Voulez-vous réactiver cette affectation suspendue ?') ?>');">
+    <?= csrf_field() ?>
                                                                 <input type="hidden" name="id" value="<?= $aff['id'] ?>">
                                                                 <button type="submit" class="btn btn-sm btn-success me-1" title="<?= _('Réactiver l\'affectation') ?>"><?= _('Réactiver') ?></button>
                                                             </form>

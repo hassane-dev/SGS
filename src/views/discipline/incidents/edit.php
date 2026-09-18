@@ -36,6 +36,7 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
         <?php endif; ?>
 
         <form action="/discipline/incidents/update" method="POST" id="formIncidentEdit">
+    <?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= $incident['id'] ?>">
 
             <div class="row">

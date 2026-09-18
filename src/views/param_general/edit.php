@@ -36,6 +36,7 @@
                         <?php endif; ?>
 
                         <form action="/param-general/update" method="POST">
+    <?= csrf_field() ?>
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="devise_pays" class="form-label"><?= _('Nom complet de la devise') ?></label>

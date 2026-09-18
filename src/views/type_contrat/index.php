@@ -84,6 +84,7 @@
                                                         <i class="ph-duotone ph-pencil"></i>
                                                     </a>
                                                     <form action="/contrats/destroy" method="POST" class="d-inline ms-2" onsubmit="return confirm('<?= _('Êtes-vous sûr ?') ?>');">
+    <?= csrf_field() ?>
                                                         <input type="hidden" name="id" value="<?= $contrat['id_contrat'] ?>">
                                                         <button type="submit" class="btn btn-sm btn-icon btn-light-danger" title="<?= _('Supprimer') ?>">
                                                             <i class="ph-duotone ph-trash"></i>

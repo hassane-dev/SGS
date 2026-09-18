@@ -123,6 +123,7 @@
                 </div>
               <?php else: ?>
                 <form action="/appreciation-conseil/save" method="POST">
+    <?= csrf_field() ?>
                   <input type="hidden" name="classe_id" value="<?= $selected_classe['id_classe'] ?>">
                   <input type="hidden" name="sequence_id" value="<?= $selected_sequence['id'] ?>">
 

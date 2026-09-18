@@ -8,6 +8,7 @@ ob_start();
     <p>Année Académique : <strong><?= htmlspecialchars($activeYear['libelle']) ?></strong></p>
 
     <form action="/inscriptions/enroll" method="POST">
+    <?= csrf_field() ?>
         <input type="hidden" name="eleve_id" value="<?= $eleve['id_eleve'] ?>">
 
         <div class="form-group">

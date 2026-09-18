@@ -46,6 +46,7 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
                     </div>
                     <div class="card-body">
                         <form action="/comptes-financiers/update" method="POST">
+    <?= csrf_field() ?>
                             <input type="hidden" name="id" value="<?= htmlspecialchars($compte['id']) ?>">
 
                             <!-- Nom du compte -->

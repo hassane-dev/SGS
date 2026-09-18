@@ -39,6 +39,7 @@
                         <?php $cours = $data['cours']; ?>
 
                         <form action="/emploi-du-temps/update" method="POST" id="form-edit-edt">
+    <?= csrf_field() ?>
                             <input type="hidden" name="id" value="<?= htmlspecialchars($cours['id']) ?>">
                             <input type="hidden" name="annee_academique_id" value="<?= htmlspecialchars($data['annee_academique_id']) ?>">
 

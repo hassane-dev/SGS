@@ -6,6 +6,7 @@
 
     <div class="bg-white p-8 rounded-lg shadow-lg">
         <form action="/tests_entree/store" method="POST">
+    <?= csrf_field() ?>
             <input type="hidden" name="eleve_id" value="<?= htmlspecialchars($eleve['id_eleve']) ?>">
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

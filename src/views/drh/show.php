@@ -305,6 +305,7 @@
                                         <td class="text-end">
                                             <?php if (Auth::can('manage_affectations', 'drh')): ?>
                                             <form method="POST" action="/drh/assignments/delete" class="d-inline" onsubmit="return confirm('<?= _('Retirer cette affectation ? Les accès de l\'utilisateur seront réactualisés.') ?>');">
+    <?= csrf_field() ?>
                                                 <input type="hidden" name="id" value="<?= $as['id'] ?>">
                                                 <input type="hidden" name="personnel_id" value="<?= $p['id_user'] ?>">
                                                 <button type="submit" class="btn btn-sm btn-icon btn-light-danger" title="<?= _('Retirer') ?>">
@@ -544,6 +545,7 @@
                                                 </a>
                                                 <?php if (Auth::can('manage_documents', 'drh')): ?>
                                                 <form method="POST" action="/drh/documents/delete" class="d-inline" onsubmit="return confirm('<?= _('Supprimer définitivement ce document ?') ?>');">
+    <?= csrf_field() ?>
                                                     <input type="hidden" name="id" value="<?= $doc['id'] ?>">
                                                     <input type="hidden" name="personnel_id" value="<?= $p['id_user'] ?>">
                                                     <button type="submit" class="btn btn-light-danger" title="<?= _('Supprimer') ?>">
@@ -665,6 +667,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST" action="/drh/update-status">
+    <?= csrf_field() ?>
                 <input type="hidden" name="personnel_id" value="<?= $p['id_user'] ?>">
                 <div class="modal-header">
                     <h5 class="modal-title d-flex align-items-center gap-2">
@@ -708,6 +711,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST" action="/drh/assignments/store">
+    <?= csrf_field() ?>
                 <input type="hidden" name="personnel_id" value="<?= $p['id_user'] ?>">
                 <div class="modal-header">
                     <h5 class="modal-title d-flex align-items-center gap-2">
@@ -754,6 +758,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <form method="POST" action="/drh/contracts/store">
+    <?= csrf_field() ?>
                 <input type="hidden" name="personnel_id" value="<?= $p['id_user'] ?>">
                 <input type="hidden" name="idempotency_key" value="<?= bin2hex(random_bytes(16)) ?>">
                 <div class="modal-header">
@@ -861,6 +866,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST" action="/drh/documents/store" enctype="multipart/form-data">
+    <?= csrf_field() ?>
                 <input type="hidden" name="personnel_id" value="<?= $p['id_user'] ?>">
                 <div class="modal-header">
                     <h5 class="modal-title d-flex align-items-center gap-2">
@@ -1021,6 +1027,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST" action="/drh/contracts/cancel">
+    <?= csrf_field() ?>
                 <input type="hidden" name="personnel_id" value="<?= $p['id_user'] ?>">
                 <input type="hidden" name="contract_id" id="cancelContractId">
                 <div class="modal-header">

@@ -36,6 +36,7 @@
                             <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($test['score']) ?></td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <form action="/tests_entree/destroy" method="POST" class="inline-block" onsubmit="return confirm('<?= _('Are you sure?') ?>');">
+    <?= csrf_field() ?>
                                     <input type="hidden" name="id" value="<?= $test['id_test'] ?>">
                                     <input type="hidden" name="eleve_id" value="<?= $eleve['id_eleve'] ?>">
                                     <button type="submit" class="text-red-600 hover:text-red-900"><?= _('Delete') ?></button>

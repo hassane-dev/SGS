@@ -224,6 +224,7 @@ function analyzeScope() {
     btn.innerHTML = '<i class="spinner-border spinner-border-sm me-2"></i><?= _("Analyse en cours...") ?>';
 
     const formData = new FormData();
+    formData.append('csrf_token', '<?= csrf_token() ?>');
     formData.append('sequence_id', sequenceId);
     formData.append('scope_type', scopeType);
     formData.append('scope_value', scopeValue);
@@ -330,6 +331,7 @@ function confirmExecuteValidation() {
     btn.innerHTML = '<i class="spinner-border spinner-border-sm me-2"></i><?= _("Validation en cours...") ?>';
 
     const formData = new FormData();
+    formData.append('csrf_token', '<?= csrf_token() ?>');
     formData.append('sequence_id', currentSummaryData.sequence.id);
     formData.append('scope_type', currentSummaryData.scope_type);
     formData.append('scope_value', currentSummaryData.scope_value);

@@ -28,6 +28,7 @@
                     </div>
                     <div class="card-body">
                         <form action="/salaires/store" method="POST">
+    <?= csrf_field() ?>
                             <div class="row">
                                 <div class="col-md-12 mb-3">
                                     <label class="form-label">Membre du Personnel</label>

@@ -50,6 +50,7 @@ require_once __DIR__ . '/../../layouts/header_able.php';
     <?php endif; ?>
 
     <form action="/paie/regles/<?= $rule['id'] ?>/update" method="POST" id="ruleForm">
+    <?= csrf_field() ?>
       <input type="hidden" name="id" value="<?= $rule['id'] ?>">
 
       <div class="row g-4">

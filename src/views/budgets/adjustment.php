@@ -52,6 +52,7 @@ include __DIR__ . '/../layouts/header_able.php';
                         </div>
                         <div class="card-body">
                             <form action="/budgets/adjustment/store" method="POST">
+    <?= csrf_field() ?>
                                 <div class="mb-3">
                                     <label class="form-label" for="type_ajustement">Type d'Ajustement <span class="text-danger">*</span></label>
                                     <select class="form-select" id="type_ajustement" name="type_ajustement" onchange="toggleSourceLine(this.value);" required>

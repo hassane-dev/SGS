@@ -5,6 +5,7 @@
 
     <div class="bg-white p-8 rounded-lg shadow-lg">
         <form action="/licences/update" method="POST">
+    <?= csrf_field() ?>
             <input type="hidden" name="id_licence" value="<?= htmlspecialchars($licence['id_licence']) ?>">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 

@@ -108,6 +108,7 @@ $activeSanctionTypes = $activeSanctionTypes ?? [];
                             <span class="text-muted fs-7 fw-semibold me-2">Actions de Session :</span>
                             <?php if ($council['statut'] === 'planifie'): ?>
                                 <form method="POST" action="/discipline/councils/update-status" class="d-inline">
+    <?= csrf_field() ?>
                                     <input type="hidden" name="council_id" value="<?= $council['id'] ?>">
                                     <input type="hidden" name="statut" value="convoque">
                                     <button type="submit" class="btn btn-sm btn-info text-white me-1">
@@ -116,6 +117,7 @@ $activeSanctionTypes = $activeSanctionTypes ?? [];
                                 </form>
                             <?php elseif ($council['statut'] === 'convoque'): ?>
                                 <form method="POST" action="/discipline/councils/update-status" class="d-inline">
+    <?= csrf_field() ?>
                                     <input type="hidden" name="council_id" value="<?= $council['id'] ?>">
                                     <input type="hidden" name="statut" value="en_session">
                                     <button type="submit" class="btn btn-sm btn-primary me-1">
@@ -124,6 +126,7 @@ $activeSanctionTypes = $activeSanctionTypes ?? [];
                                 </form>
                             <?php elseif ($council['statut'] === 'en_session'): ?>
                                 <form method="POST" action="/discipline/councils/update-status" class="d-inline">
+    <?= csrf_field() ?>
                                     <input type="hidden" name="council_id" value="<?= $council['id'] ?>">
                                     <input type="hidden" name="statut" value="delibere">
                                     <button type="submit" class="btn btn-sm me-1 text-white" style="background-color: #6f42c1;">
@@ -132,6 +135,7 @@ $activeSanctionTypes = $activeSanctionTypes ?? [];
                                 </form>
                             <?php elseif ($council['statut'] === 'delibere'): ?>
                                 <form method="POST" action="/discipline/councils/update-status" class="d-inline" onsubmit="return confirm('Clôturer définitivement la séance ? Aucune modification ultérieure ne sera permise.');">
+    <?= csrf_field() ?>
                                     <input type="hidden" name="council_id" value="<?= $council['id'] ?>">
                                     <input type="hidden" name="statut" value="cloture">
                                     <button type="submit" class="btn btn-sm btn-success me-1">
@@ -147,6 +151,7 @@ $activeSanctionTypes = $activeSanctionTypes ?? [];
 
                             <?php if ($council['statut'] !== 'cloture' && $council['statut'] !== 'annule'): ?>
                                 <form method="POST" action="/discipline/councils/generate-pv" class="d-inline">
+    <?= csrf_field() ?>
                                     <input type="hidden" name="council_id" value="<?= $council['id'] ?>">
                                     <button type="submit" class="btn btn-sm btn-outline-success me-1" title="Archiver officiellement le PV">
                                         <i class="ph-duotone ph-file-arrow-up me-1"></i>Archiver PV Officiel
@@ -158,6 +163,7 @@ $activeSanctionTypes = $activeSanctionTypes ?? [];
                         <?php if ($isEditable): ?>
                             <div>
                                 <form method="POST" action="/discipline/councils/update-status" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ce conseil de discipline ?');">
+    <?= csrf_field() ?>
                                     <input type="hidden" name="council_id" value="<?= $council['id'] ?>">
                                     <input type="hidden" name="statut" value="annule">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">
@@ -222,6 +228,7 @@ $activeSanctionTypes = $activeSanctionTypes ?? [];
                                                     <td class="text-end">
                                                         <?php if ($m['qualite_membre'] !== 'president'): ?>
                                                             <form method="POST" action="/discipline/councils/remove-membre" class="d-inline" onsubmit="return confirm('Retirer ce membre ?');">
+    <?= csrf_field() ?>
                                                                 <input type="hidden" name="conseil_id" value="<?= $council['id'] ?>">
                                                                 <input type="hidden" name="user_id" value="<?= $m['user_id'] ?>">
                                                                 <button type="submit" class="btn btn-sm btn-link text-danger p-0" title="Retirer">
@@ -354,6 +361,7 @@ $activeSanctionTypes = $activeSanctionTypes ?? [];
         <div class="modal-dialog">
             <div class="modal-content">
                 <form method="POST" action="/discipline/councils/add-membre">
+    <?= csrf_field() ?>
                     <input type="hidden" name="conseil_id" value="<?= $council['id'] ?>">
                     <div class="modal-header">
                         <h5 class="modal-title"><i class="ph-duotone ph-user-plus me-2 text-primary"></i>Ajouter un Membre au Conseil</h5>
@@ -399,6 +407,7 @@ $activeSanctionTypes = $activeSanctionTypes ?? [];
         <div class="modal-dialog">
             <div class="modal-content">
                 <form method="POST" action="/discipline/councils/add-eleve">
+    <?= csrf_field() ?>
                     <input type="hidden" name="conseil_id" value="<?= $council['id'] ?>">
                     <div class="modal-header">
                         <h5 class="modal-title"><i class="ph-duotone ph-student me-2 text-danger"></i>Convoquer un Élève</h5>
@@ -449,6 +458,7 @@ $activeSanctionTypes = $activeSanctionTypes ?? [];
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <form method="POST" action="/discipline/councils/record-decision">
+    <?= csrf_field() ?>
                             <input type="hidden" name="council_id" value="<?= $council['id'] ?>">
                             <input type="hidden" name="eleve_id" value="<?= $el['eleve_id'] ?>">
 
@@ -545,6 +555,7 @@ $activeSanctionTypes = $activeSanctionTypes ?? [];
         <div class="modal-dialog">
             <div class="modal-content">
                 <form method="POST" action="/discipline/councils/add-incident">
+    <?= csrf_field() ?>
                     <input type="hidden" name="conseil_id" value="<?= $council['id'] ?>">
                     <input type="hidden" name="eleve_id" id="modal_eleve_id" value="">
                     <div class="modal-header">

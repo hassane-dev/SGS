@@ -21,6 +21,7 @@
         </div>
 
         <form id="payMensualiteForm" action="/paiements/process-payment/<?= $eleve['id_eleve'] ?>" method="POST">
+    <?= csrf_field() ?>
             <div class="row">
                 <div class="col-lg-8">
                     <div class="card">

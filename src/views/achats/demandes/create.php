@@ -43,6 +43,7 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
                     </div>
                     <div class="card-body">
                         <form action="/achats/demandes/create" method="POST" id="daForm">
+    <?= csrf_field() ?>
                             <!-- Justification -->
                             <div class="mb-4">
                                 <label class="form-label font-weight-bold" for="justification"><?= _("Justification / Motif de la demande") ?> <span class="text-danger">*</span></label>

@@ -39,6 +39,7 @@
                     </div>
                     <div class="card-body">
                         <form action="/treasury/sessions/open" method="POST">
+    <?= csrf_field() ?>
                             <div class="mb-3">
                                 <label for="compte_id" class="form-label"><?= _("Sélectionner la Caisse Physique") ?> <span class="text-danger">*</span></label>
                                 <select class="form-select" id="compte_id" name="compte_id" required>

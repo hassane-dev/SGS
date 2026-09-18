@@ -52,6 +52,7 @@ $selectedEvalCode = $isEdit ? ($param['type_evaluation'] ?? 'tous') : 'tous';
                     </div>
                     <div class="card-body">
                         <form id="settings-form" action="<?= $isEdit ? '/evaluations/settings/update' : '/evaluations/settings/store' ?>" method="POST" onsubmit="prepareSubmission()">
+    <?= csrf_field() ?>
                             <?php if ($isEdit): ?>
                                 <input type="hidden" name="id" value="<?= htmlspecialchars($param['id']) ?>">
                             <?php endif; ?>

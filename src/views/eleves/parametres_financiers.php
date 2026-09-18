@@ -111,6 +111,7 @@ if (!empty($params['frais_concernes'])) {
                         <?php endif; ?>
 
                         <form action="/eleves/parametres-financiers/update" method="POST">
+    <?= csrf_field() ?>
                             <input type="hidden" name="eleve_id" value="<?= htmlspecialchars($eleve['id_eleve']) ?>">
 
                             <div class="row">

@@ -120,6 +120,7 @@
                                                     <i class="ph-duotone ph-pencil-simple"></i>
                                                 </a>
                                                 <form action="/boutique/articles/destroy" method="POST" class="d-inline-block" onsubmit="return confirm('<?= _('Êtes-vous sûr ?') ?>');">
+    <?= csrf_field() ?>
                                                     <input type="hidden" name="id" value="<?= $article['id_article'] ?>">
                                                     <button type="submit" class="btn btn-sm btn-light-danger">
                                                         <i class="ph-duotone ph-trash"></i>

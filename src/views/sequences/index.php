@@ -85,6 +85,7 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                                                             <i class="ti ti-edit"></i>
                                                         </a>
                                                         <form action="/sequences/destroy" method="POST" class="d-inline" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer cette séquence ?') ?>');">
+    <?= csrf_field() ?>
                                                             <input type="hidden" name="id" value="<?= $sequence['id'] ?>">
                                                             <button type="submit" class="btn btn-sm btn-light-danger" title="<?= _('Supprimer') ?>">
                                                                 <i class="ti ti-trash"></i>

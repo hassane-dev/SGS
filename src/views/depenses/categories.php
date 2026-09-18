@@ -39,6 +39,7 @@
                     </div>
                     <div class="card-body">
                         <form method="POST" action="/depenses/categories/store">
+    <?= csrf_field() ?>
                             <div class="mb-3">
                                 <label class="form-label"><?= _('Nom de la catégorie') ?></label>
                                 <input type="text" name="nom_categorie" class="form-control" required />
@@ -98,6 +99,7 @@
                                                 <td class="text-center">
                                                     <?php if ($c['modifiable']): ?>
                                                         <form method="POST" action="/depenses/categories/delete" class="d-inline">
+    <?= csrf_field() ?>
                                                             <input type="hidden" name="id" value="<?= $c['id'] ?>" />
                                                             <button type="submit" class="btn btn-sm btn-light-danger" onclick="return confirm('<?= _('Voulez-vous vraiment désactiver ou supprimer cette catégorie ?') ?>')">
                                                                 <i class="ti ti-trash"></i>

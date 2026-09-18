@@ -89,6 +89,7 @@ require_once __DIR__ . '/../../layouts/header_able.php';
               <div class="d-grid gap-2 mt-3">
                 <?php if ($bulletin['statut_comptabilisation'] !== 'comptabilise' && Auth::can('accounting', 'paie')): ?>
                   <form action="/paie/bulletins/post-accounting" method="POST">
+    <?= csrf_field() ?>
                     <input type="hidden" name="bulletin_id" value="<?= $bulletin['id'] ?>"/>
                     <button type="submit" class="btn btn-info w-100 d-inline-flex align-items-center justify-content-center gap-1">
                       <i class="ph-duotone ph-book-open fs-5"></i>
@@ -167,6 +168,7 @@ require_once __DIR__ . '/../../layouts/header_able.php';
   <div class="modal-dialog">
     <div class="modal-content">
       <form action="/paie/bulletins/settle" method="POST">
+    <?= csrf_field() ?>
         <input type="hidden" name="bulletin_id" value="<?= $bulletin['id'] ?>"/>
         <div class="modal-header">
           <h5 class="modal-title"><?= _("Règlement du Salaire") ?></h5>
@@ -204,6 +206,7 @@ require_once __DIR__ . '/../../layouts/header_able.php';
   <div class="modal-dialog">
     <div class="modal-content">
       <form action="/paie/bulletins/redraw" method="POST">
+    <?= csrf_field() ?>
         <input type="hidden" name="bulletin_id" value="<?= $bulletin['id'] ?>"/>
         <div class="modal-header">
           <h5 class="modal-title"><?= _("Re-tirage Bulletin (Création V2)") ?></h5>

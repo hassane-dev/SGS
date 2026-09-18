@@ -44,6 +44,7 @@
             </div>
             <div class="card-body">
                 <form method="POST" action="/drh/store" enctype="multipart/form-data" class="needs-validation" novalidate>
+    <?= csrf_field() ?>
                     <!-- Section 1 -->
                     <div class="mb-4">
                         <h6 class="text-primary mb-3 d-flex align-items-center gap-2">

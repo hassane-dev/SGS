@@ -43,6 +43,7 @@ require_once __DIR__ . '/../../layouts/header_able.php';
           </div>
           <div class="card-body">
             <form action="/paie/periodes/store" method="POST">
+    <?= csrf_field() ?>
               <div class="row mb-3">
                 <div class="col-md-6">
                   <label class="form-label"><?= _("Mois") ?></label>

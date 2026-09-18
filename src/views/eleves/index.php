@@ -150,6 +150,7 @@
                                                     <a href="/eleves/parametres-financiers?id=<?= $eleve['id_eleve'] ?>" class="btn btn-warning btn-sm ms-2" title="<?= _('Paramètres financiers') ?>"><i class="ph-duotone ph-currency-dollar"></i></a>
                                                     <a href="/eleves/edit?id=<?= $eleve['id_eleve'] ?>" class="btn btn-primary btn-sm ms-2" title="<?= _('Modifier') ?>"><?= _('Modifier') ?></a>
                                                     <form action="/eleves/destroy" method="POST" class="d-inline ms-2" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir radier cet élève ? Cette action est réversible.') ?>');">
+    <?= csrf_field() ?>
                                                         <input type="hidden" name="id" value="<?= $eleve['id_eleve'] ?>">
                                                         <button type="submit" class="btn btn-danger btn-sm" title="<?= _('Radier l\'élève') ?>"><?= _('Radier') ?></button>
                                                     </form>

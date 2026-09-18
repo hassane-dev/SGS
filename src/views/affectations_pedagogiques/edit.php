@@ -46,6 +46,7 @@
                         </div>
 
                         <form action="/affectations-pedagogiques/update" method="POST" id="editAffectationForm">
+    <?= csrf_field() ?>
                             <input type="hidden" name="id" value="<?= htmlspecialchars($affectation['id']) ?>">
                             <!-- Hidden resolved Class ID -->
                             <input type="hidden" name="classe_id" id="classe_id" value="<?= htmlspecialchars($affectation['classe_id']) ?>">

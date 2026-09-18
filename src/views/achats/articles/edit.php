@@ -43,6 +43,7 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
                     </div>
                     <div class="card-body">
                         <form action="/achats/articles/edit?id=<?= $article['id'] ?>" method="POST">
+    <?= csrf_field() ?>
                             <div class="row g-3">
                                 <!-- Catégorie -->
                                 <div class="col-md-12">

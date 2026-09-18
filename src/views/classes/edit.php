@@ -24,6 +24,7 @@
                 <div class="card">
                     <div class="card-body">
                         <form action="/classes/update" method="POST">
+    <?= csrf_field() ?>
                             <input type="hidden" name="id_classe" value="<?= htmlspecialchars($classe['id_classe']) ?>">
                             <div class="row g-3">
 

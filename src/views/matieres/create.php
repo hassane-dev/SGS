@@ -27,6 +27,7 @@
                     </div>
                     <div class="card-body">
                         <form action="/matieres/store" method="POST">
+    <?= csrf_field() ?>
                             <?php
                                 $matiere = $matiere ?? []; // Ensure $matiere is an array
                                 include '_form.php';

@@ -96,6 +96,7 @@
 
                 <!-- Section Paiement Unifié -->
                 <form id="paymentForm" action="/paiements/process-payment/<?= $eleve['id_eleve'] ?>" method="POST" class="row">
+    <?= csrf_field() ?>
                 <!-- Section Frais d'Inscription (Gauche) -->
                 <div class="col-lg-5 col-md-12">
                         <div class="card">
@@ -607,6 +608,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="refundForm" method="POST" action="/paiements/rembourser">
+    <?= csrf_field() ?>
                 <input type="hidden" name="eleve_id" value="<?= $eleve['id_eleve'] ?>">
                 <div class="modal-body">
                     <div class="alert alert-warning border-0 small mb-3">

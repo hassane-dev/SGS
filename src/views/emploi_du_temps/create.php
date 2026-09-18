@@ -37,6 +37,7 @@
                         <?php endif; ?>
 
                         <form action="/emploi-du-temps/store" method="POST" id="form-create-edt">
+    <?= csrf_field() ?>
                             <input type="hidden" name="annee_academique_id" value="<?= htmlspecialchars($data['annee_academique_id']) ?>">
 
                             <!-- Unified SGS Pedagogical Hierarchy Cascade -->

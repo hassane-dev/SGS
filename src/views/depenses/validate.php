@@ -70,6 +70,7 @@
                         <h5><?= _('Avis / Décision du Validateur') ?></h5>
                     </div>
                     <form action="/depenses/vote/<?= $depense['id'] ?>" method="POST" class="card-body">
+    <?= csrf_field() ?>
                         <div class="mb-3">
                             <label class="form-label"><?= _('Commentaire ou motif de décision') ?></label>
                             <textarea name="motif_vote" class="form-control" rows="4" required placeholder="<?= _('Saisissez une observation pour motiver votre vote...') ?>"></textarea>

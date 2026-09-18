@@ -26,6 +26,7 @@
                 <div class="card">
                     <div class="card-body">
                         <form action="/boutique/articles/update" method="POST" enctype="multipart/form-data">
+    <?= csrf_field() ?>
                             <input type="hidden" name="id_article" value="<?= htmlspecialchars($article['id_article']) ?>">
                             <input type="hidden" name="current_image" value="<?= htmlspecialchars($article['image'] ?? '') ?>">
                             <div class="row">

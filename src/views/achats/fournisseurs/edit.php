@@ -43,6 +43,7 @@ require_once __DIR__ . '/../../layouts/sidebar_able.php';
                     </div>
                     <div class="card-body">
                         <form action="/achats/fournisseurs/edit?id=<?= $fournisseur['id'] ?>" method="POST">
+    <?= csrf_field() ?>
                             <div class="row g-3">
                                 <!-- Raison Sociale -->
                                 <div class="col-md-6">

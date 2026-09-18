@@ -39,6 +39,7 @@
                     </div>
                     <div class="card-body">
                         <form method="POST" action="/depenses/beneficiaires/store">
+    <?= csrf_field() ?>
                             <div class="mb-3">
                                 <label class="form-label"><?= _('Nom ou Raison Sociale') ?></label>
                                 <input type="text" name="nom_beneficiaire" class="form-control" required />
@@ -110,6 +111,7 @@
                                                 </td>
                                                 <td class="text-center">
                                                     <form method="POST" action="/depenses/beneficiaires/delete" class="d-inline">
+    <?= csrf_field() ?>
                                                         <input type="hidden" name="id" value="<?= $b['id'] ?>" />
                                                         <button type="submit" class="btn btn-sm btn-light-danger" onclick="return confirm('<?= _('Voulez-vous vraiment désactiver ou supprimer ce bénéficiaire ?') ?>')">
                                                             <i class="ti ti-trash"></i>

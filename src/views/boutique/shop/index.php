@@ -122,6 +122,7 @@
                             <h5 class="mb-0 text-primary" id="cart-total">0 FCFA</h5>
                         </div>
                         <form action="/boutique/achats/store" method="POST" id="checkout-form">
+    <?= csrf_field() ?>
                             <input type="hidden" name="eleve_id" value="<?= $eleve['id_eleve'] ?>">
                             <input type="hidden" name="cart_data" id="cart-data-input">
                             <button type="submit" class="btn btn-primary w-100 py-2" id="btn-checkout" disabled>

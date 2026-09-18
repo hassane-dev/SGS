@@ -51,6 +51,7 @@ require_once __DIR__ . '/../../layouts/header_able.php';
           </div>
           <div class="card-body">
             <form action="/comptabilite/exercices/<?= (int)$exercice['id'] ?>/update" method="POST">
+    <?= csrf_field() ?>
               <input type="hidden" name="id" value="<?= (int)$exercice['id'] ?>" />
 
               <div class="mb-3">

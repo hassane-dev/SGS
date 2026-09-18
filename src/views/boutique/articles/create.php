@@ -26,6 +26,7 @@
                 <div class="card">
                     <div class="card-body">
                         <form action="/boutique/articles/store" method="POST" enctype="multipart/form-data">
+    <?= csrf_field() ?>
                             <div class="row">
                                 <div class="col-md-8 mb-3">
                                     <label class="form-label" for="nom_article"><?= _('Nom de l\'Article') ?></label>

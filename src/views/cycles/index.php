@@ -60,6 +60,7 @@
                                                 <td class="text-end">
                                                     <a href="/cycles/edit?id=<?= $cycle['id_cycle'] ?>" class="btn btn-sm btn-primary"><?= _('Modifier') ?></a>
                                                     <form action="/cycles/destroy" method="POST" class="d-inline ms-2" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir supprimer ce cycle ?') ?>');">
+    <?= csrf_field() ?>
                                                         <input type="hidden" name="id" value="<?= $cycle['id_cycle'] ?>">
                                                         <button type="submit" class="btn btn-sm btn-danger"><?= _('Supprimer') ?></button>
                                                     </form>
