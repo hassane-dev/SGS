@@ -78,7 +78,7 @@ class GradeDashboardService {
         }
 
         $sequenceId = (int)$sequence['id'];
-        $isClosed = ($sequence['statut'] === 'cloturee');
+        $isClosed = ($sequence['statut'] === 'fermee');
 
         // 5. Build filter constraints & validated IDs
         $cycleId = !empty($filters['cycle_id']) ? (int)$filters['cycle_id'] : null;
