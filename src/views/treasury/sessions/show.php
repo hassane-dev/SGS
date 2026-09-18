@@ -245,9 +245,10 @@
 
             <!-- List of movements -->
             <div class="col-lg-8">
-                <div class="card">
-                    <div class="card-header">
-                        <h5><?= _("Mouvements de Trésorerie de la Session") ?></h5>
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><?= _("Mouvements de Trésorerie Opérationnels (Caisse)") ?></h5>
+                        <span class="badge bg-light-info text-info"><?= count($movements) ?> <?= _("opérations") ?></span>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -266,7 +267,7 @@
                                 <tbody>
                                     <?php if (empty($movements)): ?>
                                         <tr>
-                                            <td colspan="7" class="text-center py-4 text-muted"><?= _("Aucun mouvement enregistré durant cette session.") ?></td>
+                                            <td colspan="7" class="text-center py-4 text-muted"><?= _("Aucun mouvement opérationnel enregistré durant cette session.") ?></td>
                                         </tr>
                                     <?php else: ?>
                                         <?php foreach ($movements as $m): ?>
@@ -282,10 +283,6 @@
                                                         <span class="badge bg-light-danger text-danger"><?= _("Annulation") ?></span>
                                                     <?php elseif ($m['evenement_type'] === 'remboursement'): ?>
                                                         <span class="badge bg-light-warning text-warning"><?= _("Remboursement") ?></span>
-                                                    <?php elseif ($m['evenement_type'] === 'remise_coffre_sortie'): ?>
-                                                        <span class="badge bg-light-primary text-primary"><?= _("Remise Coffre (Sortie)") ?></span>
-                                                    <?php elseif ($m['evenement_type'] === 'remise_coffre_entree'): ?>
-                                                        <span class="badge bg-light-success text-success"><?= _("Remise Coffre (Entrée)") ?></span>
                                                     <?php elseif ($m['evenement_type'] === 'reglement_fournisseur'): ?>
                                                         <span class="badge bg-light-warning text-warning"><?= _("Règlement Fournisseur") ?></span>
                                                     <?php else: ?>
@@ -304,6 +301,51 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Separate Card for Clôture Transfers & Vault Remittances -->
+                <?php if (!empty($transferMovements)): ?>
+                    <div class="card border border-primary">
+                        <div class="card-header bg-light-primary">
+                            <h5 class="mb-0 text-primary">
+                                <i class="ph-duotone ph-arrows-left-right me-2"></i><?= _("Transferts Interne de Clôture & Remises au Coffre-Fort") ?>
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th><?= _("Date") ?></th>
+                                            <th><?= _("Référence") ?></th>
+                                            <th><?= _("Flux") ?></th>
+                                            <th><?= _("Désignation / Motif") ?></th>
+                                            <th class="text-end"><?= _("Montant") ?></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($transferMovements as $tm): ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($tm['date_mouvement']) ?></td>
+                                                <td><code><?= htmlspecialchars($tm['reference_transaction'] ?: '-') ?></code></td>
+                                                <td>
+                                                    <?php if ($tm['evenement_type'] === 'remise_coffre_sortie'): ?>
+                                                        <span class="badge bg-light-primary text-primary"><?= _("Sortie Caisse → Coffre") ?></span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-light-success text-success"><?= _("Entrée Coffre Principal") ?></span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td><small class="text-muted"><?= htmlspecialchars($tm['motif']) ?></small></td>
+                                                <td class="text-end fw-bold <?= $tm['type_mouvement'] === 'entree' ? 'text-success' : 'text-primary' ?>">
+                                                    <?= $tm['type_mouvement'] === 'entree' ? '+' : '-' ?> <?= number_format($tm['montant'], 2, ',', ' ') ?> FCFA
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

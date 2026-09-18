@@ -137,7 +137,7 @@ class SessionCaisseController {
 
         $compte = CompteFinancier::findById($session['compte_id']);
 
-        // Calculate dynamic entries and exits for this session from movements_tresorerie
+        // Fetch all movements attached to this session
         $db = Database::getInstance();
         $stmt_mvt = $db->prepare("
             SELECT * FROM mouvements_tresorerie
@@ -145,15 +145,26 @@ class SessionCaisseController {
             ORDER BY date_mouvement DESC
         ");
         $stmt_mvt->execute(['session_id' => $id, 'lycee_id' => $lyceeId]);
-        $movements = $stmt_mvt->fetchAll(PDO::FETCH_ASSOC);
+        $allMovements = $stmt_mvt->fetchAll(PDO::FETCH_ASSOC);
 
+        $movements = [];
+        $transferMovements = [];
         $totalEntrees = 0.00;
         $totalSorties = 0.00;
-        foreach ($movements as $m) {
-            if ($m['type_mouvement'] === 'entree') {
-                $totalEntrees += (float)$m['montant'];
+
+        foreach ($allMovements as $m) {
+            if (in_array($m['evenement_type'], ['remise_coffre_sortie', 'remise_coffre_entree'])) {
+                $transferMovements[] = $m;
             } else {
-                $totalSorties += (float)$m['montant'];
+                $movements[] = $m;
+                // Scope operational balance calculations strictly to the session's cash account
+                if ((int)$m['compte_id'] === (int)$session['compte_id']) {
+                    if ($m['type_mouvement'] === 'entree') {
+                        $totalEntrees += (float)$m['montant'];
+                    } else {
+                        $totalSorties += (float)$m['montant'];
+                    }
+                }
             }
         }
 
@@ -167,6 +178,7 @@ class SessionCaisseController {
             'session' => $session,
             'compte' => $compte,
             'movements' => $movements,
+            'transferMovements' => $transferMovements,
             'totalEntrees' => $totalEntrees,
             'totalSorties' => $totalSorties,
             'soldeTheorique' => $soldeTheorique,
@@ -226,14 +238,20 @@ class SessionCaisseController {
                 }
 
                 // Calculate dynamic balance to get theoretical balance inside the transaction
+                // strictly scoped to operational movements on the session's cash account
                 $stmt = $db->prepare("
                     SELECT
                         SUM(CASE WHEN type_mouvement = 'entree' THEN montant ELSE 0 END) as entrees,
                         SUM(CASE WHEN type_mouvement = 'sortie' THEN montant ELSE 0 END) as sorties
                     FROM mouvements_tresorerie
                     WHERE session_caisse_id = :session_id
+                      AND compte_id = :compte_id
+                      AND evenement_type NOT IN ('remise_coffre_sortie', 'remise_coffre_entree')
                 ");
-                $stmt->execute(['session_id' => $id]);
+                $stmt->execute([
+                    'session_id' => $id,
+                    'compte_id' => $session['compte_id']
+                ]);
                 $soldeData = $stmt->fetch(PDO::FETCH_ASSOC);
 
                 $theo = (float)$session['solde_ouverture'] + (float)$soldeData['entrees'] - (float)$soldeData['sorties'];
