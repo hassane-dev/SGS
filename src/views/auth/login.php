@@ -7,6 +7,7 @@
                 <div class="alert alert-danger" role="alert"><?= _('Email ou mot de passe incorrect.') ?></div>
             <?php endif; ?>
             <form action="/login" method="POST">
+                <?= csrf_field() ?>
                 <div class="mb-3">
                     <label for="email" class="form-label"><?= _('Email') ?></label>
                     <input type="email" name="email" id="email" class="form-control" required>
