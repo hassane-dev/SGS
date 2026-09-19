@@ -45,6 +45,9 @@
         <div class="form-group">
             <label for="statut" class="form-label"><?= _('Statut') ?> <span class="text-danger">*</span></label>
             <select class="form-select" id="statut" name="statut" required>
+                <option value="planifiee" <?= (isset($sequence['statut']) && $sequence['statut'] === 'planifiee') ? 'selected' : '' ?>>
+                    <?= _('Planifiée') ?>
+                </option>
                 <option value="ouverte" <?= (isset($sequence['statut']) && $sequence['statut'] === 'ouverte') ? 'selected' : '' ?>>
                     <?= _('Ouverte') ?>
                 </option>
