@@ -22,7 +22,11 @@ class GradeDashboardController {
 
         $canView = Auth::can('view_all', 'note')
             || Auth::can('create_own', 'note')
-            || Auth::can('generate', 'bulletin');
+            || Auth::can('manage_settings', 'evaluation')
+            || Auth::can('generate', 'bulletin')
+            || Auth::can('validate', 'bulletin')
+            || Auth::can('print', 'bulletin')
+            || Auth::can('edit_appreciation_conseil', 'bulletin');
 
         if (!$canView) {
             http_response_code(403);
@@ -69,6 +73,41 @@ class GradeDashboardController {
         // Active Evaluation Types
         $typesEvaluation = ParamTypeEvaluation::findActive($lyceeId);
 
+        // Available Classes and Matieres for Filter Options
+        if ($canViewAll) {
+            $classes = Classe::findAllByLycee($lyceeId);
+            $matieres = Matiere::findAllByLycee($lyceeId);
+        } else {
+            $teacherAssignments = User::getTeacherAssignments($userId, $anneeId, $lyceeId);
+            $classes = [];
+            $matieres = [];
+            $cSeen = [];
+            $mSeen = [];
+            foreach ($teacherAssignments as $a) {
+                $cId = (int)($a['id_classe'] ?? $a['classe_id']);
+                $mId = (int)($a['id_matiere'] ?? $a['matiere_id']);
+                if (empty($cSeen[$cId])) {
+                    $cSeen[$cId] = true;
+                    $classes[] = [
+                        'id' => $cId,
+                        'id_classe' => $cId,
+                        'niveau' => $a['niveau'] ?? '',
+                        'serie' => $a['serie'] ?? '',
+                        'numero' => $a['numero'] ?? ''
+                    ];
+                }
+                if (empty($mSeen[$mId])) {
+                    $mSeen[$mId] = true;
+                    $matieres[] = [
+                        'id' => $mId,
+                        'id_matiere' => $mId,
+                        'nom' => $a['nom_matiere'] ?? '',
+                        'nom_matiere' => $a['nom_matiere'] ?? ''
+                    ];
+                }
+            }
+        }
+
         // Filter parameters from GET
         $filters = [
             'lycee_id' => $_GET['lycee_id'] ?? $lyceeId,
@@ -93,10 +132,12 @@ class GradeDashboardController {
         }
 
         View::render('evaluations/dashboard', [
-            'title' => _("Tableau de bord des notes"),
+            'title' => _("Notes & Évaluations"),
             'filters' => $filters,
             'lycees' => $lycees,
             'cycles' => $cycles,
+            'classes' => $classes,
+            'matieres' => $matieres,
             'annees' => $annees,
             'sequences' => $sequences,
             'typesEvaluation' => $typesEvaluation,
@@ -118,7 +159,11 @@ class GradeDashboardController {
 
         $canView = Auth::can('view_all', 'note')
             || Auth::can('create_own', 'note')
-            || Auth::can('generate', 'bulletin');
+            || Auth::can('manage_settings', 'evaluation')
+            || Auth::can('generate', 'bulletin')
+            || Auth::can('validate', 'bulletin')
+            || Auth::can('print', 'bulletin')
+            || Auth::can('edit_appreciation_conseil', 'bulletin');
 
         if (!$canView) {
             http_response_code(403);

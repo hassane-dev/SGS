@@ -19,13 +19,13 @@ $alerts = $d['alerts'] ?? [];
                         <div class="page-header-title">
                             <h2 class="mb-0">
                                 <i class="ph-duotone ph-chart-bar text-primary me-2"></i>
-                                <?= _("Tableau de bord des notes") ?>
+                                <?= _("Notes & Évaluations") ?>
                             </h2>
                         </div>
                         <ul class="breadcrumb mb-0">
                             <li class="breadcrumb-item"><a href="/dashboard"><i class="ph-duotone ph-house"></i> <?= _("Accueil") ?></a></li>
                             <li class="breadcrumb-item"><?= _("Pédagogie") ?></li>
-                            <li class="breadcrumb-item active"><?= _("Tableau de bord des notes") ?></li>
+                            <li class="breadcrumb-item active"><?= _("Notes & Évaluations") ?></li>
                         </ul>
                     </div>
                     <div class="col-md-4 text-md-end mt-3 mt-md-0">
@@ -34,6 +34,57 @@ $alerts = $d['alerts'] ?? [];
                             <?= htmlspecialchars(($seq['nom'] ?? '') . " — " . ($seq['status_label'] ?? '')) ?>
                         </span>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTION HUB / SUB-NAVIGATION BAR -->
+        <div class="card mb-4 shadow-sm border-top border-primary border-3">
+            <div class="card-body p-3">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <span class="fw-bold me-2 text-muted"><i class="ph-duotone ph-squares-four me-1"></i><?= _("Actions / Hub :") ?></span>
+
+                    <?php if (Auth::can('create_own', 'note') || Auth::can('view_all', 'note')): ?>
+                        <a href="/evaluations/select_class" class="btn btn-sm btn-primary">
+                            <i class="ph-duotone ph-pencil-line me-1"></i><?= _("Saisir / Consulter les notes") ?>
+                        </a>
+                    <?php endif; ?>
+
+                    <?php if (Auth::can('manage_settings', 'evaluation')): ?>
+                        <a href="/evaluations/types" class="btn btn-sm btn-outline-primary">
+                            <i class="ph-duotone ph-list-checks me-1"></i><?= _("Types d'évaluation") ?>
+                        </a>
+                        <a href="/evaluations/settings" class="btn btn-sm btn-outline-primary">
+                            <i class="ph-duotone ph-calendar-blank me-1"></i><?= _("Périodes de saisie") ?>
+                        </a>
+                        <a href="/evaluations/deblocage" class="btn btn-sm btn-outline-warning">
+                            <i class="ph-duotone ph-lock-key-open me-1"></i><?= _("Déblocages exceptionnels") ?>
+                        </a>
+                    <?php endif; ?>
+
+                    <?php if (Auth::can('edit_appreciation_conseil', 'bulletin')): ?>
+                        <a href="/appreciation-conseil" class="btn btn-sm btn-outline-info">
+                            <i class="ph-duotone ph-chat-centered-text me-1"></i><?= _("Appréciation Conseil de Classe") ?>
+                        </a>
+                    <?php endif; ?>
+
+                    <?php if (Auth::can('generate', 'bulletin')): ?>
+                        <a href="/bulletins" class="btn btn-sm btn-outline-success">
+                            <i class="ph-duotone ph-file-text me-1"></i><?= _("Bulletins") ?>
+                        </a>
+                    <?php endif; ?>
+
+                    <?php if (Auth::can('validate', 'bulletin')): ?>
+                        <a href="/bulletins/validation" class="btn btn-sm btn-outline-dark">
+                            <i class="ph-duotone ph-check-circle me-1"></i><?= _("Validation des Bulletins") ?>
+                        </a>
+                    <?php endif; ?>
+
+                    <?php if (Auth::can('generate', 'bulletin') || Auth::can('print', 'bulletin')): ?>
+                        <a href="/bulletins/print" class="btn btn-sm btn-outline-secondary">
+                            <i class="ph-duotone ph-printer me-1"></i><?= _("Impression") ?>
+                        </a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -89,6 +140,34 @@ $alerts = $d['alerts'] ?? [];
                                     <?= htmlspecialchars($c['nom_cycle'] ?? $c['nom']) ?>
                                 </option>
                             <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label text-muted small fw-bold"><?= _("Classe") ?></label>
+                        <select name="classe_id" id="filterClasse" class="form-select form-select-sm">
+                            <option value=""><?= _("Toutes les classes") ?></option>
+                            <?php if (!empty($classes)): ?>
+                                <?php foreach ($classes as $cls): ?>
+                                    <option value="<?= $cls['id_classe'] ?? $cls['id'] ?>" <?= ($filters['classe_id'] == ($cls['id_classe'] ?? $cls['id'])) ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars(trim(($cls['niveau'] ?? '') . ' ' . ($cls['serie'] ?? '') . ' ' . ($cls['numero'] ?? ''))) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label text-muted small fw-bold"><?= _("Matière") ?></label>
+                        <select name="matiere_id" id="filterMatiere" class="form-select form-select-sm">
+                            <option value=""><?= _("Toutes les matières") ?></option>
+                            <?php if (!empty($matieres)): ?>
+                                <?php foreach ($matieres as $m): ?>
+                                    <option value="<?= $m['id_matiere'] ?? $m['id'] ?>" <?= ($filters['matiere_id'] == ($m['id_matiere'] ?? $m['id'])) ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($m['nom_matiere'] ?? $m['nom']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </select>
                     </div>
 

@@ -40,7 +40,7 @@ class GradeDashboardService {
         $canViewAll = Auth::can('view_all', 'note') || Auth::can('generate', 'bulletin');
         $teacherAssignments = [];
         if (!$canViewAll) {
-            $teacherAssignments = User::getTeacherAssignments($userId);
+            $teacherAssignments = User::getTeacherAssignments($userId, $anneeId, $lyceeId);
             if (empty($teacherAssignments)) {
                 return self::emptyDashboardResponse("Aucune affectation pédagogique active trouvée pour cet enseignant.");
             }
@@ -101,6 +101,20 @@ class GradeDashboardService {
                 $assignedMatiereIds = array_unique(array_map(fn($a) => (int)($a['id_matiere'] ?? $a['matiere_id']), $teacherAssignments));
                 if (!in_array($matiereId, $assignedMatiereIds)) {
                     throw new Exception("Accès refusé : matière hors affectations pédagogiques.");
+                }
+            }
+            if ($classeId && $matiereId) {
+                $pairValid = false;
+                foreach ($teacherAssignments as $a) {
+                    $c = (int)($a['id_classe'] ?? $a['classe_id']);
+                    $m = (int)($a['id_matiere'] ?? $a['matiere_id']);
+                    if ($c === $classeId && $m === $matiereId) {
+                        $pairValid = true;
+                        break;
+                    }
+                }
+                if (!$pairValid) {
+                    throw new Exception("Accès refusé : association classe-matière hors affectations pédagogiques.");
                 }
             }
         }
@@ -475,6 +489,15 @@ class GradeDashboardService {
             ? array_unique(array_map(fn($a) => (int)($a['id_matiere'] ?? $a['matiere_id']), $teacherAssignments))
             : [];
 
+        $assignedPairs = [];
+        if (!$canViewAll && !empty($teacherAssignments)) {
+            foreach ($teacherAssignments as $a) {
+                $c = (int)($a['id_classe'] ?? $a['classe_id']);
+                $m = (int)($a['id_matiere'] ?? $a['matiere_id']);
+                $assignedPairs[$c][$m] = true;
+            }
+        }
+
         foreach ($students as $stu) {
             $eId = (int)$stu['eleve_id'];
             $cId = (int)$stu['classe_id'];
@@ -486,13 +509,42 @@ class GradeDashboardService {
                 continue; // No evaluated grades yet
             }
 
-            // If a specific subject filter is requested, student performance average is subject average
-            if ($matiereId) {
-                if (!isset($report['matieres'][$matiereId])) {
+            // Filter report matieres to target subject filter AND teacher assigned scope if restricted
+            $targetMatieres = [];
+            foreach ($report['matieres'] as $mId => $m) {
+                $mIdInt = (int)$mId;
+                if ($matiereId && $mIdInt !== $matiereId) {
                     continue;
                 }
-                $stuAvg = (float)$report['matieres'][$matiereId]['moyenne'];
+                if (!$canViewAll) {
+                    if (empty($assignedPairs[$cId][$mIdInt])) {
+                        continue; // Skip subject not assigned to teacher in this class
+                    }
+                }
+                $targetMatieres[$mIdInt] = $m;
+            }
+
+            if (empty($targetMatieres)) {
+                continue;
+            }
+
+            // Compute student average for the allowed scope
+            if ($matiereId) {
+                $stuAvg = (float)reset($targetMatieres)['moyenne'];
+            } elseif (!$canViewAll) {
+                // Restricted teacher without explicit single subject filter:
+                // Calculate average strictly over assigned subjects for this class
+                $totPoints = 0.0;
+                $totCoeff = 0.0;
+                foreach ($targetMatieres as $m) {
+                    $mAvg = (float)$m['moyenne'];
+                    $coef = (float)($m['coefficient'] ?? 1.0);
+                    $totPoints += ($mAvg * $coef);
+                    $totCoeff += $coef;
+                }
+                $stuAvg = ($totCoeff > 0) ? round($totPoints / $totCoeff, 2) : 0.0;
             } else {
+                // Global user (view_all) without subject filter: official general average
                 $stuAvg = (float)$report['moyenne_generale'];
             }
 
@@ -504,18 +556,12 @@ class GradeDashboardService {
             $classAverages[$cId]['sum'] += $stuAvg;
             $classAverages[$cId]['count']++;
 
-            foreach ($report['matieres'] as $mId => $m) {
-                if ($matiereId && $mId !== $matiereId) {
-                    continue;
+            foreach ($targetMatieres as $mIdInt => $m) {
+                if (!isset($subjectReports[$mIdInt])) {
+                    $subjectReports[$mIdInt] = ['nom_matiere' => $m['nom'], 'sum' => 0.0, 'count' => 0];
                 }
-                if (!$canViewAll && !empty($assignedMatiereIds) && !in_array($mId, $assignedMatiereIds)) {
-                    continue; // Skip unassigned subjects for restricted teacher
-                }
-                if (!isset($subjectReports[$mId])) {
-                    $subjectReports[$mId] = ['nom_matiere' => $m['nom'], 'sum' => 0.0, 'count' => 0];
-                }
-                $subjectReports[$mId]['sum'] += (float)$m['moyenne'];
-                $subjectReports[$mId]['count']++;
+                $subjectReports[$mIdInt]['sum'] += (float)$m['moyenne'];
+                $subjectReports[$mIdInt]['count']++;
             }
         }
 
@@ -566,6 +612,15 @@ class GradeDashboardService {
         $classAverages = [];
         $subjectReports = [];
 
+        $assignedPairs = [];
+        if (!$canViewAll && !empty($teacherAssignments)) {
+            foreach ($teacherAssignments as $a) {
+                $c = (int)($a['id_classe'] ?? $a['classe_id']);
+                $m = (int)($a['id_matiere'] ?? $a['matiere_id']);
+                $assignedPairs[$c][$m] = true;
+            }
+        }
+
         if ($matiereId) {
             // When filtering by a specific subject, read subject averages from bulletin_details
             $sqlSubSnapshots = "
@@ -592,9 +647,14 @@ class GradeDashboardService {
             }
 
             foreach ($rows as $r) {
-                $subAvg = (float)$r['moyenne_matiere'];
                 $cId = (int)$r['classe_id'];
                 $mId = (int)$r['matiere_id'];
+
+                if (!$canViewAll && empty($assignedPairs[$cId][$mId])) {
+                    continue;
+                }
+
+                $subAvg = (float)$r['moyenne_matiere'];
                 $nomClasse = trim($r['nom_classe']);
 
                 $studentAverages[] = $subAvg;
@@ -633,42 +693,73 @@ class GradeDashboardService {
                 return self::emptyPerformanceResponse();
             }
 
-            $bulletinIds = [];
+            $bulletinIds = array_column($bulletins, 'bulletin_id');
+            $inBulIds = implode(',', array_map('intval', $bulletinIds));
+
+            $subWhere = "bd.bulletin_id IN ({$inBulIds})";
+            if (!$canViewAll && !empty($assignedMatiereIds)) {
+                $inMatIds = implode(',', array_map('intval', $assignedMatiereIds));
+                $subWhere .= " AND bd.matiere_id IN ({$inMatIds})";
+            }
+
+            $sqlDetails = "
+                SELECT
+                    bd.bulletin_id,
+                    bd.matiere_id,
+                    bd.nom_matiere_snapshot,
+                    bd.moyenne_matiere,
+                    bd.coefficient_snapshot
+                FROM bulletin_details bd
+                WHERE {$subWhere}
+            ";
+            $stmtD = $db->query($sqlDetails);
+            $details = $stmtD->fetchAll(PDO::FETCH_ASSOC);
+
+            $detailsByBulletin = [];
+            foreach ($details as $d) {
+                $bId = (int)$d['bulletin_id'];
+                $detailsByBulletin[$bId][] = $d;
+            }
+
             foreach ($bulletins as $b) {
-                $genAvg = (float)$b['moyenne_generale'];
+                $bId = (int)$b['bulletin_id'];
                 $cId = (int)$b['classe_id'];
                 $nomClasse = trim($b['nom_classe']);
 
-                $studentAverages[] = $genAvg;
-                $bulletinIds[] = (int)$b['bulletin_id'];
+                $bDetails = $detailsByBulletin[$bId] ?? [];
+
+                if (!$canViewAll) {
+                    $validDetails = array_filter($bDetails, function($d) use ($assignedPairs, $cId) {
+                        return !empty($assignedPairs[$cId][(int)$d['matiere_id']]);
+                    });
+
+                    if (empty($validDetails)) {
+                        continue;
+                    }
+
+                    $totPoints = 0.0;
+                    $totCoeff = 0.0;
+                    foreach ($validDetails as $d) {
+                        $mAvg = (float)$d['moyenne_matiere'];
+                        $coef = (float)($d['coefficient_snapshot'] ?? 1.0);
+                        $totPoints += ($mAvg * $coef);
+                        $totCoeff += $coef;
+                    }
+                    $stuAvg = ($totCoeff > 0) ? round($totPoints / $totCoeff, 2) : 0.0;
+                } else {
+                    $stuAvg = (float)$b['moyenne_generale'];
+                    $validDetails = $bDetails;
+                }
+
+                $studentAverages[] = $stuAvg;
 
                 if (!isset($classAverages[$cId])) {
                     $classAverages[$cId] = ['nom_classe' => $nomClasse, 'sum' => 0.0, 'count' => 0];
                 }
-                $classAverages[$cId]['sum'] += $genAvg;
+                $classAverages[$cId]['sum'] += $stuAvg;
                 $classAverages[$cId]['count']++;
-            }
 
-            if (!empty($bulletinIds)) {
-                $inBulIds = implode(',', $bulletinIds);
-                $subWhere = "bd.bulletin_id IN ({$inBulIds})";
-                if (!$canViewAll && !empty($assignedMatiereIds)) {
-                    $inMatIds = implode(',', $assignedMatiereIds);
-                    $subWhere .= " AND bd.matiere_id IN ({$inMatIds})";
-                }
-
-                $sqlDetails = "
-                    SELECT
-                        bd.matiere_id,
-                        bd.nom_matiere_snapshot,
-                        bd.moyenne_matiere
-                    FROM bulletin_details bd
-                    WHERE {$subWhere}
-                ";
-                $stmtD = $db->query($sqlDetails);
-                $details = $stmtD->fetchAll(PDO::FETCH_ASSOC);
-
-                foreach ($details as $d) {
+                foreach ($validDetails as $d) {
                     $mId = (int)$d['matiere_id'];
                     if (!isset($subjectReports[$mId])) {
                         $subjectReports[$mId] = ['nom_matiere' => $d['nom_matiere_snapshot'], 'sum' => 0.0, 'count' => 0];
