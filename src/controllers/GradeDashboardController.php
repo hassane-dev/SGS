@@ -9,6 +9,7 @@ require_once __DIR__ . '/../models/Matiere.php';
 require_once __DIR__ . '/../models/Sequence.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../models/ParamTypeEvaluation.php';
+require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../services/AuthorizationScopeService.php';
 require_once __DIR__ . '/../services/GradeDashboardService.php';
 
@@ -75,8 +76,8 @@ class GradeDashboardController {
 
         // Available Classes and Matieres for Filter Options
         if ($canViewAll) {
-            $classes = Classe::findAllByLycee($lyceeId);
-            $matieres = Matiere::findAllByLycee($lyceeId);
+            $classes = Classe::findAll($lyceeId);
+            $matieres = Matiere::findAll($lyceeId);
         } else {
             $teacherAssignments = User::getTeacherAssignments($userId, $anneeId, $lyceeId);
             $classes = [];
