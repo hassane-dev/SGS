@@ -32,7 +32,7 @@ $sanctStatutLabels = [
                 <div class="row align-items-center">
                     <div class="col-md-8">
                         <div class="page-header-title">
-                            <h4 class="mb-0"><i class="ph-duotone ph-chart-line-up me-2 text-primary"></i>Tableau de Bord & Statistiques Disciplinaires</h4>
+                            <h4 class="mb-0"><i class="ph-duotone ph-chart-line-up me-2 text-primary"></i>Discipline & Vie Scolaire</h4>
                         </div>
                     </div>
                     <div class="col-md-4 text-md-end">
@@ -40,6 +40,53 @@ $sanctStatutLabels = [
                             <i class="ph-duotone ph-calendar me-1"></i>
                             Année : <strong><?= htmlspecialchars($activeYear['libelle'] ?? 'Active') ?></strong>
                         </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HUB ACTIONS / CTA BAR -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm border-0 bg-grd-primary text-white">
+                    <div class="card-body p-3">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                            <div>
+                                <h5 class="text-white mb-1"><i class="ph-duotone ph-shield-check me-2"></i><?= _("Actions & Module Disciplinaire") ?></h5>
+                                <p class="text-white-50 small mb-0"><?= _("Gérez la vie scolaire, les incidents, sanctions, conseils et registres.") ?></p>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <?php if (Auth::can('view_incidents', 'discipline')): ?>
+                                    <a href="/discipline/incidents" class="btn btn-light btn-sm font-weight-bold">
+                                        <i class="ph-duotone ph-warning text-primary me-1"></i><?= _("Incidents") ?>
+                                    </a>
+                                <?php endif; ?>
+
+                                <?php if (Auth::can('view_sanctions', 'discipline')): ?>
+                                    <a href="/discipline/sanctions" class="btn btn-light btn-sm font-weight-bold">
+                                        <i class="ph-duotone ph-gavel text-primary me-1"></i><?= _("Sanctions") ?>
+                                    </a>
+                                <?php endif; ?>
+
+                                <?php if (Auth::can('view_councils', 'discipline')): ?>
+                                    <a href="/discipline/councils" class="btn btn-outline-light btn-sm">
+                                        <i class="ph-duotone ph-users-three me-1"></i><?= _("Conseil de Discipline") ?>
+                                    </a>
+                                <?php endif; ?>
+
+                                <?php if (Auth::can('view_incidents', 'discipline') || Auth::can('view_sanctions', 'discipline')): ?>
+                                    <a href="/discipline/search" class="btn btn-outline-light btn-sm">
+                                        <i class="ph-duotone ph-magnifying-glass me-1"></i><?= _("Recherche & Registres") ?>
+                                    </a>
+                                <?php endif; ?>
+
+                                <?php if (Auth::can('view_config', 'discipline') || Auth::can('manage_config', 'discipline')): ?>
+                                    <a href="/discipline/settings" class="btn btn-warning btn-sm text-dark font-weight-bold">
+                                        <i class="ph-duotone ph-gear me-1"></i><?= _("Référentiels") ?>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

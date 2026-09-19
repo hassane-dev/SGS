@@ -4,23 +4,65 @@
 <div class="pc-container">
     <div class="pc-content">
         <!-- [ breadcrumb ] start -->
-        <div class="page-header d-print-none">
+        <div class="page-header d-print-none mb-3">
             <div class="page-block">
                 <div class="row align-items-center">
                     <div class="col-md-12">
                         <div class="page-header-title">
-                            <h2 class="mb-0"><?= _('Journal Comptable Unique') ?></h2>
+                            <h2 class="mb-0"><?= _('Comptabilité Générale') ?></h2>
                         </div>
                         <ul class="breadcrumb">
                             <li class="breadcrumb-item"><a href="/home"><?= _('Accueil') ?></a></li>
-                            <li class="breadcrumb-item"><a href="/paiements"><?= _('Comptabilité') ?></a></li>
-                            <li class="breadcrumb-item" aria-current="page"><?= _('Journal Comptable') ?></li>
+                            <li class="breadcrumb-item"><a href="/journal"><?= _('Finances & Comptabilité') ?></a></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= _('Comptabilité Générale') ?></li>
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
         <!-- [ breadcrumb ] end -->
+
+        <!-- HUB ACTIONS / CTA BAR -->
+        <div class="row mb-4 d-print-none">
+            <div class="col-12">
+                <div class="card shadow-sm border-0 bg-grd-primary text-white">
+                    <div class="card-body p-3">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                            <div>
+                                <h5 class="text-white mb-1"><i class="ph-duotone ph-book-open me-2"></i><?= _("Cockpit de Comptabilité Générale & Livres OHADA") ?></h5>
+                                <p class="text-white-50 small mb-0"><?= _("Consultez le Journal, le Grand Livre, la Balance et le Plan de Comptes.") ?></p>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="/journal" class="btn btn-light btn-sm font-weight-bold">
+                                    <i class="ph-duotone ph-book-bookmark text-primary me-1"></i><?= _("Journal Comptable") ?>
+                                </a>
+
+                                <?php if (Auth::can('view', 'journal')): ?>
+                                    <a href="/grand-livre" class="btn btn-outline-light btn-sm">
+                                        <i class="ph-duotone ph-books me-1"></i><?= _("Grand Livre") ?>
+                                    </a>
+                                    <a href="/balance" class="btn btn-outline-light btn-sm">
+                                        <i class="ph-duotone ph-scales me-1"></i><?= _("Balance des Comptes") ?>
+                                    </a>
+                                <?php endif; ?>
+
+                                <?php if (Auth::can('view', 'comptes_comptables')): ?>
+                                    <a href="/comptes-comptables" class="btn btn-outline-light btn-sm">
+                                        <i class="ph-duotone ph-list-numbers me-1"></i><?= _("Plan de Comptes") ?>
+                                    </a>
+                                <?php endif; ?>
+
+                                <?php if (Auth::can('view', 'comptabilite')): ?>
+                                    <a href="/comptabilite/exercices" class="btn btn-warning btn-sm text-dark font-weight-bold">
+                                        <i class="ph-duotone ph-calendar me-1"></i><?= _("Exercices & Périodes") ?>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Printable Header Section (Only visible during print) -->
         <div class="d-none d-print-block mb-4">

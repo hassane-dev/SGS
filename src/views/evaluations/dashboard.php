@@ -19,13 +19,13 @@ $alerts = $d['alerts'] ?? [];
                         <div class="page-header-title">
                             <h2 class="mb-0">
                                 <i class="ph-duotone ph-chart-bar text-primary me-2"></i>
-                                <?= _("Tableau de bord des notes") ?>
+                                <?= _("Notes & Évaluations") ?>
                             </h2>
                         </div>
                         <ul class="breadcrumb mb-0">
                             <li class="breadcrumb-item"><a href="/dashboard"><i class="ph-duotone ph-house"></i> <?= _("Accueil") ?></a></li>
                             <li class="breadcrumb-item"><?= _("Pédagogie") ?></li>
-                            <li class="breadcrumb-item active"><?= _("Tableau de bord des notes") ?></li>
+                            <li class="breadcrumb-item active"><?= _("Notes & Évaluations") ?></li>
                         </ul>
                     </div>
                     <div class="col-md-4 text-md-end mt-3 mt-md-0">
@@ -33,6 +33,47 @@ $alerts = $d['alerts'] ?? [];
                             <i class="ph-duotone <?= ($seq['is_closed'] ?? false) ? 'ph-lock-key' : 'ph-lightning' ?> me-1"></i>
                             <?= htmlspecialchars(($seq['nom'] ?? '') . " — " . ($seq['status_label'] ?? '')) ?>
                         </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HUB ACTIONS / CTA BAR -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm border-0 bg-grd-primary text-white">
+                    <div class="card-body p-3">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                            <div>
+                                <h5 class="text-white mb-1"><i class="ph-duotone ph-rocket me-2"></i><?= _("Actions Rapides & Opérations") ?></h5>
+                                <p class="text-white-50 small mb-0"><?= _("Accédez directement aux fonctions de saisie, paramétrage et bulletins.") ?></p>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <?php if (Auth::can('create_own', 'note') || Auth::can('view_all', 'note')): ?>
+                                    <a href="/evaluations/select_class" class="btn btn-light btn-sm font-weight-bold">
+                                        <i class="ph-duotone ph-pencil-simple-line text-primary me-1"></i><?= _("Saisir / Consulter les Notes") ?>
+                                    </a>
+                                <?php endif; ?>
+
+                                <?php if (Auth::can('manage_settings', 'evaluation')): ?>
+                                    <a href="/evaluations/settings" class="btn btn-outline-light btn-sm">
+                                        <i class="ph-duotone ph-calendar-blank me-1"></i><?= _("Périodes de Saisie") ?>
+                                    </a>
+                                    <a href="/evaluations/deblocage" class="btn btn-outline-light btn-sm">
+                                        <i class="ph-duotone ph-lock-key-open me-1"></i><?= _("Déblocages") ?>
+                                    </a>
+                                    <a href="/evaluations/types" class="btn btn-outline-light btn-sm">
+                                        <i class="ph-duotone ph-gear me-1"></i><?= _("Types d'Évaluation") ?>
+                                    </a>
+                                <?php endif; ?>
+
+                                <?php if (Auth::can('generate', 'bulletin') || Auth::can('validate', 'bulletin') || Auth::can('print', 'bulletin')): ?>
+                                    <a href="/bulletins" class="btn btn-warning btn-sm text-dark font-weight-bold">
+                                        <i class="ph-duotone ph-file-text me-1"></i><?= _("Gestion des Bulletins") ?>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

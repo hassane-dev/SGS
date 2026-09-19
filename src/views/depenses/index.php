@@ -5,7 +5,7 @@
 <div class="pc-container">
     <div class="pc-content">
         <!-- [ breadcrumb ] start -->
-        <div class="page-header">
+        <div class="page-header mb-3">
             <div class="page-block">
                 <div class="row align-items-center">
                     <div class="col-md-8">
@@ -16,7 +16,7 @@
                     <div class="col-md-4 text-end">
                         <?php if (Auth::can('create', 'depense')): ?>
                             <a href="/depenses/create" class="btn btn-primary d-inline-flex align-items-center">
-                                <i class="ti ti-plus me-1"></i> <?= _('Nouvelle Dépense') ?>
+                                <i class="ph-duotone ph-plus me-1"></i> <?= _('Nouvelle Dépense') ?>
                             </a>
                         <?php endif; ?>
                     </div>
@@ -24,6 +24,57 @@
             </div>
         </div>
         <!-- [ breadcrumb ] end -->
+
+        <!-- HUB ACTIONS / CTA BAR -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm border-0 bg-grd-primary text-white">
+                    <div class="card-body p-3">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                            <div>
+                                <h5 class="text-white mb-1"><i class="ph-duotone ph-receipt-x me-2"></i><?= _("Workflow des Dépenses & Décaissements") ?></h5>
+                                <p class="text-white-50 small mb-0"><?= _("Consultez, validez, payez et organisez les dépenses de l'établissement.") ?></p>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="/depenses" class="btn btn-light btn-sm font-weight-bold">
+                                    <i class="ph-duotone ph-list me-1"></i><?= _("Toutes les Dépenses") ?>
+                                </a>
+
+                                <?php if (Auth::can('validate', 'depense')): ?>
+                                    <a href="/depenses/validation" class="btn btn-warning btn-sm text-dark font-weight-bold">
+                                        <i class="ph-duotone ph-check-square me-1"></i><?= _("Validation Dépenses") ?>
+                                    </a>
+                                <?php endif; ?>
+
+                                <?php if (Auth::can('pay', 'depense')): ?>
+                                    <a href="/depenses/payments" class="btn btn-success btn-sm font-weight-bold">
+                                        <i class="ph-duotone ph-money me-1"></i><?= _("Paiements Dépenses") ?>
+                                    </a>
+                                <?php endif; ?>
+
+                                <?php if (Auth::can('view', 'depense')): ?>
+                                    <a href="/depenses/history" class="btn btn-outline-light btn-sm">
+                                        <i class="ph-duotone ph-clock-counter-clockwise me-1"></i><?= _("Historique & Journaux") ?>
+                                    </a>
+                                <?php endif; ?>
+
+                                <?php if (Auth::can('manage', 'depense')): ?>
+                                    <a href="/depenses/categories" class="btn btn-outline-light btn-sm">
+                                        <i class="ph-duotone ph-tag me-1"></i><?= _("Catégories") ?>
+                                    </a>
+                                    <a href="/depenses/centres-couts" class="btn btn-outline-light btn-sm">
+                                        <i class="ph-duotone ph-chart-pie me-1"></i><?= _("Centres de coûts") ?>
+                                    </a>
+                                    <a href="/depenses/beneficiaires" class="btn btn-outline-light btn-sm">
+                                        <i class="ph-duotone ph-user me-1"></i><?= _("Bénéficiaires") ?>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Alerts -->
         <?php if (!empty($_SESSION['success_message'])): ?>
@@ -83,7 +134,7 @@
                         <input type="date" name="date_fin" class="form-control" value="<?= htmlspecialchars($_GET['date_fin'] ?? '') ?>">
                     </div>
                     <div class="col-md-1 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100"><i class="ti ti-search"></i></button>
+                        <button type="submit" class="btn btn-primary w-100"><i class="ph-duotone ph-magnifying-glass"></i></button>
                     </div>
                 </form>
             </div>
@@ -147,26 +198,26 @@
                                                     <input type="hidden" name="montant" value="<?= $d['montant'] ?>">
                                                     <input type="hidden" name="motif" value="<?= htmlspecialchars($d['motif']) ?>">
                                                     <button type="submit" class="btn btn-sm btn-light-warning" title="<?= _('Soumettre pour approbation') ?>">
-                                                        <i class="ti ti-send"></i> <?= _('Soumettre') ?>
+                                                        <i class="ph-duotone ph-paper-plane-tilt"></i> <?= _('Soumettre') ?>
                                                     </button>
                                                 </form>
                                             <?php endif; ?>
 
                                             <?php if ($d['statut'] === 'en_attente_approbation' && Auth::can('validate', 'depense')): ?>
                                                 <a href="/depenses/validate/<?= $d['id'] ?>" class="btn btn-sm btn-light-info">
-                                                    <i class="ti ti-checklist"></i> <?= _('Valider') ?>
+                                                    <i class="ph-duotone ph-check-square"></i> <?= _('Valider') ?>
                                                 </a>
                                             <?php endif; ?>
 
                                             <?php if ($d['statut'] === 'approuve' && Auth::can('pay', 'depense')): ?>
                                                 <a href="/depenses/pay/<?= $d['id'] ?>" class="btn btn-sm btn-light-success">
-                                                    <i class="ti ti-cash"></i> <?= _('Payer') ?>
+                                                    <i class="ph-duotone ph-money"></i> <?= _('Payer') ?>
                                                 </a>
                                             <?php endif; ?>
 
                                             <?php if ($d['statut'] === 'paye' && Auth::can('cancel', 'depense')): ?>
                                                 <button type="button" class="btn btn-sm btn-light-danger" data-bs-toggle="modal" data-bs-target="#cancelModal<?= $d['id'] ?>">
-                                                    <i class="ti ti-circle-x text-danger"></i> <?= _('Annuler') ?>
+                                                    <i class="ph-duotone ph-x-circle text-danger"></i> <?= _('Annuler') ?>
                                                 </button>
 
                                                 <!-- Cancellation Modal -->

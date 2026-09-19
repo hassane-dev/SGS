@@ -8,13 +8,57 @@
                 <div class="row align-items-center">
                     <div class="col-md-12">
                         <div class="page-header-title">
-                            <h2 class="mb-0"><?= _($title) ?></h2>
+                            <h2 class="mb-0"><?= _($title ?? 'Recettes & Caisse') ?></h2>
                         </div>
                         <ul class="breadcrumb">
                             <li class="breadcrumb-item"><a href="/"><?= _('Tableau de Bord') ?></a></li>
                             <li class="breadcrumb-item"><a href="/paiements"><?= _('Finances') ?></a></li>
-                            <li class="breadcrumb-item" aria-current="page"><?= _($title) ?></li>
+                            <li class="breadcrumb-item" aria-current="page"><?= _($title ?? 'Recettes & Caisse') ?></li>
                         </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HUB ACTIONS / CTA BAR -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm border-0 bg-grd-primary text-white">
+                    <div class="card-body p-3">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                            <div>
+                                <h5 class="text-white mb-1"><i class="ph-duotone ph-currency-circle-dollar me-2"></i><?= _("Cockpit Recettes & Opérations de Caisse") ?></h5>
+                                <p class="text-white-50 small mb-0"><?= _("Gérez les encaissements d'inscription, mensualités, restes à percevoir et reçus.") ?></p>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <?php if (Auth::can('manage', 'paiement')): ?>
+                                    <a href="/paiements/pending" class="btn btn-warning btn-sm text-dark font-weight-bold">
+                                        <i class="ph-duotone ph-clock me-1"></i><?= _("Paiement Inscription") ?>
+                                    </a>
+                                    <a href="/mensualites" class="btn btn-light btn-sm font-weight-bold">
+                                        <i class="ph-duotone ph-calendar-check text-primary me-1"></i><?= _("Gestion Mensualités") ?>
+                                    </a>
+                                    <a href="/paiements/restes" class="btn btn-light btn-sm font-weight-bold">
+                                        <i class="ph-duotone ph-hand-coins text-primary me-1"></i><?= _("Gestion des Restes") ?>
+                                    </a>
+                                <?php endif; ?>
+
+                                <?php if (Auth::can('view', 'paiement')): ?>
+                                    <a href="/paiements/historique" class="btn btn-outline-light btn-sm">
+                                        <i class="ph-duotone ph-clock-counter-clockwise me-1"></i><?= _("Historique Paiements") ?>
+                                    </a>
+                                    <a href="/paiements/recus" class="btn btn-outline-light btn-sm">
+                                        <i class="ph-duotone ph-receipt me-1"></i><?= _("Reçus") ?>
+                                    </a>
+                                <?php endif; ?>
+
+                                <?php if (Auth::can('view', 'sessions_caisse') || Auth::can('create', 'sessions_caisse')): ?>
+                                    <a href="/treasury/sessions" class="btn btn-outline-light btn-sm">
+                                        <i class="ph-duotone ph-vault me-1"></i><?= _("Sessions de Caisse") ?>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -33,7 +77,7 @@
                             </div>
                             <div class="flex-grow-1 ms-3">
                                 <h6 class="text-white mb-1"><?= _('Encaissement Total') ?></h6>
-                                <h3 class="text-white mb-0"><?= number_format($totalGlobal, 0, ',', ' ') ?> <small>FCFA</small></h3>
+                                <h3 class="text-white mb-0"><?= number_format($totalGlobal ?? 0, 0, ',', ' ') ?> <small>FCFA</small></h3>
                             </div>
                         </div>
                     </div>
@@ -50,7 +94,7 @@
                             </div>
                             <div class="flex-grow-1 ms-3">
                                 <h6 class="text-white mb-1"><?= _('Total ce mois') ?></h6>
-                                <h3 class="text-white mb-0"><?= number_format($totalMonth, 0, ',', ' ') ?> <small>FCFA</small></h3>
+                                <h3 class="text-white mb-0"><?= number_format($totalMonth ?? 0, 0, ',', ' ') ?> <small>FCFA</small></h3>
                             </div>
                         </div>
                     </div>
@@ -67,7 +111,7 @@
                             </div>
                             <div class="flex-grow-1 ms-3">
                                 <h6 class="text-white mb-1"><?= _("Aujourd'hui") ?></h6>
-                                <h3 class="text-white mb-0"><?= number_format($totalToday, 0, ',', ' ') ?> <small>FCFA</small></h3>
+                                <h3 class="text-white mb-0"><?= number_format($totalToday ?? 0, 0, ',', ' ') ?> <small>FCFA</small></h3>
                             </div>
                         </div>
                     </div>
@@ -84,7 +128,7 @@
                             </div>
                             <div class="flex-grow-1 ms-3">
                                 <h6 class="text-white mb-1"><?= _('Restes à percevoir') ?></h6>
-                                <h3 class="text-white mb-0"><?= number_format($arrieresInscriptions, 0, ',', ' ') ?> <small>FCFA</small></h3>
+                                <h3 class="text-white mb-0"><?= number_format($arrieresInscriptions ?? 0, 0, ',', ' ') ?> <small>FCFA</small></h3>
                             </div>
                         </div>
                     </div>
@@ -122,7 +166,7 @@
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
                                 <h6 class="mb-1"><?= _('Élèves en attente') ?></h6>
-                                <h3 class="mb-0 text-warning"><?= $nbEnAttente ?></h3>
+                                <h3 class="mb-0 text-warning"><?= $nbEnAttente ?? 0 ?></h3>
                             </div>
                             <div class="flex-shrink-0 ms-3">
                                 <div class="avtar avtar-s bg-light-warning text-warning">
@@ -140,7 +184,7 @@
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
                                 <h6 class="mb-1"><?= _('Paiements partiels') ?></h6>
-                                <h3 class="mb-0 text-info"><?= $nbPartiel ?></h3>
+                                <h3 class="mb-0 text-info"><?= $nbPartiel ?? 0 ?></h3>
                             </div>
                             <div class="flex-shrink-0 ms-3">
                                 <div class="avtar avtar-s bg-light-info text-info">
@@ -158,7 +202,7 @@
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
                                 <h6 class="mb-1"><?= _('Élèves activés') ?></h6>
-                                <h3 class="mb-0 text-success"><?= $nbActif ?></h3>
+                                <h3 class="mb-0 text-success"><?= $nbActif ?? 0 ?></h3>
                             </div>
                             <div class="flex-shrink-0 ms-3">
                                 <div class="avtar avtar-s bg-light-success text-success">
@@ -199,38 +243,39 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($recentTransactions as $t): ?>
-                                        <tr>
-                                            <td><?= date('d/m/Y H:i', strtotime($t['date'])) ?></td>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    <div class="flex-grow-1">
-                                                        <h6 class="mb-0"><?= htmlspecialchars($t['eleve_nom']) ?></h6>
+                                    <?php if (!empty($recentTransactions)): ?>
+                                        <?php foreach ($recentTransactions as $t): ?>
+                                            <tr>
+                                                <td><?= date('d/m/Y H:i', strtotime($t['date'])) ?></td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="flex-grow-1">
+                                                            <h6 class="mb-0"><?= htmlspecialchars($t['eleve_nom']) ?></h6>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <?php
-                                                $types = explode(' + ', $t['type']);
-                                                foreach($types as $type):
-                                                    $color = ($type == 'Inscription') ? 'success' : 'info';
-                                                ?>
-                                                <span class="badge bg-light-<?= $color ?> text-<?= $color ?>">
-                                                    <?= _($type) ?>
-                                                </span>
-                                                <?php endforeach; ?>
-                                            </td>
-                                            <td><?= $t['mode'] ?: 'N/A' ?></td>
-                                            <td><small class="text-muted"><?= htmlspecialchars($t['caissier']) ?></small></td>
-                                            <td class="text-end fw-bold text-dark"><?= number_format($t['montant'], 0, ',', ' ') ?> <small>FCFA</small></td>
-                                            <td class="text-center">
-                                                <a href="/paiements/show/<?= $t['eleve_id'] ?>" class="btn btn-icon btn-light-primary" title="<?= _("Voir l'historique complet") ?>">
-                                                    <i class="ph-duotone ph-receipt"></i>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                    <?php if (empty($recentTransactions)): ?>
+                                                </td>
+                                                <td>
+                                                    <?php
+                                                    $types = explode(' + ', $t['type']);
+                                                    foreach($types as $type):
+                                                        $color = ($type == 'Inscription') ? 'success' : 'info';
+                                                    ?>
+                                                    <span class="badge bg-light-<?= $color ?> text-<?= $color ?>">
+                                                        <?= _($type) ?>
+                                                    </span>
+                                                    <?php endforeach; ?>
+                                                </td>
+                                                <td><?= $t['mode'] ?: 'N/A' ?></td>
+                                                <td><small class="text-muted"><?= htmlspecialchars($t['caissier']) ?></small></td>
+                                                <td class="text-end fw-bold text-dark"><?= number_format($t['montant'], 0, ',', ' ') ?> <small>FCFA</small></td>
+                                                <td class="text-center">
+                                                    <a href="/paiements/show/<?= $t['eleve_id'] ?>" class="btn btn-icon btn-light-primary" title="<?= _("Voir l'historique complet") ?>">
+                                                        <i class="ph-duotone ph-receipt"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
                                         <tr>
                                             <td colspan="7" class="text-center py-4 text-muted"><?= _('Aucune transaction enregistrée pour le moment.') ?></td>
                                         </tr>
