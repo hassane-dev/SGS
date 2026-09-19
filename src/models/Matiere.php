@@ -20,15 +20,15 @@ class Matiere {
         return self::TYPES;
     }
 
-    public static function findAll() {
+    public static function findAll($lycee_id = null) {
         try {
             $db = Database::getInstance();
-            $lycee_id = Auth::getLyceeId();
-            if (!$lycee_id) {
+            $target_lycee_id = $lycee_id ?? Auth::getLyceeId();
+            if (!$target_lycee_id) {
                 return [];
             }
             $stmt = $db->prepare("SELECT * FROM matieres WHERE lycee_id = :lycee_id OR lycee_id IS NULL ORDER BY nom_matiere ASC");
-            $stmt->execute(['lycee_id' => $lycee_id]);
+            $stmt->execute(['lycee_id' => $target_lycee_id]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Error in Matiere::findAll: " . $e->getMessage());

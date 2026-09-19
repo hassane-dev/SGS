@@ -102,7 +102,7 @@ $alerts = $d['alerts'] ?? [];
                             <select name="lycee_id" id="filterLycee" class="form-select form-select-sm">
                                 <?php foreach ($lycees as $l): ?>
                                     <option value="<?= $l['id'] ?>" <?= ($filters['lycee_id'] == $l['id']) ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($l['nom']) ?>
+                                        <?= htmlspecialchars($l['nom_lycee'] ?? $l['nom'] ?? '') ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
