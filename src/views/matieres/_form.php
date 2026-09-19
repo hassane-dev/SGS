@@ -16,8 +16,19 @@
     <div class="col-md-6 mb-3">
         <label for="type" class="form-label"><?= _('Type') ?></label>
         <select class="form-select" id="type" name="type">
-            <option value="Scientifique" <?= (isset($matiere['type']) && $matiere['type'] === 'Scientifique') ? 'selected' : '' ?>><?= _('Scientifique') ?></option>
-            <option value="Littéraire" <?= (isset($matiere['type']) && $matiere['type'] === 'Littéraire') ? 'selected' : '' ?>><?= _('Littéraire') ?></option>
+            <option value=""><?= _('-- Sélectionner un type --') ?></option>
+            <?php
+            $typesList = $types ?? Matiere::getTypes();
+            $selectedType = $matiere['type'] ?? '';
+            ?>
+            <?php if (!empty($selectedType) && !in_array($selectedType, $typesList, true)): ?>
+                <option value="<?= htmlspecialchars($selectedType) ?>" selected><?= htmlspecialchars($selectedType) ?></option>
+            <?php endif; ?>
+            <?php foreach ($typesList as $typeOption): ?>
+                <option value="<?= htmlspecialchars($typeOption) ?>" <?= ($selectedType === $typeOption) ? 'selected' : '' ?>>
+                    <?= htmlspecialchars(_($typeOption)) ?>
+                </option>
+            <?php endforeach; ?>
         </select>
     </div>
     <div class="col-md-6 mb-3">

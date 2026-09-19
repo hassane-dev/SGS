@@ -5,6 +5,21 @@ require_once __DIR__ . '/../core/Auth.php';
 
 class Matiere {
 
+    public const TYPES = [
+        'Littéraire',
+        'Scientifique',
+        'Sciences humaines et sociales',
+        'Économique / Gestion / Commercial',
+        'Technique / Technologique',
+        'Artistique / Arts',
+        'Agricole',
+        'Autre',
+    ];
+
+    public static function getTypes() {
+        return self::TYPES;
+    }
+
     public static function findAll() {
         try {
             $db = Database::getInstance();
