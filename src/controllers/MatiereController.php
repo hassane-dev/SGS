@@ -29,9 +29,11 @@ class MatiereController {
     public function create() {
         $this->checkAccess('matiere:create');
         $cycles = Cycle::findAll();
+        $types = Matiere::getTypes();
         View::render('matieres/create', [
             'title' => 'Nouvelle Matière',
-            'cycles' => $cycles
+            'cycles' => $cycles,
+            'types' => $types
         ]);
     }
 
@@ -42,11 +44,13 @@ class MatiereController {
             // Simple validation
             if (empty($data['nom_matiere']) || empty($data['statut'])) {
                  $cycles = Cycle::findAll();
+                 $types = Matiere::getTypes();
                  View::render('matieres/create', [
                     'title' => 'Nouvelle Matière',
                     'error' => 'Veuillez remplir tous les champs obligatoires.',
                     'matiere' => $data,
-                    'cycles' => $cycles
+                    'cycles' => $cycles,
+                    'types' => $types
                 ]);
                 return;
             }
@@ -70,10 +74,12 @@ class MatiereController {
             exit();
         }
         $cycles = Cycle::findAll();
+        $types = Matiere::getTypes();
         View::render('matieres/edit', [
             'matiere' => $matiere,
             'title' => 'Modifier la Matière',
-            'cycles' => $cycles
+            'cycles' => $cycles,
+            'types' => $types
         ]);
     }
 
@@ -83,11 +89,13 @@ class MatiereController {
             $data = Validator::sanitize($_POST);
              if (empty($data['nom_matiere']) || empty($data['statut'])) {
                 $cycles = Cycle::findAll();
+                $types = Matiere::getTypes();
                 View::render('matieres/edit', [
                     'matiere' => $data,
                     'title' => 'Modifier la Matière',
                     'error' => 'Veuillez remplir tous les champs obligatoires.',
-                    'cycles' => $cycles
+                    'cycles' => $cycles,
+                    'types' => $types
                 ]);
                 return;
             }
