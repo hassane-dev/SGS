@@ -243,7 +243,7 @@ CREATE TABLE `sequences` (
     `type` ENUM('trimestrielle', 'semestrielle') NOT NULL,
     `date_debut` DATE NOT NULL,
     `date_fin` DATE NOT NULL,
-    `statut` ENUM('ouverte', 'fermee') NOT NULL DEFAULT 'ouverte',
+    `statut` ENUM('planifiee', 'ouverte', 'fermee') NOT NULL DEFAULT 'ouverte',
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`annee_academique_id`) REFERENCES `annees_academiques`(`id`) ON DELETE CASCADE
 );
