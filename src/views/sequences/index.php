@@ -75,8 +75,8 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                                                 <td><?= htmlspecialchars(date('d/m/Y', strtotime($sequence['date_debut']))) ?></td>
                                                 <td><?= htmlspecialchars(date('d/m/Y', strtotime($sequence['date_fin']))) ?></td>
                                                 <td>
-                                                    <span class="badge bg-light-<?= $sequence['statut'] === 'ouverte' ? 'success' : 'danger' ?>">
-                                                        <?= htmlspecialchars($sequence['statut'] === 'ouverte' ? _('Ouverte') : _('Fermée')) ?>
+                                                    <span class="badge bg-light-<?=$sequence['statut'] === 'ouverte' ? 'success': ($sequence['statut'] === 'fermee' ? 'danger': 'primary') >">
+                                                        <?= htmlspecialchars($sequence['statut'] === 'ouverte' ? _('Ouverte'): ($sequence['statut'] === 'fermee' ? _('Fermée'): _('Planifiée'))) ?>
                                                     </span>
                                                 </td>
                                                 <td>
