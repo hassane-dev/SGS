@@ -334,18 +334,32 @@ class User {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public static function getTeacherAssignments($teacher_id) {
+    public static function getTeacherAssignments($teacher_id, $annee_id = null, $lycee_id = null) {
         $db = Database::getInstance();
-        $stmt = $db->prepare("
+        $sql = "
             SELECT c.id_classe, c.niveau, c.serie, c.numero, c.cycle_id, cy.nom_cycle, m.id_matiere, m.nom_matiere
             FROM affectations_pedagogiques ap
             JOIN classes c ON ap.classe_id = c.id_classe
             LEFT JOIN cycles cy ON c.cycle_id = cy.id_cycle
             JOIN matieres m ON ap.matiere_id = m.id_matiere
             WHERE ap.enseignant_id = :teacher_id AND ap.statut = 'actif'
-            ORDER BY cy.nom_cycle, c.niveau, c.serie, c.numero, m.nom_matiere
-        ");
-        $stmt->execute(['teacher_id' => $teacher_id]);
+        ";
+        $params = ['teacher_id' => $teacher_id];
+
+        if ($annee_id !== null) {
+            $sql .= " AND ap.annee_academique_id = :annee_id";
+            $params['annee_id'] = $annee_id;
+        }
+
+        if ($lycee_id !== null) {
+            $sql .= " AND c.lycee_id = :lycee_id";
+            $params['lycee_id'] = $lycee_id;
+        }
+
+        $sql .= " ORDER BY cy.nom_cycle, c.niveau, c.serie, c.numero, m.nom_matiere";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

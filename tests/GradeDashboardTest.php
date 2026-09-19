@@ -474,6 +474,42 @@ class GradeDashboardTest {
         return ($expectedCount === 4) && ($recordedCount === 2);
     }
 
+    /**
+     * Scenario 11: Anti-leakage check — Unassigned subject notes in assigned class must NOT contaminate teacher dashboard.
+     */
+    public function test11_UnassignedSubjectDataLeakage(): bool {
+        $_SESSION['user_id'] = $this->teacherUserId;
+        $_SESSION['lycee_id'] = $this->lyceeId;
+        $_SESSION['user'] = [
+            'id_user' => $this->teacherUserId,
+            'lycee_id' => $this->lyceeId,
+            'role_id' => 6,
+            'role_name' => 'enseignant'
+        ];
+        unset($_SESSION['user']['permissions']);
+
+        // Insert a 0/20 grade in Physique-Chimie (matiereUnassignedId) for student1 in teacher's assigned class
+        $this->db->exec("INSERT INTO evaluations (lycee_id, classe_id, matiere_id, enseignant_id, eleve_id, sequence_id, annee_academique_id, type, numero_evaluation, note, bareme_snapshot, coefficient) VALUES ({$this->lyceeId}, {$this->classeId}, {$this->matiereUnassignedId}, 9999, {$this->student1Id}, {$this->sequenceOpenId}, {$this->anneeId}, 'devoir', 1, 0.00, 20.00, 2.00)");
+
+        $filters = [
+            'lycee_id' => $this->lyceeId,
+            'annee_academique_id' => $this->anneeId,
+            'sequence_id' => $this->sequenceOpenId,
+            'classe_id' => $this->classeId
+        ];
+
+        $data = GradeDashboardService::getDashboardData($filters, $this->teacherUserId);
+
+        // General average for teacher MUST remain 12.00 (Math average), ignoring the 0/20 in Physique-Chimie
+        $checkAvg = ($data['performance']['moyenne_generale'] == 12.00);
+
+        // Subject averages MUST only contain Mathématiques and NOT Physique-Chimie
+        $subNames = array_column($data['performance']['subject_averages'], 'nom_matiere');
+        $checkSubjectIsolation = !in_array('Physique-Chimie', $subNames);
+
+        return $checkAvg && $checkSubjectIsolation;
+    }
+
     public function run(): array {
         $results = [];
 
@@ -487,7 +523,8 @@ class GradeDashboardTest {
             'Scenario 7: Tentative d\'accès à un autre établissement' => 'test7_CrossTenantAccessBlocked',
             'Scenario 8: Absence de données' => 'test8_NoDataEmptyResponse',
             'Scenario 9: Gestion des valeurs limites des tranches de moyennes' => 'test9_DistributionBucketBoundaries',
-            'Scenario 10: Vérification de l\'absence de double comptabilisation' => 'test10_NoDoubleCountingInCompletion'
+            'Scenario 10: Vérification de l\'absence de double comptabilisation' => 'test10_NoDoubleCountingInCompletion',
+            'Scenario 11: Isolation stricte des matières non affectées dans une classe affectée' => 'test11_UnassignedSubjectDataLeakage'
         ];
 
         foreach ($scenarios as $label => $method) {
