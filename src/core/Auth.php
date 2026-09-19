@@ -174,7 +174,7 @@ class Auth {
 
     public static function getUserId() {
         self::startSession();
-        return $_SESSION['user']['id'] ?? null;
+        return $_SESSION['user']['id'] ?? $_SESSION['user']['id_user'] ?? $_SESSION['user_id'] ?? null;
     }
 
     public static function getAuthorizedCycleIds() {

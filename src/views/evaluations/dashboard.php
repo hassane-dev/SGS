@@ -31,7 +31,7 @@ $alerts = $d['alerts'] ?? [];
                     <div class="col-md-4 text-md-end mt-3 mt-md-0">
                         <span class="badge <?= htmlspecialchars($seq['status_badge_class'] ?? 'bg-light-primary text-primary') ?> fs-6 p-2">
                             <i class="ph-duotone <?= ($seq['is_closed'] ?? false) ? 'ph-lock-key' : 'ph-lightning' ?> me-1"></i>
-                            <?= htmlspecialchars(($seq['nom'] ?? '') . " — " . ($seq['status_label'] ?? '')) ?>
+                            <?= htmlspecialchars(($seq['nom'] ?? '') . (!empty($seq['status_label']) ? " — " . $seq['status_label'] : '')) ?>
                         </span>
                     </div>
                 </div>
@@ -114,7 +114,7 @@ $alerts = $d['alerts'] ?? [];
                         <select name="annee_academique_id" id="filterAnnee" class="form-select form-select-sm">
                             <?php foreach ($annees as $a): ?>
                                 <option value="<?= $a['id'] ?>" <?= ($filters['annee_academique_id'] == $a['id']) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($a['nom']) ?> <?= $a['est_active'] ? ' (' . _("Active") . ')' : '' ?>
+                                    <?= htmlspecialchars($a['libelle'] ?? $a['nom'] ?? '') ?> <?= !empty($a['est_active']) ? ' (' . _("Active") . ')' : '' ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
