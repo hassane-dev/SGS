@@ -43,26 +43,26 @@ class PaiementController {
 
         $db = Database::getInstance();
 
-        // 1. Statistiques Globales (Inscriptions + Mensualités)
-        $stmt = $db->prepare("SELECT SUM(montant_verse) FROM inscriptions WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id");
+        // 1. Statistiques Globales (Inscriptions + Mensualités validées)
+        $stmt = $db->prepare("SELECT SUM(montant_verse) FROM inscriptions WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id AND statut = 'valide'");
         $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
         $totalInscriptions = $stmt->fetchColumn() ?: 0;
 
-        $stmt = $db->prepare("SELECT SUM(montant) FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :lycee_id AND m.annee_academique_id = :annee_id");
+        $stmt = $db->prepare("SELECT SUM(md.montant) FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :lycee_id AND m.annee_academique_id = :annee_id AND md.statut = 'valide'");
         $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
         $totalMensualites = $stmt->fetchColumn() ?: 0;
 
         $totalGlobal = $totalInscriptions + $totalMensualites;
 
-        // 2. Statistiques Temporelles (Aujourd'hui et Ce mois)
+        // 2. Statistiques Temporelles (Aujourd'hui et Ce mois) — uniquement opérations validées
         $today = date('Y-m-d');
         $thisMonth = date('Y-m');
 
         $stmt = $db->prepare("
             SELECT SUM(montant) FROM (
-                SELECT montant_verse as montant FROM inscriptions WHERE lycee_id = :l_id1 AND DATE(date_inscription) = :d1
+                SELECT montant_verse as montant FROM inscriptions WHERE lycee_id = :l_id1 AND statut = 'valide' AND DATE(date_inscription) = :d1
                 UNION ALL
-                SELECT montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l_id2 AND DATE(md.date_paiement) = :d2
+                SELECT md.montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l_id2 AND md.statut = 'valide' AND DATE(md.date_paiement) = :d2
             ) as t
         ");
         $stmt->execute(['l_id1' => $lycee_id, 'd1' => $today, 'l_id2' => $lycee_id, 'd2' => $today]);
@@ -70,9 +70,9 @@ class PaiementController {
 
         $stmt = $db->prepare("
             SELECT SUM(montant) FROM (
-                SELECT montant_verse as montant FROM inscriptions WHERE lycee_id = :l_id1 AND DATE_FORMAT(date_inscription, '%Y-%m') = :m1
+                SELECT montant_verse as montant FROM inscriptions WHERE lycee_id = :l_id1 AND statut = 'valide' AND DATE_FORMAT(date_inscription, '%Y-%m') = :m1
                 UNION ALL
-                SELECT montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l_id2 AND DATE_FORMAT(md.date_paiement, '%Y-%m') = :m2
+                SELECT md.montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l_id2 AND md.statut = 'valide' AND DATE_FORMAT(md.date_paiement, '%Y-%m') = :m2
             ) as t
         ");
         $stmt->execute(['l_id1' => $lycee_id, 'm1' => $thisMonth, 'l_id2' => $lycee_id, 'm2' => $thisMonth]);
@@ -84,13 +84,13 @@ class PaiementController {
             SELECT COUNT(*) FROM eleves e
             WHERE e.lycee_id = :lycee_id
             AND e.statut = 'en_attente_paiement'
-            AND NOT EXISTS (SELECT 1 FROM inscriptions i WHERE i.eleve_id = e.id_eleve AND i.annee_academique_id = :annee_id)
+            AND NOT EXISTS (SELECT 1 FROM inscriptions i WHERE i.eleve_id = e.id_eleve AND i.annee_academique_id = :annee_id AND i.statut = 'valide')
         ");
         $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
         $nbEnAttente = $stmt->fetchColumn() ?: 0;
 
         // Partiellement payés = Inscription existante mais reste_a_payer > 0
-        $stmt = $db->prepare("SELECT COUNT(*) FROM inscriptions WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id AND reste_a_payer > 0");
+        $stmt = $db->prepare("SELECT COUNT(*) FROM inscriptions WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id AND statut = 'valide' AND reste_a_payer > 0");
         $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
         $nbPartiel = $stmt->fetchColumn() ?: 0;
 
@@ -99,10 +99,24 @@ class PaiementController {
         $stmt->execute(['lycee_id' => $lycee_id]);
         $nbActif = $stmt->fetchColumn() ?: 0;
 
-        // 4. Arriérés de scolarité (Inscriptions non soldées)
-        $stmt = $db->prepare("SELECT SUM(reste_a_payer) FROM inscriptions WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id");
-        $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
-        $arrieresInscriptions = $stmt->fetchColumn() ?: 0;
+        // 4. Arriérés de scolarité (Inscriptions valides non soldées + Mensualités exigibles dues)
+        // Alignement strict avec FinancialStatusService
+        $stmtStudents = $db->prepare("
+            SELECT DISTINCT e.id_eleve
+            FROM eleves e
+            JOIN etudes et ON e.id_eleve = et.eleve_id
+            WHERE e.lycee_id = :lycee_id AND et.annee_academique_id = :annee_id AND et.is_active = 1
+        ");
+        $stmtStudents->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
+        $studentIds = $stmtStudents->fetchAll(PDO::FETCH_COLUMN);
+
+        $arrieresInscriptions = 0.0;
+        foreach ($studentIds as $sId) {
+            $st = FinancialStatusService::getStudentFinancialStatus($sId, $activeYear['id']);
+            if ($st) {
+                $arrieresInscriptions += (float)($st['total_reste'] ?? 0.0);
+            }
+        }
 
         // 5. Alertes Financières (Ex: Paiements partiels dépassant un certain délai - simulation pour le dashboard)
         $alerts = [];
@@ -114,7 +128,7 @@ class PaiementController {
             ];
         }
 
-        // 6. Dernières transactions (groupées par reçu pour éviter les doublons)
+        // 6. Dernières transactions (groupées par reçu pour éviter les doublons, uniquement opérations validées)
         $stmt = $db->prepare("
             SELECT
                 GROUP_CONCAT(DISTINCT type SEPARATOR ' + ') as type,
@@ -127,12 +141,12 @@ class PaiementController {
             FROM (
                 (SELECT 'Inscription' as type, montant_verse as montant, date_inscription as date, eleve_id, user_id, recu_numero, 'Espèces' as mode
                  FROM inscriptions
-                 WHERE lycee_id = :l1)
+                 WHERE lycee_id = :l1 AND statut = 'valide')
                 UNION ALL
                 (SELECT 'Mensualité' as type, md.montant, md.date_paiement as date, m.eleve_id, m.user_id, md.recu_numero, md.mode_paiement as mode
                  FROM mensualite_details md
                  JOIN mensualites m ON md.mensualite_id = m.id_mensualite
-                 WHERE m.lycee_id = :l2)
+                 WHERE m.lycee_id = :l2 AND md.statut = 'valide')
             ) as t
             GROUP BY recu_numero, eleve_id, user_id
             ORDER BY date DESC LIMIT 10
