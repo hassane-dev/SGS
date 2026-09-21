@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
+require_once __DIR__ . '/../models/FinancialStatusService.php';
 
 class KpiService {
 
@@ -426,14 +427,39 @@ class KpiService {
                 return $inscr + $mens;
 
             case 'taux_recouvrement':
-                // total payments / total expected
-                $sql = "SELECT SUM(montant_verse) as verse, SUM(montant_total) as total FROM inscriptions WHERE lycee_id = :lycee_id AND statut = 'valide'";
-                $stmt = $db->prepare($sql);
-                $stmt->execute(['lycee_id' => $lyceeId]);
-                $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                $total = (float)($row['total'] ?? 0);
-                $verse = (float)($row['verse'] ?? 0);
-                return $total > 0 ? ($verse / $total) * 100 : 100.00;
+                // total payments / total expected across both inscriptions AND due monthly tuition
+                $activeYear = AnneeAcademique::findActive();
+                $anneeId = $activeYear ? $activeYear['id'] : null;
+
+                $stmtStudents = $db->prepare("
+                    SELECT DISTINCT e.id_eleve
+                    FROM eleves e
+                    JOIN etudes et ON e.id_eleve = et.eleve_id
+                    WHERE e.lycee_id = :lycee_id " . ($anneeId ? "AND et.annee_academique_id = :annee_id AND et.is_active = 1" : "") . "
+                ");
+                $paramsStudents = ['lycee_id' => $lyceeId];
+                if ($anneeId) {
+                    $paramsStudents['annee_id'] = $anneeId;
+                }
+                $stmtStudents->execute($paramsStudents);
+                $studentIds = $stmtStudents->fetchAll(PDO::FETCH_COLUMN);
+
+                if (empty($studentIds)) {
+                    return 100.00;
+                }
+
+                $totalDu = 0.0;
+                $totalPaye = 0.0;
+
+                foreach ($studentIds as $sId) {
+                    $st = FinancialStatusService::getStudentFinancialStatus($sId, $anneeId);
+                    if ($st) {
+                        $totalDu += (float)($st['total_du'] ?? 0.0);
+                        $totalPaye += (float)($st['total_paye'] ?? 0.0);
+                    }
+                }
+
+                return $totalDu > 0 ? ($totalPaye / $totalDu) * 100 : 100.00;
 
             default:
                 return 0.00;
