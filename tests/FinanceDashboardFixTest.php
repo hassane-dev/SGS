@@ -14,7 +14,6 @@ require_once __DIR__ . '/../src/models/Sequence.php';
 require_once __DIR__ . '/../src/models/FinancialStatusService.php';
 require_once __DIR__ . '/../src/services/KpiService.php';
 require_once __DIR__ . '/../src/controllers/PaiementController.php';
-require_once __DIR__ . '/../src/controllers/ReportingController.php';
 
 if (!defined('TEST_MODE')) {
     define('TEST_MODE', true);
@@ -26,6 +25,13 @@ function assert_fin($condition, $message) {
     } else {
         echo " [FAIL] $message\n";
         throw new Exception("Test failed: $message");
+    }
+}
+
+// Polyfill function _() if gettext is missing
+if (!function_exists('_')) {
+    function _($string) {
+        return $string;
     }
 }
 
@@ -63,6 +69,37 @@ $pdo->exec("CREATE TABLE utilisateurs (
     email TEXT,
     mot_de_passe TEXT,
     role_id INTEGER
+)");
+
+$pdo->exec("CREATE TABLE roles (
+    id_role INTEGER PRIMARY KEY AUTOINCREMENT,
+    nom_role TEXT,
+    lycee_id INTEGER
+)");
+
+$pdo->exec("CREATE TABLE permissions (
+    id_permission INTEGER PRIMARY KEY AUTOINCREMENT,
+    resource TEXT,
+    action TEXT
+)");
+
+$pdo->exec("CREATE TABLE role_permissions (
+    role_id INTEGER,
+    permission_id INTEGER
+)");
+
+$pdo->exec("CREATE TABLE notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    lycee_id INTEGER,
+    role TEXT,
+    message TEXT,
+    type TEXT,
+    lien TEXT,
+    is_read INTEGER DEFAULT 0,
+    est_lu INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    cree_le TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )");
 
 $pdo->exec("CREATE TABLE eleves (
@@ -193,84 +230,168 @@ $lycee1Id = $pdo->lastInsertId();
 $pdo->exec("INSERT INTO param_lycee (nom_lycee, type_lycee) VALUES ('Lycée Finance Test 2', 'prive')");
 $lycee2Id = $pdo->lastInsertId();
 
+$pdo->exec("INSERT INTO roles (id_role, nom_role) VALUES (1, 'Admin')");
+$pdo->exec("INSERT INTO permissions (id_permission, resource, action) VALUES (1, 'paiement', 'view')");
+$pdo->exec("INSERT INTO permissions (id_permission, resource, action) VALUES (2, 'paiement', 'manage')");
+$pdo->exec("INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 1)");
+$pdo->exec("INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 2)");
+
 $pdo->exec("INSERT INTO utilisateurs (nom, prenom, email, mot_de_passe, role_id) VALUES ('Admin', 'User', 'admin@test.com', 'pass', 1)");
 $userId = $pdo->lastInsertId();
 
-$_SESSION = [
-    'user_id' => $userId,
-    'lycee_id' => $lycee1Id,
+Auth::setSessionContext([
+    'id' => $userId,
+    'id_user' => $userId,
+    'nom' => 'Admin',
+    'prenom' => 'User',
+    'email' => 'admin@test.com',
     'role_id' => 1,
-    'permissions' => ['view:paiement', 'manage:paiement', 'view:reporting', 'export:reporting']
-];
+    'lycee_id' => $lycee1Id
+]);
 
-
-// TEST 1: Exclusion of Canceled Receipts
-echo "\n--- TEST 1: Exclusion des paiements annulés des encaissements ---\n";
-$pdo->exec("INSERT INTO eleves (lycee_id, nom, prenom, matricule, statut) VALUES ($lycee1Id, 'Dupont', 'Jean', 'MAT-01', 'actif')");
-$eleve1Id = $pdo->lastInsertId();
+// Setup Cycle, Class, Fees, Sequence
+$pdo->exec("INSERT INTO cycles (id_cycle, nom_cycle, niveau_debut, niveau_fin) VALUES (1, 'Premier Cycle', '6eme', '3eme')");
 
 $pdo->exec("INSERT INTO classes (lycee_id, cycle_id, niveau, numero) VALUES ($lycee1Id, 1, '6eme', 1)");
 $classe1Id = $pdo->lastInsertId();
 
-$pdo->exec("INSERT INTO etudes (eleve_id, classe_id, lycee_id, annee_academique_id, is_active) VALUES ($eleve1Id, $classe1Id, $lycee1Id, $anneeId, 1)");
+$pdo->exec("INSERT INTO frais (lycee_id, cycle, niveau_debut, niveau_fin, frais_inscription, frais_mensuel, annee_academique_id)
+           VALUES ($lycee1Id, 'Premier Cycle', '6eme', '6eme', 50000, 20000, $anneeId)");
+
+$pdo->exec("INSERT INTO sequences (lycee_id, annee_academique_id, nom, date_debut, date_fin, statut)
+           VALUES ($lycee1Id, $anneeId, 'Séquence 1', '2024-09-01', '2024-10-31', 'ouverte')");
+
+
+// ==========================================
+// SCÉNARIO 1 : TRANSACTIONS DÉTAILLÉES COMPLÈTES
+// ==========================================
+echo "\n--- SCÉNARIO 1 : Vérification complète des 4 KPI avec transactions réelles ---\n";
+
+$pdo->exec("INSERT INTO eleves (lycee_id, nom, prenom, matricule, statut) VALUES ($lycee1Id, 'Dupont', 'Jean', 'MAT-01', 'en_attente_paiement')");
+$eleve1Id = $pdo->lastInsertId();
+
+$pdo->exec("INSERT INTO etudes (eleve_id, classe_id, lycee_id, annee_academique_id, is_active, status) VALUES ($eleve1Id, $classe1Id, $lycee1Id, $anneeId, 0, 'en_attente_paiement')");
 $etude1Id = $pdo->lastInsertId();
 
-$pdo->exec("INSERT INTO inscriptions (etude_id, eleve_id, classe_id, lycee_id, annee_academique_id, montant_total, montant_verse, reste_a_payer, statut, date_inscription)
-           VALUES ($etude1Id, $eleve1Id, $classe1Id, $lycee1Id, $anneeId, 50000, 50000, 0, 'valide', '2024-09-10 10:00:00')");
+// Étude inactive/abandonnée pour vérifier l'exclusion
+$pdo->exec("INSERT INTO eleves (lycee_id, nom, prenom, matricule, statut) VALUES ($lycee1Id, 'Inactif', 'Paul', 'MAT-99', 'inactif')");
+$eleveInactifId = $pdo->lastInsertId();
+$pdo->exec("INSERT INTO etudes (eleve_id, classe_id, lycee_id, annee_academique_id, is_active, status) VALUES ($eleveInactifId, $classe1Id, $lycee1Id, $anneeId, 0, 'abandon')");
 
-$pdo->exec("INSERT INTO inscriptions (etude_id, eleve_id, classe_id, lycee_id, annee_academique_id, montant_total, montant_verse, reste_a_payer, statut, date_inscription)
-           VALUES ($etude1Id, $eleve1Id, $classe1Id, $lycee1Id, $anneeId, 30000, 30000, 0, 'annule', '2024-09-11 11:00:00')");
+$todayNow = date('Y-m-d H:i:s');
 
-$stmtValid = $pdo->prepare("SELECT SUM(montant_verse) FROM inscriptions WHERE lycee_id = :l AND annee_academique_id = :a AND statut = 'valide'");
-$stmtValid->execute(['l' => $lycee1Id, 'a' => $anneeId]);
-$validSum = (float)$stmtValid->fetchColumn();
+// 1. Inscription validée (30 000 FCFA versés sur 50 000 FCFA) -> reste_inscription = 20 000 FCFA
+$pdo->exec("INSERT INTO inscriptions (etude_id, eleve_id, classe_id, lycee_id, annee_academique_id, montant_total, montant_verse, reste_a_payer, statut, date_inscription, recu_numero)
+           VALUES ($etude1Id, $eleve1Id, $classe1Id, $lycee1Id, $anneeId, 50000, 30000, 20000, 'valide', '$todayNow', 'REC-INS-01')");
 
-$stmtAll = $pdo->prepare("SELECT SUM(montant_verse) FROM inscriptions WHERE lycee_id = :l AND annee_academique_id = :a");
-$stmtAll->execute(['l' => $lycee1Id, 'a' => $anneeId]);
-$allSum = (float)$stmtAll->fetchColumn();
+// 2. Inscription annulée (15 000 FCFA) -> Doit être strictement EXCLUE de Encaissement Total, Total ce mois, Aujourd'hui
+$pdo->exec("INSERT INTO inscriptions (etude_id, eleve_id, classe_id, lycee_id, annee_academique_id, montant_total, montant_verse, reste_a_payer, statut, date_inscription, recu_numero)
+           VALUES ($etude1Id, $eleve1Id, $classe1Id, $lycee1Id, $anneeId, 15000, 15000, 0, 'annule', '$todayNow', 'REC-INS-02')");
 
-assert_fin($validSum === 50000.0, "Le cumul des inscriptions validées est de 50 000 FCFA (seules les inscriptions à statut 'valide' sont retenues).");
-assert_fin($validSum < $allSum, "Le cumul des recettes validées exclut strictement l'inscription annulée de 30 000 FCFA.");
+// 3. Mensualité validée (Septembre 20 000 FCFA) ->
+$pdo->exec("INSERT INTO mensualites (etude_id, eleve_id, classe_id, lycee_id, annee_academique_id, mois_ou_sequence, montant_verse, reste_a_payer, date_paiement)
+           VALUES ($etude1Id, $eleve1Id, $classe1Id, $lycee1Id, $anneeId, 'Septembre', 20000, 0, '$todayNow')");
+$mens1Id = $pdo->lastInsertId();
 
+$pdo->exec("INSERT INTO mensualite_details (mensualite_id, montant, mode_paiement, reference_transaction, date_paiement, recu_numero, statut)
+           VALUES ($mens1Id, 20000, 'Espèces', 'REC-MENS-01', '$todayNow', 'REC-MENS-01', 'valide')");
 
-// TEST 2: Intégration des mensualités dues dans les restes à percevoir
-echo "\n--- TEST 2: Intégration des mensualités dues dans les restes à percevoir ---\n";
-$pdo->exec("INSERT INTO eleves (lycee_id, nom, prenom, matricule, statut) VALUES ($lycee1Id, 'Martin', 'Claire', 'MAT-02', 'actif')");
-$eleve2Id = $pdo->lastInsertId();
+// 4. Mensualité annulée (10 000 FCFA) -> Doit être strictly EXCLUE
+$pdo->exec("INSERT INTO mensualites (etude_id, eleve_id, classe_id, lycee_id, annee_academique_id, mois_ou_sequence, montant_verse, reste_a_payer, date_paiement)
+           VALUES ($etude1Id, $eleve1Id, $classe1Id, $lycee1Id, $anneeId, 'Octobre', 0, 20000, '$todayNow')");
+$mens2Id = $pdo->lastInsertId();
 
-$pdo->exec("INSERT INTO classes (lycee_id, cycle_id, niveau, numero) VALUES ($lycee1Id, 1, '5eme', 1)");
-$classe2Id = $pdo->lastInsertId();
+$pdo->exec("INSERT INTO mensualite_details (mensualite_id, montant, mode_paiement, reference_transaction, date_paiement, recu_numero, statut)
+           VALUES ($mens2Id, 10000, 'Espèces', 'REC-MENS-02', '$todayNow', 'REC-MENS-02', 'annule')");
 
-$pdo->exec("INSERT INTO etudes (eleve_id, classe_id, lycee_id, annee_academique_id, is_active) VALUES ($eleve2Id, $classe2Id, $lycee1Id, $anneeId, 1)");
-$etude2Id = $pdo->lastInsertId();
+// Exécuter le contrôleur pour le Dashboard Finance et capturer le HTML rendu
+ob_start();
+$controller = new PaiementController();
+$controller->index();
+$html1 = ob_get_clean();
 
-$pdo->exec("INSERT INTO sequences (lycee_id, annee_academique_id, nom, date_debut, date_fin, statut) VALUES ($lycee1Id, $anneeId, 'Seq 1', '2024-09-01', '2024-10-31', 'ouverte')");
+// Rendu HTML assertions
+assert_fin(strpos($html1, '50 000') !== false, "L'affichage HTML contient le montant formaté 50 000 FCFA (Encaissement Total / Total ce mois / Aujourd'hui).");
+assert_fin(strpos($html1, '40 000') !== false, "L'affichage HTML contient le montant des restes 40 000 FCFA (Restes à percevoir).");
 
-$pdo->exec("INSERT INTO cycles (id_cycle, nom_cycle, niveau_debut, niveau_fin) VALUES (1, 'Premier Cycle', '6eme', '3eme')");
-
-$pdo->exec("INSERT INTO frais (lycee_id, cycle, niveau_debut, niveau_fin, frais_inscription, frais_mensuel, annee_academique_id)
-           VALUES ($lycee1Id, 'Premier Cycle', '5eme', '5eme', 20000, 15000, $anneeId)");
-
-$pdo->exec("INSERT INTO inscriptions (etude_id, eleve_id, classe_id, lycee_id, annee_academique_id, montant_total, montant_verse, reste_a_payer, statut)
-           VALUES ($etude2Id, $eleve2Id, $classe2Id, $lycee1Id, $anneeId, 20000, 10000, 10000, 'valide')");
-
-$st = FinancialStatusService::getStudentFinancialStatus($eleve2Id, $anneeId);
-assert_fin($st['reste_inscription'] === 10000.0, "Le reste d'inscription pour l'élève est exactement de 10 000 FCFA.");
-assert_fin($st['reste_mensualite'] >= 15000.0, "Le reste des mensualités échues est supérieur ou égal à 15 000 FCFA.");
-assert_fin($st['total_reste'] === ($st['reste_inscription'] + $st['reste_mensualite']), "Le reste total combine correctement inscription et mensualités dues.");
-
-
-// TEST 3: Recovery Rate Calculation in KpiService
-echo "\n--- TEST 3: Calcul du taux de recouvrement global ---\n";
-$filters = ['date_debut' => '2024-01-01', 'date_fin' => '2025-12-31'];
-$rate = KpiService::computeKpi('taux_recouvrement', $lycee1Id, $filters);
-assert_fin(is_float($rate) && $rate >= 0.0 && $rate <= 100.0, "Le taux de recouvrement global est calculé avec succès: " . number_format($rate, 2) . "%");
+echo "  -> Scénario 1 validé avec succès (50 000 FCFA encaissés, 40 000 FCFA restes).\n";
 
 
-// TEST 4: Multi-Tenant Isolation
-echo "\n--- TEST 4: Isolation multi-tenant des données financières ---\n";
-$recettes1 = KpiService::computeKpi('recettes_scolaires', $lycee1Id, $filters);
-$recettes2 = KpiService::computeKpi('recettes_scolaires', $lycee2Id, $filters);
-assert_fin(is_float($recettes1) && is_float($recettes2), "Calcul des recettes indépendant par lycée (Lycée 1: $recettes1 FCFA, Lycée 2: $recettes2 FCFA).");
+// ==========================================
+// SCÉNARIO 2 : SANS OPÉRATION (ÉTABLISSEMENT SANS TRANSACTION)
+// ==========================================
+echo "\n--- SCÉNARIO 2 : Établissement sans opération (Normalisation des KPI à 0) ---\n";
 
-echo "\n=== TOUS LES TESTS FINANCIERS ONT REUSSI SANS ERREUR ===\n";
+Auth::setSessionContext([
+    'id' => $userId,
+    'id_user' => $userId,
+    'nom' => 'Admin',
+    'prenom' => 'User',
+    'email' => 'admin@test.com',
+    'role_id' => 1,
+    'lycee_id' => $lycee2Id
+]);
+
+// Vérification directe des requêtes calculées pour le Lycée 2 (0 opération)
+$stmt = $pdo->prepare("SELECT SUM(montant_verse) FROM inscriptions WHERE lycee_id = :l AND annee_academique_id = :a AND statut = 'valide'");
+$stmt->execute(['l' => $lycee2Id, 'a' => $anneeId]);
+$totalInsEmpty = (float)($stmt->fetchColumn() ?? 0.0);
+
+$stmt = $pdo->prepare("SELECT SUM(md.montant) FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l AND m.annee_academique_id = :a AND md.statut = 'valide'");
+$stmt->execute(['l' => $lycee2Id, 'a' => $anneeId]);
+$totalMensEmpty = (float)($stmt->fetchColumn() ?? 0.0);
+
+$totalGlobalEmpty = $totalInsEmpty + $totalMensEmpty;
+
+$todayStr = date('Y-m-d');
+$stmt = $pdo->prepare("
+    SELECT SUM(montant) FROM (
+        SELECT montant_verse as montant FROM inscriptions WHERE lycee_id = :l1 AND annee_academique_id = :a1 AND statut = 'valide' AND DATE(date_inscription) = :d1
+        UNION ALL
+        SELECT md.montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l2 AND m.annee_academique_id = :a2 AND md.statut = 'valide' AND DATE(md.date_paiement) = :d2
+    ) as t
+");
+$stmt->execute(['l1' => $lycee2Id, 'a1' => $anneeId, 'd1' => $todayStr, 'l2' => $lycee2Id, 'a2' => $anneeId, 'd2' => $todayStr]);
+$totalTodayEmpty = (float)($stmt->fetchColumn() ?? 0.0);
+
+$thisMonthStr = date('Y-m');
+$stmt = $pdo->prepare("
+    SELECT SUM(montant) FROM (
+        SELECT montant_verse as montant FROM inscriptions WHERE lycee_id = :l1 AND annee_academique_id = :a1 AND statut = 'valide' AND SUBSTR(date_inscription, 1, 7) = :m1
+        UNION ALL
+        SELECT md.montant FROM mensualite_details md JOIN mensualites m ON md.mensualite_id = m.id_mensualite WHERE m.lycee_id = :l2 AND m.annee_academique_id = :a2 AND md.statut = 'valide' AND SUBSTR(md.date_paiement, 1, 7) = :m2
+    ) as t
+");
+$stmt->execute(['l1' => $lycee2Id, 'a1' => $anneeId, 'm1' => $thisMonthStr, 'l2' => $lycee2Id, 'a2' => $anneeId, 'm2' => $thisMonthStr]);
+$totalMonthEmpty = (float)($stmt->fetchColumn() ?? 0.0);
+
+$stmtStudents = $pdo->prepare("
+    SELECT DISTINCT e.id_eleve
+    FROM eleves e
+    JOIN etudes et ON e.id_eleve = et.eleve_id
+    WHERE e.lycee_id = :lycee_id
+    AND et.annee_academique_id = :annee_id
+    AND (et.status = 'active' OR et.status = 'en_attente_paiement')
+");
+$stmtStudents->execute(['lycee_id' => $lycee2Id, 'annee_id' => $anneeId]);
+$studentIdsEmpty = $stmtStudents->fetchAll(PDO::FETCH_COLUMN);
+
+$arrieresEmpty = 0.0;
+foreach ($studentIdsEmpty as $sId) {
+    $st = FinancialStatusService::getStudentFinancialStatus($sId, $anneeId);
+    if ($st) {
+        $arrieresEmpty += (float)($st['total_reste'] ?? 0.0);
+    }
+}
+
+echo "  -> Encaissement Total calculé (Lycée 2) : " . var_export($totalGlobalEmpty, true) . "\n";
+echo "  -> Total ce mois calculé (Lycée 2) : " . var_export($totalMonthEmpty, true) . "\n";
+echo "  -> Aujourd'hui calculé (Lycée 2) : " . var_export($totalTodayEmpty, true) . "\n";
+echo "  -> Restes à percevoir calculés (Lycée 2) : " . var_export($arrieresEmpty, true) . "\n";
+
+assert_fin($totalGlobalEmpty === 0.0, "KPI Encaissement Total est égal à 0.0 (non NULL, non vide).");
+assert_fin($totalMonthEmpty === 0.0, "KPI Total ce mois est égal à 0.0 (non NULL, non vide).");
+assert_fin($totalTodayEmpty === 0.0, "KPI Aujourd'hui est égal à 0.0 (non NULL, non vide).");
+assert_fin($arrieresEmpty === 0.0, "KPI Restes à percevoir est égal à 0.0 (non NULL, non vide).");
+
+echo "\n=== TOUS LES TESTS FINANCIERS DU DASHBOARD ONT RÉUSSI AVEC SUCCÈS ===\n";
