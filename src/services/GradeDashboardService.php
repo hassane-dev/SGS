@@ -185,11 +185,12 @@ class GradeDashboardService {
         }
 
         // B. Query active class-subject-student combinations
+        // Truth source for curriculum is classes -> classe_matieres -> matieres
         $params = [
             'lycee_id' => $lyceeId,
             'annee_id' => $anneeId
         ];
-        $whereClauses = ["c.lycee_id = :lycee_id", "et.annee_academique_id = :annee_id", "et.is_active = 1"];
+        $whereClauses = ["c.lycee_id = :lycee_id"];
 
         if ($cycleId) {
             $whereClauses[] = "c.cycle_id = :cycle_id";
@@ -224,7 +225,8 @@ class GradeDashboardService {
 
         $whereSql = implode(" AND ", $whereClauses);
 
-        // Calculate expected evaluations ($E_{att}$) per (class, subject, enrolled student, type, occurrence)
+        // Calculate expected evaluations ($E_{att}$) starting from classes -> classe_matieres -> matieres
+        // LEFT JOIN on etudes ensures configured class-subject pairs are retained even with 0 enrolled students or 0 evaluations
         $sqlExpected = "
             SELECT
                 c.id_classe,
@@ -232,10 +234,10 @@ class GradeDashboardService {
                 cm.matiere_id,
                 m.nom_matiere,
                 COUNT(DISTINCT et.eleve_id) AS student_count
-            FROM etudes et
-            JOIN classes c ON et.classe_id = c.id_classe
+            FROM classes c
             JOIN classe_matieres cm ON cm.classe_id = c.id_classe
             JOIN matieres m ON cm.matiere_id = m.id_matiere
+            LEFT JOIN etudes et ON et.classe_id = c.id_classe AND et.annee_academique_id = :annee_id AND et.is_active = 1
             WHERE {$whereSql}
             GROUP BY c.id_classe, cm.matiere_id, m.nom_matiere
         ";
@@ -356,7 +358,7 @@ class GradeDashboardService {
             FROM etudes et
             JOIN classes c ON et.classe_id = c.id_classe
             JOIN classe_matieres cm ON cm.classe_id = c.id_classe
-            WHERE {$whereSql}
+            WHERE {$whereSql} AND et.annee_academique_id = :annee_id AND et.is_active = 1
         ";
         $stmtTot = $db->prepare($sqlTotalStudents);
         $stmtTot->execute($params);
@@ -374,28 +376,36 @@ class GradeDashboardService {
             $rec = $pair['recorded'];
             $cId = $pair['classe_id'];
             $nomClasse = $pair['nom_classe'];
+            $stuCount = $pair['student_count'];
 
             if (!isset($classIncompleteStats[$cId])) {
                 $classIncompleteStats[$cId] = [
                     'classe_id' => $cId,
                     'nom_classe' => $nomClasse,
                     'expected' => 0,
-                    'recorded' => 0
+                    'recorded' => 0,
+                    'has_students' => false
                 ];
             }
             $classIncompleteStats[$cId]['expected'] += $exp;
             $classIncompleteStats[$cId]['recorded'] += $rec;
+            if ($stuCount > 0) {
+                $classIncompleteStats[$cId]['has_students'] = true;
+            }
 
-            if ($rec < $exp) {
+            // Flag as incomplete if recorded < expected OR if configured subject has 0 students enrolled and 0 recorded evaluations
+            $isIncomplete = ($rec < $exp) || ($stuCount === 0 && $rec === 0);
+
+            if ($isIncomplete) {
                 $incompleteSubjects[] = [
                     'classe_id' => $cId,
                     'nom_classe' => $nomClasse,
                     'matiere_id' => $pair['matiere_id'],
                     'nom_matiere' => $pair['nom_matiere'],
-                    'student_count' => $pair['student_count'],
+                    'student_count' => $stuCount,
                     'expected' => $exp,
                     'recorded' => $rec,
-                    'missing' => ($exp - $rec),
+                    'missing' => ($exp > $rec) ? ($exp - $rec) : 0,
                     'rate' => ($exp > 0) ? round(($rec / $exp) * 100, 1) : 0.0
                 ];
             }
@@ -403,14 +413,21 @@ class GradeDashboardService {
 
         $incompleteClasses = [];
         foreach ($classIncompleteStats as $cStat) {
-            if ($cStat['recorded'] < $cStat['expected']) {
+            $cExp = $cStat['expected'];
+            $cRec = $cStat['recorded'];
+            $hasStudents = $cStat['has_students'];
+
+            // Class is incomplete if recorded < expected OR if class is configured without active students and 0 recorded evaluations
+            $isClassIncomplete = ($cRec < $cExp) || (!$hasStudents && $cRec === 0);
+
+            if ($isClassIncomplete) {
                 $incompleteClasses[] = [
                     'classe_id' => $cStat['classe_id'],
                     'nom_classe' => $cStat['nom_classe'],
-                    'expected' => $cStat['expected'],
-                    'recorded' => $cStat['recorded'],
-                    'missing' => ($cStat['expected'] - $cStat['recorded']),
-                    'rate' => ($cStat['expected'] > 0) ? round(($cStat['recorded'] / $cStat['expected']) * 100, 1) : 0.0
+                    'expected' => $cExp,
+                    'recorded' => $cRec,
+                    'missing' => ($cExp > $cRec) ? ($cExp - $cRec) : 0,
+                    'rate' => ($cExp > 0) ? round(($cRec / $cExp) * 100, 1) : 0.0
                 ];
             }
         }
