@@ -21,70 +21,62 @@
         </div>
 
         <!-- Statistiques Financières -->
-        <div class="row">
+        <div class="row g-3 mb-4">
             <div class="col-md-6 col-xl-3">
-                <div class="card bg-grd-primary text-white">
+                <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="avtar avtar-l bg-light-primary text-primary">
-                                    <i class="ph-duotone ph-money fs-1"></i>
-                                </div>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <p class="text-muted fw-semibold mb-1 small text-uppercase"><?= _('Encaissement Total') ?></p>
+                                <h3 class="mb-0 fw-bold text-primary"><?= number_format($totalGlobal, 0, ',', ' ') ?> <small class="fs-6 fw-normal text-muted">FCFA</small></h3>
                             </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="text-white mb-1"><?= _('Encaissement Total') ?></h6>
-                                <h3 class="text-white mb-0"><?= number_format($totalGlobal, 0, ',', ' ') ?> <small>FCFA</small></h3>
+                            <div class="avtar avtar-lg bg-light-primary text-primary rounded-3">
+                                <i class="ph-duotone ph-money fs-2"></i>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-xl-3">
-                <div class="card bg-grd-success text-white">
+                <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="avtar avtar-l bg-light-success text-success">
-                                    <i class="ph-duotone ph-calendar-check fs-1"></i>
-                                </div>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <p class="text-muted fw-semibold mb-1 small text-uppercase"><?= _('Total ce mois') ?></p>
+                                <h3 class="mb-0 fw-bold text-success"><?= number_format($totalMonth, 0, ',', ' ') ?> <small class="fs-6 fw-normal text-muted">FCFA</small></h3>
                             </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="text-white mb-1"><?= _('Total ce mois') ?></h6>
-                                <h3 class="text-white mb-0"><?= number_format($totalMonth, 0, ',', ' ') ?> <small>FCFA</small></h3>
+                            <div class="avtar avtar-lg bg-light-success text-success rounded-3">
+                                <i class="ph-duotone ph-calendar-check fs-2"></i>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-xl-3">
-                <div class="card bg-grd-info text-white">
+                <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="avtar avtar-l bg-light-info text-info">
-                                    <i class="ph-duotone ph-clock fs-1"></i>
-                                </div>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <p class="text-muted fw-semibold mb-1 small text-uppercase"><?= _("Aujourd'hui") ?></p>
+                                <h3 class="mb-0 fw-bold text-info"><?= number_format($totalToday, 0, ',', ' ') ?> <small class="fs-6 fw-normal text-muted">FCFA</small></h3>
                             </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="text-white mb-1"><?= _("Aujourd'hui") ?></h6>
-                                <h3 class="text-white mb-0"><?= number_format($totalToday, 0, ',', ' ') ?> <small>FCFA</small></h3>
+                            <div class="avtar avtar-lg bg-light-info text-info rounded-3">
+                                <i class="ph-duotone ph-clock fs-2"></i>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-xl-3">
-                <div class="card bg-grd-danger text-white">
+                <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="avtar avtar-l bg-light-danger text-danger">
-                                    <i class="ph-duotone ph-hand-coins fs-1"></i>
-                                </div>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <p class="text-muted fw-semibold mb-1 small text-uppercase"><?= _('Restes à percevoir') ?></p>
+                                <h3 class="mb-0 fw-bold text-danger"><?= number_format($arrieresInscriptions, 0, ',', ' ') ?> <small class="fs-6 fw-normal text-muted">FCFA</small></h3>
                             </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="text-white mb-1"><?= _('Restes à percevoir') ?></h6>
-                                <h3 class="text-white mb-0"><?= number_format($arrieresInscriptions, 0, ',', ' ') ?> <small>FCFA</small></h3>
+                            <div class="avtar avtar-lg bg-light-danger text-danger rounded-3">
+                                <i class="ph-duotone ph-hand-coins fs-2"></i>
                             </div>
                         </div>
                     </div>
