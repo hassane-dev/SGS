@@ -115,10 +115,49 @@ try {
 }
 assert_test_hist(http_response_code() === 403, "L'accès à un bulletin d'un autre établissement via URL show() est bloqué avec HTTP 403.");
 
+// TEST 7: Neutralisation du flux legacy SalaireController
+echo "\n7. Test Neutralisation du flux legacy SalaireController\n";
+$_SESSION['user']['lycee_id'] = 1;
+$_SESSION['user']['permissions'] = ['salaire:manage', 'paie:view'];
+
+$salaireController = new SalaireController();
+
+// 7a. Test /salaires/create redirection
+$_SESSION['error_message'] = null;
+ob_start();
+$salaireController->create();
+ob_get_clean();
+assert_test_hist(!empty($_SESSION['error_message']) && strpos($_SESSION['error_message'], 'désactivée') !== false, "SalaireController::create() refuse la création et définit un message d'erreur.");
+
+// 7b. Test /salaires/store redirection & zero DB write
+$_SESSION['error_message'] = null;
+$_SERVER['REQUEST_METHOD'] = 'POST';
+$_POST = [
+    'personnel_id' => 901,
+    'montant_net' => 150000,
+    'mois' => 9,
+    'annee' => 2024,
+    'mode_paiement' => 'Espèces'
+];
+
+$beforeMvtCount = (int)$db->query("SELECT COUNT(*) FROM mouvements_tresorerie WHERE source_type = 'salaires'")->fetchColumn();
+$beforeSalCount = (int)$db->query("SELECT COUNT(*) FROM salaires")->fetchColumn();
+
+ob_start();
+$salaireController->store();
+ob_get_clean();
+
+$afterMvtCount = (int)$db->query("SELECT COUNT(*) FROM mouvements_tresorerie WHERE source_type = 'salaires'")->fetchColumn();
+$afterSalCount = (int)$db->query("SELECT COUNT(*) FROM salaires")->fetchColumn();
+
+assert_test_hist($beforeMvtCount === $afterMvtCount, "SalaireController::store() ne crée aucun mouvement de trésorerie dans mouvements_tresorerie.");
+assert_test_hist($beforeSalCount === $afterSalCount, "SalaireController::store() ne crée aucun enregistrement dans la table salaires.");
+assert_test_hist(!empty($_SESSION['error_message']) && strpos($_SESSION['error_message'], 'définitivement fermée') !== false, "SalaireController::store() renvoie un message d'interdiction explicite.");
+
 // Clean up test data
 $db->exec("DELETE FROM paie_bulletins WHERE id IN (901, 902, 903)");
 $db->exec("DELETE FROM paie_periodes WHERE id IN (901, 902)");
 $db->exec("DELETE FROM personnel_contrats_historique WHERE id IN (901, 902, 903)");
 $db->exec("DELETE FROM utilisateurs WHERE id_user IN (901, 902, 903)");
 
-echo "\n=== TOUS LES TESTS POUR PAIE SALAIRES HISTORIQUE ONT REUSSI ! ===\n";
+echo "\n=== TOUS LES TESTS POUR PAIE SALAIRES HISTORIQUE ET NEUTRALISATION LEGACY ONT REUSSI ! ===\n";
