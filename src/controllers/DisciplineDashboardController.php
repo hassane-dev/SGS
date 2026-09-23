@@ -27,6 +27,19 @@ class DisciplineDashboardController {
         // SSoT Active Academic Year
         $activeYear = AnneeAcademique::findActive();
 
+        // Permitted Cycles Scope Resolution
+        $permittedCycles = AuthorizationScopeService::getPermittedCycles($lycee_id);
+        $permittedCycleIds = array_map(function($c) {
+            return (int)($c['id_cycle'] ?? $c['id'] ?? 0);
+        }, $permittedCycles);
+
+        $selectedCycleId = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
+        if ($selectedCycleId !== null && !in_array($selectedCycleId, $permittedCycleIds, true)) {
+            $this->forbidden();
+        }
+
+        $db = Database::getInstance();
+
         if ($isTeacher && !$hasGlobalView) {
             // Strict Teacher Scope Rule
             if (!$activeYear || empty($activeYear['id'])) {
@@ -46,15 +59,31 @@ class DisciplineDashboardController {
                 $this->forbidden();
             }
 
+            // Filter assigned classes by cycle if cycle_id filter is active
+            if ($selectedCycleId !== null) {
+                $inAssigned = implode(',', array_map('intval', $assignedClassIds));
+                $stmtCycleClasses = $db->query("
+                    SELECT id_classe FROM classes
+                    WHERE id_classe IN ({$inAssigned}) AND cycle_id = {$selectedCycleId} AND lycee_id = {$lycee_id}
+                ");
+                $cycleClassIds = $stmtCycleClasses->fetchAll(PDO::FETCH_COLUMN);
+                $eligibleClassIds = array_map('intval', $cycleClassIds);
+                if (empty($eligibleClassIds)) {
+                    $eligibleClassIds = [0];
+                }
+            } else {
+                $eligibleClassIds = $assignedClassIds;
+            }
+
             // If a class filter is passed, it MUST belong to assigned classes
             if (!empty($_GET['classe_id'])) {
                 $requestedClassId = (int)$_GET['classe_id'];
-                if (!in_array($requestedClassId, $assignedClassIds, true)) {
+                if (!in_array($requestedClassId, $eligibleClassIds, true)) {
                     $this->forbidden();
                 }
                 $scopedClassIds = [$requestedClassId];
             } else {
-                $scopedClassIds = $assignedClassIds;
+                $scopedClassIds = $eligibleClassIds;
             }
         } else {
             // Global User Scope
@@ -64,16 +93,31 @@ class DisciplineDashboardController {
                 $anneeId = $activeYear ? (int)$activeYear['id'] : null;
             }
 
+            if ($selectedCycleId !== null) {
+                $stmtCycleClasses = $db->prepare("
+                    SELECT id_classe FROM classes
+                    WHERE cycle_id = :cycle_id AND lycee_id = :lycee_id
+                ");
+                $stmtCycleClasses->execute([':cycle_id' => $selectedCycleId, ':lycee_id' => $lycee_id]);
+                $cycleClassIds = array_map('intval', $stmtCycleClasses->fetchAll(PDO::FETCH_COLUMN));
+                $eligibleClassIds = !empty($cycleClassIds) ? $cycleClassIds : [0];
+            } else {
+                $eligibleClassIds = null;
+            }
+
             if (!empty($_GET['classe_id'])) {
                 $requestedClassId = (int)$_GET['classe_id'];
-                // Verify class belongs to lycee_id
+                // Verify class belongs to lycee_id and matches cycle if cycle_id filter set
                 $targetClass = Classe::findById($requestedClassId);
                 if (!$targetClass || (int)$targetClass['lycee_id'] !== (int)$lycee_id) {
                     $this->forbidden();
                 }
+                if ($eligibleClassIds !== null && !in_array($requestedClassId, $eligibleClassIds, true)) {
+                    $this->forbidden();
+                }
                 $scopedClassIds = [$requestedClassId];
             } else {
-                $scopedClassIds = null; // All classes in tenant
+                $scopedClassIds = $eligibleClassIds; // All classes in tenant (or in cycle)
             }
         }
 
@@ -194,13 +238,14 @@ class DisciplineDashboardController {
             'annulee' => (int)($sanctionsStats['annulee'] ?? 0),
         ];
 
-        // --- KPI 6: Delay Incident -> Decision de Sanction ---
+        // --- KPI 6: Delay Incident -> Decision de Sanction (Linked sanctions with valid non-negative dates) ---
         $stmtKpiDelay = $db->prepare("
             SELECT AVG(DATEDIFF(s.date_decision, i.date_incident)) AS avg_delay_days
             FROM discipline_sanctions s
             JOIN discipline_incidents i ON i.id = s.incident_id
             WHERE s.lycee_id = :lycee_id
               AND s.incident_id IS NOT NULL
+              AND s.date_decision >= i.date_incident
               {$classFilterSanc}
         ");
         $stmtKpiDelay->execute($paramsSanc);
@@ -272,7 +317,11 @@ class DisciplineDashboardController {
         $stmtTopClasses = $db->prepare("
             SELECT
                 c.id_classe,
-                TRIM(CONCAT(COALESCE(c.niveau, ''), ' ', COALESCE(c.serie, ''), ' ', COALESCE(c.numero, ''))) AS nom_classe,
+                TRIM(CONCAT(
+                    COALESCE(c.niveau, ''),
+                    CASE WHEN c.serie IS NOT NULL AND c.serie != '' THEN CONCAT(' ', c.serie) ELSE '' END,
+                    CASE WHEN c.numero IS NOT NULL AND c.numero != '' THEN CONCAT(' ', c.numero) ELSE '' END
+                )) AS nom_classe,
                 COUNT(DISTINCT i.id) AS total_incidents
             FROM discipline_incident_eleves ie
             JOIN discipline_incidents i ON i.id = ie.incident_id
@@ -317,25 +366,39 @@ class DisciplineDashboardController {
 
         // Available Classes for filter
         $availableClasses = [];
+        $cycleClassClause = ($selectedCycleId !== null) ? " AND cycle_id = {$selectedCycleId} " : "";
+
         if ($isTeacher && !$hasGlobalView) {
             if (!empty($assignedClassIds)) {
                 $inClauseAssigned = implode(',', array_map('intval', $assignedClassIds));
                 $stmtClasses = $db->query("
-                    SELECT id_classe, TRIM(CONCAT(COALESCE(niveau, ''), ' ', COALESCE(serie, ''), ' ', COALESCE(numero, ''))) AS nom_classe
+                    SELECT id_classe, TRIM(CONCAT(
+                        COALESCE(niveau, ''),
+                        CASE WHEN serie IS NOT NULL AND serie != '' THEN CONCAT(' ', serie) ELSE '' END,
+                        CASE WHEN numero IS NOT NULL AND numero != '' THEN CONCAT(' ', numero) ELSE '' END
+                    )) AS nom_classe
                     FROM classes
-                    WHERE id_classe IN ({$inClauseAssigned}) AND lycee_id = {$lycee_id}
+                    WHERE id_classe IN ({$inClauseAssigned}) AND lycee_id = {$lycee_id} {$cycleClassClause}
                     ORDER BY niveau, serie, numero
                 ");
                 $availableClasses = $stmtClasses->fetchAll(PDO::FETCH_ASSOC);
             }
         } else {
             $stmtClasses = $db->prepare("
-                SELECT id_classe, TRIM(CONCAT(COALESCE(niveau, ''), ' ', COALESCE(serie, ''), ' ', COALESCE(numero, ''))) AS nom_classe
+                SELECT id_classe, TRIM(CONCAT(
+                    COALESCE(niveau, ''),
+                    CASE WHEN serie IS NOT NULL AND serie != '' THEN CONCAT(' ', serie) ELSE '' END,
+                    CASE WHEN numero IS NOT NULL AND numero != '' THEN CONCAT(' ', numero) ELSE '' END
+                )) AS nom_classe
                 FROM classes
-                WHERE lycee_id = :lycee_id
+                WHERE lycee_id = :lycee_id " . ($selectedCycleId !== null ? " AND cycle_id = :cycle_id " : "") . "
                 ORDER BY niveau, serie, numero
             ");
-            $stmtClasses->execute([':lycee_id' => $lycee_id]);
+            $paramsAvailableClasses = [':lycee_id' => $lycee_id];
+            if ($selectedCycleId !== null) {
+                $paramsAvailableClasses[':cycle_id'] = $selectedCycleId;
+            }
+            $stmtClasses->execute($paramsAvailableClasses);
             $availableClasses = $stmtClasses->fetchAll(PDO::FETCH_ASSOC);
         }
 
@@ -353,8 +416,10 @@ class DisciplineDashboardController {
             'topClasses' => $topClasses,
             'topTypes' => $topTypes,
             'academicYears' => $academicYears,
+            'permittedCycles' => $permittedCycles,
             'availableClasses' => $availableClasses,
             'selectedAnneeId' => $anneeId,
+            'selectedCycleId' => $selectedCycleId,
             'selectedClasseId' => $_GET['classe_id'] ?? null,
             'dateDebut' => $dateDebut,
             'dateFin' => $dateFin,
@@ -365,7 +430,9 @@ class DisciplineDashboardController {
     }
 
     private function forbidden() {
-        http_response_code(403);
+        if (!headers_sent()) {
+            http_response_code(403);
+        }
         View::render('errors/403');
         exit();
     }

@@ -50,7 +50,7 @@ $sanctStatutLabels = [
             <div class="card-body p-3">
                 <form method="GET" action="/discipline/dashboard" class="row g-2 align-items-end">
                     <?php if (!$isTeacher): ?>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label text-muted fs-7 mb-1">Année Académique</label>
                             <select name="annee_academique_id" class="form-select form-select-sm">
                                 <?php foreach ($academicYears as $y): ?>
@@ -62,10 +62,23 @@ $sanctStatutLabels = [
                         </div>
                     <?php endif; ?>
 
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <label class="form-label text-muted fs-7 mb-1">Cycle</label>
+                        <select name="cycle_id" class="form-select form-select-sm">
+                            <option value="">Tous les cycles</option>
+                            <?php foreach ($permittedCycles as $cy): ?>
+                                <?php $cyId = (int)($cy['id_cycle'] ?? $cy['id'] ?? 0); ?>
+                                <option value="<?= $cyId ?>" <?= ((int)($selectedCycleId ?? 0) === $cyId) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($cy['nom_cycle'] ?? '') ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
                         <label class="form-label text-muted fs-7 mb-1">Classe</label>
                         <select name="classe_id" class="form-select form-select-sm">
-                            <option value="">Toutes les classes</option>
+                            <option value=""><?= $isTeacher ? 'Toutes mes classes' : 'Toutes les classes' ?></option>
                             <?php foreach ($availableClasses as $c): ?>
                                 <option value="<?= $c['id_classe'] ?>" <?= ((int)$selectedClasseId === (int)$c['id_classe']) ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($c['nom_classe']) ?>
@@ -175,7 +188,7 @@ $sanctStatutLabels = [
                                 <h3 class="mb-0 text-success fw-bold"><?= number_format($totalSanctions) ?></h3>
                                 <small class="text-muted fs-8">
                                     <?php if ($avgDelayDays !== null): ?>
-                                        Délai moy: <strong><?= $avgDelayDays ?> j</strong>
+                                        Délai moy. (sanctions liées) : <strong><?= $avgDelayDays ?> j</strong>
                                     <?php else: ?>
                                         Prononcées / En cours
                                     <?php endif; ?>
