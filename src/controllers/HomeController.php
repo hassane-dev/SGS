@@ -78,14 +78,32 @@ class HomeController {
             if ($activeYear) {
                 $db = Database::getInstance();
 
-                // Student counts
-                $stmt = $db->prepare("SELECT COUNT(*) FROM eleves WHERE lycee_id = :lycee_id AND statut = 'actif'");
-                $stmt->execute(['lycee_id' => $lycee_id]);
-                $stats['total_eleves'] = $stmt->fetchColumn();
+                // Student counts (Active students in active academic year)
+                $stmt = $db->prepare("
+                    SELECT COUNT(DISTINCT e.id_eleve)
+                    FROM eleves e
+                    JOIN etudes et ON e.id_eleve = et.eleve_id
+                    JOIN classes c ON et.classe_id = c.id_classe
+                    WHERE e.lycee_id = :lycee_id
+                      AND et.annee_academique_id = :annee_id
+                      AND et.is_active = 1
+                      AND et.status = 'active'
+                      AND e.statut = 'actif'
+                ");
+                $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
+                $stats['total_eleves'] = (int)$stmt->fetchColumn();
 
-                $stmt = $db->prepare("SELECT COUNT(*) FROM eleves WHERE lycee_id = :lycee_id AND statut = 'en_attente_paiement'");
-                $stmt->execute(['lycee_id' => $lycee_id]);
-                $stats['en_attente_paiement'] = $stmt->fetchColumn();
+                $stmt = $db->prepare("
+                    SELECT COUNT(DISTINCT e.id_eleve)
+                    FROM eleves e
+                    JOIN etudes et ON e.id_eleve = et.eleve_id
+                    JOIN classes c ON et.classe_id = c.id_classe
+                    WHERE e.lycee_id = :lycee_id
+                      AND et.annee_academique_id = :annee_id
+                      AND (et.status = 'en_attente_paiement' OR e.statut = 'en_attente_paiement')
+                ");
+                $stmt->execute(['lycee_id' => $lycee_id, 'annee_id' => $activeYear['id']]);
+                $stats['en_attente_paiement'] = (int)$stmt->fetchColumn();
 
                 // Staff counts
                 $stmt = $db->prepare("SELECT COUNT(*) FROM utilisateurs WHERE lycee_id = :lycee_id AND actif = 1");

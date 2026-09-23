@@ -177,9 +177,23 @@ class ReportingController {
             // Aggregated metrics
             $totalStudents = 0;
             $db = Database::getInstance();
-            $stmt = $db->prepare("SELECT COUNT(*) FROM etudes WHERE lycee_id = :l AND status = 'active'");
-            $stmt->execute(['l' => $lycId]);
-            $totalStudents = (int)$stmt->fetchColumn();
+            $activeYear = AnneeAcademique::findActive();
+            $anneeId = $activeYear ? $activeYear['id'] : null;
+
+            if ($anneeId) {
+                $stmt = $db->prepare("
+                    SELECT COUNT(DISTINCT et.eleve_id)
+                    FROM etudes et
+                    JOIN eleves e ON e.id_eleve = et.eleve_id
+                    WHERE et.lycee_id = :l
+                      AND et.annee_academique_id = :annee_id
+                      AND et.is_active = 1
+                      AND et.status = 'active'
+                      AND e.statut = 'actif'
+                ");
+                $stmt->execute(['l' => $lycId, 'annee_id' => $anneeId]);
+                $totalStudents = (int)$stmt->fetchColumn();
+            }
 
             $liq = KpiService::computeKpi('liquidites_totales', $lycId, $filters);
             $recettes = KpiService::computeKpi('recettes_scolaires', $lycId, $filters);

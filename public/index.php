@@ -186,6 +186,8 @@ $router->register('/profile/update-photo', 'UserController', 'updatePhoto');
 
 // Eleves CRUD
 $router->register('/eleves', 'EleveController', 'index');
+$router->register('/eleves/dashboard', 'EleveDashboardController', 'index');
+$router->register('/eleves/dashboard/data', 'EleveDashboardController', 'data');
 $router->register('/eleves/create', 'EleveController', 'create');
 $router->register('/eleves/store', 'EleveController', 'store');
 $router->register('/eleves/edit', 'EleveController', 'edit');
