@@ -267,6 +267,10 @@ $router->register('/budgets/report/{id}', 'BudgetController', 'report');
 $router->register('/budgets/report', 'BudgetController', 'reportGlobal');
 $router->register('/budgets/engagements', 'BudgetController', 'engagements');
 
+// Hub Caisse / Trésorerie (Phase 3)
+$router->register('/treasury/dashboard', 'TreasuryDashboardController', 'index');
+$router->register('/treasury/dashboard/data', 'TreasuryDashboardController', 'data');
+
 // Gestion de la Trésorerie (Phase 2.1 & 2.2)
 $router->register('/treasury/sessions', 'SessionCaisseController', 'index');
 $router->register('/treasury/sessions/open', 'SessionCaisseController', 'open');
