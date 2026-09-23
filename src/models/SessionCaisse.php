@@ -22,11 +22,24 @@ class SessionCaisse {
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
-    public static function findActiveByUser($userId, $lyceeId) {
+    public static function findOpenByCompte($compteId) {
         $db = Database::getInstance();
         $stmt = $db->prepare("
             SELECT * FROM sessions_caisse
-            WHERE user_id = :user_id AND lycee_id = :lycee_id AND statut = 'ouverte'
+            WHERE compte_id = :compte_id AND statut = 'ouverte'
+            LIMIT 1
+        ");
+        $stmt->execute(['compte_id' => $compteId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    public static function findActiveByUser($userId, $lyceeId) {
+        $db = Database::getInstance();
+        $stmt = $db->prepare("
+            SELECT s.*, c.nom_compte
+            FROM sessions_caisse s
+            JOIN comptes_financiers c ON s.compte_id = c.id
+            WHERE s.user_id = :user_id AND s.lycee_id = :lycee_id AND s.statut = 'ouverte'
             LIMIT 1
         ");
         $stmt->execute(['user_id' => $userId, 'lycee_id' => $lyceeId]);
@@ -86,6 +99,10 @@ class SessionCaisse {
         $session = self::findById($id);
         if (!$session) {
             throw new Exception("Session de caisse introuvable.");
+        }
+
+        if ($session['statut'] !== 'ouverte') {
+            throw new Exception("Seule une session de caisse ouverte peut être clôturée.");
         }
 
         if ($montant_remis === null) {

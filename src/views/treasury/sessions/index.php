@@ -55,12 +55,12 @@
                 <div class="card-body">
                     <div class="row align-items-center">
                         <div class="col-md-8">
-                            <h6 class="text-muted mb-1"><?= _("Caisse de report") ?> : <strong class="text-dark"><?= htmlspecialchars($activeSession['compte_id']) ?></strong></h6>
+                            <h6 class="text-muted mb-1"><?= _("Caisse de report") ?> : <strong class="text-dark"><?= htmlspecialchars($activeSession['nom_compte'] ?? $activeSession['compte_id']) ?></strong></h6>
                             <p class="mb-0 text-muted"><?= _("Date d'ouverture") ?> : <strong><?= htmlspecialchars($activeSession['date_ouverture']) ?></strong></p>
                         </div>
                         <div class="col-md-4 text-md-end mt-3 mt-md-0">
                             <a href="/treasury/sessions/show/<?= $activeSession['id'] ?>" class="btn btn-light-primary btn-sm d-inline-flex align-items-center">
-                                <i class="ph-duotone ph-eye me-1"></i><?= _("Consulter & Fermer") ?>
+                                <i class="ph-duotone ph-eye me-1"></i><?= Auth::can('edit', 'sessions_caisse') ? _("Consulter & Fermer") : _("Consulter la session") ?>
                             </a>
                         </div>
                     </div>
