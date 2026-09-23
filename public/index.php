@@ -457,6 +457,8 @@ $router->register('/emploi-du-temps/print', 'EmploiDuTempsController', 'print');
 $router->register('/emploi-du-temps/destroy', 'EmploiDuTempsController', 'destroy');
 
 // Presence
+$router->register('/presences/dashboard', 'PresenceDashboardController', 'index');
+$router->register('/presences/dashboard/data', 'PresenceDashboardController', 'data');
 $router->register('/presences/gerer/{classe_id}', 'PresenceController', 'gerer');
 $router->register('/presences/store', 'PresenceController', 'store');
 
