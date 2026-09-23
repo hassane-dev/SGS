@@ -55,8 +55,8 @@ class HomeController {
             $navLinks[] = ['url' => '/contrats', 'text' => _('Gérer les Contrats')];
         }
 
-        if (Auth::can('manage', 'salaire')) {
-            $navLinks[] = ['url' => '/salaires', 'text' => _('Gérer les Salaires')];
+        if (Auth::can('view', 'paie')) {
+            $navLinks[] = ['url' => '/paie/bulletins', 'text' => _('Gérer la Paie')];
         }
 
         $teacherSubjects = [];
