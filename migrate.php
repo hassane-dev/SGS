@@ -1016,6 +1016,9 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_27_create_discipline_conseil_tables.php';
     migrate_27($db);
 
+    require_once __DIR__ . '/db/migrations/20240115_28_fix_presences_integrity_and_security.php';
+    migrate_28($db);
+
     // Provision DRH role if not present
     $stmt_drh_role = $db->query("SELECT id_role FROM roles WHERE nom_role = 'drh'");
     if (!$stmt_drh_role->fetch()) {
