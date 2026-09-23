@@ -16,8 +16,14 @@ $navItems = [
         'text' => _('Scolarité'),
         'icon' => 'ph-duotone ph-student',
         'is_dropdown' => true,
-        'condition' => Auth::can('view_all', 'eleve') || Auth::can('manage', 'inscription') || Auth::can('view', 'class') || Auth::can('manage', 'series') || Auth::can('view', 'matiere') || Auth::can('view_incidents', 'discipline'),
+        'condition' => Auth::can('view_all', 'eleve') || Auth::can('view_stats', 'eleve') || Auth::can('manage', 'inscription') || Auth::can('view', 'class') || Auth::can('manage', 'series') || Auth::can('view', 'matiere') || Auth::can('view_incidents', 'discipline'),
         'submenu' => [
+            [
+                'url' => '/eleves/dashboard',
+                'text' => _('Dashboard Effectifs'),
+                'title' => _('Tableau de bord des effectifs, démographie et inscriptions.'),
+                'condition' => Auth::can('view_all', 'eleve') || Auth::can('view_stats', 'eleve'),
+            ],
             [
                 'url' => '/eleves',
                 'text' => _('Élèves'),
