@@ -9,11 +9,29 @@ class Presence {
      */
     public static function save($data) {
         $db = Database::getInstance();
-        $stmt = $db->prepare("
-            INSERT INTO presences (eleve_id, classe_id, matiere_id, enseignant_id, annee_academique_id, lycee_id, date_presence, statut, commentaire)
-            VALUES (:eleve_id, :classe_id, :matiere_id, :enseignant_id, :annee_academique_id, :lycee_id, :date_presence, :statut, :commentaire)
-            ON DUPLICATE KEY UPDATE statut = VALUES(statut), commentaire = VALUES(commentaire)
-        ");
+        $isSqlite = ($db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite');
+
+        if ($isSqlite) {
+            $sql = "
+                INSERT INTO presences (eleve_id, classe_id, matiere_id, enseignant_id, annee_academique_id, lycee_id, date_presence, statut, commentaire)
+                VALUES (:eleve_id, :classe_id, :matiere_id, :enseignant_id, :annee_academique_id, :lycee_id, :date_presence, :statut, :commentaire)
+                ON CONFLICT(eleve_id, classe_id, date_presence, matiere_key, annee_academique_id) DO UPDATE SET
+                    statut = excluded.statut,
+                    commentaire = excluded.commentaire,
+                    enseignant_id = excluded.enseignant_id
+            ";
+        } else {
+            $sql = "
+                INSERT INTO presences (eleve_id, classe_id, matiere_id, enseignant_id, annee_academique_id, lycee_id, date_presence, statut, commentaire)
+                VALUES (:eleve_id, :classe_id, :matiere_id, :enseignant_id, :annee_academique_id, :lycee_id, :date_presence, :statut, :commentaire)
+                ON DUPLICATE KEY UPDATE
+                    statut = VALUES(statut),
+                    commentaire = VALUES(commentaire),
+                    enseignant_id = VALUES(enseignant_id)
+            ";
+        }
+
+        $stmt = $db->prepare($sql);
 
         return $stmt->execute([
             'eleve_id' => $data['eleve_id'],
@@ -31,7 +49,7 @@ class Presence {
     /**
      * Récupère les présences d'une classe pour une date donnée.
      */
-    public static function findByClassAndDate($classeId, $date, $matiereId = null) {
+    public static function findByClassAndDate($classeId, $date, $matiereId = null, $anneeId = null, $lyceeId = null) {
         $db = Database::getInstance();
         $sql = "SELECT p.*, e.nom, e.prenom
                 FROM presences p
@@ -40,9 +58,21 @@ class Presence {
 
         $params = ['classe_id' => $classeId, 'date_presence' => $date];
 
-        if ($matiereId) {
+        if ($matiereId !== null) {
             $sql .= " AND p.matiere_id = :matiere_id";
             $params['matiere_id'] = $matiereId;
+        } else {
+            $sql .= " AND p.matiere_id IS NULL";
+        }
+
+        if ($anneeId) {
+            $sql .= " AND p.annee_academique_id = :annee_id";
+            $params['annee_id'] = $anneeId;
+        }
+
+        if ($lyceeId) {
+            $sql .= " AND p.lycee_id = :lycee_id";
+            $params['lycee_id'] = $lyceeId;
         }
 
         $stmt = $db->prepare($sql);

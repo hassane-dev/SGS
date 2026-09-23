@@ -260,6 +260,30 @@ class Eleve {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Extrai la liste officielle des élèves actifs inscrits dans une classe pour une année académique donnée et un lycée.
+     * SSoT Phase 6 / Suivi d'Inscriptions.
+     */
+    public static function findActiveRosterForClass($classe_id, $annee_id, $lycee_id) {
+        $db = Database::getInstance();
+        $sql = "SELECT e.*, e.identifiant_public AS matricule
+                FROM eleves e
+                JOIN etudes et ON e.id_eleve = et.eleve_id
+                WHERE et.classe_id = :classe_id
+                  AND et.annee_academique_id = :annee_id
+                  AND e.lycee_id = :lycee_id
+                  AND (et.is_active = 1 OR et.status = 'active')
+                  AND e.statut = 'actif'
+                ORDER BY e.nom, e.prenom ASC";
+        $stmt = $db->prepare($sql);
+        $stmt->execute([
+            'classe_id' => $classe_id,
+            'annee_id' => $annee_id,
+            'lycee_id' => $lycee_id
+        ]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public static function findByStatus($status, $lycee_id = null) {
         $db = Database::getInstance();
         $sql = "SELECT *, identifiant_public AS matricule FROM eleves WHERE statut = :statut";
