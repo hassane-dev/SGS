@@ -121,23 +121,44 @@ class TreasuryService {
             throw new Exception("Ce compte financier est suspendu.");
         }
 
-        // 6. Récupération de la session de caisse si applicable
+        // 6. Récupération et validation de la session de caisse si applicable
         $sessionCaisseId = $data['session_caisse_id'] ?? null;
         $modeClean = str_replace(['é', 'è', 'ê', 'ë'], 'e', mb_strtolower(trim($modePaiement), 'UTF-8'));
         $isEspeces = in_array($modeClean, ['especes']);
+        $isTechnicalClosureMvt = in_array($evenementType, ['correction', 'remise_coffre_sortie', 'remise_coffre_entree']);
+
+        // Cas A : $sessionCaisseId est explicitement fourni
+        if ($sessionCaisseId) {
+            $sessionObj = SessionCaisse::findById($sessionCaisseId);
+            if (!$sessionObj) {
+                throw new Exception("Session de caisse introuvable.");
+            }
+            if ($sessionObj['lycee_id'] != $lyceeId) {
+                throw new Exception("Violation de sécurité : la session de caisse n'appartient pas à votre établissement.");
+            }
+
+            // Pour un mouvement opérationnel, la session doit être strictement 'ouverte'
+            if (!$isTechnicalClosureMvt && $sessionObj['statut'] !== 'ouverte') {
+                throw new Exception("Cette session de caisse n'est plus ouverte. Impossible d'enregistrer de nouveau mouvement.");
+            }
+        }
+
+        // Cas B : Aucune session fournie pour un mouvement en espèces sur un compte de type caisse
         if (!$sessionCaisseId && $compte['type_compte'] === 'caisse' && $isEspeces) {
-            $activeSession = SessionCaisse::findActiveByCompte($compteId);
-            // S'il n'y a pas de session active en mode interactif, on n'impose pas le blocage en migration historique
-            if (!$activeSession && empty($data['is_historical_migration'])) {
-                // Créer automatiquement une session par défaut pour l'utilisateur en cours
-                $sessionCaisseId = SessionCaisse::ouvrir([
-                    'lycee_id' => $lyceeId,
-                    'user_id' => $data['user_id'],
-                    'compte_id' => $compteId,
-                    'solde_ouverture' => (float)$compte['solde_courant']
-                ]);
-            } elseif ($activeSession) {
-                $sessionCaisseId = $activeSession['id'];
+            // Chercher d'abord la session ouverte de l'utilisateur actif ou sur le compte
+            $activeUserSession = SessionCaisse::findActiveByUser($data['user_id'] ?? Auth::getUserId(), $lyceeId);
+            if ($activeUserSession && (int)$activeUserSession['compte_id'] === (int)$compteId) {
+                $sessionCaisseId = $activeUserSession['id'];
+            } else {
+                $openCompteSession = SessionCaisse::findOpenByCompte($compteId);
+                if ($openCompteSession) {
+                    $sessionCaisseId = $openCompteSession['id'];
+                }
+            }
+
+            // Si aucune session strictement 'ouverte' n'est trouvée et qu'il ne s'agit pas d'une migration historique
+            if (!$sessionCaisseId && empty($data['is_historical_migration'])) {
+                throw new Exception("Veuillez ouvrir votre session de caisse journalière avant d'encaisser un paiement en espèces.");
             }
         }
 
