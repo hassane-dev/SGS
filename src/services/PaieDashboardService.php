@@ -54,10 +54,14 @@ class PaieDashboardService {
             WHERE u.lycee_id = :lycee_id
               AND u.actif = 1
               AND c.statut_contrat = 'actif'
-              AND c.date_debut <= :today
-              AND (c.date_fin IS NULL OR c.date_fin >= :today)
+              AND c.date_debut <= :today_start
+              AND (c.date_fin IS NULL OR c.date_fin >= :today_end)
         ");
-        $stmtRh->execute(['lycee_id' => $lyceeId, 'today' => $today]);
+        $stmtRh->execute([
+            'lycee_id' => $lyceeId,
+            'today_start' => $today,
+            'today_end' => $today
+        ]);
         $effectifRhActif = (int)$stmtRh->fetchColumn();
 
         // Detailed role breakdown of active HR workforce
@@ -69,11 +73,15 @@ class PaieDashboardService {
             WHERE u.lycee_id = :lycee_id
               AND u.actif = 1
               AND c.statut_contrat = 'actif'
-              AND c.date_debut <= :today
-              AND (c.date_fin IS NULL OR c.date_fin >= :today)
+              AND c.date_debut <= :today_start
+              AND (c.date_fin IS NULL OR c.date_fin >= :today_end)
             GROUP BY r.nom_role
         ");
-        $stmtRhRoles->execute(['lycee_id' => $lyceeId, 'today' => $today]);
+        $stmtRhRoles->execute([
+            'lycee_id' => $lyceeId,
+            'today_start' => $today,
+            'today_end' => $today
+        ]);
         $effectifByRole = $stmtRhRoles->fetchAll(PDO::FETCH_KEY_PAIR);
 
         // 3. Salariés Éligibles à la Paie pour la période
