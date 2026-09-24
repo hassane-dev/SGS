@@ -14,6 +14,7 @@ require_once __DIR__ . '/../models/PaieReglement.php';
 require_once __DIR__ . '/../models/PaieRegularisation.php';
 require_once __DIR__ . '/../models/PaieRegularisationLigne.php';
 require_once __DIR__ . '/../models/PaieAuditLog.php';
+require_once __DIR__ . '/PersonnelContractService.php';
 require_once __DIR__ . '/PaieCalculationEngine.php';
 require_once __DIR__ . '/PaieAccountingAdapter.php';
 require_once __DIR__ . '/PaieTreasuryAdapter.php';
