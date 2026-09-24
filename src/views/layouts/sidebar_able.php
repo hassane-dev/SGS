@@ -217,6 +217,12 @@ $navItems = [
                 'condition' => Auth::can('view', 'paiement'),
             ],
             [
+                'url' => '/treasury/dashboard',
+                'text' => _('Caisse & Trésorerie'),
+                'title' => _('Hub Caisse & Trésorerie et suivi opérationnel.'),
+                'condition' => Auth::can('view', 'sessions_caisse') || Auth::can('create', 'sessions_caisse') || Auth::can('edit', 'sessions_caisse') || Auth::can('validate', 'sessions_caisse') || Auth::can('view', 'comptes_financiers') || Auth::can('view', 'mouvements_tresorerie') || Auth::can('view', 'paiement') || Auth::can('manage', 'paiement') || Auth::can('view', 'depense') || Auth::can('pay', 'depense') || Auth::can('view_reports', 'finance') || Auth::can('view_control', 'finance'),
+            ],
+            [
                 'url' => '/treasury/sessions',
                 'text' => _('Sessions de caisse'),
                 'title' => _('Gérer les sessions de caisse journalières.'),
