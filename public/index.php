@@ -566,7 +566,9 @@ $router->register('/affectations-pedagogiques/replace', 'AffectationPedagogiqueC
 
 // DRH - Direction des Ressources Humaines
 $router->register('/drh', 'PersonnelController', 'index');
-$router->register('/drh/dashboard', 'PersonnelController', 'dashboard');
+$router->register('/drh/dashboard', 'PaieDashboardController', 'index');
+$router->register('/drh/dashboard/data', 'PaieDashboardController', 'data');
+$router->register('/paie/dashboard', 'PaieDashboardController', 'index');
 $router->register('/drh/show', 'PersonnelController', 'show');
 $router->register('/drh/create', 'PersonnelController', 'create');
 $router->register('/drh/store', 'PersonnelController', 'store');

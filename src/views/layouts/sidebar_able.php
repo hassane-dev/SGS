@@ -132,9 +132,9 @@ $navItems = [
         'submenu' => [
             [
                 'url' => '/drh/dashboard',
-                'text' => _('Cockpit DRH'),
-                'title' => _('Affiche le tableau de bord des ressources humaines.'),
-                'condition' => Auth::can('view_all', 'drh'),
+                'text' => _('Hub RH & Paie'),
+                'title' => _('Tableau de bord principal et hub opérationnel RH et Paie.'),
+                'condition' => Auth::can('view_all', 'drh') || Auth::can('view_one', 'drh') || Auth::can('view', 'paie'),
             ],
             [
                 'url' => '/drh',
@@ -156,6 +156,12 @@ $navItems = [
         'is_dropdown' => true,
         'condition' => Auth::can('view', 'paie'),
         'submenu' => [
+            [
+                'url' => '/drh/dashboard',
+                'text' => _('Hub RH & Paie'),
+                'title' => _('Tableau de bord principal et hub opérationnel RH et Paie.'),
+                'condition' => Auth::can('view', 'paie'),
+            ],
             [
                 'url' => '/paie/periodes',
                 'text' => _('Périodes de paie'),
