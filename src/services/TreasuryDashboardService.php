@@ -516,5 +516,67 @@ class TreasuryDashboardService {
             'actions_hub' => $actionsHub
         ];
     }
+
+    /**
+     * Lightweight summary KPIs method for Global Dashboard.
+     */
+    public static function getSummaryKpis(int $lyceeId, ?int $anneeId = null): array {
+        $db = Database::getInstance();
+        $todayStr = date('Y-m-d');
+
+        // Cash Balance
+        $stmtSolde = $db->prepare("
+            SELECT SUM(solde_courant)
+            FROM comptes_financiers
+            WHERE lycee_id = :lycee_id AND type_compte = 'caisse' AND est_coffre = 0 AND statut = 'actif'
+        ");
+        $stmtSolde->execute(['lycee_id' => $lyceeId]);
+        $soldeCaisses = (float)($stmtSolde->fetchColumn() ?? 0.00);
+
+        // Vault Balance
+        $stmtCoffre = $db->prepare("
+            SELECT SUM(solde_courant)
+            FROM comptes_financiers
+            WHERE lycee_id = :lycee_id AND est_coffre = 1 AND statut = 'actif'
+        ");
+        $stmtCoffre->execute(['lycee_id' => $lyceeId]);
+        $soldeCoffre = (float)($stmtCoffre->fetchColumn() ?? 0.00);
+
+        // Today Inflows & Outflows
+        $stmtInflows = $db->prepare("
+            SELECT SUM(m.montant)
+            FROM mouvements_tresorerie m
+            JOIN comptes_financiers c ON m.compte_id = c.id
+            WHERE c.lycee_id = :lycee_id
+              AND DATE(m.date_mouvement) = :today
+              AND m.evenement_type = 'encaissement'
+        ");
+        $stmtInflows->execute(['lycee_id' => $lyceeId, 'today' => $todayStr]);
+        $encaissementsJour = (float)($stmtInflows->fetchColumn() ?? 0.00);
+
+        $stmtOutflows = $db->prepare("
+            SELECT SUM(m.montant)
+            FROM mouvements_tresorerie m
+            JOIN comptes_financiers c ON m.compte_id = c.id
+            WHERE c.lycee_id = :lycee_id
+              AND DATE(m.date_mouvement) = :today
+              AND m.evenement_type = 'reglement_fournisseur'
+        ");
+        $stmtOutflows->execute(['lycee_id' => $lyceeId, 'today' => $todayStr]);
+        $decaissementsJour = (float)($stmtOutflows->fetchColumn() ?? 0.00);
+
+        // Global Recovery Rate
+        require_once __DIR__ . '/KpiService.php';
+        $tauxRecouvrement = (float)KpiService::computeKpi('taux_recouvrement', $lyceeId);
+
+        return [
+            'solde_caisses' => $soldeCaisses,
+            'solde_coffre' => $soldeCoffre,
+            'solde_total_liquidites' => $soldeCaisses + $soldeCoffre,
+            'encaissements_jour' => $encaissementsJour,
+            'decaissements_jour' => $decaissementsJour,
+            'taux_recouvrement' => $tauxRecouvrement
+        ];
+    }
 }
 ?>

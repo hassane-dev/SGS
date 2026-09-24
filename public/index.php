@@ -74,6 +74,7 @@ $router = new Router();
 
 // Register routes
 $router->register('/', 'HomeController', 'index');
+$router->register('/dashboard', 'GlobalDashboardController', 'index');
 $router->register('/login', 'AuthController', 'login');
 $router->register('/logout', 'AuthController', 'logout');
 

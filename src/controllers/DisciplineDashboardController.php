@@ -239,8 +239,10 @@ class DisciplineDashboardController {
         ];
 
         // --- KPI 6: Delay Incident -> Decision de Sanction (Linked sanctions with valid non-negative dates) ---
+        $isSqlite = ($db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite');
+        $delayExpr = $isSqlite ? "(strftime('%s', s.date_decision) - strftime('%s', i.date_incident)) / 86400" : "DATEDIFF(s.date_decision, i.date_incident)";
         $stmtKpiDelay = $db->prepare("
-            SELECT AVG(DATEDIFF(s.date_decision, i.date_incident)) AS avg_delay_days
+            SELECT AVG({$delayExpr}) AS avg_delay_days
             FROM discipline_sanctions s
             JOIN discipline_incidents i ON i.id = s.incident_id
             WHERE s.lycee_id = :lycee_id
@@ -253,25 +255,28 @@ class DisciplineDashboardController {
         $avgDelayDays = ($avgDelayRes !== null && $avgDelayRes !== false) ? round((float)$avgDelayRes, 1) : null;
 
         // --- CHART 1: Monthly Evolution of Incidents and Sanctions ---
+        $dateFormatInc = $isSqlite ? "strftime('%Y-%m', i.date_incident)" : "DATE_FORMAT(i.date_incident, '%Y-%m')";
+        $dateFormatSanc = $isSqlite ? "strftime('%Y-%m', s.date_decision)" : "DATE_FORMAT(s.date_decision, '%Y-%m')";
+
         $stmtIncMonthly = $db->prepare("
-            SELECT DATE_FORMAT(i.date_incident, '%Y-%m') AS mois, COUNT(DISTINCT i.id) AS total
+            SELECT {$dateFormatInc} AS mois, COUNT(DISTINCT i.id) AS total
             FROM discipline_incidents i
             JOIN discipline_incident_eleves ie ON ie.incident_id = i.id
             WHERE i.lycee_id = :lycee_id
               AND i.statut != 'classe_sans_suite'
               {$classFilterInc}
-            GROUP BY DATE_FORMAT(i.date_incident, '%Y-%m')
+            GROUP BY {$dateFormatInc}
             ORDER BY mois ASC
         ");
         $stmtIncMonthly->execute($paramsInc);
         $incidentsMonthly = $stmtIncMonthly->fetchAll(PDO::FETCH_KEY_PAIR);
 
         $stmtSancMonthly = $db->prepare("
-            SELECT DATE_FORMAT(s.date_decision, '%Y-%m') AS mois, COUNT(DISTINCT s.id) AS total
+            SELECT {$dateFormatSanc} AS mois, COUNT(DISTINCT s.id) AS total
             FROM discipline_sanctions s
             WHERE s.lycee_id = :lycee_id
               {$classFilterSanc}
-            GROUP BY DATE_FORMAT(s.date_decision, '%Y-%m')
+            GROUP BY {$dateFormatSanc}
             ORDER BY mois ASC
         ");
         $stmtSancMonthly->execute($paramsSanc);
