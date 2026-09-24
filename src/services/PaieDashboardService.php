@@ -355,4 +355,88 @@ class PaieDashboardService {
             'g4_contract_deadlines' => $g4ContractDeadlines
         ];
     }
+
+    /**
+     * Lightweight summary KPIs method for Global Dashboard.
+     */
+    public static function getSummaryKpis(int $lyceeId, ?int $periodeId = null): array {
+        $db = Database::getInstance();
+        $today = date('Y-m-d');
+
+        // Active HR workforce
+        $stmtRh = $db->prepare("
+            SELECT COUNT(DISTINCT u.id_user)
+            FROM utilisateurs u
+            JOIN personnel_contrats_historique c ON u.id_user = c.personnel_id
+            WHERE u.lycee_id = :lycee_id
+              AND u.actif = 1
+              AND c.statut_contrat = 'actif'
+              AND c.date_debut <= :t1
+              AND (c.date_fin IS NULL OR c.date_fin >= :t2)
+        ");
+        $stmtRh->execute(['lycee_id' => $lyceeId, 't1' => $today, 't2' => $today]);
+        $effectifRhActif = (int)$stmtRh->fetchColumn();
+
+        // Active Period
+        $selectedPeriode = null;
+        if ($periodeId > 0) {
+            $selectedPeriode = PaiePeriode::findById($periodeId);
+        }
+        if (!$selectedPeriode) {
+            $stmtP = $db->prepare("
+                SELECT * FROM paie_periodes
+                WHERE lycee_id = :lycee_id AND statut != 'cloture'
+                ORDER BY id DESC LIMIT 1
+            ");
+            $stmtP->execute(['lycee_id' => $lyceeId]);
+            $selectedPeriode = $stmtP->fetch(PDO::FETCH_ASSOC);
+        }
+        if (!$selectedPeriode) {
+            $stmtP = $db->prepare("
+                SELECT * FROM paie_periodes
+                WHERE lycee_id = :lycee_id
+                ORDER BY id DESC LIMIT 1
+            ");
+            $stmtP->execute(['lycee_id' => $lyceeId]);
+            $selectedPeriode = $stmtP->fetch(PDO::FETCH_ASSOC);
+        }
+
+        $activePeriodeId = $selectedPeriode ? (int)$selectedPeriode['id'] : 0;
+        $periodeNom = $selectedPeriode ? ($selectedPeriode['nom_periode'] ?? $selectedPeriode['libelle'] ?? 'Période') : _('Aucune période');
+
+        // Payroll amounts for active period
+        $netPayable = 0.00;
+        $totalBrut = 0.00;
+        $bulletinsCount = 0;
+        $bulletinsPaidCount = 0;
+
+        if ($activePeriodeId > 0) {
+            $stmtB = $db->prepare("
+                SELECT
+                    COUNT(id) as total_bulletins,
+                    SUM(net_a_payer) as sum_net,
+                    SUM(total_brut) as sum_brut,
+                    COUNT(CASE WHEN statut_reglement = 'regle' THEN 1 END) as paid_count
+                FROM paie_bulletins
+                WHERE periode_id = :p_id AND est_version_active = 1
+            ");
+            $stmtB->execute(['p_id' => $activePeriodeId]);
+            $row = $stmtB->fetch(PDO::FETCH_ASSOC);
+            if ($row) {
+                $bulletinsCount = (int)$row['total_bulletins'];
+                $netPayable = (float)($row['sum_net'] ?? 0.00);
+                $totalBrut = (float)($row['sum_brut'] ?? 0.00);
+                $bulletinsPaidCount = (int)$row['paid_count'];
+            }
+        }
+
+        return [
+            'effectif_rh_actif' => $effectifRhActif,
+            'active_periode_nom' => $periodeNom,
+            'net_a_payer_periode' => $netPayable,
+            'salaire_brut_periode' => $totalBrut,
+            'bulletins_count' => $bulletinsCount,
+            'bulletins_paid_count' => $bulletinsPaidCount
+        ];
+    }
 }

@@ -6,10 +6,10 @@ $navItems = [
         'is_caption' => true,
     ],
     [
-        'url' => '/',
+        'url' => '/dashboard',
         'icon' => 'ph-duotone ph-house',
         'text' => _('Tableau de Bord'),
-        'title' => _('Affiche la page d\'accueil avec les statistiques principales.'),
+        'title' => _('Cockpit global de pilotage 360° de l\'établissement.'),
         'condition' => Auth::check(),
     ],
     [

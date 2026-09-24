@@ -405,5 +405,105 @@ class EleveDashboardService {
             'charts' => $charts
         ];
     }
+
+    /**
+     * Lightweight summary KPIs method for Global Dashboard.
+     */
+    public static function getSummaryKpis(int $lyceeId, ?int $anneeId = null): array {
+        $db = Database::getInstance();
+        if (!$anneeId) {
+            $activeYear = AnneeAcademique::findActive();
+            $anneeId = $activeYear ? (int)$activeYear['id'] : null;
+        }
+        if (!$anneeId) {
+            return [
+                'total_actifs' => 0,
+                'total_classes' => 0,
+                'filles' => 0,
+                'garcons' => 0,
+                'nouvelles_inscriptions' => 0,
+                'reinscriptions' => 0
+            ];
+        }
+
+        // Current academic year details for re-enrollment comparison
+        $stmtYear = $db->prepare("SELECT * FROM annees_academiques WHERE id = :id");
+        $stmtYear->execute(['id' => $anneeId]);
+        $currentYear = $stmtYear->fetch(PDO::FETCH_ASSOC);
+
+        // Active student count
+        $stmtActifs = $db->prepare("
+            SELECT COUNT(DISTINCT e.id_eleve)
+            FROM eleves e
+            JOIN etudes et ON e.id_eleve = et.eleve_id
+            WHERE e.lycee_id = :lycee_id
+              AND et.annee_academique_id = :annee_id
+              AND et.is_active = 1
+              AND et.status = 'active'
+              AND e.statut = 'actif'
+        ");
+        $stmtActifs->execute(['lycee_id' => $lyceeId, 'annee_id' => $anneeId]);
+        $totalActifs = (int)$stmtActifs->fetchColumn();
+
+        // Gender breakdown
+        $stmtGender = $db->prepare("
+            SELECT e.sexe, COUNT(DISTINCT e.id_eleve) as count
+            FROM eleves e
+            JOIN etudes et ON e.id_eleve = et.eleve_id
+            WHERE e.lycee_id = :lycee_id
+              AND et.annee_academique_id = :annee_id
+              AND et.is_active = 1
+              AND et.status = 'active'
+              AND e.statut = 'actif'
+            GROUP BY e.sexe
+        ");
+        $stmtGender->execute(['lycee_id' => $lyceeId, 'annee_id' => $anneeId]);
+        $genderRows = $stmtGender->fetchAll(PDO::FETCH_KEY_PAIR);
+        $filles = (int)($genderRows['F'] ?? 0);
+        $garcons = (int)($genderRows['M'] ?? 0);
+
+        // Class count
+        $stmtClasses = $db->prepare("SELECT COUNT(*) FROM classes WHERE lycee_id = :lycee_id");
+        $stmtClasses->execute(['lycee_id' => $lyceeId]);
+        $totalClasses = (int)$stmtClasses->fetchColumn();
+
+        // Re-enrollments vs New
+        $reinscriptions = 0;
+        $nouvellesInscriptions = 0;
+        if ($currentYear && !empty($currentYear['date_debut'])) {
+            $stmtPrior = $db->prepare("
+                SELECT DISTINCT et_cur.eleve_id
+                FROM etudes et_cur
+                JOIN eleves e ON e.id_eleve = et_cur.eleve_id
+                JOIN etudes et_prev ON et_prev.eleve_id = et_cur.eleve_id
+                JOIN annees_academiques a_prev ON a_prev.id = et_prev.annee_academique_id
+                WHERE e.lycee_id = :lycee_id
+                  AND et_cur.annee_academique_id = :annee_id
+                  AND et_cur.is_active = 1
+                  AND et_cur.status = 'active'
+                  AND e.statut = 'actif'
+                  AND a_prev.date_debut < :cur_start
+            ");
+            $stmtPrior->execute([
+                'lycee_id' => $lyceeId,
+                'annee_id' => $anneeId,
+                'cur_start' => $currentYear['date_debut']
+            ]);
+            $priorStudentIds = $stmtPrior->fetchAll(PDO::FETCH_COLUMN);
+            $reinscriptions = count($priorStudentIds);
+            $nouvellesInscriptions = max(0, $totalActifs - $reinscriptions);
+        } else {
+            $nouvellesInscriptions = $totalActifs;
+        }
+
+        return [
+            'total_actifs' => $totalActifs,
+            'total_classes' => $totalClasses,
+            'filles' => $filles,
+            'garcons' => $garcons,
+            'nouvelles_inscriptions' => $nouvellesInscriptions,
+            'reinscriptions' => $reinscriptions
+        ];
+    }
 }
 ?>

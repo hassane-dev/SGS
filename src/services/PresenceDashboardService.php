@@ -608,5 +608,48 @@ class PresenceDashboardService {
             'alerts' => [['type' => 'info', 'title' => _('Information'), 'message' => $message]]
         ];
     }
+
+    /**
+     * Lightweight summary KPIs method for Global Dashboard.
+     */
+    public static function getSummaryKpis(int $lyceeId, ?int $anneeId = null, ?int $userId = null): array {
+        if (!$anneeId) {
+            $activeYear = AnneeAcademique::findActive();
+            $anneeId = $activeYear ? (int)$activeYear['id'] : null;
+        }
+        if (!$anneeId) {
+            return [
+                'presence_rate' => 100.0,
+                'today_absences_count' => 0,
+                'today_delays_count' => 0,
+                'unjustified_absences_count' => 0
+            ];
+        }
+
+        $today = date('Y-m-d');
+        $dateDebut = date('Y-m-d', strtotime('-30 days'));
+
+        $canViewAll = true;
+        $assignedClassIds = [];
+        if ($userId) {
+            $canViewAll = Auth::can('view_all', 'presence') || Auth::can('manage', 'presence');
+            if (!$canViewAll) {
+                $teacherAssignments = User::getTeacherAssignments($userId, $anneeId, $lyceeId);
+                $assignedClassIds = array_keys($teacherAssignments);
+            }
+        }
+
+        $macroKpis = self::getMacroKpis(
+            $lyceeId, $anneeId, null, null, null,
+            $dateDebut, $today, $canViewAll, $assignedClassIds
+        );
+
+        return [
+            'presence_rate' => (float)($macroKpis['presence_rate'] ?? 100.0),
+            'today_absences_count' => (int)($macroKpis['today_absences']['occurrences'] ?? 0),
+            'today_delays_count' => (int)($macroKpis['today_delays']['occurrences'] ?? 0),
+            'unjustified_absences_count' => (int)($macroKpis['unjustified_absences']['occurrences'] ?? 0)
+        ];
+    }
 }
 ?>

@@ -448,4 +448,26 @@ class DisciplineSearchService {
             'sanctionStatusStats' => $sanctionStatusStats
         ];
     }
+
+    /**
+     * Lightweight summary KPIs method for Global Dashboard.
+     */
+    public static function getSummaryKpis(int $lyceeId, ?int $anneeId = null, ?int $userId = null, ?string $userRole = null, bool $hasGlobalView = true): array {
+        $filters = [];
+        if ($anneeId) {
+            $filters['annee_academique_id'] = $anneeId;
+        }
+        $userId = $userId ?: Auth::getUserId();
+        $userRole = $userRole ?: Auth::get('role_name');
+
+        $analytics = self::getSearchSummaryAnalytics($filters, $userId, $userRole, $lyceeId, $hasGlobalView);
+
+        return [
+            'total_incidents' => (int)($analytics['totalIncidents'] ?? 0),
+            'eleves_impliques' => (int)($analytics['elevesImpliques'] ?? 0),
+            'eleves_responsables' => (int)($analytics['elevesResponsables'] ?? 0),
+            'eleves_recidivistes' => (int)($analytics['elevesRecidivistes'] ?? 0),
+            'total_sanctions' => (int)($analytics['totalSanctions'] ?? 0)
+        ];
+    }
 }

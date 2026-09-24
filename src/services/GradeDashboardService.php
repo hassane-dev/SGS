@@ -926,5 +926,125 @@ class GradeDashboardService {
             'alerts' => [['type' => 'warning', 'title' => 'Information', 'message' => $message]]
         ];
     }
+
+    /**
+     * Lightweight summary KPIs method for Global Dashboard.
+     */
+    public static function getSummaryKpis(int $lyceeId, ?int $anneeId = null, ?int $sequenceId = null): array {
+        $db = Database::getInstance();
+        if (!$anneeId) {
+            $activeYear = AnneeAcademique::findActive();
+            $anneeId = $activeYear ? (int)$activeYear['id'] : null;
+        }
+        if (!$anneeId) {
+            return [
+                'average_grade' => null,
+                'completion_rate' => 0.0,
+                'active_sequence_name' => _('Aucune séquence'),
+                'sequence_statut' => 'fermee',
+                'total_evaluations' => 0
+            ];
+        }
+
+        // Active sequence
+        $sequence = null;
+        if ($sequenceId) {
+            $stmtSeq = $db->prepare("SELECT * FROM sequences WHERE id = :id AND lycee_id = :lycee_id");
+            $stmtSeq->execute(['id' => $sequenceId, 'lycee_id' => $lyceeId]);
+            $sequence = $stmtSeq->fetch(PDO::FETCH_ASSOC);
+        }
+        if (!$sequence) {
+            $stmtSeqActive = $db->prepare("
+                SELECT * FROM sequences
+                WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id AND statut = 'ouverte'
+                ORDER BY id ASC LIMIT 1
+            ");
+            $stmtSeqActive->execute(['lycee_id' => $lyceeId, 'annee_id' => $anneeId]);
+            $sequence = $stmtSeqActive->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if (!$sequence) {
+            $stmtSeqLast = $db->prepare("
+                SELECT * FROM sequences
+                WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_id
+                ORDER BY id DESC LIMIT 1
+            ");
+            $stmtSeqLast->execute(['lycee_id' => $lyceeId, 'annee_id' => $anneeId]);
+            $sequence = $stmtSeqLast->fetch(PDO::FETCH_ASSOC);
+        }
+
+        $seqId = $sequence ? (int)$sequence['id'] : 0;
+        $isClosed = $sequence && $sequence['statut'] === 'fermee';
+
+        // Overall Average
+        $avgGrade = null;
+        if ($isClosed) {
+            $stmtAvg = $db->prepare("
+                SELECT AVG(moyenne_generale)
+                FROM bulletins
+                WHERE lycee_id = :lycee_id AND sequence_id = :seq_id AND moyenne_generale IS NOT NULL
+            ");
+            $stmtAvg->execute(['lycee_id' => $lyceeId, 'seq_id' => $seqId]);
+            $val = $stmtAvg->fetchColumn();
+            if ($val !== false && $val !== null) {
+                $avgGrade = round((float)$val, 2);
+            }
+        } else if ($seqId > 0) {
+            $stmtAvg = $db->prepare("
+                SELECT AVG((note / bareme_snapshot) * 20)
+                FROM evaluations
+                WHERE lycee_id = :lycee_id AND sequence_id = :seq_id AND note IS NOT NULL AND bareme_snapshot > 0
+            ");
+            $stmtAvg->execute(['lycee_id' => $lyceeId, 'seq_id' => $seqId]);
+            $val = $stmtAvg->fetchColumn();
+            if ($val !== false && $val !== null) {
+                $avgGrade = round((float)$val, 2);
+            }
+        }
+
+        // Total Recorded Evaluations
+        $totalEvals = 0;
+        if ($seqId > 0) {
+            $stmtCount = $db->prepare("
+                SELECT COUNT(id) FROM evaluations
+                WHERE lycee_id = :lycee_id AND sequence_id = :seq_id AND note IS NOT NULL
+            ");
+            $stmtCount->execute(['lycee_id' => $lyceeId, 'seq_id' => $seqId]);
+            $totalEvals = (int)$stmtCount->fetchColumn();
+        }
+
+        // Fast completion rate calculation
+        $completionRate = 0.0;
+        if ($seqId > 0) {
+            $stmtClasses = $db->prepare("
+                SELECT COUNT(DISTINCT CONCAT(c.id_classe, '_', cm.matiere_id))
+                FROM classes c
+                JOIN classe_matieres cm ON c.id_classe = cm.classe_id
+                WHERE c.lycee_id = :lycee_id
+            ");
+            $stmtClasses->execute(['lycee_id' => $lyceeId]);
+            $expectedPairs = (int)$stmtClasses->fetchColumn();
+
+            $stmtRecordedPairs = $db->prepare("
+                SELECT COUNT(DISTINCT CONCAT(classe_id, '_', matiere_id))
+                FROM evaluations
+                WHERE lycee_id = :lycee_id AND sequence_id = :seq_id AND note IS NOT NULL
+            ");
+            $stmtRecordedPairs->execute(['lycee_id' => $lyceeId, 'seq_id' => $seqId]);
+            $recordedPairs = (int)$stmtRecordedPairs->fetchColumn();
+
+            if ($expectedPairs > 0) {
+                $completionRate = min(100.0, round(($recordedPairs / $expectedPairs) * 100, 1));
+            }
+        }
+
+        return [
+            'average_grade' => $avgGrade,
+            'completion_rate' => $completionRate,
+            'active_sequence_name' => $sequence ? ($sequence['nom_sequence'] ?? "Séquence {$sequence['numero_sequence']}") : _('Aucune'),
+            'sequence_statut' => $sequence ? $sequence['statut'] : 'non_definie',
+            'total_evaluations' => $totalEvals
+        ];
+    }
 }
 ?>

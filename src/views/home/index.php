@@ -23,9 +23,16 @@
             <!-- Welcome card -->
             <div class="col-12">
                 <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title"><?= _('Bienvenue,') ?> <?= htmlspecialchars(Auth::get('prenom') ?? Auth::get('email')) ?> !</h5>
-                        <p class="card-text"><?= _('Ceci est votre tableau de bord.') ?></p>
+                    <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <h5 class="card-title mb-1"><?= _('Bienvenue,') ?> <?= htmlspecialchars(Auth::get('prenom') ?? Auth::get('email')) ?> !</h5>
+                            <p class="card-text text-muted mb-0"><?= _('Accédez au Cockpit Global 360° pour la vision synthétique de l\'établissement.') ?></p>
+                        </div>
+                        <div>
+                            <a href="/dashboard" class="btn btn-primary">
+                                <i class="ph-duotone ph-house me-1"></i><?= _("Dashboard Global 360°") ?>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
