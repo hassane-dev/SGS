@@ -41,6 +41,11 @@ class PaieDashboardService {
         $dateStart = $selectedPeriode['date_debut'] ?? date('Y-m-01');
         $dateEnd = $selectedPeriode['date_fin'] ?? date('Y-m-t');
 
+        // Reference dates for portable SQL calculations across MySQL/MariaDB and SQLite
+        $today = date('Y-m-d');
+        $in30d = date('Y-m-d', strtotime('+30 days'));
+        $in60d = date('Y-m-d', strtotime('+60 days'));
+
         // 2. Effectif RH Actif (Distinct physical persons with active date-effective contract)
         $stmtRh = $db->prepare("
             SELECT COUNT(DISTINCT u.id_user)
@@ -49,10 +54,10 @@ class PaieDashboardService {
             WHERE u.lycee_id = :lycee_id
               AND u.actif = 1
               AND c.statut_contrat = 'actif'
-              AND c.date_debut <= CURDATE()
-              AND (c.date_fin IS NULL OR c.date_fin >= CURDATE())
+              AND c.date_debut <= :today
+              AND (c.date_fin IS NULL OR c.date_fin >= :today)
         ");
-        $stmtRh->execute(['lycee_id' => $lyceeId]);
+        $stmtRh->execute(['lycee_id' => $lyceeId, 'today' => $today]);
         $effectifRhActif = (int)$stmtRh->fetchColumn();
 
         // Detailed role breakdown of active HR workforce
@@ -64,11 +69,11 @@ class PaieDashboardService {
             WHERE u.lycee_id = :lycee_id
               AND u.actif = 1
               AND c.statut_contrat = 'actif'
-              AND c.date_debut <= CURDATE()
-              AND (c.date_fin IS NULL OR c.date_fin >= CURDATE())
+              AND c.date_debut <= :today
+              AND (c.date_fin IS NULL OR c.date_fin >= :today)
             GROUP BY r.nom_role
         ");
-        $stmtRhRoles->execute(['lycee_id' => $lyceeId]);
+        $stmtRhRoles->execute(['lycee_id' => $lyceeId, 'today' => $today]);
         $effectifByRole = $stmtRhRoles->fetchAll(PDO::FETCH_KEY_PAIR);
 
         // 3. Salariés Éligibles à la Paie pour la période
@@ -170,7 +175,7 @@ class PaieDashboardService {
         // 5. G1: Historical 6-Month Financial Trend
         $stmtG1 = $db->prepare("
             SELECT
-                p.id as periode_id, p.code_periode, p.mois, p.annee, p.statut,
+                p.id as periode_id, p.code_periode, p.mois, p.annee, p.statut, p.date_debut,
                 COALESCE(SUM(b.total_brut), 0) as total_brut,
                 COALESCE(SUM(b.net_a_payer), 0) as net_a_payer,
                 COALESCE(SUM(b.total_cotisations_salariales + b.total_impots), 0) as cotis_impots_salariales,
@@ -211,14 +216,24 @@ class PaieDashboardService {
         // 7. G3: Service Fait Pipeline (Heures Réalisées -> Validées -> Intégrées aux Bulletins)
         // a. Heures Réalisées dans cahier_texte
         $stmtCt = $db->prepare("
-            SELECT COALESCE(SUM(TIME_TO_SEC(TIMEDIFF(ct.heure_fin, ct.heure_debut)) / 3600.0), 0)
+            SELECT ct.heure_debut, ct.heure_fin
             FROM cahier_texte ct
             JOIN utilisateurs u ON ct.personnel_id = u.id_user
             WHERE u.lycee_id = :lycee_id
               AND ct.date_cours BETWEEN :dstart AND :dend
         ");
         $stmtCt->execute(['lycee_id' => $lyceeId, 'dstart' => $dateStart, 'dend' => $dateEnd]);
-        $heuresRealisees = (float)$stmtCt->fetchColumn();
+        $rowsCt = $stmtCt->fetchAll(PDO::FETCH_ASSOC);
+        $heuresRealisees = 0.0;
+        foreach ($rowsCt as $rct) {
+            if (!empty($rct['heure_debut']) && !empty($rct['heure_fin'])) {
+                $t1 = strtotime($rct['heure_debut']);
+                $t2 = strtotime($rct['heure_fin']);
+                if ($t2 > $t1) {
+                    $heuresRealisees += ($t2 - $t1) / 3600.0;
+                }
+            }
+        }
 
         // b. Heures Validées dans paie_cahier_texte_validations
         $stmtVal = $db->prepare("
@@ -264,10 +279,10 @@ class PaieDashboardService {
             WHERE u.lycee_id = :lycee_id
               AND c.statut_contrat = 'actif'
               AND c.date_fin IS NOT NULL
-              AND c.date_fin < CURDATE()
+              AND c.date_fin < :today
             ORDER BY c.date_fin ASC
         ");
-        $stmtExp->execute(['lycee_id' => $lyceeId]);
+        $stmtExp->execute(['lycee_id' => $lyceeId, 'today' => $today]);
         $contratsExpires = $stmtExp->fetchAll(PDO::FETCH_ASSOC);
 
         // b. Expiring in <= 30 days
@@ -279,11 +294,11 @@ class PaieDashboardService {
             WHERE u.lycee_id = :lycee_id
               AND c.statut_contrat = 'actif'
               AND c.date_fin IS NOT NULL
-              AND c.date_fin >= CURDATE()
-              AND c.date_fin <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+              AND c.date_fin >= :today
+              AND c.date_fin <= :in30d
             ORDER BY c.date_fin ASC
         ");
-        $stmtExp30->execute(['lycee_id' => $lyceeId]);
+        $stmtExp30->execute(['lycee_id' => $lyceeId, 'today' => $today, 'in30d' => $in30d]);
         $contratsExp30 = $stmtExp30->fetchAll(PDO::FETCH_ASSOC);
 
         // c. Expiring in 31 to 60 days
@@ -295,11 +310,11 @@ class PaieDashboardService {
             WHERE u.lycee_id = :lycee_id
               AND c.statut_contrat = 'actif'
               AND c.date_fin IS NOT NULL
-              AND c.date_fin > DATE_ADD(CURDATE(), INTERVAL 30 DAY)
-              AND c.date_fin <= DATE_ADD(CURDATE(), INTERVAL 60 DAY)
+              AND c.date_fin > :in30d
+              AND c.date_fin <= :in60d
             ORDER BY c.date_fin ASC
         ");
-        $stmtExp60->execute(['lycee_id' => $lyceeId]);
+        $stmtExp60->execute(['lycee_id' => $lyceeId, 'in30d' => $in30d, 'in60d' => $in60d]);
         $contratsExp60 = $stmtExp60->fetchAll(PDO::FETCH_ASSOC);
 
         $g4ContractDeadlines = [
