@@ -100,6 +100,21 @@ if (!file_exists($sidebar_path)) {
             $errors++;
         }
     }
+
+    // Explicit verification for Caisse & Trésorerie Hub Navigation Phase 3
+    if (in_array('/treasury/dashboard', $urls)) {
+        echo "  [PASS] Sidebar inclut explicitement la route principale Hub Trésorerie '/treasury/dashboard'.\n";
+    } else {
+        echo "  [FAIL] Sidebar NE CONTIENT PAS la route principale Hub Trésorerie '/treasury/dashboard'!\n";
+        $errors++;
+    }
+
+    if (in_array('/treasury/sessions', $urls)) {
+        echo "  [PASS] Sidebar conserve l'accès spécialisé aux sessions '/treasury/sessions'.\n";
+    } else {
+        echo "  [FAIL] Sidebar a perdu l'accès spécialisé aux sessions '/treasury/sessions'!\n";
+        $errors++;
+    }
 }
 
 // 3. Vérification des Vues de Comptabilité
