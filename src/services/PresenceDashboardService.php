@@ -189,31 +189,36 @@ class PresenceDashboardService {
         $db = Database::getInstance();
         $today = date('Y-m-d');
 
-        $params = [
-            'lycee_id' => $lyceeId,
-            'annee_id' => $anneeId,
-            'date_debut' => $dateDebut,
-            'date_fin' => $dateFin,
-            'today' => $today
-        ];
+        $params = [];
+        // 10 pairs of ($dateDebut, $dateFin) for period aggregation expressions in SELECT
+        for ($i = 0; $i < 10; $i++) {
+            $params[] = $dateDebut;
+            $params[] = $dateFin;
+        }
+        // 4 occurrences of $today for daily aggregation expressions in SELECT
+        for ($i = 0; $i < 4; $i++) {
+            $params[] = $today;
+        }
 
         $whereClauses = [
-            "p.lycee_id = :lycee_id",
-            "p.annee_academique_id = :annee_id",
+            "p.lycee_id = ?",
+            "p.annee_academique_id = ?",
             "p.matiere_id IS NULL"
         ];
+        $params[] = $lyceeId;
+        $params[] = $anneeId;
 
         if ($cycleId) {
-            $whereClauses[] = "c.cycle_id = :cycle_id";
-            $params['cycle_id'] = $cycleId;
+            $whereClauses[] = "c.cycle_id = ?";
+            $params[] = $cycleId;
         }
         if ($niveau) {
-            $whereClauses[] = "c.niveau = :niveau";
-            $params['niveau'] = $niveau;
+            $whereClauses[] = "c.niveau = ?";
+            $params[] = $niveau;
         }
         if ($classeId) {
-            $whereClauses[] = "p.classe_id = :classe_id";
-            $params['classe_id'] = $classeId;
+            $whereClauses[] = "p.classe_id = ?";
+            $params[] = $classeId;
         }
 
         if (!$canViewAll && !empty($assignedClassIds)) {
@@ -226,31 +231,31 @@ class PresenceDashboardService {
         $sql = "
             SELECT
                 -- Period Totals
-                COUNT(CASE WHEN p.date_presence BETWEEN :date_debut AND :date_fin THEN p.id END) AS total_occurrences_period,
-                COUNT(CASE WHEN p.date_presence BETWEEN :date_debut AND :date_fin AND p.statut IN ('present', 'retard') THEN p.id END) AS effective_present_period,
+                COUNT(CASE WHEN p.date_presence BETWEEN ? AND ? THEN p.id END) AS total_occurrences_period,
+                COUNT(CASE WHEN p.date_presence BETWEEN ? AND ? AND p.statut IN ('present', 'retard') THEN p.id END) AS effective_present_period,
 
                 -- Absences Period
-                COUNT(CASE WHEN p.date_presence BETWEEN :date_debut AND :date_fin AND p.statut IN ('absent', 'justifie') THEN p.id END) AS absences_occurrences_period,
-                COUNT(DISTINCT CASE WHEN p.date_presence BETWEEN :date_debut AND :date_fin AND p.statut IN ('absent', 'justifie') THEN p.eleve_id END) AS absences_students_period,
+                COUNT(CASE WHEN p.date_presence BETWEEN ? AND ? AND p.statut IN ('absent', 'justifie') THEN p.id END) AS absences_occurrences_period,
+                COUNT(DISTINCT CASE WHEN p.date_presence BETWEEN ? AND ? AND p.statut IN ('absent', 'justifie') THEN p.eleve_id END) AS absences_students_period,
 
                 -- Absences Unjustified Period
-                COUNT(CASE WHEN p.date_presence BETWEEN :date_debut AND :date_fin AND p.statut = 'absent' THEN p.id END) AS unjustified_occurrences_period,
-                COUNT(DISTINCT CASE WHEN p.date_presence BETWEEN :date_debut AND :date_fin AND p.statut = 'absent' THEN p.eleve_id END) AS unjustified_students_period,
+                COUNT(CASE WHEN p.date_presence BETWEEN ? AND ? AND p.statut = 'absent' THEN p.id END) AS unjustified_occurrences_period,
+                COUNT(DISTINCT CASE WHEN p.date_presence BETWEEN ? AND ? AND p.statut = 'absent' THEN p.eleve_id END) AS unjustified_students_period,
 
                 -- Absences Justified Period
-                COUNT(CASE WHEN p.date_presence BETWEEN :date_debut AND :date_fin AND p.statut = 'justifie' THEN p.id END) AS justified_occurrences_period,
-                COUNT(DISTINCT CASE WHEN p.date_presence BETWEEN :date_debut AND :date_fin AND p.statut = 'justifie' THEN p.eleve_id END) AS justified_students_period,
+                COUNT(CASE WHEN p.date_presence BETWEEN ? AND ? AND p.statut = 'justifie' THEN p.id END) AS justified_occurrences_period,
+                COUNT(DISTINCT CASE WHEN p.date_presence BETWEEN ? AND ? AND p.statut = 'justifie' THEN p.eleve_id END) AS justified_students_period,
 
                 -- Delays Period
-                COUNT(CASE WHEN p.date_presence BETWEEN :date_debut AND :date_fin AND p.statut = 'retard' THEN p.id END) AS delays_occurrences_period,
-                COUNT(DISTINCT CASE WHEN p.date_presence BETWEEN :date_debut AND :date_fin AND p.statut = 'retard' THEN p.eleve_id END) AS delays_students_period,
+                COUNT(CASE WHEN p.date_presence BETWEEN ? AND ? AND p.statut = 'retard' THEN p.id END) AS delays_occurrences_period,
+                COUNT(DISTINCT CASE WHEN p.date_presence BETWEEN ? AND ? AND p.statut = 'retard' THEN p.eleve_id END) AS delays_students_period,
 
                 -- Today Metrics
-                COUNT(CASE WHEN p.date_presence = :today AND p.statut IN ('absent', 'justifie') THEN p.id END) AS today_absences_occurrences,
-                COUNT(DISTINCT CASE WHEN p.date_presence = :today AND p.statut IN ('absent', 'justifie') THEN p.eleve_id END) AS today_absences_students,
+                COUNT(CASE WHEN p.date_presence = ? AND p.statut IN ('absent', 'justifie') THEN p.id END) AS today_absences_occurrences,
+                COUNT(DISTINCT CASE WHEN p.date_presence = ? AND p.statut IN ('absent', 'justifie') THEN p.eleve_id END) AS today_absences_students,
 
-                COUNT(CASE WHEN p.date_presence = :today AND p.statut = 'retard' THEN p.id END) AS today_delays_occurrences,
-                COUNT(DISTINCT CASE WHEN p.date_presence = :today AND p.statut = 'retard' THEN p.eleve_id END) AS today_delays_students
+                COUNT(CASE WHEN p.date_presence = ? AND p.statut = 'retard' THEN p.id END) AS today_delays_occurrences,
+                COUNT(DISTINCT CASE WHEN p.date_presence = ? AND p.statut = 'retard' THEN p.eleve_id END) AS today_delays_students
             FROM presences p
             JOIN classes c ON p.classe_id = c.id_classe
             WHERE {$whereSql}
