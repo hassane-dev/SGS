@@ -30,7 +30,13 @@ class Database {
             $this->conn = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
             error_log("Database Connection Error (MySQL/MariaDB): " . $e->getMessage());
-            if (defined('APP_ENV') && APP_ENV === 'development') {
+            $sqlitePath = __DIR__ . '/../../database.sqlite';
+            if (file_exists($sqlitePath)) {
+                $this->conn = new PDO("sqlite:" . $sqlitePath, null, null, [
+                    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                ]);
+            } elseif (defined('APP_ENV') && APP_ENV === 'development') {
                 throw new PDOException("Connexion impossible à la base de données MySQL/MariaDB : " . $e->getMessage(), (int)$e->getCode());
             } else {
                 die('Impossible de se connecter à la base de données principale MySQL/MariaDB. Veuillez vérifier votre configuration.');
