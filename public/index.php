@@ -11,22 +11,23 @@ if (!function_exists('_')) {
 require_once __DIR__ . '/../src/core/bootstrap_i18n.php';
 
 // --- First Time Setup Check ---
-// A more robust check is to see if any school has been created.
-// If the lycees table is empty, we assume it's a fresh install.
+// The application is installed if a school exists OR a global Super Admin exists.
 require_once __DIR__ . '/../src/models/Lycee.php';
+require_once __DIR__ . '/../src/models/User.php';
+
 $lycees = Lycee::findAll();
+$hasSuperAdmin = (User::findOneByRoleName('super_admin_createur') || User::findOneByRoleName('super_admin_national'));
+$isInstalled = (!empty($lycees) || !empty($hasSuperAdmin));
 $uri = strtok($_SERVER['REQUEST_URI'], '?');
 
-if (empty($lycees)) {
-    // If no school exists, we must run the setup process.
-    // We only allow access to the setup routes.
+if (!$isInstalled) {
+    // If system is not installed, only allow access to setup routes.
     if (strpos($uri, '/setup') !== 0) {
         header('Location: /setup');
         exit();
     }
 } else {
-    // If schools exist, the setup is complete.
-    // Block any further access to the setup routes.
+    // If setup is complete, block any further access to setup routes.
     if (strpos($uri, '/setup') === 0) {
         header('Location: /login');
         exit();
