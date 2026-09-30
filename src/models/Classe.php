@@ -204,20 +204,19 @@ class Classe {
             throw new InvalidArgumentException("L'ID de la classe et l'ID de l'année académique sont requis.");
         }
 
-        $sql = "INSERT INTO classe_parametres (classe_id, annee_academique_id, effectif_actuel)
-                VALUES (:classe_id, :annee_academique_id, 1)
-                ON DUPLICATE KEY UPDATE effectif_actuel = effectif_actuel + 1";
-
         try {
             $db = Database::getInstance();
-            $stmt = $db->prepare($sql);
-            $stmt->execute([
-                'classe_id' => $classe_id,
-                'annee_academique_id' => $annee_academique_id
-            ]);
+            $existing = ClasseParametre::findByClasseAndAnnee($classe_id, $annee_academique_id);
+            if ($existing) {
+                $paramId = $existing['id'] ?? $existing['id_parametre'] ?? null;
+                $stmt = $db->prepare("UPDATE classe_parametres SET effectif_actuel = effectif_actuel + 1 WHERE id = :id");
+                $stmt->execute(['id' => $paramId]);
+            } else {
+                $stmt = $db->prepare("INSERT INTO classe_parametres (classe_id, annee_academique_id, effectif_actuel) VALUES (:classe_id, :annee_academique_id, 1)");
+                $stmt->execute(['classe_id' => $classe_id, 'annee_academique_id' => $annee_academique_id]);
+            }
         } catch (PDOException $e) {
             error_log("Database error in Classe::incrementerEffectifActuel: " . $e->getMessage());
-            // Re-throw the exception to be handled by the controller's transaction management
             throw $e;
         }
     }
