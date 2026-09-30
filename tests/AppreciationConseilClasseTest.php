@@ -8,6 +8,7 @@ if (!defined('TEST_MODE')) {
 require_once __DIR__ . '/../src/config/database.php';
 require_once __DIR__ . '/../migrate.php';
 require_once __DIR__ . '/../src/core/Auth.php';
+require_once __DIR__ . '/../src/core/CsrfService.php';
 require_once __DIR__ . '/../src/models/User.php';
 require_once __DIR__ . '/../src/models/Classe.php';
 require_once __DIR__ . '/../src/models/Sequence.php';
