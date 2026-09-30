@@ -338,7 +338,10 @@ class EleveController {
             exit();
         }
 
-        $cycles = Cycle::findAll();
+        // Scope verification on student's tenant
+        AuthorizationScopeService::assertAccessToObject($eleve['lycee_id']);
+
+        $cycles = AuthorizationScopeService::getPermittedCycles($eleve['lycee_id']);
 
         View::render('eleves/assign_class', [
             'eleve' => $eleve,
@@ -367,7 +370,29 @@ class EleveController {
 
         $lycee_id = $eleve['lycee_id'];
 
-        $classe_id = Classe::findIdByDetails($lycee_id, $data['niveau'], $data['serie'] ?? null, $data['numero']);
+        // Enforce tenant and cycle scope authorization
+        $cycle_id = !empty($data['cycle_id']) ? (int)$data['cycle_id'] : null;
+        if (!$cycle_id || !AuthorizationScopeService::canAccessCycle($cycle_id) || !AuthorizationScopeService::canAccessLycee($lycee_id)) {
+            $_SESSION['error_message'] = "Accès refusé : Le cycle sélectionné ne fait pas partie de votre périmètre d'affectation.";
+            if (!defined('TEST_MODE')) {
+                header('Location: /eleves/assign-class?eleve_id=' . $eleve_id);
+                exit();
+            }
+            return;
+        }
+
+        $classe_id = Classe::findIdByDetails($lycee_id, $data['niveau'], $data['serie'] ?? null, $data['numero'], $cycle_id);
+        if ($classe_id) {
+            $targetClasse = Classe::findById($classe_id);
+            if (!$targetClasse || (int)$targetClasse['cycle_id'] !== $cycle_id || (int)$targetClasse['lycee_id'] !== (int)$lycee_id) {
+                $_SESSION['error_message'] = "La classe sélectionnée n'appartient pas au cycle ou établissement autorisé.";
+                if (!defined('TEST_MODE')) {
+                    header('Location: /eleves/assign-class?eleve_id=' . $eleve_id);
+                    exit();
+                }
+                return;
+            }
+        }
 
         if ($classe_id) {
             $db = Database::getInstance();
@@ -420,21 +445,30 @@ class EleveController {
 
                 $_SESSION['success_message'] = "L'élève a été inscrit et assigné à la classe avec succès. Vous pouvez maintenant configurer immédiatement ses avantages, réductions ou bourses ci-dessous.";
 
-                header('Location: /eleves/parametres-financiers?id=' . $eleve_id);
-                exit();
+                if (!defined('TEST_MODE')) {
+                    header('Location: /eleves/parametres-financiers?id=' . $eleve_id);
+                    exit();
+                }
+                return;
             } catch (Throwable $e) {
                 if ($db->inTransaction()) {
                     $db->rollBack();
                 }
                 error_log("Erreur lors de l'assignation de la classe : " . $e->getMessage());
                 $_SESSION['error_message'] = "Une erreur est survenue lors de l'assignation : " . $e->getMessage();
-                header('Location: /eleves/assign-class?eleve_id=' . $eleve_id);
-                exit();
+                if (!defined('TEST_MODE')) {
+                    header('Location: /eleves/assign-class?eleve_id=' . $eleve_id);
+                    exit();
+                }
+                return;
             }
         } else {
             $_SESSION['error_message'] = "La classe sélectionnée n'a pas pu être trouvée.";
-            header('Location: /eleves/assign-class?eleve_id=' . $eleve_id);
-            exit();
+            if (!defined('TEST_MODE')) {
+                header('Location: /eleves/assign-class?eleve_id=' . $eleve_id);
+                exit();
+            }
+            return;
         }
     }
 

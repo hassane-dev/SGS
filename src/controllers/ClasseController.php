@@ -254,43 +254,73 @@ class ClasseController {
     // --- API Methods for AJAX calls ---
 
     public function getNiveauxForCycle() {
-        header('Content-Type: application/json');
-        $cycle_id = $_GET['cycle_id'] ?? null;
-        $lycee_id = $_GET['lycee_id'] ?? null;
-        $niveaux = Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id);
-        echo json_encode($niveaux);
-        exit();
+        if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
+        $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
+        $lycee_id = !empty($_GET['lycee_id']) ? (int)$_GET['lycee_id'] : Auth::getLyceeId();
+
+        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+        if (!AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
+            echo json_encode([]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        $niveaux = $cycle_id ? Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id) : Classe::getDistinctNiveaux($lycee_id);
+        echo json_encode(array_values($niveaux));
+        if (!defined('TEST_MODE')) exit(); return;
     }
 
     public function getSeriesForNiveau() {
-        header('Content-Type: application/json');
+        if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
         $niveau = $_GET['niveau'] ?? null;
-        $lycee_id = $_GET['lycee_id'] ?? null;
-        $series = Classe::findDistinctSeriesByNiveau($niveau, $lycee_id);
-        echo json_encode($series);
-        exit();
+        $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
+        $lycee_id = !empty($_GET['lycee_id']) ? (int)$_GET['lycee_id'] : Auth::getLyceeId();
+
+        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+        if (!AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
+            echo json_encode([]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        $series = Classe::findDistinctSeriesByNiveau($niveau, $lycee_id, $cycle_id);
+        echo json_encode(array_values($series));
+        if (!defined('TEST_MODE')) exit(); return;
     }
 
     public function getNumerosForClasse() {
-        header('Content-Type: application/json');
+        if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
         $niveau = $_GET['niveau'] ?? null;
         $serie = $_GET['serie'] ?? null;
-        $lycee_id = $_GET['lycee_id'] ?? null;
-        $numeros = Classe::findAvailableNumeros($niveau, $serie, $lycee_id);
-        echo json_encode($numeros);
-        exit();
+        $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
+        $lycee_id = !empty($_GET['lycee_id']) ? (int)$_GET['lycee_id'] : Auth::getLyceeId();
+
+        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+        if (!AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
+            echo json_encode([]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        $numeros = Classe::findAvailableNumeros($niveau, $serie, $lycee_id, $cycle_id);
+        echo json_encode(array_values($numeros));
+        if (!defined('TEST_MODE')) exit(); return;
     }
 
     public function findClassId() {
-        header('Content-Type: application/json');
-        $lycee_id = $_GET['lycee_id'] ?? Auth::getLyceeId();
+        if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
+        $lycee_id = !empty($_GET['lycee_id']) ? (int)$_GET['lycee_id'] : Auth::getLyceeId();
         $niveau = $_GET['niveau'] ?? null;
         $serie = $_GET['serie'] ?? null;
         $numero = $_GET['numero'] ?? null;
+        $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
 
-        $id = Classe::findIdByDetails($lycee_id, $niveau, $serie, $numero);
+        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+        if (!AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
+            echo json_encode(['id_classe' => null]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        $id = Classe::findIdByDetails($lycee_id, $niveau, $serie, $numero, $cycle_id);
         echo json_encode(['id_classe' => $id]);
-        exit();
+        if (!defined('TEST_MODE')) exit(); return;
     }
 }
 ?>
