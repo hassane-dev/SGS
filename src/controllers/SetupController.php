@@ -76,7 +76,7 @@ class SetupController {
                 'nom' => $nom,
                 'prenom' => $prenom,
                 'email' => $email,
-                'mot_de_passe' => password_hash($pass, PASSWORD_DEFAULT),
+                'mot_de_passe' => $pass,
                 'role_id' => 2, // super_admin_national
                 'lycee_id' => null,
                 'actif' => 1

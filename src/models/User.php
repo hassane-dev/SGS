@@ -232,6 +232,16 @@ class User {
         $stmt = $db->prepare($sql);
 
         if ($isUpdate) {
+            $resolvedLyceeId = $currentData['lycee_id'];
+            if (array_key_exists('lycee_id', $data)) {
+                $rawLycee = $data['lycee_id'];
+                if ($rawLycee === null || $rawLycee === '') {
+                    $resolvedLyceeId = null;
+                } else {
+                    $resolvedLyceeId = (int)$rawLycee;
+                }
+            }
+
             $params = [
                 'nom' => $data['nom'] ?? $currentData['nom'],
                 'prenom' => $data['prenom'] ?? $currentData['prenom'],
@@ -243,13 +253,25 @@ class User {
                 'email' => $data['email'] ?? $currentData['email'],
                 'fonction' => $data['fonction'] ?? $currentData['fonction'],
                 'role_id' => $data['role_id'] ?? $currentData['role_id'],
-                'lycee_id' => !isset($data['lycee_id']) ? $currentData['lycee_id'] : (empty($data['lycee_id']) ? (Auth::getLyceeId() ?: 1) : (int)$data['lycee_id']),
+                'lycee_id' => $resolvedLyceeId,
                 'contrat_id' => !isset($data['contrat_id']) ? $currentData['contrat_id'] : (empty($data['contrat_id']) ? null : (int)$data['contrat_id']),
                 'date_embauche' => !isset($data['date_embauche']) ? $currentData['date_embauche'] : (empty($data['date_embauche']) ? null : $data['date_embauche']),
                 'actif' => $data['actif'] ?? $currentData['actif'],
                 'photo' => $data['photo'] ?? $currentData['photo'],
             ];
         } else {
+            $resolvedLyceeId = null;
+            if (array_key_exists('lycee_id', $data)) {
+                $rawLycee = $data['lycee_id'];
+                if ($rawLycee === null || $rawLycee === '') {
+                    $resolvedLyceeId = null;
+                } else {
+                    $resolvedLyceeId = (int)$rawLycee;
+                }
+            } else {
+                $resolvedLyceeId = Auth::getLyceeId();
+            }
+
             $params = [
                 'nom' => $data['nom'],
                 'prenom' => $data['prenom'],
@@ -261,7 +283,7 @@ class User {
                 'email' => $data['email'],
                 'fonction' => $data['fonction'] ?? null,
                 'role_id' => $data['role_id'],
-                'lycee_id' => empty($data['lycee_id']) ? (Auth::getLyceeId() ?: 1) : (int)$data['lycee_id'],
+                'lycee_id' => $resolvedLyceeId,
                 'contrat_id' => empty($data['contrat_id']) ? null : (int)$data['contrat_id'],
                 'date_embauche' => empty($data['date_embauche']) ? null : $data['date_embauche'],
                 'actif' => $data['actif'] ?? 1,
