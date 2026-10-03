@@ -49,46 +49,83 @@ class SessionCaisse {
     public static function ouvrir($data) {
         $db = Database::getInstance();
 
-        // Safety verification: No active session must exist on the account
+        // 1. Strict Vault Block: Opening a session on a vault account (est_coffre = 1) is strictly forbidden
+        $compte = CompteFinancier::findById($data['compte_id']);
+        if (!$compte) {
+            throw new Exception("Compte financier introuvable.");
+        }
+        if (!empty($compte['est_coffre'])) {
+            throw new Exception("Opération interdite : le Coffre Principal ne peut pas faire l'objet d'une session de caisse journalière.");
+        }
+        if ($compte['type_compte'] !== 'caisse') {
+            throw new Exception("Une session de caisse ne peut être ouverte que sur un compte financier de type caisse.");
+        }
+
+        // 2. Multi-Cashier User Scope Guard: A cashier cannot have multiple active sessions open simultaneously
+        $activeUserSession = self::findActiveByUser($data['user_id'], $data['lycee_id']);
+        if ($activeUserSession) {
+            throw new Exception("Vous possédez déjà une session de caisse active sur le compte '" . $activeUserSession['nom_compte'] . "'. Veuillez fermer votre session en cours avant d'en ouvrir une nouvelle.");
+        }
+
+        // 3. Safety verification: No active session must exist on the target cash account
         $active = self::findActiveByCompte($data['compte_id']);
         if ($active) {
             throw new Exception("Une session de caisse est déjà active sur ce compte financier.");
         }
 
-        // Continuity logic: Find last validated session on this account
+        // 4. Deterministic Server-Side Last Validated Session Lookup on the Target Account
         $stmt_last = $db->prepare("
-            SELECT fonds_caisse_conserve FROM sessions_caisse
+            SELECT id, user_id, fonds_caisse_conserve FROM sessions_caisse
             WHERE compte_id = :compte_id AND statut = 'fermee_validee'
             ORDER BY date_fermeture DESC, id DESC LIMIT 1
         ");
         $stmt_last->execute(['compte_id' => $data['compte_id']]);
         $row_last = $stmt_last->fetch(PDO::FETCH_ASSOC);
 
+        $fondsSourceSessionId = null;
+        $fondsSourceUserId = null;
+
         if ($row_last !== false) {
-            // A row was found. Check if the value is explicitly non-null (Phase 6 session)
+            $fondsSourceSessionId = (int)$row_last['id'];
+            $fondsSourceUserId = (int)$row_last['user_id'];
             if ($row_last['fonds_caisse_conserve'] !== null) {
                 $solde_ouverture = (float)$row_last['fonds_caisse_conserve'];
             } else {
-                // Historic pre-Phase 6 validated session -> fallback to passed opening balance
-                $solde_ouverture = $data['solde_ouverture'] ?? 0.00;
+                $solde_ouverture = (float)($data['solde_ouverture'] ?? 0.00);
             }
         } else {
-            // No previous session ever -> fallback to passed opening balance
-            $solde_ouverture = $data['solde_ouverture'] ?? 0.00;
+            $solde_ouverture = (float)($data['solde_ouverture'] ?? 0.00);
         }
 
+        // 5. Handover Proof Verification (Mandatory when inheriting preserved float > 0)
+        $priseEnChargeConfirmee = !empty($data['prise_en_charge_confirmee']) ? 1 : 0;
+        if ($solde_ouverture > 0 && !$priseEnChargeConfirmee && empty($data['is_historical_migration'])) {
+            throw new Exception("Vous devez confirmer explicitement avoir compté et pris en charge le fonds de caisse de " . number_format($solde_ouverture, 2, ',', ' ') . " FCFA laissé dans le tiroir.");
+        }
+
+        $now = date('Y-m-d H:i:s');
+
         $stmt = $db->prepare("
-            INSERT INTO sessions_caisse (lycee_id, user_id, compte_id, date_ouverture, solde_ouverture, solde_theorique, statut)
-            VALUES (:lycee_id, :user_id, :compte_id, :date_ouverture, :solde_ouverture, :solde_theorique, 'ouverte')
+            INSERT INTO sessions_caisse (
+                lycee_id, user_id, compte_id, date_ouverture, solde_ouverture, solde_theorique, statut,
+                fonds_source_session_id, fonds_source_user_id, prise_en_charge_confirmee, date_prise_en_charge
+            ) VALUES (
+                :lycee_id, :user_id, :compte_id, :date_ouverture, :solde_ouverture, :solde_theorique, 'ouverte',
+                :fonds_source_session_id, :fonds_source_user_id, :prise_en_charge_confirmee, :date_prise_en_charge
+            )
         ");
 
         $stmt->execute([
             'lycee_id' => $data['lycee_id'],
             'user_id' => $data['user_id'],
             'compte_id' => $data['compte_id'],
-            'date_ouverture' => date('Y-m-d H:i:s'),
+            'date_ouverture' => $now,
             'solde_ouverture' => $solde_ouverture,
-            'solde_theorique' => $solde_ouverture
+            'solde_theorique' => $solde_ouverture,
+            'fonds_source_session_id' => $fondsSourceSessionId,
+            'fonds_source_user_id' => $fondsSourceUserId,
+            'prise_en_charge_confirmee' => $priseEnChargeConfirmee,
+            'date_prise_en_charge' => $priseEnChargeConfirmee ? $now : null
         ]);
 
         return $db->lastInsertId();
