@@ -60,7 +60,11 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS sessions_caisse (
     valide_par INTEGER,
     valide_le DATETIME,
     montant_remis DECIMAL(15,2) DEFAULT NULL,
-    fonds_caisse_conserve DECIMAL(15,2) DEFAULT NULL
+    fonds_caisse_conserve DECIMAL(15,2) DEFAULT NULL,
+    fonds_source_session_id INTEGER DEFAULT NULL,
+    fonds_source_user_id INTEGER DEFAULT NULL,
+    prise_en_charge_confirmee INTEGER DEFAULT 0,
+    date_prise_en_charge DATETIME DEFAULT NULL
 );");
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS mouvements_tresorerie (
@@ -86,6 +90,8 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS mouvements_tresorerie (
     mode_paiement_reconstruit TINYINT DEFAULT 0
 );");
 
+$pdo->exec("CREATE TABLE IF NOT EXISTS modes_paiement (id INTEGER PRIMARY KEY AUTOINCREMENT, lycee_id INTEGER, code TEXT, libelle TEXT, type_canal TEXT, exige_session_caisse INTEGER, exige_reference_transaction INTEGER, actif INTEGER);");
+$pdo->exec("CREATE TABLE IF NOT EXISTS paiement_ventilations (id INTEGER PRIMARY KEY AUTOINCREMENT, lycee_id INTEGER, source_type TEXT, source_id INTEGER, mode_paiement_id INTEGER, compte_financier_id INTEGER, session_caisse_id INTEGER, montant REAL, reference_transaction TEXT, mouvement_tresorerie_id INTEGER);");
 $pdo->exec("CREATE TABLE IF NOT EXISTS regularisations_ecarts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     lycee_id INTEGER,
@@ -187,7 +193,8 @@ $sessIdB = SessionCaisse::ouvrir([
     'lycee_id' => 1,
     'user_id' => 2,
     'compte_id' => 10,
-    'solde_ouverture' => 15000.00
+    'solde_ouverture' => 0.00,
+    'prise_en_charge_confirmee' => 1
 ]);
 
 $mvtIdB = TreasuryService::registerMovement([
@@ -214,7 +221,7 @@ assert_test((int)$countSessAfterB === 1, "Aucune session doublon créée lors de
 
 // TEST C: Operational movement on 'fermee_a_valider' session
 echo "\nTest C: Tentative d'enregistrement d'un mouvement sur session 'fermee_a_valider'...\n";
-SessionCaisse::cloturer($sessIdB, 40000.00, '', 40000.00, 0.00); // Statut -> fermee_a_valider
+SessionCaisse::cloturer($sessIdB, 25000.00, '', 25000.00, 0.00); // Statut -> fermee_a_valider (solde_theorique = 25000)
 $sessRowC = SessionCaisse::findById($sessIdB);
 assert_test($sessRowC['statut'] === 'fermee_a_valider', "La session est bien à l'état 'fermee_a_valider'.");
 
@@ -303,7 +310,7 @@ try {
     $rejectedE = true;
 }
 
-$sessionsCountE = $pdo->query("SELECT COUNT(*) FROM sessions_caisse WHERE solde_ouverture = 15000.00 AND date_ouverture > '2024-01-01'")->fetchColumn();
+$sessionsCountE = $pdo->query("SELECT COUNT(*) FROM sessions_caisse WHERE date_ouverture > '2024-01-01'")->fetchColumn();
 assert_test($rejectedE, "L'opération sans session a été rejetée.");
 assert_test((int)$sessionsCountE === 1, "Aucune session fantôme n'a été créée automatiquement.");
 

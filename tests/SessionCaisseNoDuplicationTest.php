@@ -28,9 +28,11 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $pdo->exec("CREATE TABLE IF NOT EXISTS param_lycee (id INTEGER PRIMARY KEY, nom_lycee TEXT, type_lycee TEXT)");
 $pdo->exec("CREATE TABLE IF NOT EXISTS utilisateurs (id_user INTEGER PRIMARY KEY, nom TEXT, prenom TEXT, email TEXT, statut TEXT)");
 $pdo->exec("CREATE TABLE IF NOT EXISTS comptes_financiers (id INTEGER PRIMARY KEY AUTOINCREMENT, lycee_id INTEGER, nom_compte TEXT, type_compte TEXT, solde_courant DECIMAL(15,2), devise TEXT DEFAULT 'FCFA', responsable_id INTEGER, statut TEXT DEFAULT 'actif', est_coffre INTEGER DEFAULT 0, compte_comptable_id INTEGER, compte_comptable_numero TEXT)");
-$pdo->exec("CREATE TABLE IF NOT EXISTS sessions_caisse (id INTEGER PRIMARY KEY AUTOINCREMENT, lycee_id INTEGER, user_id INTEGER, compte_id INTEGER, date_ouverture DATETIME, date_fermeture DATETIME, solde_ouverture DECIMAL(15,2), solde_theorique DECIMAL(15,2), solde_reel DECIMAL(15,2), ecart DECIMAL(15,2), justificatif_ecart TEXT, montant_remis DECIMAL(15,2), fonds_caisse_conserve DECIMAL(15,2), statut TEXT, valide_par INTEGER, valide_le DATETIME, is_active INTEGER GENERATED ALWAYS AS (CASE WHEN statut IN ('ouverte', 'fermee_a_valider') THEN 1 ELSE NULL END) VIRTUAL)");
+$pdo->exec("CREATE TABLE IF NOT EXISTS sessions_caisse (id INTEGER PRIMARY KEY AUTOINCREMENT, lycee_id INTEGER, user_id INTEGER, compte_id INTEGER, date_ouverture DATETIME, date_fermeture DATETIME, solde_ouverture DECIMAL(15,2), solde_theorique DECIMAL(15,2), solde_reel DECIMAL(15,2), ecart DECIMAL(15,2), justificatif_ecart TEXT, montant_remis DECIMAL(15,2), fonds_caisse_conserve DECIMAL(15,2), statut TEXT, valide_par INTEGER, valide_le DATETIME, fonds_source_session_id INTEGER, fonds_source_user_id INTEGER, prise_en_charge_confirmee INTEGER DEFAULT 0, date_prise_en_charge DATETIME, is_active INTEGER GENERATED ALWAYS AS (CASE WHEN statut IN ('ouverte', 'fermee_a_valider') THEN 1 ELSE NULL END) VIRTUAL)");
 $pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS uk_session_compte_active ON sessions_caisse(compte_id, is_active)");
 $pdo->exec("CREATE TABLE IF NOT EXISTS mouvements_tresorerie (id INTEGER PRIMARY KEY AUTOINCREMENT, lycee_id INTEGER, compte_id INTEGER, session_caisse_id INTEGER, exercice_financier_id INTEGER, transfert_id INTEGER, type_mouvement TEXT, montant DECIMAL(15,2), mode_paiement TEXT, reference_transaction TEXT, source_type TEXT, source_id INTEGER, evenement_type TEXT, motif TEXT, user_id INTEGER, date_mouvement DATETIME DEFAULT CURRENT_TIMESTAMP, is_aggregate_data INTEGER DEFAULT 0, date_reconstruite INTEGER DEFAULT 0, is_historical_migration INTEGER DEFAULT 0, mode_paiement_reconstruit INTEGER DEFAULT 0)");
+$pdo->exec("CREATE TABLE IF NOT EXISTS modes_paiement (id INTEGER PRIMARY KEY AUTOINCREMENT, lycee_id INTEGER, code TEXT, libelle TEXT, type_canal TEXT, exige_session_caisse INTEGER, exige_reference_transaction INTEGER, actif INTEGER);");
+$pdo->exec("CREATE TABLE IF NOT EXISTS paiement_ventilations (id INTEGER PRIMARY KEY AUTOINCREMENT, lycee_id INTEGER, source_type TEXT, source_id INTEGER, mode_paiement_id INTEGER, compte_financier_id INTEGER, session_caisse_id INTEGER, montant REAL, reference_transaction TEXT, mouvement_tresorerie_id INTEGER);");
 $pdo->exec("CREATE TABLE IF NOT EXISTS regularisations_ecarts (id INTEGER PRIMARY KEY AUTOINCREMENT, lycee_id INTEGER, session_caisse_id INTEGER, montant DECIMAL(15,2), type_ecart TEXT, motif TEXT, constate_par INTEGER, approuve_par INTEGER, reference_audit TEXT, date_regularisation DATETIME DEFAULT CURRENT_TIMESTAMP)");
 $pdo->exec("CREATE TABLE IF NOT EXISTS exercices_financiers (id INTEGER PRIMARY KEY AUTOINCREMENT, lycee_id INTEGER, libelle TEXT, date_debut DATE, date_fin DATE, est_actif INTEGER DEFAULT 1, cloture INTEGER DEFAULT 0)");
 
@@ -69,7 +71,8 @@ $sessId = SessionCaisse::ouvrir([
     'lycee_id' => 1,
     'user_id' => 2,
     'compte_id' => 1,
-    'solde_ouverture' => 10000.00
+    'solde_ouverture' => 10000.00,
+    'prise_en_charge_confirmee' => 1
 ]);
 $mvtCountOpening = (int)$pdo->query("SELECT COUNT(*) FROM mouvements_tresorerie")->fetchColumn();
 assert_check($mvtCountOpening === 0, "Aucun mouvement de trésorerie artificiel créé lors de l'ouverture.");

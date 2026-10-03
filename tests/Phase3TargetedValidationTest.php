@@ -60,7 +60,11 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS sessions_caisse (
     valide_par INTEGER,
     valide_le DATETIME,
     montant_remis DECIMAL(15,2) DEFAULT NULL,
-    fonds_caisse_conserve DECIMAL(15,2) DEFAULT NULL
+    fonds_caisse_conserve DECIMAL(15,2) DEFAULT NULL,
+    fonds_source_session_id INTEGER DEFAULT NULL,
+    fonds_source_user_id INTEGER DEFAULT NULL,
+    prise_en_charge_confirmee INTEGER DEFAULT 0,
+    date_prise_en_charge DATETIME DEFAULT NULL
 );");
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS mouvements_tresorerie (
@@ -86,6 +90,8 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS mouvements_tresorerie (
     mode_paiement_reconstruit TINYINT DEFAULT 0
 );");
 
+$pdo->exec("CREATE TABLE IF NOT EXISTS modes_paiement (id INTEGER PRIMARY KEY AUTOINCREMENT, lycee_id INTEGER, code TEXT, libelle TEXT, type_canal TEXT, exige_session_caisse INTEGER, exige_reference_transaction INTEGER, actif INTEGER);");
+$pdo->exec("CREATE TABLE IF NOT EXISTS paiement_ventilations (id INTEGER PRIMARY KEY AUTOINCREMENT, lycee_id INTEGER, source_type TEXT, source_id INTEGER, mode_paiement_id INTEGER, compte_financier_id INTEGER, session_caisse_id INTEGER, montant REAL, reference_transaction TEXT, mouvement_tresorerie_id INTEGER);");
 $pdo->exec("CREATE TABLE IF NOT EXISTS regularisations_ecarts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     lycee_id INTEGER,
@@ -153,7 +159,8 @@ $sessId = SessionCaisse::ouvrir([
     'lycee_id' => 1,
     'user_id' => 2,
     'compte_id' => 10,
-    'solde_ouverture' => 10000.00
+    'solde_ouverture' => 10000.00,
+    'prise_en_charge_confirmee' => 1
 ]);
 
 $ecart = SessionCaisse::cloturer($sessId, 10000.00, '', 10000.00, 0.00);

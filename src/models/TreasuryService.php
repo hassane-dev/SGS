@@ -44,51 +44,24 @@ class TreasuryService {
             }
         }
 
-        // 3. Résolution défensive du compte financier
+        // 3. Dynamic Channel & Session Resolution via PaymentRoutingService
+        require_once __DIR__ . '/../services/PaymentRoutingService.php';
         $compteId = $data['compte_id'] ?? null;
-        if (!$compteId) {
-            // Associer le type de compte au mode de paiement
-            $typeCompte = 'caisse';
-            if (in_array(strtolower($modePaiement), ['chèque', 'cheque', 'virement', 'banque'])) {
-                $typeCompte = 'banque';
-            } elseif (in_array(strtolower($modePaiement), ['mobile money', 'momo', 'paiement mobile', 'mobile'])) {
-                $typeCompte = 'mobile_money';
-            }
+        $sessionCaisseId = $data['session_caisse_id'] ?? null;
 
-            // Si espèces et qu'une session de caisse est active, on utilise prioritairement son compte
-            if ($typeCompte === 'caisse') {
-                $activeSession = SessionCaisse::findActiveByUser($data['user_id'] ?? Auth::getUserId(), $lyceeId);
-                if ($activeSession) {
-                    $compteId = $activeSession['compte_id'];
-                }
-            }
-
+        if (!$compteId || !$sessionCaisseId) {
+            $isTechnicalClosureMvt = in_array($evenementType, ['correction', 'remise_coffre_sortie', 'remise_coffre_entree']);
+            $routingOptions = [
+                'compte_id' => $compteId,
+                'is_historical_migration' => !empty($data['is_historical_migration']),
+                'is_technical_closure' => $isTechnicalClosureMvt
+            ];
+            $routed = PaymentRoutingService::resolveDestination($lyceeId, $modePaiement, $data['user_id'] ?? Auth::getUserId(), $routingOptions);
             if (!$compteId) {
-                // Chercher si un compte de ce type existe déjà
-                $stmt = $db->prepare("
-                    SELECT id FROM comptes_financiers
-                    WHERE lycee_id = :lycee_id AND type_compte = :type_compte AND statut = 'actif'
-                    LIMIT 1
-                ");
-                $stmt->execute(['lycee_id' => $lyceeId, 'type_compte' => $typeCompte]);
-                $compteId = $stmt->fetchColumn();
+                $compteId = $routed['compte_id'];
             }
-
-            if (!$compteId) {
-                // Créer un compte par défaut de ce type
-                $nomCompte = "Caisse Principale";
-                if ($typeCompte === 'banque') {
-                    $nomCompte = "Compte Courant Banque";
-                } elseif ($typeCompte === 'mobile_money') {
-                    $nomCompte = "Compte Mobile Money";
-                }
-
-                $compteId = CompteFinancier::create([
-                    'lycee_id' => $lyceeId,
-                    'nom_compte' => $nomCompte,
-                    'type_compte' => $typeCompte,
-                    'solde_courant' => 0.00
-                ]);
+            if (!$sessionCaisseId) {
+                $sessionCaisseId = $routed['session_caisse_id'];
             }
         }
 
@@ -119,6 +92,9 @@ class TreasuryService {
         }
         if ($compte['statut'] !== 'actif') {
             throw new Exception("Ce compte financier est suspendu.");
+        }
+        if (!empty($compte['est_coffre']) && !in_array($evenementType, ['remise_coffre_sortie', 'remise_coffre_entree', 'correction'])) {
+            throw new Exception("Sécurité Trésorerie : Un paiement ordinaire ne peut pas être crédité directement sur le Coffre Principal.");
         }
 
         // 6. Récupération et validation de la session de caisse si applicable

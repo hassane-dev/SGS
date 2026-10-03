@@ -255,20 +255,61 @@ class SchoolInitializationService {
             ]);
             $exerciceId = (int)$db->lastInsertId();
 
-            // STEP H: Create Default Cash Account (Caisse Principale)
-            $stmtCompte = $db->prepare("
-                INSERT INTO comptes_financiers (
-                    lycee_id, nom_compte, type_compte, solde_courant, devise, responsable_id, statut
-                ) VALUES (
-                    :lycee_id, 'Caisse Principale', 'caisse', 0.00, :devise, :responsable_id, 'actif'
-                )
+            // STEP H1: Create Coffre Principal (est_coffre = 1) if not existing
+            $devise = !empty($data['devise_pays']) ? trim($data['devise_pays']) : 'FCFA';
+
+            $stmtCheckCoffre = $db->prepare("
+                SELECT id FROM comptes_financiers
+                WHERE lycee_id = :lycee_id AND est_coffre = 1 AND statut = 'actif'
+                LIMIT 1
             ");
-            $stmtCompte->execute([
-                'lycee_id' => $lyceeId,
-                'devise' => !empty($data['devise_pays']) ? trim($data['devise_pays']) : 'FCFA',
-                'responsable_id' => $userId
-            ]);
-            $caisseId = (int)$db->lastInsertId();
+            $stmtCheckCoffre->execute(['lycee_id' => $lyceeId]);
+            $existingCoffreId = $stmtCheckCoffre->fetchColumn();
+
+            if (!$existingCoffreId) {
+                $stmtCoffre = $db->prepare("
+                    INSERT INTO comptes_financiers (
+                        lycee_id, nom_compte, type_compte, solde_courant, devise, responsable_id, est_coffre, statut
+                    ) VALUES (
+                        :lycee_id, 'Coffre Principal', 'caisse', 0.00, :devise, :responsable_id, 1, 'actif'
+                    )
+                ");
+                $stmtCoffre->execute([
+                    'lycee_id' => $lyceeId,
+                    'devise' => $devise,
+                    'responsable_id' => $userId
+                ]);
+                $coffreId = (int)$db->lastInsertId();
+            } else {
+                $coffreId = (int)$existingCoffreId;
+            }
+
+            // STEP H2: Create Caisse Guichet 1 (est_coffre = 0) if not existing
+            $stmtCheckCaisse = $db->prepare("
+                SELECT id FROM comptes_financiers
+                WHERE lycee_id = :lycee_id AND nom_compte = 'Caisse Guichet 1' AND est_coffre = 0 AND statut = 'actif'
+                LIMIT 1
+            ");
+            $stmtCheckCaisse->execute(['lycee_id' => $lyceeId]);
+            $existingCaisseId = $stmtCheckCaisse->fetchColumn();
+
+            if (!$existingCaisseId) {
+                $stmtCompte = $db->prepare("
+                    INSERT INTO comptes_financiers (
+                        lycee_id, nom_compte, type_compte, solde_courant, devise, responsable_id, est_coffre, statut
+                    ) VALUES (
+                        :lycee_id, 'Caisse Guichet 1', 'caisse', 0.00, :devise, :responsable_id, 0, 'actif'
+                    )
+                ");
+                $stmtCompte->execute([
+                    'lycee_id' => $lyceeId,
+                    'devise' => $devise,
+                    'responsable_id' => $userId
+                ]);
+                $caisseId = (int)$db->lastInsertId();
+            } else {
+                $caisseId = (int)$existingCaisseId;
+            }
 
             // STEP I: Create Academic Periods (Sequences): Period 1 is 'ouverte', subsequent periods are 'planifiee'
             $seqType = (strtolower($sequenceAnnuelle) === 'semestrielle') ? 'semestrielle' : 'trimestrielle';
