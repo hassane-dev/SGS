@@ -1,11 +1,12 @@
 <?php
 
-require_once __DIR__ . '/../../src/config/database.php';
-
 class Migration2024011530CreateModesPaiementAndVentilations {
 
-    public static function up() {
-        $db = Database::getInstance();
+    public static function up($db = null) {
+        if (!$db) {
+            require_once __DIR__ . '/../../src/config/database.php';
+            $db = Database::getInstance();
+        }
         $isSqlite = ($db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite');
 
         // 1. Table `modes_paiement`
@@ -99,11 +100,14 @@ class Migration2024011530CreateModesPaiementAndVentilations {
     }
 }
 
-// Auto-run if invoked directly or required
-if (class_exists('Database')) {
-    try {
-        Migration2024011530CreateModesPaiementAndVentilations::up();
-    } catch (Exception $e) {
-        // Ignore if database connection is not established during static loading
-    }
+function migrate_30($db) {
+    echo "Running Migration 30: Create modes_paiement and paiement_ventilations...\n";
+    Migration2024011530CreateModesPaiementAndVentilations::up($db);
+    echo "Migration 30 completed successfully.\n";
+}
+
+// Execute migration directly if invoked as a CLI script
+if (basename(__FILE__) === basename($_SERVER['SCRIPT_FILENAME'] ?? '')) {
+    require_once __DIR__ . '/../../src/config/database.php';
+    migrate_30(Database::getInstance());
 }
