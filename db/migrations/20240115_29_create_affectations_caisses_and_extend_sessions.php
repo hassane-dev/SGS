@@ -2,8 +2,11 @@
 
 class Migration2024011529CreateAffectationsCaissesAndExtendSessions {
 
-    public static function up() {
-        $db = Database::getInstance();
+    public static function up($db = null) {
+        if (!$db) {
+            require_once __DIR__ . '/../../src/config/database.php';
+            $db = Database::getInstance();
+        }
         $isSqlite = ($db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite');
 
         // 1. Table `affectations_caisses`
@@ -59,7 +62,25 @@ class Migration2024011529CreateAffectationsCaissesAndExtendSessions {
 
         foreach ($columnsToExtend as $col => $def) {
             try {
-                $db->exec("ALTER TABLE sessions_caisse ADD COLUMN {$col} {$def}");
+                if ($isSqlite) {
+                    $stmt = $db->query("PRAGMA table_info(sessions_caisse)");
+                    $cols = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+                    $colExists = false;
+                    foreach ($cols as $c) {
+                        if ($c['name'] === $col) {
+                            $colExists = true;
+                            break;
+                        }
+                    }
+                    if (!$colExists) {
+                        $db->exec("ALTER TABLE sessions_caisse ADD COLUMN {$col} {$def}");
+                    }
+                } else {
+                    $stmt = $db->query("SHOW COLUMNS FROM `sessions_caisse` LIKE '{$col}'");
+                    if (!$stmt || !$stmt->fetch()) {
+                        $db->exec("ALTER TABLE sessions_caisse ADD COLUMN {$col} {$def}");
+                    }
+                }
             } catch (Exception $e) {
                 // Column may already exist
             }
@@ -67,5 +88,14 @@ class Migration2024011529CreateAffectationsCaissesAndExtendSessions {
     }
 }
 
-// Execute migration directly
-Migration2024011529CreateAffectationsCaissesAndExtendSessions::up();
+function migrate_29($db) {
+    echo "Running Migration 29: Create affectations_caisses and extend sessions_caisse...\n";
+    Migration2024011529CreateAffectationsCaissesAndExtendSessions::up($db);
+    echo "Migration 29 completed successfully.\n";
+}
+
+// Execute migration directly if invoked as a CLI script
+if (basename(__FILE__) === basename($_SERVER['SCRIPT_FILENAME'] ?? '')) {
+    require_once __DIR__ . '/../../src/config/database.php';
+    migrate_29(Database::getInstance());
+}
