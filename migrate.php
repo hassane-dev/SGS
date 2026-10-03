@@ -1019,6 +1019,12 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_28_fix_presences_integrity_and_security.php';
     migrate_28($db);
 
+    require_once __DIR__ . '/db/migrations/20240115_29_create_affectations_caisses_and_extend_sessions.php';
+    Migration2024011529CreateAffectationsCaissesAndExtendSessions::up();
+
+    require_once __DIR__ . '/db/migrations/20240115_30_create_modes_paiement_and_ventilations.php';
+    Migration2024011530CreateModesPaiementAndVentilations::up();
+
     // Provision DRH role if not present
     $stmt_drh_role = $db->query("SELECT id_role FROM roles WHERE nom_role = 'drh'");
     if (!$stmt_drh_role->fetch()) {
