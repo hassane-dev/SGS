@@ -23,13 +23,18 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <div class="d-flex justify-content-end">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0"><i class="ph-duotone ph-funnel me-1"></i><?= _("Filtres Académiques") ?></h5>
                             <?php if (Auth::can('create', 'class')): ?>
-                                <a href="/classes/create" class="btn btn-primary">
+                                <a href="/classes/create" class="btn btn-primary btn-sm">
                                     <?= _('Nouvelle Classe') ?>
                                 </a>
                             <?php endif; ?>
                         </div>
+                        <?php
+                        $config = ['show_classe' => false];
+                        require __DIR__ . '/../layouts/_academic_filters.php';
+                        ?>
                     </div>
                     <div class="card-body">
                         <?php if (isset($_SESSION['success_message'])): ?>

@@ -27,49 +27,16 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <form method="GET" action="/eleves" class="row g-3">
-                            <?php if (Auth::can('view_all_lycees', 'lycee')): ?>
-                                <div class="col-md-2">
-                                    <label class="form-label"><?= _('Lycée') ?></label>
-                                    <select name="lycee_id" id="filter_lycee_id" class="form-select">
-                                        <option value=""><?= _('Tous les lycées') ?></option>
-                                        <?php foreach ($lycees as $l): ?>
-                                            <option value="<?= $l['id'] ?>" <?= $filters['lycee_id'] == $l['id'] ? 'selected' : '' ?>><?= htmlspecialchars($l['nom_lycee']) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0"><i class="ph-duotone ph-funnel me-1"></i><?= _("Filtres Élèves") ?></h5>
+                            <?php if (Auth::can('inscrire', 'eleve')): ?>
+                                <a href="/inscriptions" class="btn btn-primary btn-sm"><i class="ph-duotone ph-plus me-1"></i><?= _('Nouvelle Inscription') ?></a>
                             <?php endif; ?>
-                            <div class="col-md-2">
-                                <label class="form-label"><?= _('Cycle') ?></label>
-                                <select name="cycle_id" id="filter_cycle_id" class="form-select">
-                                    <option value=""><?= _('Tous les cycles') ?></option>
-                                    <?php foreach ($cycles as $c): ?>
-                                        <option value="<?= $c['id_cycle'] ?>" <?= $filters['cycle_id'] == $c['id_cycle'] ? 'selected' : '' ?>><?= htmlspecialchars($c['nom_cycle']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label"><?= _('Niveau') ?></label>
-                                <select name="niveau" id="filter_niveau" class="form-select">
-                                    <option value=""><?= _('Tous les niveaux') ?></option>
-                                </select>
-                            </div>
-                            <div class="col-md-2" id="filter_serie_container" style="display:none;">
-                                <label class="form-label"><?= _('Série') ?></label>
-                                <select name="serie" id="filter_serie" class="form-select">
-                                    <option value=""><?= _('Toutes les séries') ?></option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label"><?= _('Numéro') ?></label>
-                                <select name="numero" id="filter_numero" class="form-select">
-                                    <option value=""><?= _('Tous les numéros') ?></option>
-                                </select>
-                            </div>
-                            <div class="col-md-2 d-flex align-items-end">
-                                <button type="submit" class="btn btn-primary w-100"><?= _('Filtrer') ?></button>
-                            </div>
-                        </form>
+                        </div>
+                        <?php
+                        $config = ['show_classe' => true, 'submit_label' => _('Filtrer')];
+                        require __DIR__ . '/../layouts/_academic_filters.php';
+                        ?>
                         <hr>
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="flex-grow-1 me-3">

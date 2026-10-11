@@ -81,34 +81,22 @@ class FraisController {
      * AJAX: Get all distinct levels for the current lycee.
      */
     public function getNiveaux() {
-        if (!Auth::check()) {
-            header('Content-Type: application/json');
-            echo json_encode(['error' => 'Unauthorized']);
-            exit();
-        }
-        $lycee_id = Auth::get('lycee_id');
-        $niveaux = Classe::getDistinctNiveaux($lycee_id);
-
-        header('Content-Type: application/json');
-        echo json_encode($niveaux);
-        exit();
+        if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
+        require_once __DIR__ . '/../services/AcademicFilterService.php';
+        $options = AcademicFilterService::getCascadeOptions($_GET);
+        echo json_encode(array_values($options['niveaux']));
+        if (!defined('TEST_MODE')) exit(); return;
     }
 
     /**
      * AJAX: Get all distinct series for the current lycee.
      */
     public function getSeries() {
-        if (!Auth::check()) {
-            header('Content-Type: application/json');
-            echo json_encode(['error' => 'Unauthorized']);
-            exit();
-        }
-        $lycee_id = Auth::get('lycee_id');
-        $series = Classe::getDistinctSeries($lycee_id);
-
-        header('Content-Type: application/json');
-        echo json_encode($series);
-        exit();
+        if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
+        require_once __DIR__ . '/../services/AcademicFilterService.php';
+        $options = AcademicFilterService::getCascadeOptions($_GET);
+        echo json_encode(array_values($options['series']));
+        if (!defined('TEST_MODE')) exit(); return;
     }
 }
 ?>

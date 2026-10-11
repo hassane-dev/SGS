@@ -52,10 +52,21 @@ class ClasseController {
 
     public function index() {
         $this->checkAccess('class:view');
-        $lycee_id = !Auth::can('view_all_lycees', 'lycee') ? Auth::getLyceeId() : null;
-        $classes = Classe::findAll($lycee_id);
+        require_once __DIR__ . '/../services/AcademicFilterService.php';
+        $cascadeOptions = AcademicFilterService::getCascadeOptions($_GET);
+
+        $baseSql = "SELECT c.*, cy.nom_cycle FROM classes c JOIN cycles cy ON c.cycle_id = cy.id_cycle";
+        $applied = AcademicFilterService::applyToQuery($baseSql, [], $_GET, 'c');
+
+        $db = Database::getInstance();
+        $stmt = $db->prepare($applied['sql'] . " ORDER BY cy.nom_cycle ASC, c.niveau ASC, c.serie ASC, c.numero ASC");
+        $stmt->execute($applied['params']);
+        $classes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         View::render('classes/index', [
             'classes' => $classes,
+            'cascadeOptions' => $cascadeOptions,
+            'filters' => $_GET,
             'title' => 'Gestion des Classes'
         ]);
     }
@@ -126,12 +137,35 @@ class ClasseController {
         $this->checkAccess('class:create');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
-            $lycee_id = Auth::can('view_all_lycees', 'lycee') ? $data['lycee_id'] : Auth::getLyceeId();
+            $lycee_id = Auth::can('view_all_lycees', 'lycee') ? ($data['lycee_id'] ?? Auth::getLyceeId()) : Auth::getLyceeId();
             $data['lycee_id'] = $lycee_id;
 
-            // Automatic cycle assignment
-            $params = ParamGeneral::findByLyceeId($lycee_id);
-            $mode_cycle = $params['mode_cycle'] ?? 'separe_ceg_lycee';
+            $cycle_id = !empty($data['cycle_id']) ? (int)$data['cycle_id'] : null;
+            if (!$cycle_id) {
+                if (defined('TEST_MODE')) {
+                    throw new InvalidArgumentException("Le cycle est obligatoire.");
+                }
+                $_SESSION['error_message'] = "Le cycle est obligatoire.";
+                header('Location: /classes/create');
+                exit();
+            }
+
+            // Validate cycle existence and school tenancy
+            $cycle = Cycle::findById($cycle_id);
+            if (!$cycle || ($cycle['lycee_id'] !== null && (int)$cycle['lycee_id'] !== (int)$lycee_id)) {
+                if (defined('TEST_MODE')) {
+                    throw new InvalidArgumentException("Le cycle sélectionné est invalide ou n'appartient pas à l'établissement.");
+                }
+                $_SESSION['error_message'] = "Le cycle sélectionné est invalide ou n'appartient pas à l'établissement.";
+                header('Location: /classes/create');
+                exit();
+            }
+
+            // Assert scope authorization on lycee and cycle
+            require_once __DIR__ . '/../services/AcademicFilterService.php';
+            AcademicFilterService::assertAccess(['lycee_id' => $lycee_id, 'cycle_id' => $cycle_id]);
+
+            $data['cycle_id'] = $cycle_id;
 
             // Set categorie based on serie
             if (!empty($data['serie'])) {
@@ -140,21 +174,6 @@ class ClasseController {
                     $data['categorie'] = 'Littéraire';
                 } elseif (in_array($serie, ['C', 'D', 'E', 'S'])) {
                     $data['categorie'] = 'Scientifique';
-                }
-            }
-
-            if ($mode_cycle === 'lycee_unique') {
-                $cycle = Cycle::findByNom('Lycée');
-                $data['cycle_id'] = $cycle['id_cycle'];
-            } else { // separe_ceg_lycee
-                // Assumes niveau is an integer e.g., 6, 5, 4, 3 for CEG and 2, 1, Tle for Lycée
-                $niveau = intval(preg_replace('/[^0-9]/', '', $data['niveau']));
-                if (in_array($niveau, [6, 5, 4, 3])) {
-                    $cycle = Cycle::findByNom('CEG');
-                    $data['cycle_id'] = $cycle['id_cycle'];
-                } else {
-                    $cycle = Cycle::findByNom('Lycée');
-                    $data['cycle_id'] = $cycle['id_cycle'];
                 }
             }
 
@@ -255,71 +274,33 @@ class ClasseController {
 
     public function getNiveauxForCycle() {
         if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
-        $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
-        $lycee_id = !empty($_GET['lycee_id']) ? (int)$_GET['lycee_id'] : Auth::getLyceeId();
-
-        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
-        if (!AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
-            echo json_encode([]);
-            if (!defined('TEST_MODE')) exit(); return;
-        }
-
-        $niveaux = $cycle_id ? Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id) : Classe::getDistinctNiveaux($lycee_id);
-        echo json_encode(array_values($niveaux));
+        require_once __DIR__ . '/../services/AcademicFilterService.php';
+        $options = AcademicFilterService::getCascadeOptions($_GET);
+        echo json_encode(array_values($options['niveaux']));
         if (!defined('TEST_MODE')) exit(); return;
     }
 
     public function getSeriesForNiveau() {
         if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
-        $niveau = $_GET['niveau'] ?? null;
-        $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
-        $lycee_id = !empty($_GET['lycee_id']) ? (int)$_GET['lycee_id'] : Auth::getLyceeId();
-
-        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
-        if (!AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
-            echo json_encode([]);
-            if (!defined('TEST_MODE')) exit(); return;
-        }
-
-        $series = Classe::findDistinctSeriesByNiveau($niveau, $lycee_id, $cycle_id);
-        echo json_encode(array_values($series));
+        require_once __DIR__ . '/../services/AcademicFilterService.php';
+        $options = AcademicFilterService::getCascadeOptions($_GET);
+        echo json_encode(array_values($options['series']));
         if (!defined('TEST_MODE')) exit(); return;
     }
 
     public function getNumerosForClasse() {
         if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
-        $niveau = $_GET['niveau'] ?? null;
-        $serie = $_GET['serie'] ?? null;
-        $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
-        $lycee_id = !empty($_GET['lycee_id']) ? (int)$_GET['lycee_id'] : Auth::getLyceeId();
-
-        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
-        if (!AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
-            echo json_encode([]);
-            if (!defined('TEST_MODE')) exit(); return;
-        }
-
-        $numeros = Classe::findAvailableNumeros($niveau, $serie, $lycee_id, $cycle_id);
-        echo json_encode(array_values($numeros));
+        require_once __DIR__ . '/../services/AcademicFilterService.php';
+        $options = AcademicFilterService::getCascadeOptions($_GET);
+        echo json_encode(array_values($options['numeros']));
         if (!defined('TEST_MODE')) exit(); return;
     }
 
     public function findClassId() {
         if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
-        $lycee_id = !empty($_GET['lycee_id']) ? (int)$_GET['lycee_id'] : Auth::getLyceeId();
-        $niveau = $_GET['niveau'] ?? null;
-        $serie = $_GET['serie'] ?? null;
-        $numero = $_GET['numero'] ?? null;
-        $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
-
-        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
-        if (!AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
-            echo json_encode(['id_classe' => null]);
-            if (!defined('TEST_MODE')) exit(); return;
-        }
-
-        $id = Classe::findIdByDetails($lycee_id, $niveau, $serie, $numero, $cycle_id);
-        echo json_encode(['id_classe' => $id]);
+        require_once __DIR__ . '/../services/AcademicFilterService.php';
+        $validated = AcademicFilterService::sanitizeAndIntersectFilters($_GET);
+        echo json_encode(['id_classe' => $validated['classe_id']]);
         if (!defined('TEST_MODE')) exit(); return;
     }
 }

@@ -55,78 +55,14 @@
                         <h6 class="mb-0 fw-bold"><i class="ph-duotone ph-funnel me-1"></i> <?= _('Filtres Hiérarchiques Dynamiques') ?></h6>
                     </div>
                     <div class="card-body py-3">
-                        <form action="/affectations-pedagogiques" method="GET" id="filterForm" class="row g-2 align-items-end">
-                            <input type="hidden" name="classe_id" id="filter_classe_id" value="<?= htmlspecialchars($filters['classe_id'] ?? '') ?>">
-
-                            <!-- 1. Cycle -->
-                            <div class="col-md-2">
-                                <label class="form-label small mb-1"><?= _('Cycle') ?></label>
-                                <select name="cycle_id" id="filter_cycle" class="form-select form-select-sm">
-                                    <option value=""><?= _('-- Tous les cycles --') ?></option>
-                                    <?php foreach ($cycles as $cy): ?>
-                                        <option value="<?= $cy['id_cycle'] ?>" <?= (isset($filters['cycle_id']) && $filters['cycle_id'] == $cy['id_cycle']) ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($cy['nom_cycle']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-
-                            <!-- 2. Niveau -->
-                            <div class="col-md-2">
-                                <label class="form-label small mb-1"><?= _('Niveau') ?></label>
-                                <select name="niveau" id="filter_niveau" class="form-select form-select-sm" disabled>
-                                    <option value=""><?= _('-- Choisir d\'abord un cycle --') ?></option>
-                                </select>
-                            </div>
-
-                            <!-- 3. Série (Lycée only) -->
-                            <div class="col-md-2" id="group_filter_serie" style="display: none;">
-                                <label class="form-label small mb-1"><?= _('Série') ?></label>
-                                <select name="serie" id="filter_serie" class="form-select form-select-sm" disabled>
-                                    <option value=""><?= _('-- Toutes --') ?></option>
-                                </select>
-                            </div>
-
-                            <!-- 4. Numéro / Division -->
-                            <div class="col-md-2">
-                                <label class="form-label small mb-1"><?= _('Numéro') ?></label>
-                                <select name="numero" id="filter_numero" class="form-select form-select-sm" disabled>
-                                    <option value=""><?= _('-- Tous --') ?></option>
-                                </select>
-                            </div>
-
-                            <!-- 5. Matière (Inclusif: toutes les matières de classe_matieres) -->
-                            <div class="col-md-2">
-                                <label class="form-label small mb-1"><?= _('Matière') ?></label>
-                                <select name="matiere_id" id="filter_matiere" class="form-select form-select-sm" disabled>
-                                    <option value=""><?= _('-- Déterminer classe --') ?></option>
-                                </select>
-                            </div>
-
-                            <!-- 6. Enseignant Éligible par Cycle -->
-                            <div class="col-md-2">
-                                <label class="form-label small mb-1"><?= _('Enseignant') ?></label>
-                                <select name="enseignant_id" id="filter_enseignant" class="form-select form-select-sm" disabled>
-                                    <option value=""><?= _('-- Choisir d\'abord un cycle --') ?></option>
-                                </select>
-                            </div>
-
-                            <!-- 7. Statut -->
-                            <div class="col-md-2">
-                                <label class="form-label small mb-1"><?= _('Statut') ?></label>
-                                <select name="statut" id="filter_statut" class="form-select form-select-sm">
-                                    <option value=""><?= _('-- Tous les statuts --') ?></option>
-                                    <option value="actif" <?= (isset($filters['statut']) && $filters['statut'] === 'actif') ? 'selected' : '' ?>><?= _('Actif') ?></option>
-                                    <option value="suspendu" <?= (isset($filters['statut']) && $filters['statut'] === 'suspendu') ? 'selected' : '' ?>><?= _('Suspendu') ?></option>
-                                    <option value="provisoire" <?= (isset($filters['statut']) && $filters['statut'] === 'provisoire') ? 'selected' : '' ?>><?= _('Provisoire') ?></option>
-                                    <option value="termine" <?= (isset($filters['statut']) && $filters['statut'] === 'termine') ? 'selected' : '' ?>><?= _('Terminé') ?></option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-2 text-end ms-auto">
-                                <button type="submit" class="btn btn-sm btn-secondary me-1"><i class="ph-duotone ph-magnifying-glass me-1"></i><?= _('Filtrer') ?></button>
-                                <a href="/affectations-pedagogiques" class="btn btn-sm btn-link-secondary"><?= _('Réinitialiser') ?></a>
-                            </div>
+                        <?php
+                        $config = ['show_classe' => true, 'submit_label' => _('Filtrer')];
+                        require __DIR__ . '/../layouts/_academic_filters.php';
+                        ?>
+                    </div>
+                </div>
+            </div>
+        </div>
                         </form>
                     </div>
                 </div>
