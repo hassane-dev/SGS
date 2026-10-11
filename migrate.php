@@ -1025,6 +1025,9 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_30_create_modes_paiement_and_ventilations.php';
     migrate_30($db);
 
+    require_once __DIR__ . '/db/migrations/20240115_31_migrate_frais_cycle_id.php';
+    migrate_31($db);
+
     // Provision DRH role if not present
     $stmt_drh_role = $db->query("SELECT id_role FROM roles WHERE nom_role = 'drh'");
     if (!$stmt_drh_role->fetch()) {

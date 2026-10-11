@@ -22,11 +22,11 @@
         <div class="row mb-3">
             <label for="cycle" class="col-sm-3 col-form-label"><?= _('Cycle') ?></label>
             <div class="col-sm-9">
-                <select class="form-select" id="cycle" name="cycle">
+                <select class="form-select" id="cycle" name="cycle_id">
                     <option value=""><?= _('Sélectionnez un cycle') ?></option>
                     <?php if (isset($cycles)): ?>
                         <?php foreach ($cycles as $c): ?>
-                            <option value="<?= htmlspecialchars($c['nom_cycle']) ?>" <?= ($old_input['cycle'] ?? '') === $c['nom_cycle'] ? 'selected' : '' ?>>
+                            <option value="<?= htmlspecialchars($c['id_cycle']) ?>" <?= (($old_input['cycle_id'] ?? '') == $c['id_cycle'] || ($old_input['cycle'] ?? '') === $c['nom_cycle']) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($c['nom_cycle']) ?>
                             </option>
                         <?php endforeach; ?>

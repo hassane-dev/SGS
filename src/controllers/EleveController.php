@@ -20,49 +20,31 @@ class EleveController {
     const UPLOAD_DIR = '/photos/';
 
     public function index() {
-        $user_role = Auth::get('role_name');
-        $user_id = Auth::get('id');
-        $current_lycee_id = Auth::getLyceeId();
-
-        $filters = [
-            'lycee_id' => $_GET['lycee_id'] ?? $current_lycee_id,
-            'cycle_id' => $_GET['cycle_id'] ?? null,
-            'niveau'   => $_GET['niveau'] ?? null,
-            'serie'    => $_GET['serie'] ?? null,
-            'numero'   => $_GET['numero'] ?? null,
-        ];
-
-        $eleves = [];
-
-        // Censeur/Proviseur/Admin can see all students in the lycee
-        if (Auth::can('view_all', 'eleve')) {
-            // If it's a super admin, they might not have a lycee_id fixed
-            if (Auth::can('view_all_lycees', 'lycee')) {
-                 $eleves = Eleve::findAll($filters);
-            } else {
-                $filters['lycee_id'] = $current_lycee_id;
-                $eleves = Eleve::findAll($filters);
-            }
-        }
-        // Surveillant can see students from their assigned classes
-        elseif ($user_role === 'surveillant') {
-            $assigned_class_ids = PersonnelAssignment::findAssignedClassIdsBySupervisor($user_id);
-            if (!empty($assigned_class_ids)) {
-                $eleves = Eleve::findAllByClassIds($assigned_class_ids);
-            }
-        } else {
-            // Other roles (like teacher) cannot see the student list view
+        if (!Auth::can('view_all', 'eleve') && Auth::get('role_name') !== 'surveillant') {
             $this->forbidden();
         }
 
-        $lycees = Auth::can('view_all_lycees', 'lycee') ? Lycee::findAll() : [];
-        $cycles = Cycle::findAll();
+        require_once __DIR__ . '/../services/AcademicFilterService.php';
+        $cascadeOptions = AcademicFilterService::getCascadeOptions($_GET);
+
+        $baseSql = "
+            SELECT DISTINCT e.*, c.id_classe, c.niveau, c.serie, c.numero, c.cycle_id, cy.nom_cycle
+            FROM eleves e
+            LEFT JOIN etudes et ON e.id_eleve = et.eleve_id AND et.is_active = 1
+            LEFT JOIN classes c ON et.classe_id = c.id_classe
+            LEFT JOIN cycles cy ON c.cycle_id = cy.id_cycle
+        ";
+        $applied = AcademicFilterService::applyToQuery($baseSql, [], $_GET, 'c');
+
+        $db = Database::getInstance();
+        $stmt = $db->prepare($applied['sql'] . " ORDER BY e.nom ASC, e.prenom ASC");
+        $stmt->execute($applied['params']);
+        $eleves = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         View::render('eleves/index', [
             'eleves' => $eleves,
-            'lycees' => $lycees,
-            'cycles' => $cycles,
-            'filters' => $filters,
+            'cascadeOptions' => $cascadeOptions,
+            'filters' => $_GET,
             'title' => 'Liste des Élèves'
         ]);
     }
@@ -383,6 +365,18 @@ class EleveController {
 
         $classe_id = Classe::findIdByDetails($lycee_id, $data['niveau'], $data['serie'] ?? null, $data['numero'], $cycle_id);
         if ($classe_id) {
+            require_once __DIR__ . '/../services/AcademicFilterService.php';
+            try {
+                AcademicFilterService::assertAccess(['lycee_id' => $lycee_id, 'cycle_id' => $cycle_id, 'classe_id' => $classe_id]);
+            } catch (Exception $e) {
+                $_SESSION['error_message'] = $e->getMessage();
+                if (!defined('TEST_MODE')) {
+                    header('Location: /eleves/assign-class?eleve_id=' . $eleve_id);
+                    exit();
+                }
+                return;
+            }
+
             $targetClasse = Classe::findById($classe_id);
             if (!$targetClasse || (int)$targetClasse['cycle_id'] !== $cycle_id || (int)$targetClasse['lycee_id'] !== (int)$lycee_id) {
                 $_SESSION['error_message'] = "La classe sélectionnée n'appartient pas au cycle ou établissement autorisé.";

@@ -125,6 +125,11 @@ class AffectationPedagogiqueController {
             $data = Validator::sanitize($_POST);
             $author_id = Auth::getUserId();
 
+            require_once __DIR__ . '/../services/AcademicFilterService.php';
+            if (!empty($data['classe_id'])) {
+                AcademicFilterService::assertAccess(['classe_id' => (int)$data['classe_id']]);
+            }
+
             try {
                 AffectationPedagogiqueService::createAssignment($data, $author_id);
                 $_SESSION['success_message'] = _("Affectation pédagogique enregistrée avec succès.");
@@ -283,58 +288,48 @@ class AffectationPedagogiqueController {
     // --- AJAX endpoints for dynamic hierarchical selection ---
 
     public function getNiveaux() {
-        header('Content-Type: application/json');
-        $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
-        $lycee_id = Auth::getLyceeId();
-        $niveaux = $cycle_id ? Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id) : Classe::getDistinctNiveaux($lycee_id);
-        echo json_encode(array_values($niveaux));
+        if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
+        require_once __DIR__ . '/../services/AcademicFilterService.php';
+        $options = AcademicFilterService::getCascadeOptions($_GET);
+        echo json_encode(array_values($options['niveaux']));
         if (!defined('TEST_MODE')) exit(); return;
     }
 
     public function getSeries() {
-        header('Content-Type: application/json');
-        $niveau = $_GET['niveau'] ?? null;
-        $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
-        $lycee_id = Auth::getLyceeId();
-        $series = Classe::findDistinctSeriesByNiveau($niveau, $lycee_id, $cycle_id);
-        echo json_encode(array_values($series));
+        if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
+        require_once __DIR__ . '/../services/AcademicFilterService.php';
+        $options = AcademicFilterService::getCascadeOptions($_GET);
+        echo json_encode(array_values($options['series']));
         if (!defined('TEST_MODE')) exit(); return;
     }
 
     public function getNumeros() {
-        header('Content-Type: application/json');
-        $niveau = $_GET['niveau'] ?? null;
-        $serie = $_GET['serie'] ?? null;
-        $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
-        $lycee_id = Auth::getLyceeId();
-        $numeros = Classe::findAvailableNumeros($niveau, $serie, $lycee_id, $cycle_id);
-        echo json_encode(array_values($numeros));
+        if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
+        require_once __DIR__ . '/../services/AcademicFilterService.php';
+        $options = AcademicFilterService::getCascadeOptions($_GET);
+        echo json_encode(array_values($options['numeros']));
         if (!defined('TEST_MODE')) exit(); return;
     }
 
     public function getClasseId() {
-        header('Content-Type: application/json');
-        $lycee_id = Auth::getLyceeId();
-        $niveau = $_GET['niveau'] ?? null;
-        $serie = $_GET['serie'] ?? null;
-        $numero = $_GET['numero'] ?? null;
-        $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
-        $id = Classe::findIdByDetails($lycee_id, $niveau, $serie, $numero, $cycle_id);
-        echo json_encode(['id_classe' => $id]);
+        if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
+        require_once __DIR__ . '/../services/AcademicFilterService.php';
+        $validated = AcademicFilterService::sanitizeAndIntersectFilters($_GET);
+        echo json_encode(['id_classe' => $validated['classe_id']]);
         if (!defined('TEST_MODE')) exit(); return;
     }
 
     public function getMatieres() {
-        header('Content-Type: application/json');
+        if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
         $classe_id = (int)($_GET['classe_id'] ?? 0);
         $exclude_id = !empty($_GET['exclude_assignment_id']) ? (int)$_GET['exclude_assignment_id'] : null;
         $include_all = isset($_GET['include_all']) ? (bool)$_GET['include_all'] : false;
 
-        // Multi-tenant security check on class
-        $user_lycee_id = Auth::getLyceeId();
-        if ($classe_id && !Auth::can('view_all_lycees', 'lycee')) {
-            $classe = Classe::findById($classe_id);
-            if (!$classe || (int)$classe['lycee_id'] !== (int)$user_lycee_id) {
+        require_once __DIR__ . '/../services/AcademicFilterService.php';
+        if ($classe_id) {
+            try {
+                AcademicFilterService::assertAccess(['classe_id' => $classe_id]);
+            } catch (Exception $e) {
                 echo json_encode([]);
                 if (!defined('TEST_MODE')) exit(); return;
             }
@@ -346,15 +341,15 @@ class AffectationPedagogiqueController {
     }
 
     public function getEnseignants() {
-        header('Content-Type: application/json');
+        if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
         $lycee_id = Auth::getLyceeId();
         $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
 
-        // Multi-tenant check on cycle if provided
-        if ($cycle_id && !Auth::can('view_all_lycees', 'lycee')) {
-            require_once __DIR__ . '/../models/Cycle.php';
-            $cycle = Cycle::findById($cycle_id);
-            if (!$cycle || ($cycle['lycee_id'] !== null && (int)$cycle['lycee_id'] !== (int)$lycee_id)) {
+        require_once __DIR__ . '/../services/AcademicFilterService.php';
+        if ($cycle_id) {
+            try {
+                AcademicFilterService::assertAccess(['cycle_id' => $cycle_id]);
+            } catch (Exception $e) {
                 echo json_encode([]);
                 if (!defined('TEST_MODE')) exit(); return;
             }
