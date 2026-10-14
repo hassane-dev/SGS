@@ -67,6 +67,9 @@ class AffectationPedagogiqueController {
 
         $affectations = AffectationPedagogique::findAll($filters);
 
+        require_once __DIR__ . '/../services/AcademicFilterService.php';
+        $cascadeOptions = AcademicFilterService::getCascadeOptions($_GET);
+
         require_once __DIR__ . '/../models/Cycle.php';
         $cycles = Cycle::findByLycee($user_lycee_id);
         if (empty($cycles)) {
@@ -76,6 +79,7 @@ class AffectationPedagogiqueController {
         View::render('affectations_pedagogiques/index', [
             'affectations' => $affectations,
             'cycles' => $cycles,
+            'cascadeOptions' => $cascadeOptions,
             'active_year' => $active_year,
             'filters' => $filters,
             'is_teacher_only' => $is_teacher_only,
