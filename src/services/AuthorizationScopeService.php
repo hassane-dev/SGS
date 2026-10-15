@@ -82,7 +82,7 @@ class AuthorizationScopeService {
             return $cycle_ids;
         }
 
-        // 4. Query active personnel cycle assignments for the current date from DB
+        // 4. Query active assignments for the current date from DB
         $today = date('Y-m-d');
         $stmt = $db->prepare("
             SELECT cycle_id
@@ -99,59 +99,6 @@ class AuthorizationScopeService {
         ]);
 
         $cycle_ids = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)) ?: [];
-        if (!empty($cycle_ids)) {
-            $_SESSION['user']['authorized_cycles'] = $cycle_ids;
-            return $cycle_ids;
-        }
-
-        // 5. Query explicit class/level restrictions (for supervisors or staff assigned to specific classes/levels)
-        $stmtUser = $db->prepare("
-            SELECT u.lycee_id, LOWER(r.nom_role) AS nom_role
-            FROM utilisateurs u
-            LEFT JOIN roles r ON u.role_id = r.id_role
-            WHERE u.id_user = :id
-        ");
-        $stmtUser->execute(['id' => $user_id]);
-        $userRow = $stmtUser->fetch(PDO::FETCH_ASSOC);
-
-        $userLyceeId = !empty($userRow['lycee_id']) ? (int)$userRow['lycee_id'] : Auth::getLyceeId();
-
-        // Check surveillant_classes & personnel_assignments
-        $stmtSurvCls = $db->prepare("
-            SELECT classe_id FROM surveillant_classes WHERE surveillant_id = :uid
-            UNION
-            SELECT target_id FROM personnel_assignments WHERE personnel_id = :uid AND assignment_type = 'classe'
-        ");
-        $stmtSurvCls->execute(['uid' => $user_id]);
-        $clsIds = array_map('intval', $stmtSurvCls->fetchAll(PDO::FETCH_COLUMN));
-
-        // Check surveillant_niveaux
-        $stmtSurvNiv = $db->prepare("SELECT niveau FROM surveillant_niveaux WHERE surveillant_id = :uid");
-        $stmtSurvNiv->execute(['uid' => $user_id]);
-        $niveaux = array_filter(array_map('trim', $stmtSurvNiv->fetchAll(PDO::FETCH_COLUMN)));
-
-        if (!empty($niveaux) && $userLyceeId) {
-            $inNiv = implode(',', array_map(function($n) use ($db) { return $db->quote($n); }, $niveaux));
-            $stmtNivCls = $db->query("SELECT id_classe FROM classes WHERE lycee_id = {$userLyceeId} AND niveau IN ({$inNiv})");
-            $nivClsIds = array_map('intval', $stmtNivCls->fetchAll(PDO::FETCH_COLUMN));
-            $clsIds = array_values(array_unique(array_merge($clsIds, $nivClsIds)));
-        }
-
-        if (!empty($clsIds)) {
-            $inCls = implode(',', $clsIds);
-            $stmtC = $db->query("SELECT DISTINCT cycle_id FROM classes WHERE id_classe IN ({$inCls})");
-            $cycle_ids = array_map('intval', $stmtC->fetchAll(PDO::FETCH_COLUMN));
-            $_SESSION['user']['authorized_cycles'] = $cycle_ids;
-            return $cycle_ids;
-        }
-
-        // 6. Default: User has no explicit cycle or class restrictions, so they have access to all cycles of their school establishment (lycee_id)
-        if ($userLyceeId) {
-            $cycles = Cycle::findByLycee($userLyceeId);
-        } else {
-            $cycles = Cycle::findAll();
-        }
-        $cycle_ids = array_map('intval', array_column($cycles, 'id_cycle'));
         $_SESSION['user']['authorized_cycles'] = $cycle_ids;
         return $cycle_ids;
     }
