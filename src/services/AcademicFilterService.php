@@ -85,11 +85,8 @@ class AcademicFilterService {
             ];
         }
 
-        $roleName = strtolower($user['nom_role'] ?? '');
         $isGlobalAdmin = Auth::can('view_all_lycees', 'lycee');
         $hasFullCycleAccess = $isGlobalAdmin || Auth::can('view_all_cycles', 'cycle');
-        $isTeacher = (strpos($roleName, 'enseignant') !== false || $roleName === 'professeur');
-        $isSupervisor = (strpos($roleName, 'surveillant') !== false);
 
         // 1. Authorized Lycee IDs
         $authorizedLyceeIds = AuthorizationScopeService::getAuthorizedLyceeIds();
@@ -115,97 +112,53 @@ class AcademicFilterService {
         $restrictedClasseIds = null;
         $restrictedNiveauNames = null;
 
-        if ($isTeacher && !Auth::can('note', 'view_all')) {
-            // Get active pedagogical assignments for active academic year
-            $activeYear = AnneeAcademique::findActive();
-            $activeYearId = $activeYear ? (int)$activeYear['id'] : null;
+        // Check for specific teacher or supervisor assignments purely by DB assignment records rather than role names
+        $activeYear = AnneeAcademique::findActive();
+        $activeYearId = $activeYear ? (int)$activeYear['id'] : null;
 
-            $teacherAssignments = User::getTeacherAssignments($userId, $activeYearId);
-            $assignedClassIds = array_values(array_unique(array_filter(array_column($teacherAssignments, 'id_classe'))));
+        $teacherAssignments = User::getTeacherAssignments($userId, $activeYearId);
+        $assignedTeacherClassIds = array_values(array_unique(array_filter(array_column($teacherAssignments, 'id_classe'))));
 
-            if (empty($assignedClassIds)) {
-                return [
-                    'access_type' => self::SCOPE_NONE,
-                    'lycee_ids' => $authorizedLyceeIds,
-                    'cycle_ids' => $authorizedCycleIds,
-                    'niveau_names' => null,
-                    'classe_ids' => [],
-                    'teacher_assignments' => [],
-                    'is_global_admin' => $isGlobalAdmin,
-                    'is_teacher' => true,
-                    'is_supervisor' => false,
-                ];
-            }
+        $stmtSurvGen = $db->prepare("SELECT COUNT(*) FROM surveillant_general WHERE surveillant_id = :uid");
+        $stmtSurvGen->execute(['uid' => $userId]);
+        $isSurvGen = ((int)$stmtSurvGen->fetchColumn()) > 0;
 
-            $restrictedClasseIds = array_map('intval', $assignedClassIds);
+        $stmtSurvCls = $db->prepare("SELECT classe_id FROM surveillant_classes WHERE surveillant_id = :uid");
+        $stmtSurvCls->execute(['uid' => $userId]);
+        $clsIds1 = array_map('intval', $stmtSurvCls->fetchAll(PDO::FETCH_COLUMN));
 
-            // Derive cycle_ids from assigned classes if authorizedCycleIds was empty
-            if (empty($authorizedCycleIds) && !empty($teacherAssignments)) {
-                $assignedCycleIds = array_values(array_unique(array_filter(array_column($teacherAssignments, 'cycle_id'))));
-                $authorizedCycleIds = array_map('intval', $assignedCycleIds);
-            }
-        } elseif ($isSupervisor) {
-            // Check surveillant_classes, surveillant_niveaux, surveillant_general, personnel_assignments
-            $stmtSurvGen = $db->prepare("SELECT COUNT(*) FROM surveillant_general WHERE surveillant_id = :uid");
-            $stmtSurvGen->execute(['uid' => $userId]);
-            $isSurvGen = ((int)$stmtSurvGen->fetchColumn()) > 0;
+        $stmtPaCls = $db->prepare("SELECT target_id FROM personnel_assignments WHERE personnel_id = :uid AND assignment_type = 'classe'");
+        $stmtPaCls->execute(['uid' => $userId]);
+        $clsIds2 = array_map('intval', $stmtPaCls->fetchAll(PDO::FETCH_COLUMN));
 
-            if (!$isSurvGen) {
-                // Fetch assigned class IDs
-                $stmtSurvCls = $db->prepare("SELECT classe_id FROM surveillant_classes WHERE surveillant_id = :uid");
-                $stmtSurvCls->execute(['uid' => $userId]);
-                $clsIds1 = array_map('intval', $stmtSurvCls->fetchAll(PDO::FETCH_COLUMN));
+        $stmtSurvNiv = $db->prepare("SELECT niveau FROM surveillant_niveaux WHERE surveillant_id = :uid");
+        $stmtSurvNiv->execute(['uid' => $userId]);
+        $niveaux = array_filter(array_map('trim', $stmtSurvNiv->fetchAll(PDO::FETCH_COLUMN)));
 
-                $stmtPaCls = $db->prepare("SELECT target_id FROM personnel_assignments WHERE personnel_id = :uid AND assignment_type = 'classe'");
-                $stmtPaCls->execute(['uid' => $userId]);
-                $clsIds2 = array_map('intval', $stmtPaCls->fetchAll(PDO::FETCH_COLUMN));
+        $allAssignedSurvClassIds = array_values(array_unique(array_merge($clsIds1, $clsIds2)));
 
-                // Fetch assigned niveaux
-                $stmtSurvNiv = $db->prepare("SELECT niveau FROM surveillant_niveaux WHERE surveillant_id = :uid");
-                $stmtSurvNiv->execute(['uid' => $userId]);
-                $niveaux = array_filter(array_map('trim', $stmtSurvNiv->fetchAll(PDO::FETCH_COLUMN)));
+        if (!empty($niveaux)) {
+            $restrictedNiveauNames = $niveaux;
+            $inLycees = implode(',', array_map('intval', $authorizedLyceeIds));
+            $inNiv = implode(',', array_map(function($n) use ($db) { return $db->quote($n); }, $niveaux));
 
-                $allAssignedClassIds = array_values(array_unique(array_merge($clsIds1, $clsIds2)));
+            $stmtNivCls = $db->query("
+                SELECT id_classe FROM classes
+                WHERE lycee_id IN ($inLycees)
+                  AND niveau IN ($inNiv)
+            ");
+            $nivClsIds = array_map('intval', $stmtNivCls->fetchAll(PDO::FETCH_COLUMN));
+            $allAssignedSurvClassIds = array_values(array_unique(array_merge($allAssignedSurvClassIds, $nivClsIds)));
+        }
 
-                if (!empty($niveaux)) {
-                    $restrictedNiveauNames = $niveaux;
-                    // Also resolve class IDs matching assigned niveaux within authorized lycees
-                    $inLycees = implode(',', array_map('intval', $authorizedLyceeIds));
-                    $inNiv = implode(',', array_map(function($n) use ($db) { return $db->quote($n); }, $niveaux));
+        $isTeacher = !empty($teacherAssignments);
+        $isSupervisor = $isSurvGen || !empty($allAssignedSurvClassIds) || !empty($niveaux);
 
-                    $stmtNivCls = $db->query("
-                        SELECT id_classe FROM classes
-                        WHERE lycee_id IN ($inLycees)
-                          AND niveau IN ($inNiv)
-                    ");
-                    $nivClsIds = array_map('intval', $stmtNivCls->fetchAll(PDO::FETCH_COLUMN));
-                    $allAssignedClassIds = array_values(array_unique(array_merge($allAssignedClassIds, $nivClsIds)));
-                }
-
-                if (!empty($clsIds1) || !empty($clsIds2) || !empty($niveaux)) {
-                    if (empty($allAssignedClassIds)) {
-                        return [
-                            'access_type' => self::SCOPE_NONE,
-                            'lycee_ids' => $authorizedLyceeIds,
-                            'cycle_ids' => $authorizedCycleIds,
-                            'niveau_names' => $restrictedNiveauNames,
-                            'classe_ids' => [],
-                            'teacher_assignments' => null,
-                            'is_global_admin' => $isGlobalAdmin,
-                            'is_teacher' => false,
-                            'is_supervisor' => true,
-                        ];
-                    }
-                    $restrictedClasseIds = $allAssignedClassIds;
-
-                    // Derive cycle_ids from assigned classes if authorizedCycleIds was empty
-                    if (empty($authorizedCycleIds) && !empty($restrictedClasseIds)) {
-                        $inClasses = implode(',', array_map('intval', $restrictedClasseIds));
-                        $stmtClsC = $db->query("SELECT DISTINCT cycle_id FROM classes WHERE id_classe IN ($inClasses)");
-                        $authorizedCycleIds = array_map('intval', $stmtClsC->fetchAll(PDO::FETCH_COLUMN));
-                    }
-                }
-            }
+        // Apply class-level restriction if user has specific assignments and no global view
+        if (!empty($assignedTeacherClassIds) && !Auth::can('note', 'view_all')) {
+            $restrictedClasseIds = array_map('intval', $assignedTeacherClassIds);
+        } elseif (!$isSurvGen && !empty($allAssignedSurvClassIds) && !Auth::can('eleve', 'view_all')) {
+            $restrictedClasseIds = array_map('intval', $allAssignedSurvClassIds);
         }
 
         if (empty($authorizedCycleIds)) {
@@ -668,22 +621,42 @@ class AcademicFilterService {
 
         $conditions = [];
 
+        // Determine whether query base includes 'eleves' table (e.g. alias 'e')
+        $hasElevesTable = (stripos($baseSql, 'FROM eleves') !== false || stripos($baseSql, 'JOIN eleves') !== false);
+        $eleveAlias = 'e';
+
         // 1. Lycee condition
         if ($validated['lycee_id'] !== null) {
-            $conditions[] = "{$classAlias}.lycee_id = :afs_lycee_id";
+            if ($hasElevesTable) {
+                $conditions[] = "({$classAlias}.lycee_id = :afs_lycee_id OR ({$classAlias}.lycee_id IS NULL AND {$eleveAlias}.lycee_id = :afs_lycee_id))";
+            } else {
+                $conditions[] = "{$classAlias}.lycee_id = :afs_lycee_id";
+            }
             $params['afs_lycee_id'] = $validated['lycee_id'];
         } elseif (!empty($scope['lycee_ids'])) {
             $inL = implode(',', array_map('intval', $scope['lycee_ids']));
-            $conditions[] = "{$classAlias}.lycee_id IN ($inL)";
+            if ($hasElevesTable) {
+                $conditions[] = "({$classAlias}.lycee_id IN ($inL) OR ({$classAlias}.lycee_id IS NULL AND {$eleveAlias}.lycee_id IN ($inL)))";
+            } else {
+                $conditions[] = "{$classAlias}.lycee_id IN ($inL)";
+            }
         }
 
         // 2. Cycle condition
         if ($validated['cycle_id'] !== null) {
-            $conditions[] = "{$classAlias}.cycle_id = :afs_cycle_id";
+            if ($hasElevesTable) {
+                $conditions[] = "({$classAlias}.cycle_id = :afs_cycle_id OR {$classAlias}.cycle_id IS NULL)";
+            } else {
+                $conditions[] = "{$classAlias}.cycle_id = :afs_cycle_id";
+            }
             $params['afs_cycle_id'] = $validated['cycle_id'];
         } elseif (!empty($scope['cycle_ids'])) {
             $inC = implode(',', array_map('intval', $scope['cycle_ids']));
-            $conditions[] = "{$classAlias}.cycle_id IN ($inC)";
+            if ($hasElevesTable) {
+                $conditions[] = "({$classAlias}.cycle_id IN ($inC) OR {$classAlias}.cycle_id IS NULL)";
+            } else {
+                $conditions[] = "{$classAlias}.cycle_id IN ($inC)";
+            }
         }
 
         // 3. Niveau condition
