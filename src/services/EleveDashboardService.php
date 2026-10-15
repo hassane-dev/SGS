@@ -51,7 +51,7 @@ class EleveDashboardService {
         $currentYear = $stmtYear->fetch(PDO::FETCH_ASSOC);
 
         // 3. Resolve Cycle and Scope Restrictions
-        $hasGlobalView = Auth::can('view_all', 'eleve') || Auth::can('view_stats', 'eleve') || Auth::can('view_all_lycees', 'lycee');
+        $hasGlobalView = Auth::can('view_all', 'eleve') || Auth::can('view_stats', 'eleve') || Auth::can('inscrire', 'eleve') || Auth::can('reinscrire', 'eleve') || Auth::can('view_all_lycees', 'lycee');
 
         $permittedCycles = AuthorizationScopeService::getPermittedCycles($lyceeId);
         $permittedCycleIds = array_map('intval', array_column($permittedCycles, 'id_cycle'));
@@ -114,20 +114,23 @@ class EleveDashboardService {
         }
 
         // 4. Construct Common WHERE clause & SQL parameters
-        $whereClauses = ["e.lycee_id = :lycee_id", "et.annee_academique_id = :annee_id"];
+        $whereClauses = ["e.lycee_id = :lycee_id"];
         $params = [
             'lycee_id' => $lyceeId,
             'annee_id' => $anneeId
         ];
 
-        // Cycle filter
+        // Ensure student is either linked to an etudes record for current academic year OR is newly registered/pending for this school
+        $whereClauses[] = "(et.annee_academique_id = :annee_id OR et.annee_academique_id IS NULL)";
+
+        // Cycle filter (when a class/cycle exists, enforce cycle match; allow unassigned students)
         $cyclePlaceholders = [];
         foreach ($cycleIdsToUse as $idx => $cId) {
             $key = ":cyc_$idx";
             $cyclePlaceholders[] = $key;
             $params[$key] = $cId;
         }
-        $whereClauses[] = "c.cycle_id IN (" . implode(',', $cyclePlaceholders) . ")";
+        $whereClauses[] = "(c.cycle_id IN (" . implode(',', $cyclePlaceholders) . ") OR c.cycle_id IS NULL)";
 
         // Niveau filter
         if (!empty($filters['niveau'])) {
@@ -155,11 +158,10 @@ class EleveDashboardService {
         $sqlActive = "
             SELECT COUNT(DISTINCT e.id_eleve)
             FROM eleves e
-            JOIN etudes et ON e.id_eleve = et.eleve_id
-            JOIN classes c ON et.classe_id = c.id_classe
+            LEFT JOIN etudes et ON e.id_eleve = et.eleve_id
+            LEFT JOIN classes c ON et.classe_id = c.id_classe
             WHERE $baseWhere
-              AND et.is_active = 1
-              AND et.status = 'active'
+              AND (et.is_active = 1 OR et.status = 'active' OR e.statut = 'actif')
               AND e.statut = 'actif'
         ";
         $stmtActive = $db->prepare($sqlActive);
@@ -172,11 +174,10 @@ class EleveDashboardService {
                 COALESCE(e.sexe, 'Non spécifié') AS genre,
                 COUNT(DISTINCT e.id_eleve) AS total
             FROM eleves e
-            JOIN etudes et ON e.id_eleve = et.eleve_id
-            JOIN classes c ON et.classe_id = c.id_classe
+            LEFT JOIN etudes et ON e.id_eleve = et.eleve_id
+            LEFT JOIN classes c ON et.classe_id = c.id_classe
             WHERE $baseWhere
-              AND et.is_active = 1
-              AND et.status = 'active'
+              AND (et.is_active = 1 OR et.status = 'active' OR e.statut = 'actif')
               AND e.statut = 'actif'
             GROUP BY COALESCE(e.sexe, 'Non spécifié')
         ";
@@ -196,7 +197,6 @@ class EleveDashboardService {
         $tauxFilles = $totalActifs > 0 ? round(($filles / $totalActifs) * 100, 1) : 0.0;
 
         // 7. Deterministic New Registrations vs Re-enrollments
-        // New: Student active in current year AND has NO active/inactive etudes record in any academic year with date_debut < current year date_debut
         $sqlInscrTypes = "
             SELECT
                 CASE
@@ -211,10 +211,10 @@ class EleveDashboardService {
                 END AS type_inscription,
                 COUNT(DISTINCT e.id_eleve) AS total
             FROM eleves e
-            JOIN etudes et ON e.id_eleve = et.eleve_id
-            JOIN classes c ON et.classe_id = c.id_classe
+            LEFT JOIN etudes et ON e.id_eleve = et.eleve_id
+            LEFT JOIN classes c ON et.classe_id = c.id_classe
             WHERE $baseWhere
-              AND (et.is_active = 1 OR et.status = 'active' OR e.statut = 'actif')
+              AND (et.is_active = 1 OR et.status = 'active' OR e.statut = 'actif' OR e.statut = 'en_attente_paiement')
             GROUP BY type_inscription
         ";
         $paramsInscr = array_merge($params, ['curr_date_debut' => $currentYear['date_debut'] ?? '2000-01-01']);
@@ -239,8 +239,8 @@ class EleveDashboardService {
                 et.status AS etude_status,
                 COUNT(DISTINCT e.id_eleve) AS total
             FROM eleves e
-            JOIN etudes et ON e.id_eleve = et.eleve_id
-            JOIN classes c ON et.classe_id = c.id_classe
+            LEFT JOIN etudes et ON e.id_eleve = et.eleve_id
+            LEFT JOIN classes c ON et.classe_id = c.id_classe
             WHERE $baseWhere
             GROUP BY e.statut, et.status
         ";
@@ -286,8 +286,7 @@ class EleveDashboardService {
             JOIN classes c ON et.classe_id = c.id_classe
             JOIN cycles cy ON c.cycle_id = cy.id_cycle
             WHERE $baseWhere
-              AND et.is_active = 1
-              AND et.status = 'active'
+              AND (et.is_active = 1 OR et.status = 'active' OR e.statut = 'actif')
               AND e.statut = 'actif'
             GROUP BY cy.id_cycle, cy.nom_cycle, c.niveau
             ORDER BY cy.id_cycle ASC, c.niveau ASC

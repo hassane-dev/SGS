@@ -82,7 +82,7 @@ class AuthorizationScopeService {
             return $cycle_ids;
         }
 
-        // 4. Query active assignments for the current date from DB
+        // 4. Query explicit personnel cycle assignments
         $today = date('Y-m-d');
         $stmt = $db->prepare("
             SELECT cycle_id
@@ -99,6 +99,41 @@ class AuthorizationScopeService {
         ]);
 
         $cycle_ids = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)) ?: [];
+
+        // 5. If no explicit personnel_cycles_assignments, check supervisor tables or student management permissions
+        if (empty($cycle_ids)) {
+            $lycee_id = Auth::getLyceeId();
+
+            // Check if user is general supervisor or has assigned supervisor classes/levels
+            $stmtSurvGen = $db->prepare("SELECT COUNT(*) FROM surveillant_general WHERE surveillant_id = :uid");
+            $stmtSurvGen->execute(['uid' => $user_id]);
+            $isSurvGen = ((int)$stmtSurvGen->fetchColumn()) > 0;
+
+            if ($isSurvGen) {
+                $cycles = $lycee_id ? Cycle::findByLycee($lycee_id) : Cycle::findAll();
+                $cycle_ids = array_map('intval', array_column($cycles, 'id_cycle'));
+            } else {
+                // Check surveillant_classes and surveillant_niveaux
+                $stmtSurvCls = $db->prepare("SELECT DISTINCT c.cycle_id FROM surveillant_classes sc JOIN classes c ON sc.classe_id = c.id_classe WHERE sc.surveillant_id = :uid AND c.cycle_id IS NOT NULL");
+                $stmtSurvCls->execute(['uid' => $user_id]);
+                $clsCycles = array_map('intval', $stmtSurvCls->fetchAll(PDO::FETCH_COLUMN));
+
+                $stmtSurvNiv = $db->prepare("SELECT DISTINCT c.cycle_id FROM surveillant_niveaux sn JOIN classes c ON sn.niveau = c.niveau WHERE sn.surveillant_id = :uid AND c.cycle_id IS NOT NULL" . ($lycee_id ? " AND c.lycee_id = " . (int)$lycee_id : ""));
+                $stmtSurvNiv->execute(['uid' => $user_id]);
+                $nivCycles = array_map('intval', $stmtSurvNiv->fetchAll(PDO::FETCH_COLUMN));
+
+                $assignedCycles = array_values(array_unique(array_merge($clsCycles, $nivCycles)));
+
+                if (!empty($assignedCycles)) {
+                    $cycle_ids = $assignedCycles;
+                } elseif (Auth::can('inscrire', 'eleve') || Auth::can('reinscrire', 'eleve') || Auth::can('view_all', 'eleve') || Auth::can('edit', 'eleve') || Auth::can('view', 'eleve') || Auth::can('view', 'class')) {
+                    // Users with student enrollment, re-enrollment, or consultation rights have access to establishment cycles
+                    $cycles = $lycee_id ? Cycle::findByLycee($lycee_id) : Cycle::findAll();
+                    $cycle_ids = array_map('intval', array_column($cycles, 'id_cycle'));
+                }
+            }
+        }
+
         $_SESSION['user']['authorized_cycles'] = $cycle_ids;
         return $cycle_ids;
     }
