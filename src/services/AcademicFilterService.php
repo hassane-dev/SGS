@@ -628,13 +628,11 @@ class AcademicFilterService {
         // 1. Lycee condition
         if ($validated['lycee_id'] !== null) {
             if ($hasElevesTable) {
-                $conditions[] = "({$classAlias}.lycee_id = :afs_lycee_id1 OR ({$classAlias}.lycee_id IS NULL AND {$eleveAlias}.lycee_id = :afs_lycee_id2))";
-                $params['afs_lycee_id1'] = $validated['lycee_id'];
-                $params['afs_lycee_id2'] = $validated['lycee_id'];
+                $conditions[] = "({$classAlias}.lycee_id = :afs_lycee_id OR ({$classAlias}.lycee_id IS NULL AND {$eleveAlias}.lycee_id = :afs_lycee_id))";
             } else {
                 $conditions[] = "{$classAlias}.lycee_id = :afs_lycee_id";
-                $params['afs_lycee_id'] = $validated['lycee_id'];
             }
+            $params['afs_lycee_id'] = $validated['lycee_id'];
         } elseif (!empty($scope['lycee_ids'])) {
             $inL = implode(',', array_map('intval', $scope['lycee_ids']));
             if ($hasElevesTable) {
