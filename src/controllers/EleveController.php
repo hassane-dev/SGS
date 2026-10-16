@@ -122,10 +122,16 @@ class EleveController {
         if (!Auth::can('edit', 'eleve')) { $this->forbidden(); }
         $id = $_GET['id'] ?? null;
         if (!$id) {
-            header('Location: /eleves');
-            exit();
+            if (!defined('TEST_MODE')) header('Location: /eleves');
+            return;
         }
         $eleve = Eleve::findById($id);
+        if (!$eleve) {
+            if (!defined('TEST_MODE')) header('Location: /eleves');
+            return;
+        }
+        AuthorizationScopeService::assertAccessToObject($eleve['lycee_id'], $eleve['cycle_id'] ?? null);
+
         $lycee_id = $eleve['lycee_id'];
         $classes = Classe::findAll($lycee_id);
         require_once __DIR__ . '/../views/eleves/edit.php';
@@ -138,15 +144,16 @@ class EleveController {
             $id = $data['id_eleve'] ?? null;
 
             if (!$id) {
-                header('Location: /eleves');
-                exit();
+                if (!defined('TEST_MODE')) header('Location: /eleves');
+                return;
             }
 
             $currentEleve = Eleve::findById($id);
             if (!$currentEleve) {
-                header('Location: /eleves');
-                exit();
+                if (!defined('TEST_MODE')) header('Location: /eleves');
+                return;
             }
+            AuthorizationScopeService::assertAccessToObject($currentEleve['lycee_id'], $currentEleve['cycle_id'] ?? null);
 
             if (!empty($data['cropped_photo'])) {
                 $photoPath = $this->handleCroppedPhoto($data['cropped_photo']);
@@ -186,28 +193,40 @@ class EleveController {
                 $_SESSION['error_message'] = "Erreur lors de la mise à jour : " . $e->getMessage();
             }
         }
-        header('Location: /eleves');
-        exit();
+        if (!defined('TEST_MODE')) header('Location: /eleves');
+        return;
     }
 
     public function destroy() {
         if (!Auth::can('delete', 'eleve')) { $this->forbidden(); }
         $id = $_POST['id'] ?? null;
         if ($id) {
+            $eleve = Eleve::findById($id);
+            if (!$eleve) {
+                if (!defined('TEST_MODE')) header('Location: /eleves');
+                return;
+            }
+            AuthorizationScopeService::assertAccessToObject($eleve['lycee_id'], $eleve['cycle_id'] ?? null);
             Eleve::changeStatus($id, 'radié');
         }
-        header('Location: /eleves');
-        exit();
+        if (!defined('TEST_MODE')) header('Location: /eleves');
+        return;
     }
 
     public function details() {
-        if (!Auth::can('view_all', 'eleve')) { $this->forbidden(); }
+        if (!Auth::can('view_all', 'eleve') && !Auth::can('view', 'eleve')) { $this->forbidden(); }
         $eleve_id = $_GET['id'] ?? null;
         if (!$eleve_id) {
-            header('Location: /eleves');
-            exit();
+            if (!defined('TEST_MODE')) header('Location: /eleves');
+            return;
         }
         $eleve = Eleve::findById($eleve_id);
+        if (!$eleve) {
+            if (!defined('TEST_MODE')) header('Location: /eleves');
+            return;
+        }
+        AuthorizationScopeService::assertAccessToObject($eleve['lycee_id'], $eleve['cycle_id'] ?? null);
+
         $etudes = Etude::findByEleveId($eleve_id);
         $inscriptions = Inscription::findByEleveId($eleve_id);
         $mensualites = Mensualite::findByEleveId($eleve_id);
@@ -216,10 +235,12 @@ class EleveController {
     }
 
     private function forbidden() {
+        if (defined('TEST_MODE')) {
+            throw new Exception("Accès Interdit (RBAC).");
+        }
         http_response_code(403);
         View::render('errors/403');
-        if (!defined('TEST_MODE')) exit();
-        return;
+        exit();
     }
 
     private function handleCroppedPhoto($base64_string) {
@@ -470,16 +491,18 @@ class EleveController {
         if (!Auth::can('edit', 'eleve')) { $this->forbidden(); }
         $eleve_id = $_GET['id'] ?? null;
         if (!$eleve_id) {
-            header('Location: /eleves');
-            exit();
+            if (!defined('TEST_MODE')) header('Location: /eleves');
+            return;
         }
 
         require_once __DIR__ . '/../models/ParametreFinancierEleve.php';
         $eleve = Eleve::findById($eleve_id);
         if (!$eleve) {
-            header('Location: /eleves');
-            exit();
+            if (!defined('TEST_MODE')) header('Location: /eleves');
+            return;
         }
+
+        AuthorizationScopeService::assertAccessToObject($eleve['lycee_id'], $eleve['cycle_id'] ?? null);
 
         $activeYear = AnneeAcademique::findActive();
         $lycee_id = $eleve['lycee_id'];
@@ -500,15 +523,28 @@ class EleveController {
     public function updateParametresFinanciers() {
         if (!Auth::can('edit', 'eleve')) { $this->forbidden(); }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /eleves');
-            exit();
+            if (!defined('TEST_MODE')) header('Location: /eleves');
+            return;
         }
 
         require_once __DIR__ . '/../models/ParametreFinancierEleve.php';
         require_once __DIR__ . '/../models/FinanceService.php';
 
         $data = Validator::sanitize($_POST);
-        $eleve_id = $data['eleve_id'];
+        $eleve_id = $data['eleve_id'] ?? null;
+        if (!$eleve_id) {
+            if (!defined('TEST_MODE')) header('Location: /eleves');
+            return;
+        }
+
+        $eleve = Eleve::findById($eleve_id);
+        if (!$eleve) {
+            if (!defined('TEST_MODE')) header('Location: /eleves');
+            return;
+        }
+
+        AuthorizationScopeService::assertAccessToObject($eleve['lycee_id'], $eleve['cycle_id'] ?? null);
+
         $motif_modification = $data['motif_modification'] ?? '';
 
         try {

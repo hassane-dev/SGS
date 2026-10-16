@@ -7,6 +7,8 @@ require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/Etude.php';
 require_once __DIR__ . '/../models/ParamLycee.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
+require_once __DIR__ . '/../core/Auth.php';
+require_once __DIR__ . '/../services/AuthorizationScopeService.php';
 
 class CarteController {
 
@@ -14,12 +16,22 @@ class CarteController {
         if (!Auth::check()) {
             http_response_code(403);
             echo "Accès Interdit.";
-            exit();
+            if (!defined('TEST_MODE')) exit();
+            return false;
         }
+        if (!Auth::can('print_card', 'eleve')) {
+            http_response_code(403);
+            echo "Accès Interdit : Vous ne disposez pas de la permission d'impression des cartes d'identité scolaires.";
+            if (!defined('TEST_MODE')) exit();
+            return false;
+        }
+        return true;
     }
 
     public function generer() {
-        $this->checkAccess();
+        if (!$this->checkAccess()) {
+            return;
+        }
         $eleve_id = $_GET['eleve_id'] ?? null;
         $classe_id = $_GET['classe_id'] ?? null;
 
@@ -44,13 +56,18 @@ class CarteController {
             }
             $current_etude = $etudes[0];
             $classe = Classe::findById($current_etude['classe_id']);
-            $lycee_id = $classe['lycee_id'];
+            $lycee_id = $classe['lycee_id'] ?? $eleve['lycee_id'];
+            $cycle_id = $classe['cycle_id'] ?? $eleve['cycle_id'] ?? null;
+            AuthorizationScopeService::assertAccessToObject($lycee_id, $cycle_id);
         } elseif ($classe_id) {
             $classe = Classe::findById($classe_id);
             if (!$classe) {
                 die("Classe non trouvée.");
             }
             $lycee_id = $classe['lycee_id'];
+            $cycle_id = $classe['cycle_id'] ?? null;
+            AuthorizationScopeService::assertAccessToObject($lycee_id, $cycle_id);
+
             $eleves = Eleve::findByClass($classe_id);
             if (empty($eleves)) {
                 die("Aucun élève trouvé dans cette classe.");
