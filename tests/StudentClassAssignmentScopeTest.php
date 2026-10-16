@@ -75,15 +75,15 @@ if ($stmtRp->fetchColumn() == 0) {
 
 // Create users with role_id = 99 (no global view_all_cycles or view_all_lycees)
 // User 8881: CEG-only assigned
-$db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, role_id, auth_version, actif) VALUES (8881, 1, 'User', 'CEGOnly', 99, 1, 1)");
+$db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, role_id, auth_version) VALUES (8881, 1, 'User', 'CEGOnly', 99, 1)");
 $db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, actif) VALUES (8881, {$idCeg}, '2020-01-01', 1)");
 
 // User 8882: Lycee-only assigned
-$db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, role_id, auth_version, actif) VALUES (8882, 1, 'User', 'LyceeOnly', 99, 1, 1)");
+$db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, role_id, auth_version) VALUES (8882, 1, 'User', 'LyceeOnly', 99, 1)");
 $db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, actif) VALUES (8882, {$idLycee}, '2020-01-01', 1)");
 
 // User 8883: Multi-cycle assigned (CEG + Lycee)
-$db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, role_id, auth_version, actif) VALUES (8883, 1, 'User', 'MultiCycle', 99, 1, 1)");
+$db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, role_id, auth_version) VALUES (8883, 1, 'User', 'MultiCycle', 99, 1)");
 $db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, actif) VALUES (8883, {$idCeg}, '2020-01-01', 1)");
 $db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, actif) VALUES (8883, {$idLycee}, '2020-01-01', 1)");
 
