@@ -53,9 +53,12 @@ class EleveDashboardController {
         // Active Academic Years
         $annees = AnneeAcademique::findAll();
 
-        // Available Classes
+        // Available Classes (strictly filtered by permitted cycles)
         if ($canViewAll) {
-            $classes = Classe::findAll($lyceeId);
+            $allClasses = Classe::findAll($lyceeId);
+            $classes = array_values(array_filter($allClasses, function($cl) use ($permittedCycleIds) {
+                return in_array((int)($cl['cycle_id'] ?? 0), $permittedCycleIds, true);
+            }));
         } else {
             $teacherAssignments = User::getTeacherAssignments($userId, $anneeId, $lyceeId);
             $classes = [];
