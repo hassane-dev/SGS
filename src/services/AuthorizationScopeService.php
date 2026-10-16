@@ -113,7 +113,7 @@ class AuthorizationScopeService {
                 $cycles = $lycee_id ? Cycle::findByLycee($lycee_id) : Cycle::findAll();
                 $cycle_ids = array_map('intval', array_column($cycles, 'id_cycle'));
             } else {
-                // Check surveillant_classes, surveillant_niveaux, personnel_assignments, and affectations_pedagogiques
+                // Check surveillant_classes and surveillant_niveaux
                 $stmtSurvCls = $db->prepare("SELECT DISTINCT c.cycle_id FROM surveillant_classes sc JOIN classes c ON sc.classe_id = c.id_classe WHERE sc.surveillant_id = :uid AND c.cycle_id IS NOT NULL");
                 $stmtSurvCls->execute(['uid' => $user_id]);
                 $clsCycles = array_map('intval', $stmtSurvCls->fetchAll(PDO::FETCH_COLUMN));
@@ -122,23 +122,7 @@ class AuthorizationScopeService {
                 $stmtSurvNiv->execute(['uid' => $user_id]);
                 $nivCycles = array_map('intval', $stmtSurvNiv->fetchAll(PDO::FETCH_COLUMN));
 
-                $stmtPaCls = $db->prepare("SELECT DISTINCT c.cycle_id FROM personnel_assignments pa JOIN classes c ON pa.target_id = c.id_classe WHERE pa.personnel_id = :uid AND pa.assignment_type = 'classe' AND c.cycle_id IS NOT NULL");
-                $stmtPaCls->execute(['uid' => $user_id]);
-                $paCycles = array_map('intval', $stmtPaCls->fetchAll(PDO::FETCH_COLUMN));
-
-                // Teacher assignments (affectations_pedagogiques)
-                $activeYear = AnneeAcademique::findActive();
-                $activeYearId = $activeYear ? (int)$activeYear['id'] : null;
-                $teacherAssignments = User::getTeacherAssignments($user_id, $activeYearId, $lycee_id);
-                $teacherCycles = [];
-                foreach ($teacherAssignments as $ta) {
-                    $cId = (int)($ta['cycle_id'] ?? 0);
-                    if ($cId > 0) {
-                        $teacherCycles[] = $cId;
-                    }
-                }
-
-                $assignedCycles = array_values(array_unique(array_merge($clsCycles, $nivCycles, $paCycles, $teacherCycles)));
+                $assignedCycles = array_values(array_unique(array_merge($clsCycles, $nivCycles)));
 
                 if (!empty($assignedCycles)) {
                     $cycle_ids = $assignedCycles;
