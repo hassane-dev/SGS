@@ -415,7 +415,35 @@ class AcademicFilterService {
             $lycees = $stmtL->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        $selectedLyceeId = $validated['valid'] ? $validated['lycee_id'] : ($scope['lycee_ids'][0] ?? null);
+        if (!$validated['valid']) {
+            $reqLid = !empty($userFilters['lycee_id']) ? (int)$userFilters['lycee_id'] : null;
+            $selectedLyceeId = ($reqLid && in_array($reqLid, $scope['lycee_ids'], true)) ? $reqLid : ($scope['lycee_ids'][0] ?? null);
+            $cycles = [];
+            if ($selectedLyceeId && !empty($scope['cycle_ids'])) {
+                $inC = implode(',', array_map('intval', $scope['cycle_ids']));
+                $stmtC = $db->prepare("
+                    SELECT id_cycle, nom_cycle, niveau_debut, niveau_fin
+                    FROM cycles
+                    WHERE id_cycle IN ($inC)
+                      AND (lycee_id = :lid OR lycee_id IS NULL)
+                    ORDER BY id_cycle ASC
+                ");
+                $stmtC->execute(['lid' => $selectedLyceeId]);
+                $cycles = $stmtC->fetchAll(PDO::FETCH_ASSOC);
+            }
+
+            return [
+                'lycees' => $lycees,
+                'cycles' => ($reqLid && !in_array($reqLid, $scope['lycee_ids'], true)) ? [] : $cycles,
+                'niveaux' => [],
+                'has_series' => false,
+                'series' => [],
+                'numeros' => [],
+                'classes' => [],
+            ];
+        }
+
+        $selectedLyceeId = $validated['lycee_id'];
 
         // 2. Cycles for selected lycee
         $cycles = [];
@@ -432,7 +460,7 @@ class AcademicFilterService {
             $cycles = $stmtC->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        $selectedCycleId = $validated['valid'] ? $validated['cycle_id'] : null;
+        $selectedCycleId = $validated['cycle_id'];
 
         // 3. Niveaux for selected cycle & lycee
         $niveaux = [];
