@@ -20,7 +20,7 @@ class EleveController {
     const UPLOAD_DIR = '/photos/';
 
     public function index() {
-        if (!Auth::can('view_all', 'eleve') && !Auth::can('inscrire', 'eleve') && !Auth::can('view', 'eleve')) {
+        if (!Auth::can('view_all', 'eleve') && Auth::get('role_name') !== 'surveillant') {
             $this->forbidden();
         }
 
@@ -30,7 +30,7 @@ class EleveController {
         $baseSql = "
             SELECT DISTINCT e.*, c.id_classe, c.niveau, c.serie, c.numero, c.cycle_id, cy.nom_cycle
             FROM eleves e
-            LEFT JOIN etudes et ON e.id_eleve = et.eleve_id AND (et.is_active = 1 OR et.status = 'en_attente_paiement')
+            LEFT JOIN etudes et ON e.id_eleve = et.eleve_id AND et.is_active = 1
             LEFT JOIN classes c ON et.classe_id = c.id_classe
             LEFT JOIN cycles cy ON c.cycle_id = cy.id_cycle
         ";
