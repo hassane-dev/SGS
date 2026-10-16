@@ -29,31 +29,6 @@ class Frais {
 
         $db = Database::getInstance();
 
-        // --- Resolve Double-Write Fields for Cycle ---
-        $cycleObj = null;
-        $cycleId = null;
-        $cycleNom = null;
-
-        if ($data['type_config'] === 'cycle') {
-            if (!empty($data['cycle_id'])) {
-                $cycleId = (int)$data['cycle_id'];
-                $cycleObj = Cycle::findById($cycleId);
-                if ($cycleObj) {
-                    $cycleNom = $cycleObj['nom_cycle'];
-                }
-            } elseif (!empty($data['cycle'])) {
-                $cycleNom = $data['cycle'];
-                $cycleObj = Cycle::findByNom($cycleNom);
-                if ($cycleObj) {
-                    $cycleId = (int)$cycleObj['id_cycle'];
-                }
-            }
-
-            if (empty($cycleId) && empty($cycleNom)) {
-                throw new InvalidArgumentException("Le champ Cycle est requis pour ce type de configuration.");
-            }
-        }
-
         // --- Prevent Duplicates ---
         $existing_check_sql = "SELECT id_frais FROM frais WHERE lycee_id = :lycee_id AND annee_academique_id = :annee_academique_id";
         $check_params = [
@@ -62,21 +37,12 @@ class Frais {
         ];
 
         if ($data['type_config'] === 'cycle') {
-            $existing_check_sql .= " AND (";
-            $orConds = [];
-            if (!empty($cycleId)) {
-                $orConds[] = "cycle_id = :cycle_id";
-                $check_params['cycle_id'] = $cycleId;
-            }
-            if (!empty($cycleNom)) {
-                $orConds[] = "cycle = :cycle";
-                $check_params['cycle'] = $cycleNom;
-            }
-            $existing_check_sql .= implode(" OR ", $orConds) . ")";
+            $existing_check_sql .= " AND cycle = :cycle";
+            $check_params['cycle'] = $data['cycle'];
         } else {
             $existing_check_sql .= " AND niveau_debut = :niveau_debut AND niveau_fin = :niveau_fin AND (serie = :serie OR (serie IS NULL AND :serie IS NULL))";
-            $check_params['niveau_debut'] = $data['niveau_debut'] ?? null;
-            $check_params['niveau_fin'] = $data['niveau_fin'] ?? null;
+            $check_params['niveau_debut'] = $data['niveau_debut'];
+            $check_params['niveau_fin'] = $data['niveau_fin'];
             $check_params['serie'] = !empty($data['serie']) ? $data['serie'] : null;
         }
 
@@ -86,7 +52,6 @@ class Frais {
             throw new InvalidArgumentException("Une grille tarifaire identique ou conflictuelle existe déjà pour cette année académique.");
         }
         // --- End Prevent Duplicates ---
-
         $params = [
             ':lycee_id' => $data['lycee_id'],
             ':annee_academique_id' => $data['annee_academique_id'],
@@ -96,15 +61,16 @@ class Frais {
             ':frais_carte' => !empty($data['frais_carte']) ? $data['frais_carte'] : null,
             ':autres_frais' => !empty($data['autres_frais']) ? json_encode($data['autres_frais']) : null,
             ':cycle' => null,
-            ':cycle_id' => null,
             ':niveau_debut' => null,
             ':niveau_fin' => null,
             ':serie' => null
         ];
 
         if ($data['type_config'] === 'cycle') {
-            $params[':cycle'] = $cycleNom;
-            $params[':cycle_id'] = $cycleId;
+            if (empty($data['cycle'])) {
+                throw new InvalidArgumentException("Le champ Cycle est requis pour ce type de configuration.");
+            }
+            $params[':cycle'] = $data['cycle'];
             $params[':niveau_debut'] = null;
             $params[':niveau_fin'] = null;
             $params[':serie'] = null;
@@ -116,13 +82,13 @@ class Frais {
             $params[':niveau_fin'] = $data['niveau_fin'];
             $params[':serie'] = !empty($data['serie']) ? $data['serie'] : null;
             $params[':cycle'] = null;
-            $params[':cycle_id'] = null;
         } else {
             throw new InvalidArgumentException("Type de configuration non valide.");
         }
 
-        $sql = "INSERT INTO frais (lycee_id, annee_academique_id, frais_inscription, frais_mensuel, frais_logo, frais_carte, autres_frais, cycle, cycle_id, niveau_debut, niveau_fin, serie)
-                VALUES (:lycee_id, :annee_academique_id, :frais_inscription, :frais_mensuel, :frais_logo, :frais_carte, :autres_frais, :cycle, :cycle_id, :niveau_debut, :niveau_fin, :serie)";
+        // For now, we only handle creation (INSERT). Update logic can be added later.
+        $sql = "INSERT INTO frais (lycee_id, annee_academique_id, frais_inscription, frais_mensuel, frais_logo, frais_carte, autres_frais, cycle, niveau_debut, niveau_fin, serie)
+                VALUES (:lycee_id, :annee_academique_id, :frais_inscription, :frais_mensuel, :frais_logo, :frais_carte, :autres_frais, :cycle, :niveau_debut, :niveau_fin, :serie)";
 
         $stmt = $db->prepare($sql);
         if ($stmt->execute($params)) {
@@ -200,21 +166,11 @@ class Frais {
                      return $frais;
                  }
             }
-            // Priorité 3a: Correspondance par cycle_id (Canonique ID)
-            if (!empty($frais['cycle_id']) && (int)$frais['cycle_id'] === (int)$classe['cycle_id']) {
-                return $frais;
-            }
-            // Priorité 3b: Correspondance par cycle (Legacy String Fallback)
+            // Priorité 3: Correspondance par cycle
             if (!empty($frais['cycle']) && $frais['cycle'] === $nom_cycle) {
                 return $frais;
             }
         }
-
-        // Avertissement explicite en cas de grille tarifaire introuvable pour la classe
-        $classeId = $classe['id_classe'] ?? ($classe['id'] ?? 'inconnue');
-        $lyceeId = $classe['lycee_id'] ?? 'inconnu';
-        $cycleId = $classe['cycle_id'] ?? 'inconnu';
-        error_log("FRAIS_CONFIG_WARNING: Aucune grille tarifaire applicable trouvée pour la classe ID {$classeId} (Lycée: {$lyceeId}, Cycle ID: {$cycleId}).");
 
         return false; // Aucun frais applicable trouvé
     }

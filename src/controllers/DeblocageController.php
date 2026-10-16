@@ -6,7 +6,6 @@ require_once __DIR__ . '/../models/Matiere.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/Sequence.php';
 require_once __DIR__ . '/../models/ParamTypeEvaluation.php';
-require_once __DIR__ . '/../services/AuthorizationScopeService.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
 
@@ -70,33 +69,6 @@ class DeblocageController {
             if (($type === 'classe_matiere' || $type === 'enseignant') && (empty($_POST['classe_id']) || empty($_POST['matiere_id']))) {
                 header('Location: /evaluations/deblocage/create?error=missing_classe_or_matiere');
                 exit();
-            }
-
-            // Assert scope authorization on class and subject if supplied
-            if (!empty($_POST['classe_id'])) {
-                $classe = Classe::findById($_POST['classe_id']);
-                if (!$classe) {
-                    http_response_code(404);
-                    View::render('errors/404');
-                    exit();
-                }
-                AuthorizationScopeService::assertAccessToObject(
-                    (int)$classe['lycee_id'],
-                    $classe['cycle_id'] !== null ? (int)$classe['cycle_id'] : null
-                );
-            }
-
-            if (!empty($_POST['matiere_id'])) {
-                $db = Database::getInstance();
-                $stmtMat = $db->prepare("SELECT * FROM matieres WHERE id_matiere = :id");
-                $stmtMat->execute(['id' => $_POST['matiere_id']]);
-                $matiereRec = $stmtMat->fetch(PDO::FETCH_ASSOC);
-                if (!$matiereRec) {
-                    http_response_code(404);
-                    View::render('errors/404');
-                    exit();
-                }
-                AuthorizationScopeService::assertAccessToObject((int)$matiereRec['lycee_id'], null);
             }
 
             $typeEvalSelection = $_POST['type_evaluation_id'] ?? 'tous';
