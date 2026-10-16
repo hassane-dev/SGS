@@ -91,8 +91,9 @@ $db->exec("INSERT OR IGNORE INTO roles (id_role, nom_role) VALUES (998, 'unprivi
 $db->exec("INSERT OR IGNORE INTO role_permissions (role_id, permission_id) VALUES (777, {$permInscrire})");
 $db->exec("INSERT OR IGNORE INTO role_permissions (role_id, permission_id) VALUES (777, {$permViewAll})");
 
-// Create users in DB with active status
+// Create users in DB with active status and assign cycle to User 9981
 $db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, role_id, auth_version, actif) VALUES (9981, 1, 'CustomAgent', 'Test', 777, 1, 1)");
+$db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, actif) VALUES (9981, {$idCeg}, '2020-01-01', 1)");
 $db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, role_id, auth_version, actif) VALUES (9983, 1, 'Unprivileged', 'Test', 998, 1, 1)");
 
 // Find or create target class
@@ -249,6 +250,7 @@ if (str_contains($htmlOutput, 'SansClasseCustom') || str_contains($htmlOutput, '
 }
 
 // Cleanup mock records
+$db->exec("DELETE FROM personnel_cycles_assignments WHERE personnel_id IN (9981, 9982, 9983)");
 $db->exec("DELETE FROM etudes WHERE eleve_id IN (99801, 99802, 99803)");
 $db->exec("DELETE FROM eleves WHERE id_eleve IN (99801, 99802, 99803)");
 $db->exec("DELETE FROM classes WHERE id_classe IN (99810, 99820)");
