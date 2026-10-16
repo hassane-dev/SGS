@@ -381,6 +381,77 @@ assertResult(
     "SQL query correctly parameterized with distinct placeholders :afs_lycee_id1 and :afs_lycee_id2 and :afs_classe_id = 8101."
 );
 
+// --- SCENARIOS 21-29: REGRESSION SUITE FOR EMPTY CYCLE DROPDOWN FIX ---
+
+// Scenario 21: Multi-Lycée user without lycee_id filter yields authorized cycle 8010
+echo "TEST 21 — Multi-Lycée User Without Filter Yields Authorized Cycle 8010\n";
+$multiScope21 = [
+    'access_type' => 'restricted',
+    'lycee_ids' => [8001, 8002],
+    'cycle_ids' => [8010],
+    'niveau_names' => null,
+    'classe_ids' => null,
+    'teacher_assignments' => null,
+    'is_global_admin' => false,
+    'is_teacher' => false,
+    'is_supervisor' => false
+];
+$opts21 = AcademicFilterService::getCascadeOptions([], $multiScope21);
+$cycleIds21 = array_column($opts21['cycles'], 'id_cycle');
+assertResult(count($cycleIds21) === 1 && (int)$cycleIds21[0] === 8010, "Cycle 8010 proposed for multi-lycee user even without lycee_id filter.");
+
+// Scenario 22: Unassigned cycle 8011 is never proposed
+echo "TEST 22 — Non-Authorized Cycle 8011 Is Never Proposed\n";
+assertResult(!in_array(8011, $cycleIds21, true), "Unassigned cycle 8011 is never proposed.");
+
+// Scenario 23: With lycee 8001 selected, only cycles compatible with 8001 are displayed
+echo "TEST 23 — Specific Lycée 8001 Selection Narrows Cycles\n";
+$opts23 = AcademicFilterService::getCascadeOptions(['lycee_id' => 8001], $multiScope21);
+$cycleIds23 = array_column($opts23['cycles'], 'id_cycle');
+assertResult(count($cycleIds23) === 1 && (int)$cycleIds23[0] === 8010, "Only authorized cycle 8010 for Lycée 8001 is displayed.");
+
+// Scenario 24: With lycee 8002 selected, cycles of 8001 are excluded
+echo "TEST 24 — Selecting Lycée 8002 Excludes Cycles of Lycée 8001\n";
+$opts24 = AcademicFilterService::getCascadeOptions(['lycee_id' => 8002], $multiScope21);
+$cycleIds24 = array_column($opts24['cycles'], 'id_cycle');
+assertResult(!in_array(8010, $cycleIds24, true), "Cycles belonging to Lycée 8001 are excluded when Lycée 8002 is selected.");
+
+// Scenario 25: User with zero authorized cycles yields empty cycles array
+echo "TEST 25 — User With Zero Authorized Cycles Yields Empty List\n";
+$noCycleScope25 = $multiScope21;
+$noCycleScope25['cycle_ids'] = [];
+$opts25 = AcademicFilterService::getCascadeOptions([], $noCycleScope25);
+assertResult(empty($opts25['cycles']), "User with zero authorized cycles yields empty list.");
+
+// Scenario 26: Out-of-scope lycee_id returns empty cycles array
+echo "TEST 26 — Out-of-Scope Lycée ID Neutralized\n";
+$opts26 = AcademicFilterService::getCascadeOptions(['lycee_id' => 9999], $multiScope21);
+assertResult(empty($opts26['cycles']), "Out-of-scope lycee_id returns empty cycles list.");
+
+// Scenario 27: Two cycles in different lycees with same nom_cycle distinguished by id_cycle
+echo "TEST 27 — Same Cycle Name Disambiguated by id_cycle\n";
+$db->exec("INSERT INTO cycles (id_cycle, lycee_id, nom_cycle) VALUES (8040, 8002, 'CEG Test A')"); // Same name as 8010
+$multiScope27 = $multiScope21;
+$multiScope27['cycle_ids'] = [8010, 8040];
+$opts27 = AcademicFilterService::getCascadeOptions([], $multiScope27);
+$cycleIds27 = array_column($opts27['cycles'], 'id_cycle');
+assertResult(count($cycleIds27) === 2 && in_array(8010, $cycleIds27, true) && in_array(8040, $cycleIds27, true), "Cycles with identical names are distinguished strictly by id_cycle [8010, 8040].");
+$db->exec("DELETE FROM cycles WHERE id_cycle = 8040"); // Cleanup temporary fixture
+
+// Scenario 28: Cycle name change preserves assignment resolution based on id_cycle
+echo "TEST 28 — Renaming Cycle Name Preserves Assignment Resolution\n";
+$db->exec("UPDATE cycles SET nom_cycle = 'CEG Rénové A' WHERE id_cycle = 8010");
+$opts28 = AcademicFilterService::getCascadeOptions([], $multiScope21);
+$cycleIds28 = array_column($opts28['cycles'], 'id_cycle');
+assertResult(count($cycleIds28) === 1 && (int)$cycleIds28[0] === 8010 && $opts28['cycles'][0]['nom_cycle'] === 'CEG Rénové A', "Renaming cycle name preserves assignment resolution based on id_cycle.");
+$db->exec("UPDATE cycles SET nom_cycle = 'CEG Test A' WHERE id_cycle = 8010"); // Restore original name
+
+// Scenario 29: Initial page load and AJAX cascade produce consistent options
+echo "TEST 29 — Initial Load & AJAX Cascade Options Consistency\n";
+$initialOpts = AcademicFilterService::getCascadeOptions([], $multiScope21);
+$ajaxOpts = AcademicFilterService::getCascadeOptions(['lycee_id' => 8001], $multiScope21);
+assertResult(!empty($initialOpts['cycles']) && !empty($ajaxOpts['cycles']) && $initialOpts['cycles'][0]['id_cycle'] === $ajaxOpts['cycles'][0]['id_cycle'], "Initial load and AJAX cascade produce consistent options.");
+
 echo "\n========================================================\n";
-echo "SUCCESS: ALL 20 SCENARIOS PASSED FOR AcademicFilterService!\n";
+echo "SUCCESS: ALL 29 SCENARIOS PASSED FOR AcademicFilterService!\n";
 echo "========================================================\n";
