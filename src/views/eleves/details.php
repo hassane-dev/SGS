@@ -14,17 +14,13 @@
                         </div>
                     </div>
                     <div class="col-md-4 text-md-end">
-                        <?php if (Auth::can('print_card', 'eleve')): ?>
-                            <a href="/carte/generer?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-outline-primary" target="_blank">
-                                <i class="ph-duotone ph-cardholder me-1"></i>
-                                <?= _('Imprimer la carte') ?>
-                            </a>
-                        <?php endif; ?>
-                        <?php if (Auth::can('view', 'paiement')): ?>
-                            <a href="/mensualites/show-form?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-success">
-                                <?= _('Payer Mensualité') ?>
-                            </a>
-                        <?php endif; ?>
+                        <a href="/carte/generer?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-outline-primary" target="_blank">
+                            <i class="ph-duotone ph-cardholder me-1"></i>
+                            <?= _('Imprimer la carte') ?>
+                        </a>
+                        <a href="/mensualites/show-form?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-success">
+                            <?= _('Payer Mensualité') ?>
+                        </a>
                         <?php if (Auth::can('manage', 'boutique')): ?>
                             <a href="/boutique/achats?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-primary">
                                 <i class="ph-duotone ph-shopping-cart me-1"></i>

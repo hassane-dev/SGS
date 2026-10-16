@@ -101,16 +101,9 @@
                                                     <?php endif; ?>
                                                 </td>
                                                 <td class="text-end">
-                                                    <?php if (empty($eleve['niveau']) && Auth::can('inscrire', 'eleve')): ?>
-                                                        <a href="/eleves/assign-class?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-sm btn-warning me-2" title="<?= _('Assigner une classe') ?>">
-                                                            <i class="ph-duotone ph-user-plus me-1"></i><?= _('Assigner classe') ?>
-                                                        </a>
-                                                    <?php endif; ?>
-                                                    <?php if (Auth::can('print_card', 'eleve')): ?>
                                                         <a href="/carte/generer?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-sm btn-light-primary me-2" title="<?= _('Imprimer la carte') ?>" target="_blank">
                                                             <i class="ph-duotone ph-cardholder"></i>
                                                         </a>
-                                                    <?php endif; ?>
                                                     <?php if (Auth::can('manage', 'boutique')): ?>
                                                         <a href="/boutique/achats?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-sm btn-light-info me-2" title="<?= _('Boutique') ?>">
                                                             <i class="ph-duotone ph-shopping-cart"></i>
@@ -119,23 +112,15 @@
                                                     <?php if (Auth::can('view', 'paiement')): ?>
                                                         <a href="/paiements/show/<?= $eleve['id_eleve'] ?>" class="btn btn-success btn-sm" title="<?= _('Gérer les paiements') ?>"><?= _('Payer') ?></a>
                                                     <?php endif; ?>
-                                                    <?php if (Auth::can('view_all', 'eleve') || Auth::can('view', 'eleve')): ?>
-                                                        <a href="/eleves/details?id=<?= $eleve['id_eleve'] ?>" class="btn btn-info btn-sm ms-2" title="<?= _('Dossier complet') ?>"><?= _('Détails') ?></a>
-                                                    <?php endif; ?>
-                                                    <?php if (Auth::can('view_all', 'eleve') || Auth::can('edit', 'eleve')): ?>
-                                                        <a href="/eleves/parcours-academique?id=<?= $eleve['id_eleve'] ?>" class="btn btn-light-warning btn-sm ms-2" title="<?= _('Suivi & Parcours Scolaire') ?>"><i class="ph-duotone ph-chart-line-up"></i></a>
-                                                    <?php endif; ?>
-                                                    <?php if (Auth::can('edit', 'eleve')): ?>
-                                                        <a href="/eleves/parametres-financiers?id=<?= $eleve['id_eleve'] ?>" class="btn btn-warning btn-sm ms-2" title="<?= _('Paramètres financiers') ?>"><i class="ph-duotone ph-currency-dollar"></i></a>
-                                                        <a href="/eleves/edit?id=<?= $eleve['id_eleve'] ?>" class="btn btn-primary btn-sm ms-2" title="<?= _('Modifier') ?>"><?= _('Modifier') ?></a>
-                                                    <?php endif; ?>
-                                                    <?php if (Auth::can('delete', 'eleve')): ?>
-                                                        <form action="/eleves/destroy" method="POST" class="d-inline ms-2" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir radier cet élève ? Cette action est réversible.') ?>');">
-                                                            <?= csrf_field() ?>
-                                                            <input type="hidden" name="id" value="<?= $eleve['id_eleve'] ?>">
-                                                            <button type="submit" class="btn btn-danger btn-sm" title="<?= _('Radier l\'élève') ?>"><?= _('Radier') ?></button>
-                                                        </form>
-                                                    <?php endif; ?>
+                                                    <a href="/eleves/details?id=<?= $eleve['id_eleve'] ?>" class="btn btn-info btn-sm ms-2" title="<?= _('Dossier complet') ?>"><?= _('Détails') ?></a>
+                                                    <a href="/eleves/parcours-academique?id=<?= $eleve['id_eleve'] ?>" class="btn btn-light-warning btn-sm ms-2" title="<?= _('Suivi & Parcours Scolaire') ?>"><i class="ph-duotone ph-chart-line-up"></i></a>
+                                                    <a href="/eleves/parametres-financiers?id=<?= $eleve['id_eleve'] ?>" class="btn btn-warning btn-sm ms-2" title="<?= _('Paramètres financiers') ?>"><i class="ph-duotone ph-currency-dollar"></i></a>
+                                                    <a href="/eleves/edit?id=<?= $eleve['id_eleve'] ?>" class="btn btn-primary btn-sm ms-2" title="<?= _('Modifier') ?>"><?= _('Modifier') ?></a>
+                                                    <form action="/eleves/destroy" method="POST" class="d-inline ms-2" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir radier cet élève ? Cette action est réversible.') ?>');">
+    <?= csrf_field() ?>
+                                                        <input type="hidden" name="id" value="<?= $eleve['id_eleve'] ?>">
+                                                        <button type="submit" class="btn btn-danger btn-sm" title="<?= _('Radier l\'élève') ?>"><?= _('Radier') ?></button>
+                                                    </form>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>

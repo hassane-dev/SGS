@@ -14,12 +14,10 @@
                         </div>
                     </div>
                     <div class="col-md-4 text-md-end">
-                        <?php if (Auth::can('print_card', 'eleve')): ?>
-                            <a href="/carte/generer?classe_id=<?= $classe['id_classe'] ?>" class="btn btn-primary" target="_blank">
-                                <i class="ph-duotone ph-cardholder me-1"></i>
-                                <?= _('Imprimer les cartes de la classe') ?>
-                            </a>
-                        <?php endif; ?>
+                        <a href="/carte/generer?classe_id=<?= $classe['id_classe'] ?>" class="btn btn-primary" target="_blank">
+                            <i class="ph-duotone ph-cardholder me-1"></i>
+                            <?= _('Imprimer les cartes de la classe') ?>
+                        </a>
                     </div>
                         <p class="mb-0">
                             <?= _('Niveau') ?>: <?= htmlspecialchars($classe['niveau']) ?> | <?= _('Série') ?>: <?= htmlspecialchars($classe['serie'] ?? 'N/A') ?> | <?= _('Catégorie') ?>: <?= htmlspecialchars($classe['categorie'] ?? 'N/A') ?>
