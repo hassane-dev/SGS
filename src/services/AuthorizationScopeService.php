@@ -56,13 +56,11 @@ class AuthorizationScopeService {
         $db_version = (int)$stmt_ver->fetchColumn() ?: 1;
 
         $sess_version = $_SESSION['user']['auth_version'] ?? null;
-        $sess_user_id = $_SESSION['user']['authorized_cycles_user_id'] ?? null;
 
-        // Invalidate cache if there's a version mismatch or user switch
-        if ($sess_version !== $db_version || $sess_user_id !== $user_id) {
+        // Invalidate cache if there's a version mismatch
+        if ($sess_version !== $db_version) {
             unset($_SESSION['user']['authorized_cycles']);
             $_SESSION['user']['auth_version'] = $db_version;
-            $_SESSION['user']['authorized_cycles_user_id'] = $user_id;
         }
 
         // 2. Return cached cycles if valid
@@ -81,7 +79,6 @@ class AuthorizationScopeService {
             }
             $cycle_ids = array_map('intval', array_column($cycles, 'id_cycle'));
             $_SESSION['user']['authorized_cycles'] = $cycle_ids;
-            $_SESSION['user']['authorized_cycles_user_id'] = $user_id;
             return $cycle_ids;
         }
 
@@ -103,7 +100,7 @@ class AuthorizationScopeService {
 
         $cycle_ids = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)) ?: [];
 
-        // 5. If no explicit personnel_cycles_assignments, check supervisor tables or teacher assignments
+        // 5. If no explicit personnel_cycles_assignments, check supervisor tables or student management permissions
         if (empty($cycle_ids)) {
             $lycee_id = Auth::getLyceeId();
 
@@ -145,12 +142,15 @@ class AuthorizationScopeService {
 
                 if (!empty($assignedCycles)) {
                     $cycle_ids = $assignedCycles;
+                } elseif (Auth::can('inscrire', 'eleve') || Auth::can('reinscrire', 'eleve') || Auth::can('view_all', 'eleve') || Auth::can('edit', 'eleve') || Auth::can('view', 'eleve') || Auth::can('view', 'class')) {
+                    // Users with student enrollment, re-enrollment, or consultation rights have access to establishment cycles
+                    $cycles = $lycee_id ? Cycle::findByLycee($lycee_id) : Cycle::findAll();
+                    $cycle_ids = array_map('intval', array_column($cycles, 'id_cycle'));
                 }
             }
         }
 
         $_SESSION['user']['authorized_cycles'] = $cycle_ids;
-        $_SESSION['user']['authorized_cycles_user_id'] = $user_id;
         return $cycle_ids;
     }
 
