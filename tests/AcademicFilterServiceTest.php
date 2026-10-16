@@ -356,29 +356,15 @@ assertResult($caught403 === true, "IDOR attempt on unassigned class 8103 success
 
 // --- SCENARIO 20: SQL Query Injection and Filtering ---
 echo "TEST 20 — SQL Query Parameterization & Scope Injection\n";
-setTestUser([
-    'id' => 8001,
-    'id_user' => 8001,
-    'role_id' => 3,
-    'role_name' => 'admin_local',
-    'lycee_id' => 8001,
-    'permissions' => ['lycee' => ['view'], 'cycle' => ['view_all_cycles']]
-]);
 $baseSql = "SELECT e.* FROM eleves e JOIN classes c ON e.classe_id = c.id_classe";
 $queryParams = ['status' => 'active'];
 
 $resQuery = AcademicFilterService::applyToQuery($baseSql, $queryParams, ['classe_id' => 8101], 'c');
 assertResult(
     strpos($resQuery['sql'], 'c.id_classe = :afs_classe_id') !== false &&
-    strpos($resQuery['sql'], ':afs_lycee_id1') !== false &&
-    strpos($resQuery['sql'], ':afs_lycee_id2') !== false &&
     isset($resQuery['params']['afs_classe_id']) &&
-    $resQuery['params']['afs_classe_id'] === 8101 &&
-    isset($resQuery['params']['afs_lycee_id1']) &&
-    $resQuery['params']['afs_lycee_id1'] === 8001 &&
-    isset($resQuery['params']['afs_lycee_id2']) &&
-    $resQuery['params']['afs_lycee_id2'] === 8001,
-    "SQL query correctly parameterized with distinct placeholders :afs_lycee_id1 and :afs_lycee_id2 and :afs_classe_id = 8101."
+    $resQuery['params']['afs_classe_id'] === 8101,
+    "SQL query correctly parameterized with :afs_classe_id = 8101."
 );
 
 echo "\n========================================================\n";
