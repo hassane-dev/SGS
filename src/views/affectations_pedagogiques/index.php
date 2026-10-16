@@ -63,6 +63,12 @@
                 </div>
             </div>
         </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <?php endif; ?>
 
         <!-- [ Main Content ] start -->
@@ -163,5 +169,181 @@
     </div>
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterCycle = document.getElementById('filter_cycle');
+    const filterNiveau = document.getElementById('filter_niveau');
+    const groupFilterSerie = document.getElementById('group_filter_serie');
+    const filterSerie = document.getElementById('filter_serie');
+    const filterNumero = document.getElementById('filter_numero');
+    const filterClasseId = document.getElementById('filter_classe_id');
+    const filterMatiere = document.getElementById('filter_matiere');
+    const filterEnseignant = document.getElementById('filter_enseignant');
+
+    // Values passed from server GET request for initial state reconstruction
+    const initialValues = {
+        cycle_id: "<?= htmlspecialchars($filters['cycle_id'] ?? '') ?>",
+        niveau: "<?= htmlspecialchars($filters['niveau'] ?? '') ?>",
+        serie: "<?= htmlspecialchars($filters['serie'] ?? '') ?>",
+        numero: "<?= htmlspecialchars($filters['numero'] ?? '') ?>",
+        classe_id: "<?= htmlspecialchars($filters['classe_id'] ?? '') ?>",
+        matiere_id: "<?= htmlspecialchars($filters['matiere_id'] ?? '') ?>",
+        enseignant_id: "<?= htmlspecialchars($filters['enseignant_id'] ?? '') ?>"
+    };
+
+    function resetSelect(el, defaultText) {
+        el.innerHTML = `<option value="">${defaultText}</option>`;
+        el.disabled = true;
+    }
+
+    async function loadNiveaux(cycleId, selectedNiveau = '') {
+        resetSelect(filterNiveau, '-- Choisir d\'abord un cycle --');
+        resetSelect(filterSerie, '-- Toutes --');
+        resetSelect(filterNumero, '-- Tous --');
+        resetSelect(filterMatiere, '-- Déterminer classe --');
+        resetSelect(filterEnseignant, '-- Choisir d\'abord un cycle --');
+        filterClasseId.value = '';
+        groupFilterSerie.style.display = 'none';
+
+        if (!cycleId) return;
+
+        // Load Teachers eligible for this Cycle
+        fetch(`/affectations-pedagogiques/get-enseignants?cycle_id=${cycleId}`)
+            .then(res => res.json())
+            .then(teachers => {
+                filterEnseignant.innerHTML = '<option value="">-- Tous les enseignants éligibles --</option>';
+                filterEnseignant.disabled = false;
+                teachers.forEach(t => {
+                    const sel = (initialValues.enseignant_id && String(initialValues.enseignant_id) === String(t.id_user)) ? 'selected' : '';
+                    filterEnseignant.innerHTML += `<option value="${t.id_user}" ${sel}>${t.prenom} ${t.nom} (${t.identifiant_public || 'ENS'})</option>`;
+                });
+            });
+
+        // Load Niveaux for this Cycle
+        const res = await fetch(`/affectations-pedagogiques/get-niveaux?cycle_id=${cycleId}`);
+        const niveaux = await res.json();
+
+        filterNiveau.disabled = false;
+        filterNiveau.innerHTML = '<option value="">-- Tous les niveaux --</option>';
+        niveaux.forEach(n => {
+            const sel = (selectedNiveau && selectedNiveau === n) ? 'selected' : '';
+            filterNiveau.innerHTML += `<option value="${n}" ${sel}>${n}</option>`;
+        });
+    }
+
+    async function loadSeriesOrNumeros(cycleId, niveau, selectedSerie = '', selectedNumero = '') {
+        resetSelect(filterSerie, '-- Toutes --');
+        resetSelect(filterNumero, '-- Tous --');
+        resetSelect(filterMatiere, '-- Déterminer classe --');
+        filterClasseId.value = '';
+
+        if (!niveau || !cycleId) return;
+
+        const resSeries = await fetch(`/affectations-pedagogiques/get-series?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}`);
+        const series = await resSeries.json();
+
+        if (series && series.length > 0) {
+            groupFilterSerie.style.display = 'block';
+            filterSerie.disabled = false;
+            filterSerie.innerHTML = '<option value="">-- Toutes les séries --</option>';
+            series.forEach(s => {
+                const sel = (selectedSerie && selectedSerie === s) ? 'selected' : '';
+                filterSerie.innerHTML += `<option value="${s}" ${sel}>${s}</option>`;
+            });
+
+            if (selectedSerie) {
+                await loadNumeros(cycleId, niveau, selectedSerie, selectedNumero);
+            }
+        } else {
+            groupFilterSerie.style.display = 'none';
+            await loadNumeros(cycleId, niveau, '', selectedNumero);
+        }
+    }
+
+    async function loadNumeros(cycleId, niveau, serie = '', selectedNumero = '') {
+        resetSelect(filterNumero, '-- Tous --');
+        resetSelect(filterMatiere, '-- Déterminer classe --');
+        filterClasseId.value = '';
+
+        if (!niveau || !cycleId) return;
+
+        const res = await fetch(`/affectations-pedagogiques/get-numeros?niveau=${encodeURIComponent(niveau)}&serie=${encodeURIComponent(serie)}&cycle_id=${cycleId}`);
+        const numeros = await res.json();
+
+        filterNumero.disabled = false;
+        filterNumero.innerHTML = '<option value="">-- Tous les numéros --</option>';
+        numeros.forEach(num => {
+            const sel = (selectedNumero && String(selectedNumero) === String(num)) ? 'selected' : '';
+            filterNumero.innerHTML += `<option value="${num}" ${sel}>${num}</option>`;
+        });
+    }
+
+    async function resolveClasseAndLoadMatieres(cycleId, niveau, serie = '', numero = '', selectedMatiere = '') {
+        resetSelect(filterMatiere, '-- Déterminer classe --');
+        filterClasseId.value = '';
+
+        if (!cycleId || !niveau || !numero) return;
+
+        const resClass = await fetch(`/affectations-pedagogiques/get-classe-id?niveau=${encodeURIComponent(niveau)}&serie=${encodeURIComponent(serie)}&numero=${encodeURIComponent(numero)}&cycle_id=${cycleId}`);
+        const dataClass = await resClass.json();
+
+        if (dataClass.id_classe) {
+            filterClasseId.value = dataClass.id_classe;
+
+            // Load all subjects of this class (include_all=1 for index search)
+            const resMatieres = await fetch(`/affectations-pedagogiques/get-matieres?classe_id=${dataClass.id_classe}&include_all=1`);
+            const matieres = await resMatieres.json();
+
+            filterMatiere.disabled = false;
+            filterMatiere.innerHTML = '<option value="">-- Toutes les matières --</option>';
+            matieres.forEach(m => {
+                const sel = (selectedMatiere && String(selectedMatiere) === String(m.id_matiere)) ? 'selected' : '';
+                filterMatiere.innerHTML += `<option value="${m.id_matiere}" ${sel}>${m.nom_matiere}</option>`;
+            });
+        }
+    }
+
+    // --- Dynamic Event Listeners ---
+
+    filterCycle.addEventListener('change', function() {
+        const cycleId = this.value;
+        loadNiveaux(cycleId);
+    });
+
+    filterNiveau.addEventListener('change', function() {
+        const cycleId = filterCycle.value;
+        const niveau = this.value;
+        loadSeriesOrNumeros(cycleId, niveau);
+    });
+
+    filterSerie.addEventListener('change', function() {
+        const cycleId = filterCycle.value;
+        const niveau = filterNiveau.value;
+        const serie = this.value;
+        loadNumeros(cycleId, niveau, serie);
+    });
+
+    filterNumero.addEventListener('change', function() {
+        const cycleId = filterCycle.value;
+        const niveau = filterNiveau.value;
+        const serie = (groupFilterSerie.style.display !== 'none') ? filterSerie.value : '';
+        const numero = this.value;
+        resolveClasseAndLoadMatieres(cycleId, niveau, serie, numero);
+    });
+
+    // --- GET Rehydration Cascade Sequence ---
+    (async function rehydrateFilters() {
+        if (initialValues.cycle_id) {
+            await loadNiveaux(initialValues.cycle_id, initialValues.niveau);
+            if (initialValues.niveau) {
+                await loadSeriesOrNumeros(initialValues.cycle_id, initialValues.niveau, initialValues.serie, initialValues.numero);
+                if (initialValues.numero) {
+                    await resolveClasseAndLoadMatieres(initialValues.cycle_id, initialValues.niveau, initialValues.serie, initialValues.numero, initialValues.matiere_id);
+                }
+            }
+        }
+    })();
+});
+</script>
 
 <?php require_once __DIR__ . '/../layouts/footer_able.php'; ?>
