@@ -46,12 +46,6 @@ class GradeDashboardService {
             }
         }
 
-        // Resolve Authorized Cycle IDs for this user & lycee
-        $authorizedCycleIds = AuthorizationScopeService::getAuthorizedCycleIds();
-        if ($canViewAll && empty($authorizedCycleIds)) {
-            return self::emptyDashboardResponse("Aucun cycle autorisé pour votre compte dans cet établissement.");
-        }
-
         // 4. Resolve Sequence
         $sequenceId = !empty($filters['sequence_id']) ? (int)$filters['sequence_id'] : null;
         $sequence = null;
@@ -126,15 +120,15 @@ class GradeDashboardService {
         }
 
         // 6. Compute Completion Data (always from live evaluations & param_type_evaluation)
-        $completion = self::getCompletionData($lyceeId, $anneeId, $sequenceId, $cycleId, $niveau, $classeId, $matiereId, $typeEvalId, $canViewAll, $teacherAssignments, $authorizedCycleIds);
+        $completion = self::getCompletionData($lyceeId, $anneeId, $sequenceId, $cycleId, $niveau, $classeId, $matiereId, $typeEvalId, $canViewAll, $teacherAssignments);
 
         // 7. Compute Academic Performance Data (Live for open sequence, Official Snapshots for closed sequence)
         if ($isClosed) {
-            $performance = self::getOfficialSnapshotPerformanceData($lyceeId, $anneeId, $sequenceId, $cycleId, $niveau, $classeId, $matiereId, $canViewAll, $teacherAssignments, $authorizedCycleIds);
+            $performance = self::getOfficialSnapshotPerformanceData($lyceeId, $anneeId, $sequenceId, $cycleId, $niveau, $classeId, $matiereId, $canViewAll, $teacherAssignments);
             $statusLabel = "Résultats officiels scellés";
             $statusBadgeClass = "bg-light-success text-success";
         } else {
-            $performance = self::getLivePerformanceData($lyceeId, $anneeId, $sequenceId, $cycleId, $niveau, $classeId, $matiereId, $canViewAll, $teacherAssignments, $authorizedCycleIds);
+            $performance = self::getLivePerformanceData($lyceeId, $anneeId, $sequenceId, $cycleId, $niveau, $classeId, $matiereId, $canViewAll, $teacherAssignments);
             $statusLabel = "Résultats en temps réel";
             $statusBadgeClass = "bg-light-warning text-warning";
         }
@@ -168,7 +162,7 @@ class GradeDashboardService {
     public static function getCompletionData(
         int $lyceeId, int $anneeId, int $sequenceId,
         ?int $cycleId, ?string $niveau, ?int $classeId, ?int $matiereId, ?int $typeEvalId,
-        bool $canViewAll, array $teacherAssignments, array $authorizedCycleIds = []
+        bool $canViewAll, array $teacherAssignments
     ): array {
         $db = Database::getInstance();
 
@@ -201,14 +195,6 @@ class GradeDashboardService {
         if ($cycleId) {
             $whereClauses[] = "c.cycle_id = :cycle_id";
             $params['cycle_id'] = $cycleId;
-        } elseif ($canViewAll && !empty($authorizedCycleIds)) {
-            $cyclePlaceholders = [];
-            foreach ($authorizedCycleIds as $idx => $cId) {
-                $key = ":auth_cyc_" . $idx;
-                $cyclePlaceholders[] = $key;
-                $params["auth_cyc_" . $idx] = (int)$cId;
-            }
-            $whereClauses[] = "c.cycle_id IN (" . implode(', ', $cyclePlaceholders) . ")";
         }
         if ($niveau) {
             $whereClauses[] = "c.niveau = :niveau";
@@ -294,14 +280,6 @@ class GradeDashboardService {
         if ($cycleId) {
             $evalWhere[] = "c.cycle_id = :cycle_id";
             $evalParams['cycle_id'] = $cycleId;
-        } elseif ($canViewAll && !empty($authorizedCycleIds)) {
-            $cyclePlaceholders = [];
-            foreach ($authorizedCycleIds as $idx => $cId) {
-                $key = ":e_auth_cyc_" . $idx;
-                $cyclePlaceholders[] = $key;
-                $evalParams["e_auth_cyc_" . $idx] = (int)$cId;
-            }
-            $evalWhere[] = "c.cycle_id IN (" . implode(', ', $cyclePlaceholders) . ")";
         }
         if ($niveau) {
             $evalWhere[] = "c.niveau = :niveau";
@@ -475,7 +453,7 @@ class GradeDashboardService {
     public static function getLivePerformanceData(
         int $lyceeId, int $anneeId, int $sequenceId,
         ?int $cycleId, ?string $niveau, ?int $classeId, ?int $matiereId,
-        bool $canViewAll, array $teacherAssignments, array $authorizedCycleIds = []
+        bool $canViewAll, array $teacherAssignments
     ): array {
         $db = Database::getInstance();
 
@@ -486,14 +464,6 @@ class GradeDashboardService {
         if ($cycleId) {
             $whereClauses[] = "c.cycle_id = :cycle_id";
             $params['cycle_id'] = $cycleId;
-        } elseif ($canViewAll && !empty($authorizedCycleIds)) {
-            $cyclePlaceholders = [];
-            foreach ($authorizedCycleIds as $idx => $cId) {
-                $key = ":p_auth_cyc_" . $idx;
-                $cyclePlaceholders[] = $key;
-                $params["p_auth_cyc_" . $idx] = (int)$cId;
-            }
-            $whereClauses[] = "c.cycle_id IN (" . implode(', ', $cyclePlaceholders) . ")";
         }
         if ($niveau) {
             $whereClauses[] = "c.niveau = :niveau";
@@ -621,7 +591,7 @@ class GradeDashboardService {
     public static function getOfficialSnapshotPerformanceData(
         int $lyceeId, int $anneeId, int $sequenceId,
         ?int $cycleId, ?string $niveau, ?int $classeId, ?int $matiereId,
-        bool $canViewAll, array $teacherAssignments, array $authorizedCycleIds = []
+        bool $canViewAll, array $teacherAssignments
     ): array {
         $db = Database::getInstance();
 
@@ -631,14 +601,6 @@ class GradeDashboardService {
         if ($cycleId) {
             $whereClauses[] = "c.cycle_id = :cycle_id";
             $params['cycle_id'] = $cycleId;
-        } elseif ($canViewAll && !empty($authorizedCycleIds)) {
-            $cyclePlaceholders = [];
-            foreach ($authorizedCycleIds as $idx => $cId) {
-                $key = ":s_auth_cyc_" . $idx;
-                $cyclePlaceholders[] = $key;
-                $params["s_auth_cyc_" . $idx] = (int)$cId;
-            }
-            $whereClauses[] = "c.cycle_id IN (" . implode(', ', $cyclePlaceholders) . ")";
         }
         if ($niveau) {
             $whereClauses[] = "c.niveau = :niveau";
@@ -1014,48 +976,26 @@ class GradeDashboardService {
         $seqId = $sequence ? (int)$sequence['id'] : 0;
         $isClosed = $sequence && $sequence['statut'] === 'fermee';
 
-        $authorizedCycleIds = AuthorizationScopeService::getAuthorizedCycleIds();
-        if (empty($authorizedCycleIds)) {
-            return [
-                'average_grade' => null,
-                'completion_rate' => 0.0,
-                'active_sequence_name' => $sequence ? ($sequence['nom_sequence'] ?? $sequence['nom'] ?? ("Séquence " . ($sequence['numero_sequence'] ?? $sequence['id']))) : _('Aucune'),
-                'sequence_statut' => $sequence ? $sequence['statut'] : 'non_definie',
-                'total_evaluations' => 0
-            ];
-        }
-
-        $cycPlaceholders = [];
-        $cycParams = ['lycee_id' => $lyceeId, 'seq_id' => $seqId];
-        foreach ($authorizedCycleIds as $idx => $cId) {
-            $key = ":sum_cyc_" . $idx;
-            $cycPlaceholders[] = $key;
-            $cycParams["sum_cyc_" . $idx] = (int)$cId;
-        }
-        $cycInSql = implode(', ', $cycPlaceholders);
-
         // Overall Average
         $avgGrade = null;
         if ($isClosed) {
             $stmtAvg = $db->prepare("
-                SELECT AVG(b.moyenne_generale)
-                FROM bulletins b
-                JOIN classes c ON b.classe_id = c.id_classe
-                WHERE b.lycee_id = :lycee_id AND b.sequence_id = :seq_id AND b.moyenne_generale IS NOT NULL AND c.cycle_id IN ({$cycInSql})
+                SELECT AVG(moyenne_generale)
+                FROM bulletins
+                WHERE lycee_id = :lycee_id AND sequence_id = :seq_id AND moyenne_generale IS NOT NULL
             ");
-            $stmtAvg->execute($cycParams);
+            $stmtAvg->execute(['lycee_id' => $lyceeId, 'seq_id' => $seqId]);
             $val = $stmtAvg->fetchColumn();
             if ($val !== false && $val !== null) {
                 $avgGrade = round((float)$val, 2);
             }
         } else if ($seqId > 0) {
             $stmtAvg = $db->prepare("
-                SELECT AVG((e.note / e.bareme_snapshot) * 20)
-                FROM evaluations e
-                JOIN classes c ON e.classe_id = c.id_classe
-                WHERE e.lycee_id = :lycee_id AND e.sequence_id = :seq_id AND e.note IS NOT NULL AND e.bareme_snapshot > 0 AND c.cycle_id IN ({$cycInSql})
+                SELECT AVG((note / bareme_snapshot) * 20)
+                FROM evaluations
+                WHERE lycee_id = :lycee_id AND sequence_id = :seq_id AND note IS NOT NULL AND bareme_snapshot > 0
             ");
-            $stmtAvg->execute($cycParams);
+            $stmtAvg->execute(['lycee_id' => $lyceeId, 'seq_id' => $seqId]);
             $val = $stmtAvg->fetchColumn();
             if ($val !== false && $val !== null) {
                 $avgGrade = round((float)$val, 2);
@@ -1066,42 +1006,31 @@ class GradeDashboardService {
         $totalEvals = 0;
         if ($seqId > 0) {
             $stmtCount = $db->prepare("
-                SELECT COUNT(e.id) FROM evaluations e
-                JOIN classes c ON e.classe_id = c.id_classe
-                WHERE e.lycee_id = :lycee_id AND e.sequence_id = :seq_id AND e.note IS NOT NULL AND c.cycle_id IN ({$cycInSql})
+                SELECT COUNT(id) FROM evaluations
+                WHERE lycee_id = :lycee_id AND sequence_id = :seq_id AND note IS NOT NULL
             ");
-            $stmtCount->execute($cycParams);
+            $stmtCount->execute(['lycee_id' => $lyceeId, 'seq_id' => $seqId]);
             $totalEvals = (int)$stmtCount->fetchColumn();
         }
 
         // Fast completion rate calculation
         $completionRate = 0.0;
         if ($seqId > 0) {
-            $clsParams = ['lycee_id' => $lyceeId];
-            $clsPlaceholders = [];
-            foreach ($authorizedCycleIds as $idx => $cId) {
-                $key = ":cls_cyc_" . $idx;
-                $clsPlaceholders[] = $key;
-                $clsParams["cls_cyc_" . $idx] = (int)$cId;
-            }
-            $clsInSql = implode(', ', $clsPlaceholders);
-
             $stmtClasses = $db->prepare("
                 SELECT COUNT(DISTINCT CONCAT(c.id_classe, '_', cm.matiere_id))
                 FROM classes c
                 JOIN classe_matieres cm ON c.id_classe = cm.classe_id
-                WHERE c.lycee_id = :lycee_id AND c.cycle_id IN ({$clsInSql})
+                WHERE c.lycee_id = :lycee_id
             ");
-            $stmtClasses->execute($clsParams);
+            $stmtClasses->execute(['lycee_id' => $lyceeId]);
             $expectedPairs = (int)$stmtClasses->fetchColumn();
 
             $stmtRecordedPairs = $db->prepare("
-                SELECT COUNT(DISTINCT CONCAT(e.classe_id, '_', e.matiere_id))
-                FROM evaluations e
-                JOIN classes c ON e.classe_id = c.id_classe
-                WHERE e.lycee_id = :lycee_id AND e.sequence_id = :seq_id AND e.note IS NOT NULL AND c.cycle_id IN ({$cycInSql})
+                SELECT COUNT(DISTINCT CONCAT(classe_id, '_', matiere_id))
+                FROM evaluations
+                WHERE lycee_id = :lycee_id AND sequence_id = :seq_id AND note IS NOT NULL
             ");
-            $stmtRecordedPairs->execute($cycParams);
+            $stmtRecordedPairs->execute(['lycee_id' => $lyceeId, 'seq_id' => $seqId]);
             $recordedPairs = (int)$stmtRecordedPairs->fetchColumn();
 
             if ($expectedPairs > 0) {
@@ -1112,7 +1041,7 @@ class GradeDashboardService {
         return [
             'average_grade' => $avgGrade,
             'completion_rate' => $completionRate,
-            'active_sequence_name' => $sequence ? ($sequence['nom_sequence'] ?? $sequence['nom'] ?? ("Séquence " . ($sequence['numero_sequence'] ?? $sequence['id']))) : _('Aucune'),
+            'active_sequence_name' => $sequence ? ($sequence['nom_sequence'] ?? "Séquence {$sequence['numero_sequence']}") : _('Aucune'),
             'sequence_statut' => $sequence ? $sequence['statut'] : 'non_definie',
             'total_evaluations' => $totalEvals
         ];

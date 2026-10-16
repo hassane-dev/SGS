@@ -23,8 +23,6 @@ class FinancialStatusService {
         if (!$anneeAcademiqueId) {
             return [
                 'eleve_id' => $eleveId,
-                'is_configured' => false,
-                'config_warning' => 'Année académique non spécifiée',
                 'reste_inscription' => 0.0,
                 'reste_mensualite' => 0.0,
                 'total_reste' => 0.0,
@@ -47,8 +45,6 @@ class FinancialStatusService {
         if (!$etude) {
             return [
                 'eleve_id' => $eleveId,
-                'is_configured' => false,
-                'config_warning' => 'Aucune inscription active trouvée pour cette année académique',
                 'reste_inscription' => 0.0,
                 'reste_mensualite' => 0.0,
                 'total_reste' => 0.0,
@@ -65,8 +61,6 @@ class FinancialStatusService {
         if (!$classe) {
             return [
                 'eleve_id' => $eleveId,
-                'is_configured' => false,
-                'config_warning' => 'Classe associée introuvable',
                 'reste_inscription' => 0.0,
                 'reste_mensualite' => 0.0,
                 'total_reste' => 0.0,
@@ -83,8 +77,6 @@ class FinancialStatusService {
         if (!$frais) {
             return [
                 'eleve_id' => $eleveId,
-                'is_configured' => false,
-                'config_warning' => "Aucune grille tarifaire applicable trouvée pour la classe '{$classe['niveau']}'",
                 'reste_inscription' => 0.0,
                 'reste_mensualite' => 0.0,
                 'total_reste' => 0.0,
@@ -234,8 +226,6 @@ class FinancialStatusService {
 
         return [
             'eleve_id' => $eleveId,
-            'is_configured' => true,
-            'config_warning' => null,
             'reste_inscription' => $resteInscription,
             'reste_mensualite' => $resteMensualite,
             'total_reste' => $totalReste,
