@@ -23,11 +23,15 @@ echo "RUNNING SUITE: Student Class Assignment & Scope Security Test\n";
 echo "========================================================\n";
 
 // Cleanup mock records
-$db->exec("DELETE FROM personnel_cycles_assignments WHERE personnel_id IN (8881, 8882, 8883)");
+$db->exec("DELETE FROM personnel_cycles_assignments WHERE personnel_id IN (8881, 8882, 8883, 8884, 8885)");
+$db->exec("DELETE FROM personnel_assignments WHERE personnel_id IN (8881, 8882, 8883, 8884, 8885)");
+$db->exec("DELETE FROM surveillant_classes WHERE surveillant_id IN (8881, 8882, 8883, 8884, 8885)");
+$db->exec("DELETE FROM surveillant_niveaux WHERE surveillant_id IN (8881, 8882, 8883, 8884, 8885)");
+$db->exec("DELETE FROM affectations_pedagogiques WHERE enseignant_id IN (8881, 8882, 8883, 8884, 8885)");
 $db->exec("DELETE FROM etudes WHERE eleve_id IN (88801, 88802)");
 $db->exec("DELETE FROM eleves WHERE id_eleve IN (88801, 88802)");
 $db->exec("DELETE FROM classes WHERE id_classe IN (88810, 88820, 88830)");
-$db->exec("DELETE FROM utilisateurs WHERE id_user IN (8881, 8882, 8883)");
+$db->exec("DELETE FROM utilisateurs WHERE id_user IN (8881, 8882, 8883, 8884, 8885)");
 
 // Ensure active year
 $activeYear = AnneeAcademique::findActive();
@@ -86,6 +90,13 @@ $db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, dat
 $db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, role_id, auth_version) VALUES (8883, 1, 'User', 'MultiCycle', 99, 1)");
 $db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, actif) VALUES (8883, {$idCeg}, '2020-01-01', 1)");
 $db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, actif) VALUES (8883, {$idLycee}, '2020-01-01', 1)");
+
+// User 8884: User with NO cycle assignment
+$db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, role_id, auth_version) VALUES (8884, 1, 'User', 'NoAssignment', 99, 1)");
+
+// User 8885: User assigned via secondary mechanism (surveillant_classes)
+$db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, role_id, auth_version) VALUES (8885, 1, 'User', 'SurveillantClass', 99, 1)");
+$db->exec("INSERT INTO surveillant_classes (surveillant_id, classe_id, lycee_id) VALUES (8885, 88820, 1)");
 
 echo "[OK] Mock data successfully prepared.\n\n";
 
@@ -229,7 +240,7 @@ if ($permittedIds === $expectedIds) {
 }
 
 // -------------------------------------------------------------
-// TEST 4: Multi-Lycée Isolation
+// TEST 4: Isolation Multi-Lycée (Cross-Tenant)
 // -------------------------------------------------------------
 echo "\nTEST 4: Isolation Multi-Lycée (Cross-Tenant)\n";
 mockSession(8881, 1); // User belongs to Lycee 1
@@ -253,12 +264,43 @@ try {
 }
 ob_end_clean();
 
+// -------------------------------------------------------------
+// TEST 5: Utilisateur Sans Affectation de Cycle
+// -------------------------------------------------------------
+echo "\nTEST 5: Utilisateur Sans Affectation de Cycle (Pas d'élargissement artificiel)\n";
+mockSession(8884, 1);
+
+$noAssignCycles = AuthorizationScopeService::getPermittedCycles(1);
+if (empty($noAssignCycles)) {
+    echo "  [PASS] 5a. User without cycle assignments gets strictly empty list [] (no fallback to all cycles).\n";
+} else {
+    echo "  [FAIL] 5a. User without cycle assignments got cycles! " . json_encode(array_column($noAssignCycles, 'id_cycle')) . "\n";
+}
+
+// -------------------------------------------------------------
+// TEST 6: Affectation via Mécanismes Secondaires (surveillant_classes)
+// -------------------------------------------------------------
+echo "\nTEST 6: Utilisateur Affecté via Mécanisme Secondaire (surveillant_classes)\n";
+mockSession(8885, 1);
+
+$secCycles = AuthorizationScopeService::getPermittedCycles(1);
+$secIds = array_column($secCycles, 'id_cycle');
+if (count($secIds) === 1 && in_array($idLycee, $secIds)) {
+    echo "  [PASS] 6a. Secondary assignment via surveillant_classes properly grants access to Lycee cycle [{$idLycee}].\n";
+} else {
+    echo "  [FAIL] 6a. Secondary assignment failed! Got: " . json_encode($secIds) . "\n";
+}
+
 // Cleanup mock records
-$db->exec("DELETE FROM personnel_cycles_assignments WHERE personnel_id IN (8881, 8882, 8883)");
+$db->exec("DELETE FROM personnel_cycles_assignments WHERE personnel_id IN (8881, 8882, 8883, 8884, 8885)");
+$db->exec("DELETE FROM personnel_assignments WHERE personnel_id IN (8881, 8882, 8883, 8884, 8885)");
+$db->exec("DELETE FROM surveillant_classes WHERE surveillant_id IN (8881, 8882, 8883, 8884, 8885)");
+$db->exec("DELETE FROM surveillant_niveaux WHERE surveillant_id IN (8881, 8882, 8883, 8884, 8885)");
+$db->exec("DELETE FROM affectations_pedagogiques WHERE enseignant_id IN (8881, 8882, 8883, 8884, 8885)");
 $db->exec("DELETE FROM etudes WHERE eleve_id IN (88801, 88802)");
 $db->exec("DELETE FROM eleves WHERE id_eleve IN (88801, 88802)");
 $db->exec("DELETE FROM classes WHERE id_classe IN (88810, 88820, 88830)");
-$db->exec("DELETE FROM utilisateurs WHERE id_user IN (8881, 8882, 8883)");
+$db->exec("DELETE FROM utilisateurs WHERE id_user IN (8881, 8882, 8883, 8884, 8885)");
 
 echo "\n========================================================\n";
 echo "SUCCESS: ALL STUDENT CLASS ASSIGNMENT SCOPE TESTS PASSED!\n";
