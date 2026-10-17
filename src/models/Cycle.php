@@ -80,10 +80,15 @@ class Cycle {
     /**
      * Find a cycle by its name.
      */
-    public static function findByNom($nom) {
+    public static function findByNom($nom, $lycee_id = null) {
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT * FROM cycles WHERE nom_cycle = :nom LIMIT 1");
-        $stmt->execute(['nom' => $nom]);
+        if ($lycee_id !== null) {
+            $stmt = $db->prepare("SELECT * FROM cycles WHERE nom_cycle = :nom AND (lycee_id = :lycee_id OR lycee_id IS NULL) LIMIT 1");
+            $stmt->execute(['nom' => $nom, 'lycee_id' => $lycee_id]);
+        } else {
+            $stmt = $db->prepare("SELECT * FROM cycles WHERE nom_cycle = :nom LIMIT 1");
+            $stmt->execute(['nom' => $nom]);
+        }
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }

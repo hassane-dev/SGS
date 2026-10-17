@@ -126,35 +126,81 @@ class ClasseController {
         $this->checkAccess('class:create');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
-            $lycee_id = Auth::can('view_all_lycees', 'lycee') ? $data['lycee_id'] : Auth::getLyceeId();
+            $lycee_id = Auth::can('view_all_lycees', 'lycee') && !empty($data['lycee_id']) ? (int)$data['lycee_id'] : Auth::getLyceeId();
             $data['lycee_id'] = $lycee_id;
 
-            // Automatic cycle assignment
-            $params = ParamGeneral::findByLyceeId($lycee_id);
-            $mode_cycle = $params['mode_cycle'] ?? 'separe_ceg_lycee';
+            // 1. Cycle ID validation
+            $cycle_id = !empty($data['cycle_id']) ? (int)$data['cycle_id'] : null;
+            if (!$cycle_id) {
+                $_SESSION['error_message'] = _("Veuillez sélectionner un cycle valide.");
+                header('Location: /classes/create');
+                exit();
+            }
+
+            // 2. Cycle existence and school ownership check
+            $targetCycle = Cycle::findById($cycle_id);
+            if (!$targetCycle) {
+                $_SESSION['error_message'] = _("Le cycle sélectionné est inexistant.");
+                header('Location: /classes/create');
+                exit();
+            }
+
+            if (!empty($targetCycle['lycee_id']) && (int)$targetCycle['lycee_id'] !== (int)$lycee_id) {
+                $_SESSION['error_message'] = _("Le cycle sélectionné n'appartient pas à l'établissement choisi.");
+                header('Location: /classes/create');
+                exit();
+            }
+
+            // 3. RBAC & Cycle Scope authorization
+            require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+            if (!AuthorizationScopeService::canAccessLycee($lycee_id) || !AuthorizationScopeService::canAccessCycle($cycle_id)) {
+                http_response_code(403);
+                View::render('errors/403');
+                exit();
+            }
+
+            $data['cycle_id'] = $cycle_id;
+
+            // Level and series consistency validation with cycle
+            $niveau = trim((string)($data['niveau'] ?? ''));
+            $serie = !empty($data['serie']) ? strtoupper(trim($data['serie'])) : null;
+
+            if (empty($niveau)) {
+                $_SESSION['error_message'] = _("Le niveau est obligatoire.");
+                header('Location: /classes/create');
+                exit();
+            }
+
+            // CEG/Collège cycle levels (6e, 5e, 4e, 3e) should not have a series
+            $cegNiveaux = ['6e', '5e', '4e', '3e', '6ème', '5ème', '4ème', '3ème'];
+            if (in_array(strtolower($niveau), $cegNiveaux, true) && !empty($serie)) {
+                $_SESSION['error_message'] = _("Les classes du Premier Cycle (CEG/Collège) ne comportent pas de série.");
+                header('Location: /classes/create');
+                exit();
+            }
+
+            // Validate level boundary against cycle definition if cycle defines niveau_debut / niveau_fin
+            if (!empty($targetCycle['niveau_debut']) && !empty($targetCycle['niveau_fin'])) {
+                $orderMap = Classe::getLevelOrderMap();
+                $classLevelOrder = $orderMap[$niveau] ?? null;
+                $startLevelOrder = $orderMap[$targetCycle['niveau_debut']] ?? null;
+                $endLevelOrder = $orderMap[$targetCycle['niveau_fin']] ?? null;
+
+                if ($classLevelOrder !== null && $startLevelOrder !== null && $endLevelOrder !== null) {
+                    if ($classLevelOrder < $startLevelOrder || $classLevelOrder > $endLevelOrder) {
+                        $_SESSION['error_message'] = sprintf(_("Le niveau '%s' est en dehors de la plage (%s à %s) définie pour le cycle '%s'."), $niveau, $targetCycle['niveau_debut'], $targetCycle['niveau_fin'], $targetCycle['nom_cycle']);
+                        header('Location: /classes/create');
+                        exit();
+                    }
+                }
+            }
 
             // Set categorie based on serie
-            if (!empty($data['serie'])) {
-                $serie = strtoupper($data['serie']);
+            if (!empty($serie)) {
                 if (in_array($serie, ['A', 'A4', 'L'])) {
                     $data['categorie'] = 'Littéraire';
                 } elseif (in_array($serie, ['C', 'D', 'E', 'S'])) {
                     $data['categorie'] = 'Scientifique';
-                }
-            }
-
-            if ($mode_cycle === 'lycee_unique') {
-                $cycle = Cycle::findByNom('Lycée');
-                $data['cycle_id'] = $cycle['id_cycle'];
-            } else { // separe_ceg_lycee
-                // Assumes niveau is an integer e.g., 6, 5, 4, 3 for CEG and 2, 1, Tle for Lycée
-                $niveau = intval(preg_replace('/[^0-9]/', '', $data['niveau']));
-                if (in_array($niveau, [6, 5, 4, 3])) {
-                    $cycle = Cycle::findByNom('CEG');
-                    $data['cycle_id'] = $cycle['id_cycle'];
-                } else {
-                    $cycle = Cycle::findByNom('Lycée');
-                    $data['cycle_id'] = $cycle['id_cycle'];
                 }
             }
 

@@ -1241,6 +1241,9 @@ try {
         )
     ");
 
+    require_once __DIR__ . '/db/migrations/20240115_31_migrate_frais_cycle_id.php';
+    migrate_31($db);
+
     echo "Migration successful\n";
 } catch (Exception $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";
