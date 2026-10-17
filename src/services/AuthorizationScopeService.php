@@ -82,23 +82,111 @@ class AuthorizationScopeService {
             return $cycle_ids;
         }
 
-        // 4. Query active assignments for the current date from DB
+        // 4. Query active assignments across all academic assignment tables for non-admin users
         $today = date('Y-m-d');
-        $stmt = $db->prepare("
-            SELECT cycle_id
-            FROM personnel_cycles_assignments
-            WHERE personnel_id = :personnel_id
-              AND actif = 1
-              AND date_debut <= :today_start
-              AND (date_fin IS NULL OR date_fin >= :today_end)
-        ");
-        $stmt->execute([
-            'personnel_id' => $user_id,
-            'today_start' => $today,
-            'today_end' => $today
-        ]);
+        $raw_cycle_ids = [];
 
-        $cycle_ids = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)) ?: [];
+        // 4a. Explicit cycle assignments (personnel_cycles_assignments)
+        try {
+            $stmt = $db->prepare("
+                SELECT cycle_id
+                FROM personnel_cycles_assignments
+                WHERE personnel_id = :personnel_id
+                  AND actif = 1
+                  AND (date_debut IS NULL OR date_debut <= :today_start)
+                  AND (date_fin IS NULL OR date_fin = '' OR date_fin = '0000-00-00' OR date_fin >= :today_end)
+            ");
+            $stmt->execute([
+                'personnel_id' => $user_id,
+                'today_start' => $today,
+                'today_end' => $today
+            ]);
+            $raw_cycle_ids = array_merge($raw_cycle_ids, $stmt->fetchAll(PDO::FETCH_COLUMN));
+        } catch (Throwable $e) {}
+
+        // 4b. Resource assignments (personnel_assignments: cycle or classe target)
+        try {
+            $stmt = $db->prepare("
+                SELECT target_id AS cycle_id
+                FROM personnel_assignments
+                WHERE personnel_id = :personnel_id
+                  AND assignment_type = 'cycle'
+            ");
+            $stmt->execute(['personnel_id' => $user_id]);
+            $raw_cycle_ids = array_merge($raw_cycle_ids, $stmt->fetchAll(PDO::FETCH_COLUMN));
+
+            $stmtClass = $db->prepare("
+                SELECT c.cycle_id
+                FROM personnel_assignments pa
+                JOIN classes c ON pa.target_id = c.id_classe
+                WHERE pa.personnel_id = :personnel_id
+                  AND pa.assignment_type = 'classe'
+                  AND c.cycle_id IS NOT NULL
+            ");
+            $stmtClass->execute(['personnel_id' => $user_id]);
+            $raw_cycle_ids = array_merge($raw_cycle_ids, $stmtClass->fetchAll(PDO::FETCH_COLUMN));
+        } catch (Throwable $e) {}
+
+        // 4c. Supervisor class assignments (surveillant_classes)
+        try {
+            $stmt = $db->prepare("
+                SELECT c.cycle_id
+                FROM surveillant_classes sc
+                JOIN classes c ON sc.classe_id = c.id_classe
+                WHERE sc.surveillant_id = :surveillant_id
+                  AND c.cycle_id IS NOT NULL
+            ");
+            $stmt->execute(['surveillant_id' => $user_id]);
+            $raw_cycle_ids = array_merge($raw_cycle_ids, $stmt->fetchAll(PDO::FETCH_COLUMN));
+        } catch (Throwable $e) {}
+
+        // 4d. Supervisor level assignments (surveillant_niveaux)
+        try {
+            $stmt = $db->prepare("
+                SELECT DISTINCT c.cycle_id
+                FROM surveillant_niveaux sn
+                JOIN classes c ON sn.niveau = c.niveau AND (c.lycee_id = sn.lycee_id OR sn.lycee_id IS NULL)
+                WHERE sn.surveillant_id = :surveillant_id
+                  AND c.cycle_id IS NOT NULL
+            ");
+            $stmt->execute(['surveillant_id' => $user_id]);
+            $raw_cycle_ids = array_merge($raw_cycle_ids, $stmt->fetchAll(PDO::FETCH_COLUMN));
+        } catch (Throwable $e) {}
+
+        // 4e. Supervisor general assignments (surveillant_general)
+        try {
+            $stmt = $db->prepare("
+                SELECT c.id_cycle
+                FROM surveillant_general sg
+                JOIN cycles c ON (c.lycee_id = sg.lycee_id OR c.lycee_id IS NULL)
+                WHERE sg.surveillant_id = :surveillant_id
+                  AND c.id_cycle IS NOT NULL
+            ");
+            $stmt->execute(['surveillant_id' => $user_id]);
+            $raw_cycle_ids = array_merge($raw_cycle_ids, $stmt->fetchAll(PDO::FETCH_COLUMN));
+        } catch (Throwable $e) {}
+
+        // 4f. Teacher pedagogical assignments (affectations_pedagogiques)
+        try {
+            $stmt = $db->prepare("
+                SELECT c.cycle_id
+                FROM affectations_pedagogiques ap
+                JOIN classes c ON ap.classe_id = c.id_classe
+                WHERE ap.enseignant_id = :enseignant_id
+                  AND (ap.statut IS NULL OR ap.statut = 'actif')
+                  AND (ap.date_debut IS NULL OR ap.date_debut <= :today_start)
+                  AND (ap.date_fin IS NULL OR ap.date_fin = '' OR ap.date_fin = '0000-00-00' OR ap.date_fin >= :today_end)
+                  AND c.cycle_id IS NOT NULL
+            ");
+            $stmt->execute([
+                'enseignant_id' => $user_id,
+                'today_start' => $today,
+                'today_end' => $today
+            ]);
+            $raw_cycle_ids = array_merge($raw_cycle_ids, $stmt->fetchAll(PDO::FETCH_COLUMN));
+        } catch (Throwable $e) {}
+
+        $cycle_ids = array_values(array_unique(array_map('intval', array_filter($raw_cycle_ids, fn($val) => $val !== null && $val !== ''))));
         $_SESSION['user']['authorized_cycles'] = $cycle_ids;
         return $cycle_ids;
     }
