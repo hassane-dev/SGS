@@ -61,16 +61,40 @@ class Frais {
             ':frais_carte' => !empty($data['frais_carte']) ? $data['frais_carte'] : null,
             ':autres_frais' => !empty($data['autres_frais']) ? json_encode($data['autres_frais']) : null,
             ':cycle' => null,
+            ':cycle_id' => null,
             ':niveau_debut' => null,
             ':niveau_fin' => null,
             ':serie' => null
         ];
 
         if ($data['type_config'] === 'cycle') {
-            if (empty($data['cycle'])) {
+            $cycle_id = !empty($data['cycle_id']) ? (int)$data['cycle_id'] : null;
+
+            if ($cycle_id) {
+                $targetCycle = Cycle::findById($cycle_id);
+                if (!$targetCycle) {
+                    throw new InvalidArgumentException("Le cycle sélectionné est inexistant.");
+                }
+                if (!empty($targetCycle['lycee_id']) && (int)$targetCycle['lycee_id'] !== (int)$data['lycee_id']) {
+                    throw new InvalidArgumentException("Incohérence détectée : Le cycle sélectionné n'appartient pas à l'établissement choisi.");
+                }
+                $cycle_str = $targetCycle['nom_cycle'];
+            } else {
+                $cycle_str = !empty($data['cycle']) ? trim($data['cycle']) : null;
+                if ($cycle_str) {
+                    $targetCycle = Cycle::findByNom($cycle_str, $data['lycee_id']);
+                    if ($targetCycle) {
+                        $cycle_id = (int)$targetCycle['id_cycle'];
+                    }
+                }
+            }
+
+            if (!$cycle_id && !$cycle_str) {
                 throw new InvalidArgumentException("Le champ Cycle est requis pour ce type de configuration.");
             }
-            $params[':cycle'] = $data['cycle'];
+
+            $params[':cycle'] = $cycle_str;
+            $params[':cycle_id'] = $cycle_id;
             $params[':niveau_debut'] = null;
             $params[':niveau_fin'] = null;
             $params[':serie'] = null;
@@ -82,13 +106,14 @@ class Frais {
             $params[':niveau_fin'] = $data['niveau_fin'];
             $params[':serie'] = !empty($data['serie']) ? $data['serie'] : null;
             $params[':cycle'] = null;
+            $params[':cycle_id'] = null;
         } else {
             throw new InvalidArgumentException("Type de configuration non valide.");
         }
 
         // For now, we only handle creation (INSERT). Update logic can be added later.
-        $sql = "INSERT INTO frais (lycee_id, annee_academique_id, frais_inscription, frais_mensuel, frais_logo, frais_carte, autres_frais, cycle, niveau_debut, niveau_fin, serie)
-                VALUES (:lycee_id, :annee_academique_id, :frais_inscription, :frais_mensuel, :frais_logo, :frais_carte, :autres_frais, :cycle, :niveau_debut, :niveau_fin, :serie)";
+        $sql = "INSERT INTO frais (lycee_id, annee_academique_id, frais_inscription, frais_mensuel, frais_logo, frais_carte, autres_frais, cycle, cycle_id, niveau_debut, niveau_fin, serie)
+                VALUES (:lycee_id, :annee_academique_id, :frais_inscription, :frais_mensuel, :frais_logo, :frais_carte, :autres_frais, :cycle, :cycle_id, :niveau_debut, :niveau_fin, :serie)";
 
         $stmt = $db->prepare($sql);
         if ($stmt->execute($params)) {
@@ -166,9 +191,30 @@ class Frais {
                      return $frais;
                  }
             }
-            // Priorité 3: Correspondance par cycle
-            if (!empty($frais['cycle']) && $frais['cycle'] === $nom_cycle) {
+            // Priorité 3a: Correspondance canonique par identifiant technique cycle_id
+            if (!empty($frais['cycle_id']) && (int)$frais['cycle_id'] === (int)$classe['cycle_id']) {
                 return $frais;
+            }
+
+            // Priorité 3b: Correspondance fallback legacy par libellé textuel DE MANIÈRE STRICTEMENT NON AMBIGUË
+            if (empty($frais['cycle_id']) && !empty($frais['cycle']) && strtolower(trim($frais['cycle'])) === strtolower(trim($nom_cycle))) {
+                // Verify that no other cycle in the same school tenant shares this name
+                $stmtCheckAmbiguous = $db->prepare("
+                    SELECT COUNT(*) FROM cycles
+                    WHERE (lycee_id = :lycee_id OR lycee_id IS NULL)
+                      AND LOWER(TRIM(nom_cycle)) = LOWER(:cycle_name)
+                ");
+                $stmtCheckAmbiguous->execute([
+                    'lycee_id' => $classe['lycee_id'],
+                    'cycle_name' => trim($nom_cycle)
+                ]);
+                $matchingCyclesCount = (int)$stmtCheckAmbiguous->fetchColumn();
+
+                if ($matchingCyclesCount === 1) {
+                    return $frais;
+                } else {
+                    error_log("FRAIS_WARNING: Rule #{$frais['id_frais']} with text cycle '{$frais['cycle']}' was skipped because '{$nom_cycle}' matches {$matchingCyclesCount} distinct cycles in school #{$classe['lycee_id']}. Please configure cycle_id explicitly.");
+                }
             }
         }
 

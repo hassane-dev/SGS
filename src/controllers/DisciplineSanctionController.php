@@ -150,9 +150,18 @@ class DisciplineSanctionController {
         }
 
         if ($scopeInfo['isTeacherScoped']) {
-            if (!in_array((int)$sanction['classe_id'], $scopeInfo['allowedClassIds'], true)) {
+            if (empty($sanction['classe_id']) || !in_array((int)$sanction['classe_id'], $scopeInfo['allowedClassIds'], true)) {
                 header('Location: /discipline/sanctions?error=' . urlencode(_("Accès non autorisé à cette sanction.")));
                 exit;
+            }
+        } else {
+            if (!Auth::can('view_all_lycees', 'lycee') && !Auth::can('view_all_cycles', 'cycle')) {
+                $classeId = (int)($sanction['classe_id'] ?? 0);
+                $cls = $classeId ? Classe::findById($classeId) : null;
+                if (!$cls || empty($cls['cycle_id']) || !AuthorizationScopeService::canAccessCycle((int)$cls['cycle_id'])) {
+                    header('Location: /discipline/sanctions?error=' . urlencode(_("Accès non autorisé à cette sanction.")));
+                    exit;
+                }
             }
         }
 
@@ -170,6 +179,21 @@ class DisciplineSanctionController {
         }
 
         $id = (int)($_POST['id'] ?? 0);
+        $lyceeId = Auth::getLyceeId();
+        $sanction = DisciplineSanction::findById($id, $lyceeId);
+        if (!$sanction) {
+            header('Location: /discipline/sanctions?error=' . urlencode(_("Sanction introuvable ou non autorisée.")));
+            exit;
+        }
+
+        if (!Auth::can('view_all_lycees', 'lycee') && !Auth::can('view_all_cycles', 'cycle')) {
+            $classeId = (int)($sanction['classe_id'] ?? 0);
+            $cls = $classeId ? Classe::findById($classeId) : null;
+            if (!$cls || empty($cls['cycle_id']) || !AuthorizationScopeService::canAccessCycle((int)$cls['cycle_id'])) {
+                header('Location: /discipline/sanctions?error=' . urlencode(_("Accès non autorisé à cette sanction.")));
+                exit;
+            }
+        }
         $newStatut = $_POST['statut'] ?? '';
         $motif = $_POST['motif_levee_annulation'] ?? null;
 

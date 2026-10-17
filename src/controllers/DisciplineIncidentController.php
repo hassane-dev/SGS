@@ -177,6 +177,23 @@ class DisciplineIncidentController {
                 header('Location: /discipline/incidents?error=' . urlencode(_("Accès non autorisé à cet incident.")));
                 exit;
             }
+        } else {
+            if (!Auth::can('view_all_lycees', 'lycee') && !Auth::can('view_all_cycles', 'cycle')) {
+                $hasAuthorizedCycle = false;
+                foreach ($incident['eleves'] as $e) {
+                    if (!empty($e['classe_id'])) {
+                        $cls = Classe::findById((int)$e['classe_id']);
+                        if ($cls && !empty($cls['cycle_id']) && AuthorizationScopeService::canAccessCycle((int)$cls['cycle_id'])) {
+                            $hasAuthorizedCycle = true;
+                            break;
+                        }
+                    }
+                }
+                if (!$hasAuthorizedCycle && !empty($incident['eleves'])) {
+                    header('Location: /discipline/incidents?error=' . urlencode(_("Accès non autorisé à cet incident.")));
+                    exit;
+                }
+            }
         }
 
         View::render('discipline/incidents/show', [
@@ -209,6 +226,23 @@ class DisciplineIncidentController {
                 header('Location: /discipline/incidents/show?id=' . $id);
                 exit;
             }
+        } else {
+            if (!Auth::can('view_all_lycees', 'lycee') && !Auth::can('view_all_cycles', 'cycle')) {
+                $hasAuthorizedCycle = false;
+                foreach ($incident['eleves'] as $e) {
+                    if (!empty($e['classe_id'])) {
+                        $cls = Classe::findById((int)$e['classe_id']);
+                        if ($cls && !empty($cls['cycle_id']) && AuthorizationScopeService::canAccessCycle((int)$cls['cycle_id'])) {
+                            $hasAuthorizedCycle = true;
+                            break;
+                        }
+                    }
+                }
+                if (!$hasAuthorizedCycle && !empty($incident['eleves'])) {
+                    header('Location: /discipline/incidents?error=' . urlencode(_("Accès non autorisé à cet incident.")));
+                    exit;
+                }
+            }
         }
 
         $typesIncidents = DisciplineTypeIncident::findActive($lyceeId);
@@ -240,6 +274,29 @@ class DisciplineIncidentController {
         $id = (int)($_POST['id'] ?? 0);
         $lyceeId = Auth::getLyceeId();
         $scopeInfo = $this->getTeacherScopeInfo($lyceeId);
+
+        $incident = DisciplineIncident::findById($id, $lyceeId);
+        if (!$incident) {
+            header('Location: /discipline/incidents?error=' . urlencode(_("Incident introuvable.")));
+            exit;
+        }
+
+        if (!Auth::can('view_all_lycees', 'lycee') && !Auth::can('view_all_cycles', 'cycle')) {
+            $hasAuthorizedCycle = false;
+            foreach ($incident['eleves'] as $e) {
+                if (!empty($e['classe_id'])) {
+                    $cls = Classe::findById((int)$e['classe_id']);
+                    if ($cls && !empty($cls['cycle_id']) && AuthorizationScopeService::canAccessCycle((int)$cls['cycle_id'])) {
+                        $hasAuthorizedCycle = true;
+                        break;
+                    }
+                }
+            }
+            if (!$hasAuthorizedCycle && !empty($incident['eleves'])) {
+                header('Location: /discipline/incidents?error=' . urlencode(_("Accès non autorisé à cet incident.")));
+                exit;
+            }
+        }
 
         try {
             $elevesInput = $_POST['eleves'] ?? [];
@@ -280,6 +337,30 @@ class DisciplineIncidentController {
         }
 
         $id = (int)($_POST['id'] ?? 0);
+        $lyceeId = Auth::getLyceeId();
+        $incident = DisciplineIncident::findById($id, $lyceeId);
+        if (!$incident) {
+            header('Location: /discipline/incidents?error=' . urlencode(_("Incident introuvable ou non autorisé.")));
+            exit;
+        }
+
+        if (!Auth::can('view_all_lycees', 'lycee') && !Auth::can('view_all_cycles', 'cycle')) {
+            $hasAuthorizedCycle = false;
+            foreach ($incident['eleves'] as $e) {
+                if (!empty($e['classe_id'])) {
+                    $cls = Classe::findById((int)$e['classe_id']);
+                    if ($cls && !empty($cls['cycle_id']) && AuthorizationScopeService::canAccessCycle((int)$cls['cycle_id'])) {
+                        $hasAuthorizedCycle = true;
+                        break;
+                    }
+                }
+            }
+            if (!$hasAuthorizedCycle && !empty($incident['eleves'])) {
+                header('Location: /discipline/incidents?error=' . urlencode(_("Accès non autorisé à cet incident.")));
+                exit;
+            }
+        }
+
         $newStatut = $_POST['statut'] ?? '';
 
         try {

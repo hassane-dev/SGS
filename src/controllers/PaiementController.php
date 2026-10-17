@@ -19,6 +19,7 @@ require_once __DIR__ . '/../models/ParamGeneral.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../core/View.php';
+require_once __DIR__ . '/../services/AuthorizationScopeService.php';
 
 class PaiementController {
 
@@ -1400,9 +1401,15 @@ class PaiementController {
             'view_type' => $view_type
         ];
 
+        if (!empty($filters['cycle_id'])) {
+            if (!AuthorizationScopeService::canAccessCycle((int)$filters['cycle_id'])) {
+                $this->forbidden();
+            }
+        }
+
         // Fetch master lists for dropdowns
         $annees = AnneeAcademique::findAll();
-        $cycles = Cycle::findByLycee($lycee_id);
+        $cycles = AuthorizationScopeService::getPermittedCycles($lycee_id);
         $niveaux = Classe::getDistinctNiveaux($lycee_id);
         $series = Classe::getDistinctSeries($lycee_id);
 
@@ -1456,6 +1463,16 @@ class PaiementController {
             if (!empty($filters['cycle_id'])) {
                 $sql_classes .= " AND c.cycle_id = :cycle_id";
                 $params_classes['cycle_id'] = $filters['cycle_id'];
+            } else {
+                if (!Auth::can('view_all_lycees', 'lycee') && !Auth::can('view_all_cycles', 'cycle')) {
+                    $allowed_cycles = AuthorizationScopeService::getAuthorizedCycleIds();
+                    if (empty($allowed_cycles)) {
+                        $sql_classes .= " AND 1 = 0";
+                    } else {
+                        $inCycles = implode(',', array_map('intval', $allowed_cycles));
+                        $sql_classes .= " AND c.cycle_id IN ({$inCycles})";
+                    }
+                }
             }
             if (!empty($filters['niveau'])) {
                 $sql_classes .= " AND c.niveau = :niveau";
@@ -1531,6 +1548,16 @@ class PaiementController {
             if (!empty($filters['cycle_id'])) {
                 $sql_eleves .= " AND c.cycle_id = :cycle_id";
                 $params_eleves['cycle_id'] = $filters['cycle_id'];
+            } else {
+                if (!Auth::can('view_all_lycees', 'lycee') && !Auth::can('view_all_cycles', 'cycle')) {
+                    $allowed_cycles = AuthorizationScopeService::getAuthorizedCycleIds();
+                    if (empty($allowed_cycles)) {
+                        $sql_eleves .= " AND 1 = 0";
+                    } else {
+                        $inCycles = implode(',', array_map('intval', $allowed_cycles));
+                        $sql_eleves .= " AND c.cycle_id IN ({$inCycles})";
+                    }
+                }
             }
             if (!empty($filters['niveau'])) {
                 $sql_eleves .= " AND c.niveau = :niveau";

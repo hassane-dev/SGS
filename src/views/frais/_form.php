@@ -20,18 +20,19 @@
     <!-- Configuration par Cycle -->
     <div id="config_cycle" class="config-fields" style="display:none;">
         <div class="row mb-3">
-            <label for="cycle" class="col-sm-3 col-form-label"><?= _('Cycle') ?></label>
+            <label for="cycle_id" class="col-sm-3 col-form-label"><?= _('Cycle') ?></label>
             <div class="col-sm-9">
-                <select class="form-select" id="cycle" name="cycle">
+                <select class="form-select" id="cycle_id" name="cycle_id">
                     <option value=""><?= _('Sélectionnez un cycle') ?></option>
                     <?php if (isset($cycles)): ?>
                         <?php foreach ($cycles as $c): ?>
-                            <option value="<?= htmlspecialchars($c['nom_cycle']) ?>" <?= ($old_input['cycle'] ?? '') === $c['nom_cycle'] ? 'selected' : '' ?>>
+                            <option value="<?= $c['id_cycle'] ?>" data-cycle-name="<?= htmlspecialchars($c['nom_cycle']) ?>" <?= (($old_input['cycle_id'] ?? '') == $c['id_cycle'] || ($old_input['cycle'] ?? '') === $c['nom_cycle']) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($c['nom_cycle']) ?>
                             </option>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </select>
+                <input type="hidden" name="cycle" id="cycle_name_hidden" value="<?= htmlspecialchars($old_input['cycle'] ?? '') ?>">
             </div>
         </div>
     </div>
@@ -162,6 +163,16 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Erreur lors de la récupération des données:', error);
         }
+    }
+
+    const cycleIdSelect = document.getElementById('cycle_id');
+    const cycleNameHidden = document.getElementById('cycle_name_hidden');
+
+    if (cycleIdSelect && cycleNameHidden) {
+        cycleIdSelect.addEventListener('change', function() {
+            const selectedOpt = this.options[this.selectedIndex];
+            cycleNameHidden.value = selectedOpt ? selectedOpt.getAttribute('data-cycle-name') || '' : '';
+        });
     }
 
     typeConfigSelect.addEventListener('change', toggleFields);

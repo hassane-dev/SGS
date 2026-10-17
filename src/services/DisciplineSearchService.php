@@ -5,6 +5,7 @@ require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/Classe.php';
+require_once __DIR__ . '/AuthorizationScopeService.php';
 
 class DisciplineSearchService {
 
@@ -58,6 +59,7 @@ class DisciplineSearchService {
                 if (!$targetClass || (int)$targetClass['lycee_id'] !== (int)$lyceeId) {
                     throw new InvalidArgumentException("ACCES_REFUSE_TENANT_INCORRECT", 403);
                 }
+                AuthorizationScopeService::assertAccessToObject($targetClass['lycee_id'], $targetClass['cycle_id'] ?? null);
                 $scopedClassIds = [$requestedClassId];
             } else {
                 $scopedClassIds = null;
@@ -94,8 +96,22 @@ class DisciplineSearchService {
         }
 
         if (!empty($filters['cycle_id'])) {
+            $requestedCycleId = (int)$filters['cycle_id'];
+            if (!AuthorizationScopeService::canAccessCycle($requestedCycleId)) {
+                throw new InvalidArgumentException("ACCES_REFUSE_CYCLE_NON_AUTORISE", 403);
+            }
             $where[] = "c.cycle_id = :cycle_id";
-            $params[':cycle_id'] = (int)$filters['cycle_id'];
+            $params[':cycle_id'] = $requestedCycleId;
+        } else {
+            if (!Auth::can('view_all_lycees', 'lycee') && !Auth::can('view_all_cycles', 'cycle')) {
+                $allowedCycles = AuthorizationScopeService::getAuthorizedCycleIds();
+                if (empty($allowedCycles)) {
+                    $where[] = "1 = 0";
+                } else {
+                    $inCycles = implode(',', array_map('intval', $allowedCycles));
+                    $where[] = "c.cycle_id IN ({$inCycles})";
+                }
+            }
         }
         if (!empty($filters['niveau'])) {
             $where[] = "c.niveau = :niveau";
@@ -162,8 +178,22 @@ class DisciplineSearchService {
         }
 
         if (!empty($filters['cycle_id'])) {
+            $requestedCycleId = (int)$filters['cycle_id'];
+            if (!AuthorizationScopeService::canAccessCycle($requestedCycleId)) {
+                throw new InvalidArgumentException("ACCES_REFUSE_CYCLE_NON_AUTORISE", 403);
+            }
             $where[] = "c.cycle_id = :cycle_id";
-            $params[':cycle_id'] = (int)$filters['cycle_id'];
+            $params[':cycle_id'] = $requestedCycleId;
+        } else {
+            if (!Auth::can('view_all_lycees', 'lycee') && !Auth::can('view_all_cycles', 'cycle')) {
+                $allowedCycles = AuthorizationScopeService::getAuthorizedCycleIds();
+                if (empty($allowedCycles)) {
+                    $where[] = "1 = 0";
+                } else {
+                    $inCycles = implode(',', array_map('intval', $allowedCycles));
+                    $where[] = "c.cycle_id IN ({$inCycles})";
+                }
+            }
         }
         if (!empty($filters['niveau'])) {
             $where[] = "c.niveau = :niveau";
