@@ -33,11 +33,11 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label for="niveau_debut" class="form-label"><?= _('Niveau de Début') ?></label>
-                                    <input type="number" name="niveau_debut" id="niveau_debut" class="form-control" value="<?= htmlspecialchars($cycle['niveau_debut']) ?>">
+                                    <input type="text" name="niveau_debut" id="niveau_debut" class="form-control" value="<?= htmlspecialchars($cycle['niveau_debut']) ?>">
                                 </div>
                                 <div class="col-md-6">
                                     <label for="niveau_fin" class="form-label"><?= _('Niveau de Fin') ?></label>
-                                    <input type="number" name="niveau_fin" id="niveau_fin" class="form-control" value="<?= htmlspecialchars($cycle['niveau_fin']) ?>">
+                                    <input type="text" name="niveau_fin" id="niveau_fin" class="form-control" value="<?= htmlspecialchars($cycle['niveau_fin']) ?>">
                                 </div>
                                 <div class="col-md-12">
                                     <label for="utilise_series" class="form-label fw-bold"><?= _('Organisation par Séries') ?></label>
