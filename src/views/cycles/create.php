@@ -32,11 +32,11 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label for="niveau_debut" class="form-label"><?= _('Niveau de Début') ?></label>
-                                    <input type="number" name="niveau_debut" id="niveau_debut" class="form-control" placeholder="<?= _('Ex: 1') ?>">
+                                    <input type="text" name="niveau_debut" id="niveau_debut" class="form-control" placeholder="<?= _('Ex: 6e ou Seconde') ?>">
                                 </div>
                                 <div class="col-md-6">
                                     <label for="niveau_fin" class="form-label"><?= _('Niveau de Fin') ?></label>
-                                    <input type="number" name="niveau_fin" id="niveau_fin" class="form-control" placeholder="<?= _('Ex: 3') ?>">
+                                    <input type="text" name="niveau_fin" id="niveau_fin" class="form-control" placeholder="<?= _('Ex: 3e ou Terminale') ?>">
                                 </div>
                                 <div class="col-md-12">
                                     <label for="utilise_series" class="form-label fw-bold"><?= _('Organisation par Séries') ?></label>

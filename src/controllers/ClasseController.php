@@ -195,10 +195,10 @@ class ClasseController {
             }
 
             if (!empty($targetCycle['niveau_debut']) && !empty($targetCycle['niveau_fin'])) {
-                $startLevelOrder = $orderMap[$targetCycle['niveau_debut']] ?? null;
-                $endLevelOrder = $orderMap[$targetCycle['niveau_fin']] ?? null;
+                $startLevelOrder = Classe::resolveLevelOrder($targetCycle['niveau_debut']);
+                $endLevelOrder = Classe::resolveLevelOrder($targetCycle['niveau_fin']);
 
-                if ($startLevelOrder === null || $endLevelOrder === null) {
+                if ($startLevelOrder === null || $endLevelOrder === null || $startLevelOrder > $endLevelOrder) {
                     $_SESSION['error_message'] = sprintf(_("Les bornes de niveau (%s à %s) définies pour le cycle '%s' ne sont pas valides."), $targetCycle['niveau_debut'], $targetCycle['niveau_fin'], $targetCycle['nom_cycle']);
                     header('Location: /classes/create');
                     exit();
@@ -303,10 +303,10 @@ class ClasseController {
             }
 
             if (!empty($targetCycle['niveau_debut']) && !empty($targetCycle['niveau_fin'])) {
-                $startLevelOrder = $orderMap[$targetCycle['niveau_debut']] ?? null;
-                $endLevelOrder = $orderMap[$targetCycle['niveau_fin']] ?? null;
+                $startLevelOrder = Classe::resolveLevelOrder($targetCycle['niveau_debut']);
+                $endLevelOrder = Classe::resolveLevelOrder($targetCycle['niveau_fin']);
 
-                if ($startLevelOrder === null || $endLevelOrder === null) {
+                if ($startLevelOrder === null || $endLevelOrder === null || $startLevelOrder > $endLevelOrder) {
                     $_SESSION['error_message'] = sprintf(_("Les bornes de niveau (%s à %s) définies pour le cycle '%s' ne sont pas valides."), $targetCycle['niveau_debut'], $targetCycle['niveau_fin'], $targetCycle['nom_cycle']);
                     header('Location: /classes/edit?id=' . $data['id_classe']);
                     exit();
@@ -415,14 +415,16 @@ class ClasseController {
         if (empty($niveaux) && $cycle_id) {
             $cycle = Cycle::findById($cycle_id);
             if ($cycle && !empty($cycle['niveau_debut']) && !empty($cycle['niveau_fin'])) {
-                $start = (int)$cycle['niveau_debut'];
-                $end = (int)$cycle['niveau_fin'];
-                $orderMap = Classe::getLevelOrderMap();
-                $orderToLevel = array_flip($orderMap);
+                $start = Classe::resolveLevelOrder($cycle['niveau_debut']);
+                $end = Classe::resolveLevelOrder($cycle['niveau_fin']);
 
-                for ($i = $start; $i <= $end; $i++) {
-                    if (isset($orderToLevel[$i])) {
-                        $niveaux[] = $orderToLevel[$i];
+                if ($start !== null && $end !== null && $start <= $end) {
+                    $canonicalLevels = Classe::getCanonicalLevelMap();
+
+                    for ($i = $start; $i <= $end; $i++) {
+                        if (isset($canonicalLevels[$i])) {
+                            $niveaux[] = $canonicalLevels[$i];
+                        }
                     }
                 }
             }

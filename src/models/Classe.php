@@ -222,17 +222,66 @@ class Classe {
         }
     }
 
+    public static function getCanonicalLevelMap() {
+        return [
+            1 => '6e',
+            2 => '5e',
+            3 => '4e',
+            4 => '3e',
+            5 => '2nde',
+            6 => '1ère',
+            7 => 'Terminale'
+        ];
+    }
+
     public static function getLevelOrderMap() {
         // Defines the logical order of school levels.
         return [
-            '6ème' => 1, '6e' => 1,
-            '5ème' => 2, '5e' => 2,
-            '4ème' => 3, '4e' => 3,
-            '3ème' => 4, '3e' => 4,
-            'Seconde' => 5, '2nde' => 5,
-            'Première' => 6, '1ère' => 6,
-            'Terminale' => 7
+            '6ème' => 1, '6eme' => 1, '6e' => 1,
+            '5ème' => 2, '5eme' => 2, '5e' => 2,
+            '4ème' => 3, '4eme' => 3, '4e' => 3,
+            '3ème' => 4, '3eme' => 4, '3e' => 4,
+            'Seconde' => 5, '2nde' => 5, '2nd' => 5,
+            'Première' => 6, '1ère' => 6, '1ere' => 6,
+            'Terminale' => 7, 'Tle' => 7,
+            '1' => 1, '2' => 2, '3' => 3, '4' => 4, '5' => 5, '6' => 6, '7' => 7
         ];
+    }
+
+    public static function resolveLevelOrder(?string $levelInput): ?int {
+        if ($levelInput === null) {
+            return null;
+        }
+        $trimmed = trim($levelInput);
+        if ($trimmed === '') {
+            return null;
+        }
+
+        $orderMap = self::getLevelOrderMap();
+        if (isset($orderMap[$trimmed])) {
+            return $orderMap[$trimmed];
+        }
+
+        $normalize = function ($str) {
+            $lower = mb_strtolower((string)$str, 'UTF-8');
+            return strtr($lower, [
+                'à' => 'a', 'â' => 'a', 'ä' => 'a',
+                'é' => 'e', 'è' => 'e', 'ê' => 'e', 'ë' => 'e',
+                'î' => 'i', 'ï' => 'i',
+                'ô' => 'o', 'ö' => 'o',
+                'ù' => 'u', 'û' => 'u', 'ü' => 'u',
+                'ç' => 'c'
+            ]);
+        };
+
+        $normalizedInput = $normalize($trimmed);
+        foreach ($orderMap as $key => $order) {
+            if ($normalize($key) === $normalizedInput) {
+                return $order;
+            }
+        }
+
+        return null;
     }
 
     public static function getDistinctNiveaux($lycee_id) {

@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/Cycle.php';
+require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../core/Validator.php';
 
 class CycleController {
@@ -30,6 +31,25 @@ class CycleController {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
+
+            $hasDebut = !empty($data['niveau_debut']);
+            $hasFin = !empty($data['niveau_fin']);
+
+            if ($hasDebut !== $hasFin) {
+                $_SESSION['error_message'] = _("Veuillez renseigner à la fois le niveau de début et le niveau de fin, ou laisser les deux champs vides.");
+                if (!headers_sent()) { header('Location: /cycles/create'); exit(); } return;
+            }
+
+            if ($hasDebut && $hasFin) {
+                $start = Classe::resolveLevelOrder($data['niveau_debut']);
+                $end = Classe::resolveLevelOrder($data['niveau_fin']);
+
+                if ($start === null || $end === null || $start > $end) {
+                    $_SESSION['error_message'] = sprintf(_("Les bornes de niveau saisies ('%s' à '%s') ne sont pas valides ou reconnues par le système."), $data['niveau_debut'], $data['niveau_fin']);
+                    if (!headers_sent()) { header('Location: /cycles/create'); exit(); } return;
+                }
+            }
+
             Cycle::save($data);
         }
         header('Location: /cycles');
@@ -51,6 +71,26 @@ class CycleController {
         $this->checkAccess();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
+            $id = $data['id_cycle'] ?? '';
+
+            $hasDebut = !empty($data['niveau_debut']);
+            $hasFin = !empty($data['niveau_fin']);
+
+            if ($hasDebut !== $hasFin) {
+                $_SESSION['error_message'] = _("Veuillez renseigner à la fois le niveau de début et le niveau de fin, ou laisser les deux champs vides.");
+                if (!headers_sent()) { header('Location: /cycles/edit?id=' . $id); exit(); } return;
+            }
+
+            if ($hasDebut && $hasFin) {
+                $start = Classe::resolveLevelOrder($data['niveau_debut']);
+                $end = Classe::resolveLevelOrder($data['niveau_fin']);
+
+                if ($start === null || $end === null || $start > $end) {
+                    $_SESSION['error_message'] = sprintf(_("Les bornes de niveau saisies ('%s' à '%s') ne sont pas valides ou reconnues par le système."), $data['niveau_debut'], $data['niveau_fin']);
+                    if (!headers_sent()) { header('Location: /cycles/edit?id=' . $id); exit(); } return;
+                }
+            }
+
             Cycle::save($data);
         }
         header('Location: /cycles');
