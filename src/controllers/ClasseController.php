@@ -171,32 +171,55 @@ class ClasseController {
                 exit();
             }
 
-            // CEG/Collège cycle levels (6e, 5e, 4e, 3e) should not have a series
-            $cegNiveaux = ['6e', '5e', '4e', '3e', '6ème', '5ème', '4ème', '3ème'];
-            if (in_array(strtolower($niveau), $cegNiveaux, true) && !empty($serie)) {
-                $_SESSION['error_message'] = _("Les classes du Premier Cycle (CEG/Collège) ne comportent pas de série.");
+            // Verify unconfigured vs configured utilisation of series
+            if ($targetCycle['utilise_series'] === null || $targetCycle['utilise_series'] === '') {
+                $_SESSION['error_message'] = sprintf(_("Le cycle '%s' n'a pas encore été configuré concernant l'utilisation des séries. Veuillez le configurer dans Administration > Cycles avant de créer des classes."), $targetCycle['nom_cycle']);
                 header('Location: /classes/create');
                 exit();
             }
 
-            // Validate level boundary against cycle definition if cycle defines niveau_debut / niveau_fin
+            if (!empty($serie) && (int)$targetCycle['utilise_series'] === 0) {
+                $_SESSION['error_message'] = sprintf(_("Le cycle '%s' est configuré sans série. La série '%s' n'est pas autorisée."), $targetCycle['nom_cycle'], $serie);
+                header('Location: /classes/create');
+                exit();
+            }
+
+            // Validate level and level boundary against cycle definition
+            $orderMap = Classe::getLevelOrderMap();
+            $classLevelOrder = $orderMap[$niveau] ?? null;
+
+            if ($classLevelOrder === null) {
+                $_SESSION['error_message'] = sprintf(_("Le niveau '%s' n'est pas reconnu par le système."), $niveau);
+                header('Location: /classes/create');
+                exit();
+            }
+
             if (!empty($targetCycle['niveau_debut']) && !empty($targetCycle['niveau_fin'])) {
-                $orderMap = Classe::getLevelOrderMap();
-                $classLevelOrder = $orderMap[$niveau] ?? null;
                 $startLevelOrder = $orderMap[$targetCycle['niveau_debut']] ?? null;
                 $endLevelOrder = $orderMap[$targetCycle['niveau_fin']] ?? null;
 
-                if ($classLevelOrder !== null && $startLevelOrder !== null && $endLevelOrder !== null) {
-                    if ($classLevelOrder < $startLevelOrder || $classLevelOrder > $endLevelOrder) {
-                        $_SESSION['error_message'] = sprintf(_("Le niveau '%s' est en dehors de la plage (%s à %s) définie pour le cycle '%s'."), $niveau, $targetCycle['niveau_debut'], $targetCycle['niveau_fin'], $targetCycle['nom_cycle']);
-                        header('Location: /classes/create');
-                        exit();
-                    }
+                if ($startLevelOrder === null || $endLevelOrder === null) {
+                    $_SESSION['error_message'] = sprintf(_("Les bornes de niveau (%s à %s) définies pour le cycle '%s' ne sont pas valides."), $targetCycle['niveau_debut'], $targetCycle['niveau_fin'], $targetCycle['nom_cycle']);
+                    header('Location: /classes/create');
+                    exit();
+                }
+
+                if ($classLevelOrder < $startLevelOrder || $classLevelOrder > $endLevelOrder) {
+                    $_SESSION['error_message'] = sprintf(_("Le niveau '%s' est en dehors de la plage (%s à %s) définie pour le cycle '%s'."), $niveau, $targetCycle['niveau_debut'], $targetCycle['niveau_fin'], $targetCycle['nom_cycle']);
+                    header('Location: /classes/create');
+                    exit();
                 }
             }
 
-            // Set categorie based on serie
+            // Validate that the submitted serie exists in the authorized school tenant series list if series is provided
             if (!empty($serie)) {
+                $schoolSeries = array_column(Serie::findAll($lycee_id), 'nom_serie');
+                if (!in_array($serie, $schoolSeries, true)) {
+                    $_SESSION['error_message'] = sprintf(_("La série '%s' n'est pas répertoriée dans le référentiel des séries de l'établissement."), $serie);
+                    header('Location: /classes/create');
+                    exit();
+                }
+
                 if (in_array($serie, ['A', 'A4', 'L'])) {
                     $data['categorie'] = 'Littéraire';
                 } elseif (in_array($serie, ['C', 'D', 'E', 'S'])) {
@@ -239,8 +262,84 @@ class ClasseController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
             $classe = Classe::findById($data['id_classe']);
+            if (!$classe) {
+                header('Location: /classes');
+                exit();
+            }
             $this->checkOwnership($classe['lycee_id']);
             $data['lycee_id'] = $classe['lycee_id'];
+
+            // Server-side validation of cycle and serie consistency
+            $cycle_id = !empty($data['cycle_id']) ? (int)$data['cycle_id'] : (int)$classe['cycle_id'];
+            $targetCycle = Cycle::findById($cycle_id);
+            if (!$targetCycle) {
+                $_SESSION['error_message'] = _("Le cycle sélectionné est inexistant.");
+                header('Location: /classes/edit?id=' . $data['id_classe']);
+                exit();
+            }
+
+            if (!empty($targetCycle['lycee_id']) && (int)$targetCycle['lycee_id'] !== (int)$classe['lycee_id']) {
+                $_SESSION['error_message'] = _("Incohérence détectée : Le cycle sélectionné n'appartient pas à l'établissement de cette classe.");
+                header('Location: /classes/edit?id=' . $data['id_classe']);
+                exit();
+            }
+
+            require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+            if (!AuthorizationScopeService::canAccessLycee($classe['lycee_id']) || !AuthorizationScopeService::canAccessCycle($cycle_id)) {
+                http_response_code(403);
+                View::render('errors/403');
+                exit();
+            }
+            $serie = !empty($data['serie']) ? strtoupper(trim($data['serie'])) : null;
+
+            $niveau = trim((string)($data['niveau'] ?? $classe['niveau']));
+            $orderMap = Classe::getLevelOrderMap();
+            $classLevelOrder = $orderMap[$niveau] ?? null;
+
+            if ($classLevelOrder === null) {
+                $_SESSION['error_message'] = sprintf(_("Le niveau '%s' n'est pas reconnu par le système."), $niveau);
+                header('Location: /classes/edit?id=' . $data['id_classe']);
+                exit();
+            }
+
+            if (!empty($targetCycle['niveau_debut']) && !empty($targetCycle['niveau_fin'])) {
+                $startLevelOrder = $orderMap[$targetCycle['niveau_debut']] ?? null;
+                $endLevelOrder = $orderMap[$targetCycle['niveau_fin']] ?? null;
+
+                if ($startLevelOrder === null || $endLevelOrder === null) {
+                    $_SESSION['error_message'] = sprintf(_("Les bornes de niveau (%s à %s) définies pour le cycle '%s' ne sont pas valides."), $targetCycle['niveau_debut'], $targetCycle['niveau_fin'], $targetCycle['nom_cycle']);
+                    header('Location: /classes/edit?id=' . $data['id_classe']);
+                    exit();
+                }
+
+                if ($classLevelOrder < $startLevelOrder || $classLevelOrder > $endLevelOrder) {
+                    $_SESSION['error_message'] = sprintf(_("Le niveau '%s' est en dehors de la plage (%s à %s) définie pour le cycle '%s'."), $niveau, $targetCycle['niveau_debut'], $targetCycle['niveau_fin'], $targetCycle['nom_cycle']);
+                    header('Location: /classes/edit?id=' . $data['id_classe']);
+                    exit();
+                }
+            }
+
+            if ($targetCycle && ($targetCycle['utilise_series'] === null || $targetCycle['utilise_series'] === '')) {
+                $_SESSION['error_message'] = sprintf(_("Le cycle '%s' n'a pas encore été configuré concernant l'utilisation des séries. Veuillez le configurer dans Administration > Cycles."), $targetCycle['nom_cycle']);
+                header('Location: /classes/edit?id=' . $data['id_classe']);
+                exit();
+            }
+
+            if (!empty($serie) && $targetCycle && (int)$targetCycle['utilise_series'] === 0) {
+                $_SESSION['error_message'] = sprintf(_("Le cycle '%s' est configuré sans série. La série '%s' n'est pas autorisée."), $targetCycle['nom_cycle'], $serie);
+                header('Location: /classes/edit?id=' . $data['id_classe']);
+                exit();
+            }
+
+            if (!empty($serie)) {
+                $schoolSeries = array_column(Serie::findAll($classe['lycee_id']), 'nom_serie');
+                if (!in_array($serie, $schoolSeries, true)) {
+                    $_SESSION['error_message'] = sprintf(_("La série '%s' n'est pas répertoriée dans le référentiel des séries de l'établissement."), $serie);
+                    header('Location: /classes/edit?id=' . $data['id_classe']);
+                    exit();
+                }
+            }
+
             Classe::save($data);
         }
         header('Location: /classes');
@@ -311,6 +410,24 @@ class ClasseController {
         }
 
         $niveaux = $cycle_id ? Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id) : Classe::getDistinctNiveaux($lycee_id);
+
+        // Fallback for new cycle without created classes yet: generate default level sequence based on cycle boundary
+        if (empty($niveaux) && $cycle_id) {
+            $cycle = Cycle::findById($cycle_id);
+            if ($cycle && !empty($cycle['niveau_debut']) && !empty($cycle['niveau_fin'])) {
+                $start = (int)$cycle['niveau_debut'];
+                $end = (int)$cycle['niveau_fin'];
+                $orderMap = Classe::getLevelOrderMap();
+                $orderToLevel = array_flip($orderMap);
+
+                for ($i = $start; $i <= $end; $i++) {
+                    if (isset($orderToLevel[$i])) {
+                        $niveaux[] = $orderToLevel[$i];
+                    }
+                }
+            }
+        }
+
         echo json_encode(array_values($niveaux));
         if (!defined('TEST_MODE')) exit(); return;
     }
@@ -327,7 +444,25 @@ class ClasseController {
             if (!defined('TEST_MODE')) exit(); return;
         }
 
+        // If a cycle is specified, verify if it uses series according to its configuration
+        if ($cycle_id) {
+            $cycle = Cycle::findById($cycle_id);
+            if ($cycle && ($cycle['utilise_series'] === null || $cycle['utilise_series'] === '' || (int)$cycle['utilise_series'] === 0)) {
+                echo json_encode([]);
+                if (!defined('TEST_MODE')) exit(); return;
+            }
+        }
+
         $series = Classe::findDistinctSeriesByNiveau($niveau, $lycee_id, $cycle_id);
+        // If no classes exist for this level yet, fallback to all series for the school if cycle utilizes series
+        if (empty($series) && $cycle_id) {
+            $cycle = Cycle::findById($cycle_id);
+            if (!$cycle || (int)($cycle['utilise_series'] ?? 1) === 1) {
+                $allSeriesObjects = Serie::findAll($lycee_id);
+                $series = array_column($allSeriesObjects, 'nom_serie');
+            }
+        }
+
         echo json_encode(array_values($series));
         if (!defined('TEST_MODE')) exit(); return;
     }

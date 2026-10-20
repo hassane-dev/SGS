@@ -524,20 +524,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function toggleFilters() {
         if (!cycleSelect || !serieSelect) return;
-        const selectedOption = cycleSelect.options[cycleSelect.selectedIndex];
-        const cycleName = selectedOption ? selectedOption.getAttribute('data-name') : '';
-
-        if (cycleName === 'CEG' || (cycleName && cycleName.includes('CEG')) || (cycleName && cycleName.includes('Middle'))) {
-            serieSelect.value = '';
-            serieSelect.disabled = true;
-        } else {
+        const cycleId = cycleSelect.value;
+        if (!cycleId) {
             serieSelect.disabled = false;
+            return;
         }
+
+        fetch(`/classes/get-series?cycle_id=${cycleId}`)
+            .then(r => r.json())
+            .then(series => {
+                if (series && series.length > 0) {
+                    serieSelect.disabled = false;
+                } else {
+                    serieSelect.value = '';
+                    serieSelect.disabled = true;
+                }
+            })
+            .catch(() => {
+                serieSelect.disabled = false;
+            });
     }
 
     if (cycleSelect && serieSelect) {
         cycleSelect.addEventListener('change', toggleFilters);
-        toggleFilters();
     }
 });
 </script>

@@ -60,8 +60,9 @@ class DisciplineSearchController {
         $activeYear = AnneeAcademique::findActive();
         $isTeacher = ($userRole === 'enseignant') || !empty(User::getTeacherAssignments($userId));
 
+        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
         $academicYears = $hasGlobalView ? $db->query("SELECT id, libelle, est_active FROM annees_academiques ORDER BY date_debut DESC")->fetchAll(PDO::FETCH_ASSOC) : [];
-        $cycles = Cycle::findAll();
+        $cycles = AuthorizationScopeService::getPermittedCycles($lyceeId);
 
         if ($isTeacher && !$hasGlobalView) {
             $assignments = User::getTeacherAssignments($userId);

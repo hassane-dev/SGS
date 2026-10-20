@@ -56,7 +56,7 @@ class EleveController {
         }
 
         $lycees = Auth::can('view_all_lycees', 'lycee') ? Lycee::findAll() : [];
-        $cycles = Cycle::findAll();
+        $cycles = AuthorizationScopeService::getPermittedCycles($current_lycee_id);
 
         View::render('eleves/index', [
             'eleves' => $eleves,

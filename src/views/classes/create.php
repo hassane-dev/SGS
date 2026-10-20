@@ -32,9 +32,16 @@
                                     <select name="cycle_id" id="cycle_id" class="form-select" required>
                                         <option value=""><?= _('-- Choisir un cycle --') ?></option>
                                         <?php foreach ($cycles as $cycle): ?>
-                                            <option value="<?= $cycle['id_cycle'] ?>" data-nom-cycle="<?= htmlspecialchars($cycle['nom_cycle']) ?>"><?= htmlspecialchars($cycle['nom_cycle']) ?></option>
+                                            <option value="<?= $cycle['id_cycle'] ?>" data-nom-cycle="<?= htmlspecialchars($cycle['nom_cycle']) ?>" data-utilise-series="<?= ($cycle['utilise_series'] === null || $cycle['utilise_series'] === '') ? 'unconfigured' : (string)$cycle['utilise_series'] ?>"><?= htmlspecialchars($cycle['nom_cycle']) ?></option>
                                         <?php endforeach; ?>
                                     </select>
+                                </div>
+
+                                <div class="col-12" id="unconfigured_cycle_alert" style="display: none;">
+                                    <div class="alert alert-warning py-2 mb-0 d-flex align-items-center">
+                                        <i class="ph-duotone ph-warning me-2 fs-5"></i>
+                                        <span><strong><?= _('Configuration requise :') ?></strong> <?= _('Ce cycle n\'a pas encore été configuré concernant l\'utilisation des séries. Veuillez d\'abord définir cette option dans Administration > Cycles.') ?></span>
+                                    </div>
                                 </div>
 
                                 <!-- Niveau -->
@@ -117,39 +124,68 @@
         };
 
         cycleSelect.addEventListener('change', function () {
-            // Get the selected cycle's name from the data attribute
-            const selectedOption = this.options[this.selectedIndex];
-            const nomCycle = selectedOption ? selectedOption.getAttribute('data-nom-cycle') : '';
+            const cycleId = this.value;
+            const selectedOpt = this.options[this.selectedIndex];
+            const utiliseSeriesAttr = selectedOpt ? selectedOpt.getAttribute('data-utilise-series') : '';
+            const unconfiguredAlert = document.getElementById('unconfigured_cycle_alert');
 
             // Clear previous options
             niveauSelect.innerHTML = '<option value=""><?= _('-- Choisir un niveau --') ?></option>';
+            niveauSelect.disabled = true;
+            serieContainer.style.display = 'none';
+            categorieContainer.style.display = 'none';
+            serieSelect.value = '';
+            categorieSelect.value = '';
 
-            if (nomCycle && niveauxParCycle[nomCycle]) {
-                // Enable the niveau select
-                niveauSelect.disabled = false;
-
-                // Populate with new options
-                niveauxParCycle[nomCycle].forEach(function (niveau) {
-                    const option = document.createElement('option');
-                    option.value = niveau;
-                    option.textContent = niveau;
-                    niveauSelect.appendChild(option);
-                });
-            } else {
-                // If no cycle is selected, disable the niveau select
-                niveauSelect.disabled = true;
+            if (unconfiguredAlert) {
+                unconfiguredAlert.style.display = (utiliseSeriesAttr === 'unconfigured') ? 'block' : 'none';
             }
 
-            // Show/Hide Serie and Categorie based on Cycle
-            if (nomCycle === 'Lycée') {
-                serieContainer.style.display = 'block';
-                categorieContainer.style.display = 'block';
-            } else {
+            if (!cycleId || utiliseSeriesAttr === 'unconfigured') return;
+
+            const lyceeIdEl = document.getElementById('lycee_id');
+            const lid = lyceeIdEl ? lyceeIdEl.value : '';
+
+            fetch(`/classes/get-niveaux?cycle_id=${cycleId}&lycee_id=${lid}`)
+                .then(r => r.json())
+                .then(niveaux => {
+                    if (niveaux && niveaux.length > 0) {
+                        niveauSelect.disabled = false;
+                        niveaux.forEach(function (niveau) {
+                            const option = document.createElement('option');
+                            option.value = niveau;
+                            option.textContent = niveau;
+                            niveauSelect.appendChild(option);
+                        });
+                    }
+                });
+        });
+
+        niveauSelect.addEventListener('change', function () {
+            const niveau = this.value;
+            const cycleId = cycleSelect.value;
+            const lyceeIdEl = document.getElementById('lycee_id');
+            const lid = lyceeIdEl ? lyceeIdEl.value : '';
+
+            if (!niveau || !cycleId) {
                 serieContainer.style.display = 'none';
                 categorieContainer.style.display = 'none';
-                serieSelect.value = '';
-                categorieSelect.value = '';
+                return;
             }
+
+            fetch(`/classes/get-series?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}&lycee_id=${lid}`)
+                .then(r => r.json())
+                .then(series => {
+                    if (series && series.length > 0) {
+                        serieContainer.style.display = 'block';
+                        categorieContainer.style.display = 'block';
+                    } else {
+                        serieContainer.style.display = 'none';
+                        categorieContainer.style.display = 'none';
+                        serieSelect.value = '';
+                        categorieSelect.value = '';
+                    }
+                });
         });
 
         serieSelect.addEventListener('change', function () {

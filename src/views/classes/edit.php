@@ -115,18 +115,25 @@
         const categorieContainer = document.getElementById('categorie_container');
 
         function toggleSerieAndCategorie() {
-            const selectedOption = cycleSelect.options[cycleSelect.selectedIndex];
-            const nomCycle = selectedOption ? selectedOption.getAttribute('data-nom-cycle') : '';
+            const cycleId = cycleSelect.value;
+            const niveauInput = document.getElementById('niveau');
+            const niveau = niveauInput ? niveauInput.value : '';
 
-            if (nomCycle === 'Lycée') {
-                serieContainer.style.display = 'block';
-                categorieContainer.style.display = 'block';
-            } else {
-                serieContainer.style.display = 'none';
-                categorieContainer.style.display = 'none';
-                serieSelect.value = '';
-                categorieSelect.value = '';
-            }
+            if (!cycleId || !niveau) return;
+
+            fetch(`/classes/get-series?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}`)
+                .then(r => r.json())
+                .then(series => {
+                    if (series && series.length > 0) {
+                        serieContainer.style.display = 'block';
+                        categorieContainer.style.display = 'block';
+                    } else {
+                        serieContainer.style.display = 'none';
+                        categorieContainer.style.display = 'none';
+                        serieSelect.value = '';
+                        categorieSelect.value = '';
+                    }
+                });
         }
 
         cycleSelect.addEventListener('change', toggleSerieAndCategorie);

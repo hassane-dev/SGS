@@ -38,6 +38,15 @@
                                     <label for="niveau_fin" class="form-label"><?= _('Niveau de Fin') ?></label>
                                     <input type="number" name="niveau_fin" id="niveau_fin" class="form-control" placeholder="<?= _('Ex: 3') ?>">
                                 </div>
+                                <div class="col-md-12">
+                                    <label for="utilise_series" class="form-label fw-bold"><?= _('Organisation par Séries') ?></label>
+                                    <select name="utilise_series" id="utilise_series" class="form-select">
+                                        <option value=""><?= _('-- Non configuré (Sélection obligatoire pour créer des classes) --') ?></option>
+                                        <option value="1"><?= _('Oui — Ce cycle autorise l\'organisation par séries (ex: Lycée)') ?></option>
+                                        <option value="0"><?= _('Non — Ce cycle n\'utilise pas de séries (ex: CEG / Collège)') ?></option>
+                                    </select>
+                                    <small class="form-text text-muted"><?= _('Détermine si les formulaires de classe proposeront un sélecteur de séries pour ce cycle.') ?></small>
+                                </div>
                             </div>
                             <div class="mt-4 d-flex justify-content-end">
                                 <a href="/cycles" class="btn btn-secondary me-2"><?= _('Annuler') ?></a>

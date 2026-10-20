@@ -217,37 +217,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 if (selectedNiveau) updateSeriesAndNumeros(selectedNiveau, currentFilters.serie, currentFilters.numero);
             });
-
-        const selectedCycleText = cycleSelect.options[cycleSelect.selectedIndex].text;
-        serieContainer.style.display = selectedCycleText.toLowerCase() === 'lycée' ? 'block' : 'none';
     }
 
     function updateSeriesAndNumeros(niveau, selectedSerie = null, selectedNumero = null) {
         const lid = lyceeSelect.value;
-        const selectedCycleText = cycleSelect.options[cycleSelect.selectedIndex].text;
+        const cycleId = cycleSelect.value;
 
         resetSelect(serieSelect, '<?= _('Toutes les séries') ?>');
         resetSelect(numeroSelect, '<?= _('Tous les numéros') ?>');
 
-        if (!niveau || !lid) return;
+        if (!niveau || !lid || !cycleId) return;
 
-        if (selectedCycleText.toLowerCase() === 'lycée') {
-            fetch(`/classes/get-series?niveau=${niveau}&lycee_id=${lid}`)
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(serie => {
+        fetch(`/classes/get-series?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}&lycee_id=${lid}`)
+            .then(response => response.json())
+            .then(series => {
+                if (series && series.length > 0) {
+                    serieContainer.style.display = 'block';
+                    series.forEach(serie => {
                         const option = new Option(serie, serie);
                         if (serie === selectedSerie) option.selected = true;
                         serieSelect.add(option);
                     });
                     if (selectedSerie) updateNumeros(niveau, selectedSerie, selectedNumero);
-                });
-        }
-
-        // Always try to update numbers if not in lycée cycle or if no serie is selected yet
-        if (selectedCycleText.toLowerCase() !== 'lycée') {
-            updateNumeros(niveau, null, selectedNumero);
-        }
+                } else {
+                    serieContainer.style.display = 'none';
+                    updateNumeros(niveau, null, selectedNumero);
+                }
+            });
     }
 
     function updateNumeros(niveau, serie, selectedNumero = null) {

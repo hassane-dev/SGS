@@ -1244,6 +1244,9 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_31_migrate_frais_cycle_id.php';
     migrate_31($db);
 
+    require_once __DIR__ . '/db/migrations/20240115_32_add_utilise_series_to_cycles.php';
+    migrate_32($db);
+
     echo "Migration successful\n";
 } catch (Exception $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";
