@@ -100,7 +100,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     cycleSelect.addEventListener('change', function() {
         const cycleId = this.value;
-        const selectedCycleText = this.options[this.selectedIndex].text;
 
         resetSelect(niveauSelect, '<?= _('-- Sélectionner un niveau --') ?>');
         resetSelect(serieSelect, '<?= _('-- Sélectionner une série --') ?>');
@@ -117,39 +116,39 @@ document.addEventListener('DOMContentLoaded', function() {
                         niveauSelect.add(option);
                     });
                 });
-
-            if (selectedCycleText.toLowerCase() === 'lycée') {
-                serieContainer.style.display = 'block';
-            }
         }
     });
 
     niveauSelect.addEventListener('change', function() {
         const niveau = this.value;
-        const selectedCycleText = cycleSelect.options[cycleSelect.selectedIndex].text;
+        const cycleId = cycleSelect.value;
 
         resetSelect(serieSelect, '<?= _('-- Sélectionner une série --') ?>');
         resetSelect(numeroSelect, '<?= _('-- Sélectionner un numéro --') ?>');
 
-        if (niveau && selectedCycleText.toLowerCase() === 'lycée') {
-            fetch(`/classes/get-series?niveau=${niveau}&lycee_id=${lyceeId}`)
+        if (niveau && cycleId) {
+            fetch(`/classes/get-series?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}&lycee_id=${lyceeId}`)
                 .then(response => response.json())
-                .then(data => {
-                    serieSelect.disabled = false;
-                    data.forEach(serie => {
-                        const option = new Option(serie, serie);
-                        serieSelect.add(option);
-                    });
-                });
-        } else if (niveau) {
-            fetch(`/classes/get-numeros?niveau=${niveau}&lycee_id=${lyceeId}`)
-                .then(response => response.json())
-                .then(data => {
-                    numeroSelect.disabled = false;
-                    data.forEach(numero => {
-                        const option = new Option(numero, numero);
-                        numeroSelect.add(option);
-                    });
+                .then(series => {
+                    if (series && series.length > 0) {
+                        serieContainer.style.display = 'block';
+                        serieSelect.disabled = false;
+                        series.forEach(serie => {
+                            const option = new Option(serie, serie);
+                            serieSelect.add(option);
+                        });
+                    } else {
+                        serieContainer.style.display = 'none';
+                        fetch(`/classes/get-numeros?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}&lycee_id=${lyceeId}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                numeroSelect.disabled = false;
+                                data.forEach(numero => {
+                                    const option = new Option(numero, numero);
+                                    numeroSelect.add(option);
+                                });
+                            });
+                    }
                 });
         }
     });

@@ -36,13 +36,11 @@
                                 <label class="form-label fw-bold"><?= _('Cycle') ?></label>
                                 <select id="filter_cycle_id" class="form-select">
                                     <option value=""><?= _('Choisir un cycle') ?></option>
-                                    <?php
-                                    require_once __DIR__ . '/../../models/Cycle.php';
-                                    $cycles = Cycle::findAll();
-                                    foreach ($cycles as $c):
-                                    ?>
-                                        <option value="<?= $c['id_cycle'] ?>"><?= htmlspecialchars($c['nom_cycle']) ?></option>
-                                    <?php endforeach; ?>
+                                    <?php if (!empty($cycles) && is_array($cycles)): ?>
+                                        <?php foreach ($cycles as $c): ?>
+                                            <option value="<?= $c['id_cycle'] ?>"><?= htmlspecialchars($c['nom_cycle']) ?></option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -109,32 +107,31 @@ document.addEventListener('DOMContentLoaded', function() {
                         niveauSelect.add(new Option(n, n));
                     });
                 });
-
-            const cycleText = this.options[this.selectedIndex].text.toLowerCase();
-            if (cycleText.includes('lycée')) {
-                serieContainer.style.display = 'block';
-            }
         }
     });
 
     niveauSelect.addEventListener('change', function() {
         const niveau = this.value;
-        const cycleText = cycleSelect.options[cycleSelect.selectedIndex].text.toLowerCase();
+        const cycleId = cycleSelect.value;
 
         resetSelect(numeroSelect, '<?= _('Chargement...') ?>');
 
-        if (cycleText.includes('lycée')) {
-            fetch(`/classes/get-series?niveau=${niveau}&lycee_id=${lyceeId}`)
+        if (niveau && cycleId) {
+            fetch(`/classes/get-series?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}&lycee_id=${lyceeId}`)
                 .then(r => r.json())
-                .then(data => {
-                    resetSelect(serieSelect, '<?= _('Choisir une série') ?>');
-                    serieSelect.disabled = false;
-                    data.forEach(s => {
-                        serieSelect.add(new Option(s, s));
-                    });
+                .then(series => {
+                    if (series && series.length > 0) {
+                        serieContainer.style.display = 'block';
+                        resetSelect(serieSelect, '<?= _('Choisir une série') ?>');
+                        serieSelect.disabled = false;
+                        series.forEach(s => {
+                            serieSelect.add(new Option(s, s));
+                        });
+                    } else {
+                        serieContainer.style.display = 'none';
+                        updateNumeros(niveau, null);
+                    }
                 });
-        } else {
-            updateNumeros(niveau, null);
         }
     });
 

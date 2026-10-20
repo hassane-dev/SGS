@@ -25,7 +25,8 @@ class MensualiteController {
     public function index() {
         $this->checkAccess('view');
         $lycee_id = Auth::getLyceeId();
-        $cycles = Cycle::findAll();
+        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+        $cycles = AuthorizationScopeService::getPermittedCycles($lycee_id);
 
         $filters = [
             'lycee_id' => $lycee_id,

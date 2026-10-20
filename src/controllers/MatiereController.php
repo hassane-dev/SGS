@@ -28,7 +28,8 @@ class MatiereController {
 
     public function create() {
         $this->checkAccess('matiere:create');
-        $cycles = Cycle::findAll();
+        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+        $cycles = AuthorizationScopeService::getPermittedCycles(Auth::getLyceeId());
         $types = Matiere::getTypes();
         View::render('matieres/create', [
             'title' => 'Nouvelle Matière',
@@ -43,7 +44,8 @@ class MatiereController {
             $data = Validator::sanitize($_POST);
             // Simple validation
             if (empty($data['nom_matiere']) || empty($data['statut'])) {
-                 $cycles = Cycle::findAll();
+                 require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+                 $cycles = AuthorizationScopeService::getPermittedCycles(Auth::getLyceeId());
                  $types = Matiere::getTypes();
                  View::render('matieres/create', [
                     'title' => 'Nouvelle Matière',
@@ -73,7 +75,8 @@ class MatiereController {
             View::render('errors/404');
             exit();
         }
-        $cycles = Cycle::findAll();
+        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+        $cycles = AuthorizationScopeService::getPermittedCycles(Auth::getLyceeId());
         $types = Matiere::getTypes();
         View::render('matieres/edit', [
             'matiere' => $matiere,
@@ -88,7 +91,8 @@ class MatiereController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = Validator::sanitize($_POST);
              if (empty($data['nom_matiere']) || empty($data['statut'])) {
-                $cycles = Cycle::findAll();
+                require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+                $cycles = AuthorizationScopeService::getPermittedCycles(Auth::getLyceeId());
                 $types = Matiere::getTypes();
                 View::render('matieres/edit', [
                     'matiere' => $data,

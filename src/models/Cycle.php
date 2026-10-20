@@ -38,12 +38,13 @@ class Cycle {
      */
     public static function save($data) {
         $db = Database::getInstance();
+        $utiliseSeries = (isset($data['utilise_series']) && $data['utilise_series'] !== '') ? (int)$data['utilise_series'] : null;
 
         if (isset($data['id_cycle']) && !empty($data['id_cycle'])) {
             // Update
             $stmt = $db->prepare("
                 UPDATE cycles
-                SET nom_cycle = :nom_cycle, niveau_debut = :niveau_debut, niveau_fin = :niveau_fin, lycee_id = :lycee_id
+                SET nom_cycle = :nom_cycle, niveau_debut = :niveau_debut, niveau_fin = :niveau_fin, lycee_id = :lycee_id, utilise_series = :utilise_series
                 WHERE id_cycle = :id_cycle
             ");
             return $stmt->execute([
@@ -51,19 +52,21 @@ class Cycle {
                 'niveau_debut' => $data['niveau_debut'],
                 'niveau_fin' => $data['niveau_fin'],
                 'lycee_id' => $data['lycee_id'] ?? null,
+                'utilise_series' => $utiliseSeries,
                 'id_cycle' => $data['id_cycle']
             ]);
         } else {
             // Create
             $stmt = $db->prepare("
-                INSERT INTO cycles (nom_cycle, niveau_debut, niveau_fin, lycee_id)
-                VALUES (:nom_cycle, :niveau_debut, :niveau_fin, :lycee_id)
+                INSERT INTO cycles (nom_cycle, niveau_debut, niveau_fin, lycee_id, utilise_series)
+                VALUES (:nom_cycle, :niveau_debut, :niveau_fin, :lycee_id, :utilise_series)
             ");
             return $stmt->execute([
                 'nom_cycle' => $data['nom_cycle'],
                 'niveau_debut' => $data['niveau_debut'],
                 'niveau_fin' => $data['niveau_fin'],
-                'lycee_id' => $data['lycee_id'] ?? null
+                'lycee_id' => $data['lycee_id'] ?? null,
+                'utilise_series' => $utiliseSeries
             ]);
         }
     }

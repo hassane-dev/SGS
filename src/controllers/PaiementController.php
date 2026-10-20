@@ -415,7 +415,11 @@ class PaiementController {
             exit();
         }
 
+        $lycee_id = Auth::getLyceeId();
+        $cycles = AuthorizationScopeService::getPermittedCycles($lycee_id);
+
         View::render('paiements/restes', [
+            'cycles' => $cycles,
             'title' => 'Gestion des Restes / Dettes'
         ]);
     }
