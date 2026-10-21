@@ -7,15 +7,26 @@ require_once __DIR__ . '/../models/SurveillantGroupe.php';
 require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
+require_once __DIR__ . '/../core/Auth.php';
+require_once __DIR__ . '/../core/View.php';
 require_once __DIR__ . '/../core/Validator.php';
 require_once __DIR__ . '/../core/CsrfService.php';
 
 class SurveillantAssignmentController {
 
     private function checkAccess(string $action = 'view_surveillants') {
-        if (!Auth::can('discipline', $action) &&
-            !Auth::can('discipline', 'manage_councils') &&
-            !Auth::can('view_all_lycees', 'lycee')) {
+        $hasAccess = false;
+        if ($action === 'view_surveillants') {
+            $hasAccess = Auth::can('view_surveillants', 'pedagogy') ||
+                         Auth::can('manage_surveillants', 'pedagogy') ||
+                         Auth::can('view_all_lycees', 'lycee');
+        } else {
+            $hasAccess = Auth::can($action, 'pedagogy') ||
+                         Auth::can('manage_surveillants', 'pedagogy') ||
+                         Auth::can('view_all_lycees', 'lycee');
+        }
+
+        if (!$hasAccess) {
             http_response_code(403);
             View::render('errors/403');
             if (!defined('TEST_MODE')) exit(); return false;

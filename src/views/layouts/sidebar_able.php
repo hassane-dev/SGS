@@ -49,12 +49,6 @@ $navItems = [
                 'condition' => Auth::can('view_councils', 'discipline'),
             ],
             [
-                'url' => '/surveillants',
-                'text' => _('Affectation des Surveillants'),
-                'title' => _('Gérer la répartition et les affectations des surveillants par classe et niveau.'),
-                'condition' => Auth::can('view_surveillants', 'discipline') || Auth::can('manage_surveillants', 'discipline') || Auth::can('view_councils', 'discipline'),
-            ],
-            [
                 'url' => '/discipline/search',
                 'text' => _('Recherche & Registres'),
                 'title' => _('Rechercher et exporter les registres d\'incidents et sanctions.'),
@@ -108,13 +102,19 @@ $navItems = [
         'text' => _('Pédagogie'),
         'icon' => 'ph-duotone ph-chalkboard-teacher',
         'is_dropdown' => true,
-        'condition' => Auth::can('view_affectations', 'pedagogy') || Auth::can('view_my_affectations', 'pedagogy') || Auth::can('manage_affectations', 'pedagogy') || Auth::can('manage', 'timetable') || Auth::get('role_name') === 'enseignant' || Auth::can('view_all', 'cahier_texte') || Auth::can('manage', 'cahier_texte') || Auth::can('view_all', 'note') || Auth::can('manage_settings', 'evaluation') || Auth::can('generate', 'bulletin') || Auth::can('edit_appreciation_conseil', 'bulletin'),
+        'condition' => Auth::can('view_affectations', 'pedagogy') || Auth::can('view_my_affectations', 'pedagogy') || Auth::can('manage_affectations', 'pedagogy') || Auth::can('view_surveillants', 'pedagogy') || Auth::can('manage_surveillants', 'pedagogy') || Auth::can('manage', 'timetable') || Auth::get('role_name') === 'enseignant' || Auth::can('view_all', 'cahier_texte') || Auth::can('manage', 'cahier_texte') || Auth::can('view_all', 'note') || Auth::can('manage_settings', 'evaluation') || Auth::can('generate', 'bulletin') || Auth::can('edit_appreciation_conseil', 'bulletin'),
         'submenu' => [
             [
                 'url' => '/affectations-pedagogiques',
                 'text' => _('Affectations Enseignants'),
                 'title' => _('Gérer les affectations pédagogiques des enseignants.'),
                 'condition' => Auth::can('view_affectations', 'pedagogy') || Auth::can('view_my_affectations', 'pedagogy') || Auth::can('manage_affectations', 'pedagogy'),
+            ],
+            [
+                'url' => '/surveillants',
+                'text' => _('Affectation des Surveillants'),
+                'title' => _('Gérer la répartition et les affectations des surveillants par classe et niveau.'),
+                'condition' => Auth::can('view_surveillants', 'pedagogy') || Auth::can('manage_surveillants', 'pedagogy'),
             ],
             [
                 'url' => '/emploi-du-temps',
