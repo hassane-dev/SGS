@@ -1,17 +1,76 @@
 /**
  * SGS Dynamic Notifications Manager
  * Handles automatic periodic polling (~20s), badge/dropdown DOM sync,
- * floating Toast visual alerts, and soft audio chime playback.
+ * floating Toast visual alerts, and soft audio chime playback with browser autoplay unlock.
  */
 
 (function () {
     'use strict';
 
     let lastMaxId = 0;
-    let isInitialLoad = true;
     let isPolling = false;
     let pollInterval = null;
     const POLL_FREQ_MS = 20000; // 20 seconds
+
+    // Audio Singleton & Unlock State
+    let audioInstance = null;
+    let isAudioUnlocked = false;
+
+    function getAudioInstance() {
+        if (!audioInstance) {
+            audioInstance = new Audio('/assets/sounds/notification.wav');
+            audioInstance.preload = 'auto';
+        }
+        return audioInstance;
+    }
+
+    function unlockAudio() {
+        if (isAudioUnlocked) return;
+        try {
+            const audio = getAudioInstance();
+            audio.muted = true;
+            const promise = audio.play();
+            if (promise !== undefined) {
+                promise.then(function () {
+                    audio.pause();
+                    audio.currentTime = 0;
+                    audio.muted = false;
+                    isAudioUnlocked = true;
+                }).catch(function () {
+                    if (audio) audio.muted = false;
+                });
+            }
+        } catch (e) {
+            // Silence initial unlock attempt errors
+        }
+
+        document.removeEventListener('click', unlockAudio);
+        document.removeEventListener('keydown', unlockAudio);
+        document.removeEventListener('touchstart', unlockAudio);
+    }
+
+    function setupAudioUnlock() {
+        document.addEventListener('click', unlockAudio, { once: true });
+        document.addEventListener('keydown', unlockAudio, { once: true });
+        document.addEventListener('touchstart', unlockAudio, { once: true });
+    }
+
+    // Audio Chime Playback
+    function playChime() {
+        try {
+            const audio = getAudioInstance();
+            audio.currentTime = 0;
+            audio.muted = false;
+            const promise = audio.play();
+            if (promise !== undefined) {
+                promise.catch(function (err) {
+                    console.warn('[SGS Notifications] Audio playback prevented by browser policy:', err);
+                });
+            }
+        } catch (e) {
+            console.warn('[SGS Notifications] Sound playback error:', e);
+        }
+    }
 
     // DOM Helpers
     function getCsrfToken() {
@@ -26,21 +85,6 @@
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
-    }
-
-    // Audio Chime
-    function playChime() {
-        try {
-            const audio = new Audio('/assets/sounds/notification.wav');
-            const promise = audio.play();
-            if (promise !== undefined) {
-                promise.catch(function (err) {
-                    console.warn('[SGS Notifications] Audio playback prevented by browser policy:', err);
-                });
-            }
-        } catch (e) {
-            console.warn('[SGS Notifications] Sound playback error:', e);
-        }
     }
 
     // Toast Alerts
@@ -252,22 +296,25 @@
 
                 const newItems = data.new_notifications || [];
 
-                if (isInitialLoad) {
-                    lastMaxId = data.max_id || 0;
-                    isInitialLoad = false;
-                } else {
-                    if (newItems.length > 0) {
-                        lastMaxId = data.max_id || lastMaxId;
+                if (newItems.length > 0) {
+                    lastMaxId = data.max_id || lastMaxId;
+                    try {
+                        sessionStorage.setItem('sgs_last_notified_id', String(lastMaxId));
+                    } catch (e) {}
 
-                        // Display Toasts for new notifications (max 3)
-                        const itemsToToast = newItems.slice(0, 3);
-                        itemsToToast.forEach(function (notif) {
-                            showToast(notif);
-                        });
+                    // Display Toasts for new notifications (max 3)
+                    const itemsToToast = newItems.slice(0, 3);
+                    itemsToToast.forEach(function (notif) {
+                        showToast(notif);
+                    });
 
-                        // Play audio chime
-                        playChime();
-                    }
+                    // Play audio chime safely
+                    playChime();
+                } else if (data.max_id > lastMaxId) {
+                    lastMaxId = data.max_id;
+                    try {
+                        sessionStorage.setItem('sgs_last_notified_id', String(lastMaxId));
+                    } catch (e) {}
                 }
             })
             .catch(function (err) {
@@ -278,13 +325,35 @@
 
     // Initialize on DOM Ready
     function init() {
+        setupAudioUnlock();
+
         const headerBadge = document.getElementById('notification-badge');
-        if (headerBadge) {
+        if (!headerBadge) {
+            // Not on an authenticated page with header badge, do not initialize polling or sessionStorage
+            return;
+        }
+
+        // Persistent tracking across page navigations in the same browser tab
+        let storedMaxId = null;
+        try {
+            storedMaxId = sessionStorage.getItem('sgs_last_notified_id');
+        } catch (e) {}
+
+        if (storedMaxId !== null && storedMaxId !== undefined) {
+            lastMaxId = parseInt(storedMaxId, 10) || 0;
+        } else {
             const initialMaxId = headerBadge.getAttribute('data-max-id');
             if (initialMaxId) {
                 lastMaxId = parseInt(initialMaxId, 10) || 0;
             }
+            try {
+                sessionStorage.setItem('sgs_last_notified_id', String(lastMaxId));
+            } catch (e) {}
         }
+
+        // Expose lastMaxId getter/setter for testing environment
+        window.sgsGetLastMaxId = function () { return lastMaxId; };
+        window.sgsTriggerPoll = function () { pollNotifications(); };
 
         // Attach event listener for "Tout marquer comme lu" link if present
         const markAllLink = document.getElementById('btn-mark-all-read');

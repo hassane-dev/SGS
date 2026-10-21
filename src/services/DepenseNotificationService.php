@@ -47,14 +47,14 @@ class DepenseNotificationService {
             if (!$lyceeId) return;
 
             // Determine appropriate target users/roles to notify depending on event type
-            // E.g., Notify comptable on DepenseApproved, notify Proviseur/Director on DepenseCreated
+            // E.g., Notify comptables and financial managers on DepenseCreated, DepenseApproved, DepensePaid, DepenseCancelled
             $msg = "";
             $roleTarget = "";
 
             switch ($event) {
                 case 'DepenseCreated':
                     $msg = "Nouvelle demande de dépense engagée (N° " . ($data['numero_piece'] ?? '') . ") d'un montant de " . ($data['montant'] ?? '') . " FCFA.";
-                    $roleTarget = 'surveillant'; // notify managers
+                    $roleTarget = 'comptable'; // notify financial managers & accountants
                     break;
                 case 'DepenseApproved':
                     $msg = "Demande de dépense N° " . ($data['numero_piece'] ?? '') . " approuvée. Prête pour le règlement.";
@@ -62,7 +62,7 @@ class DepenseNotificationService {
                     break;
                 case 'DepensePaid':
                     $msg = "Dépense N° " . ($data['numero_piece'] ?? '') . " payée d'un montant de " . ($data['montant'] ?? '') . " FCFA.";
-                    $roleTarget = 'surveillant';
+                    $roleTarget = 'comptable';
                     break;
                 case 'DepenseCancelled':
                     $msg = "Dépense N° " . ($data['numero_piece'] ?? '') . " annulée avec contre-passation.";
@@ -72,7 +72,7 @@ class DepenseNotificationService {
 
             if (empty($msg)) return;
 
-            // Let's find users with target role in the high school
+            // Find users with target role in the high school tenant
             $stmt = $db->prepare("
                 SELECT u.id_user FROM utilisateurs u
                 JOIN roles r ON u.role_id = r.id_role
@@ -85,11 +85,11 @@ class DepenseNotificationService {
             $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             if (empty($users)) {
-                // Fallback: notify admins
+                // Fallback: notify local admins for the establishment
                 $stmt_adm = $db->prepare("
                     SELECT u.id_user FROM utilisateurs u
                     JOIN roles r ON u.role_id = r.id_role
-                    WHERE u.lycee_id = :lycee_id OR u.lycee_id IS NULL
+                    WHERE u.lycee_id = :lycee_id AND LOWER(r.nom_role) LIKE '%admin%'
                 ");
                 $stmt_adm->execute(['lycee_id' => $lyceeId]);
                 $users = $stmt_adm->fetchAll(PDO::FETCH_ASSOC);
