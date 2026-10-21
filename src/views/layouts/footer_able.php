@@ -8,5 +8,6 @@
 <script src="/assets/js/script.js"></script>
 <script src="/assets/js/theme.js"></script>
 <script src="/assets/js/plugins/feather.min.js"></script>
+<script src="/assets/js/sgs-notifications.js"></script>
 </body>
 </html>
