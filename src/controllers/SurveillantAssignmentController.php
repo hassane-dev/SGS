@@ -44,12 +44,14 @@ class SurveillantAssignmentController {
         $affectations = SurveillantAffectation::findAllByLyceeAndAnnee($lycee_id, $annee_id);
         $groupes = SurveillantGroupe::findByLyceeAndAnnee($lycee_id, $annee_id);
         $classes = Classe::findAll($lycee_id);
+        $cycles = Cycle::findByLycee($lycee_id);
         $surveillants = User::findAllByRoleName('surveillant', $lycee_id);
 
         View::render('surveillants/index', [
             'affectations' => $affectations,
             'groupes' => $groupes,
             'classes' => $classes,
+            'cycles' => $cycles,
             'surveillants' => $surveillants,
             'activeYear' => $activeYear
         ]);

@@ -381,8 +381,17 @@ class EleveController {
             return;
         }
 
-        $classe_id = Classe::findIdByDetails($lycee_id, $data['niveau'], $data['serie'] ?? null, $data['numero'], $cycle_id);
+        $authClasses = AuthorizationScopeService::getAuthorizedClassIds($lycee_id);
+        $classe_id = Classe::findIdByDetails($lycee_id, $data['niveau'], $data['serie'] ?? null, $data['numero'], $cycle_id, $authClasses);
         if ($classe_id) {
+            if (!AuthorizationScopeService::canAccessClass((int)$classe_id)) {
+                $_SESSION['error_message'] = "Accès refusé : La classe sélectionnée ne fait pas partie de votre périmètre d'affectation.";
+                if (!defined('TEST_MODE')) {
+                    header('Location: /eleves/assign-class?eleve_id=' . $eleve_id);
+                    exit();
+                }
+                return;
+            }
             $targetClasse = Classe::findById($classe_id);
             if (!$targetClasse || (int)$targetClasse['cycle_id'] !== $cycle_id || (int)$targetClasse['lycee_id'] !== (int)$lycee_id) {
                 $_SESSION['error_message'] = "La classe sélectionnée n'appartient pas au cycle ou établissement autorisé.";

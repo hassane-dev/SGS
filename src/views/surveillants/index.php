@@ -310,6 +310,7 @@ $porteeLabels = [
                             <option value="classe"><?= _("Classe unique") ?></option>
                             <option value="groupe_classes"><?= _("Groupe de classes") ?></option>
                             <option value="niveau"><?= _("Niveau entier") ?></option>
+                            <option value="cycle"><?= _("Cycle entier") ?></option>
                             <option value="etablissement"><?= _("Tout l'établissement") ?></option>
                         </select>
                     </div>
@@ -328,18 +329,38 @@ $porteeLabels = [
                     <!-- Target: Groupe -->
                     <div class="mb-3 portee-target d-none" id="tgt_groupe">
                         <label class="form-label fw-bold"><?= _("Groupe cible") ?></label>
-                        <select name="groupe_id" class="form-select">
-                            <option value=""><?= _("-- Sélectionner un groupe --") ?></option>
-                            <?php foreach ($groupes as $g): ?>
-                                <option value="<?= $g['id'] ?>"><?= htmlspecialchars($g['nom_groupe']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                        <?php if (empty($groupes)): ?>
+                            <div class="alert alert-warning py-2 mb-0 small">
+                                <i class="ph-duotone ph-warning-circle me-1"></i>
+                                <?= _("Aucun groupe de classes n'a été créé pour cette année académique. Veuillez d'abord cliquer sur 'Créer un Groupe' ci-dessus.") ?>
+                            </div>
+                        <?php else: ?>
+                            <select name="groupe_id" class="form-select">
+                                <option value=""><?= _("-- Sélectionner un groupe --") ?></option>
+                                <?php foreach ($groupes as $g): ?>
+                                    <option value="<?= $g['id'] ?>">
+                                        <?= htmlspecialchars($g['nom_groupe']) ?> (<?= (int)($g['total_classes'] ?? 0) ?> <?= _("classes") ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Target: Niveau -->
                     <div class="mb-3 portee-target d-none" id="tgt_niveau">
                         <label class="form-label fw-bold"><?= _("Code niveau (ex: 6e)") ?></label>
                         <input type="text" name="niveau_code" class="form-control" placeholder="ex: 6e">
+                    </div>
+
+                    <!-- Target: Cycle -->
+                    <div class="mb-3 portee-target d-none" id="tgt_cycle">
+                        <label class="form-label fw-bold"><?= _("Cycle cible") ?></label>
+                        <select name="cycle_id" class="form-select">
+                            <option value=""><?= _("-- Sélectionner un cycle --") ?></option>
+                            <?php foreach ($cycles as $cy): ?>
+                                <option value="<?= $cy['id_cycle'] ?>"><?= htmlspecialchars($cy['nom_cycle']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
 
                     <div class="mb-3">
@@ -367,6 +388,8 @@ function togglePorteeTargetFields() {
         document.getElementById('tgt_groupe').classList.remove('d-none');
     } else if (val === 'niveau') {
         document.getElementById('tgt_niveau').classList.remove('d-none');
+    } else if (val === 'cycle') {
+        document.getElementById('tgt_cycle').classList.remove('d-none');
     }
 }
 </script>
