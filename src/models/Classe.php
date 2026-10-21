@@ -98,7 +98,16 @@ class Classe {
                 $params['id_classe'] = $data['id_classe'];
             }
 
-            return $stmt->execute($params);
+            $res = $stmt->execute($params);
+
+            if ($res && !empty($data['lycee_id'])) {
+                try {
+                    require_once __DIR__ . '/../services/SurveillantAssignmentService.php';
+                    SurveillantAssignmentService::bumpConfigVersion((int)$data['lycee_id']);
+                } catch (Throwable $e) {}
+            }
+
+            return $res;
         } catch (PDOException $e) {
             error_log("Error in Classe::save: " . $e->getMessage());
             return false;
@@ -106,8 +115,16 @@ class Classe {
     }
 
     public static function delete($id, $lycee_id = null) {
+        $db = Database::getInstance();
+        $inTx = $db->inTransaction();
+        if (!$inTx) {
+            $db->beginTransaction();
+        }
+
         try {
-            $db = Database::getInstance();
+            require_once __DIR__ . '/../services/SurveillantAssignmentService.php';
+            SurveillantAssignmentService::archiveClassAssignmentsAndGroups((int)$id);
+
             $sql = "DELETE FROM classes WHERE id_classe = :id";
             $params = ['id' => $id];
 
@@ -117,7 +134,16 @@ class Classe {
             }
 
             $stmt = $db->prepare($sql);
-            return $stmt->execute($params);
+            $res = $stmt->execute($params);
+
+            if ($lycee_id) {
+                SurveillantAssignmentService::bumpConfigVersion((int)$lycee_id, $db);
+            }
+
+            if (!$inTx) {
+                $db->commit();
+            }
+            return $res;
         } catch (PDOException $e) {
             error_log("Error in Classe::delete: " . $e->getMessage());
             return false;

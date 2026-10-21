@@ -68,6 +68,11 @@ class AnneeAcademique {
             $stmt = $db->prepare("UPDATE annees_academiques SET est_active = 1 WHERE id = :id");
             $stmt->execute(['id' => $id]);
 
+            // Bump surveillant_config_version for all lycees
+            try {
+                $db->query("UPDATE param_lycee SET surveillant_config_version = surveillant_config_version + 1");
+            } catch (Throwable $e) {}
+
             if (!$inTransaction) {
                 $db->commit();
             }

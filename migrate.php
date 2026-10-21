@@ -1247,6 +1247,9 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_32_add_utilise_series_to_cycles.php';
     migrate_32($db);
 
+    require_once __DIR__ . '/db/migrations/20240115_33_create_surveillant_affectations_and_groupes.php';
+    migrate_33($db);
+
     echo "Migration successful\n";
 } catch (Exception $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";

@@ -40,6 +40,7 @@ class Cycle {
         $db = Database::getInstance();
         $utiliseSeries = (isset($data['utilise_series']) && $data['utilise_series'] !== '') ? (int)$data['utilise_series'] : null;
 
+        $res = false;
         if (isset($data['id_cycle']) && !empty($data['id_cycle'])) {
             // Update
             $stmt = $db->prepare("
@@ -47,7 +48,7 @@ class Cycle {
                 SET nom_cycle = :nom_cycle, niveau_debut = :niveau_debut, niveau_fin = :niveau_fin, lycee_id = :lycee_id, utilise_series = :utilise_series
                 WHERE id_cycle = :id_cycle
             ");
-            return $stmt->execute([
+            $res = $stmt->execute([
                 'nom_cycle' => $data['nom_cycle'],
                 'niveau_debut' => $data['niveau_debut'],
                 'niveau_fin' => $data['niveau_fin'],
@@ -61,7 +62,7 @@ class Cycle {
                 INSERT INTO cycles (nom_cycle, niveau_debut, niveau_fin, lycee_id, utilise_series)
                 VALUES (:nom_cycle, :niveau_debut, :niveau_fin, :lycee_id, :utilise_series)
             ");
-            return $stmt->execute([
+            $res = $stmt->execute([
                 'nom_cycle' => $data['nom_cycle'],
                 'niveau_debut' => $data['niveau_debut'],
                 'niveau_fin' => $data['niveau_fin'],
@@ -69,6 +70,15 @@ class Cycle {
                 'utilise_series' => $utiliseSeries
             ]);
         }
+
+        if ($res && !empty($data['lycee_id'])) {
+            try {
+                require_once __DIR__ . '/../services/SurveillantAssignmentService.php';
+                SurveillantAssignmentService::bumpConfigVersion((int)$data['lycee_id']);
+            } catch (Throwable $e) {}
+        }
+
+        return $res;
     }
 
     /**
@@ -76,8 +86,18 @@ class Cycle {
      */
     public static function delete($id) {
         $db = Database::getInstance();
+        $cy = self::findById($id);
         $stmt = $db->prepare("DELETE FROM cycles WHERE id_cycle = :id");
-        return $stmt->execute(['id' => $id]);
+        $res = $stmt->execute(['id' => $id]);
+
+        if ($res && !empty($cy['lycee_id'])) {
+            try {
+                require_once __DIR__ . '/../services/SurveillantAssignmentService.php';
+                SurveillantAssignmentService::bumpConfigVersion((int)$cy['lycee_id']);
+            } catch (Throwable $e) {}
+        }
+
+        return $res;
     }
 
     /**
