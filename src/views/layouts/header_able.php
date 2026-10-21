@@ -13,6 +13,7 @@ require_once __DIR__ . '/../../models/Lycee.php';
 require_once __DIR__ . '/../../models/AnneeAcademique.php';
 require_once __DIR__ . '/../../models/ParamLycee.php';
 require_once __DIR__ . '/../../models/Notification.php';
+require_once __DIR__ . '/../../core/CsrfService.php';
 
 // Get current user info
 $current_user = Auth::user();
@@ -62,6 +63,7 @@ $active_sequence = $lycee_params['sequence_annuelle'] ?? _('Non définie');
 // Get unread notifications
 $unread_notifications = Notification::findUnreadByUser($current_user['id']);
 $notification_count = count($unread_notifications);
+$initial_max_id = !empty($unread_notifications) ? (int)max(array_column($unread_notifications, 'id')) : 0;
 
 // --- Determine active language and direction ---
 global $lang, $supported_languages;
@@ -76,6 +78,7 @@ $direction = $supported_languages[$lang]['dir'] ?? 'ltr';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $title ?? 'Gestion Scolaire' ?></title>
+    <meta name="csrf-token" content="<?= CsrfService::token() ?>">
     <link class="icon" rel="icon" href="<?= htmlspecialchars($lycee_params['logo'] ?? '/assets/img/placeholder-photo.png') ?>" type="image/x-icon">
     <link rel="stylesheet" href="/assets/css/style.css" id="main-style-link" >
     <link rel="stylesheet" href="/assets/css/style-preset.css" >
@@ -186,37 +189,36 @@ $direction = $supported_languages[$lang]['dir'] ?? 'ltr';
                 <li class="dropdown pc-h-item">
                     <a class="pc-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
                         <i class="ph-duotone ph-bell"></i>
-                        <?php if ($notification_count > 0): ?>
-                            <span class="badge bg-danger pc-h-badge"><?= $notification_count ?></span>
-                        <?php endif; ?>
+                        <span class="badge bg-danger pc-h-badge" id="notification-badge" data-unread-count="<?= $notification_count ?>" data-max-id="<?= $initial_max_id ?>" style="<?= $notification_count > 0 ? '' : 'display:none;' ?>"><?= $notification_count ?></span>
                     </a>
                     <div class="dropdown-menu dropdown-menu-end pc-h-dropdown">
-                        <div class="dropdown-header">
-                            <a href="/notifications/mark-all-as-read" class="text-muted float-end"><?= _('Tout marquer comme lu') ?></a>
+                        <div class="dropdown-header d-flex align-items-center justify-content-between">
                             <h5 class="m-0"><?= _('Notifications') ?></h5>
+                            <a href="/notifications/mark-all-as-read" id="btn-mark-all-read" class="text-muted small text-decoration-none"><?= _('Tout marquer comme lu') ?></a>
                         </div>
                         <div class="dropdown-divider"></div>
-                        <?php if ($notification_count > 0): ?>
-                            <?php foreach ($unread_notifications as $notif): ?>
-                                <a href="/notifications/mark-as-read?id=<?= $notif['id'] ?>&redirect_to=<?= urlencode($notif['link']) ?>" class="dropdown-item">
-                                    <div class="d-flex">
-                                        <div class="flex-shrink-0">
-                                            <i class="ph-duotone ph-warning-circle"></i>
+                        <div id="notification-dropdown-list">
+                            <?php if ($notification_count > 0): ?>
+                                <?php foreach ($unread_notifications as $notif): ?>
+                                    <a href="/notifications/mark-as-read?id=<?= $notif['id'] ?>&redirect_to=<?= urlencode($notif['link'] ?? '#') ?>" class="dropdown-item px-3 py-2 border-bottom notification-item" data-id="<?= $notif['id'] ?>">
+                                        <div class="d-flex align-items-start">
+                                            <div class="flex-shrink-0 me-2 mt-1">
+                                                <i class="ph-duotone ph-warning-circle text-primary fs-5"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <p class="mb-0 text-wrap small text-dark"><?= htmlspecialchars($notif['message']) ?></p>
+                                                <small class="text-muted" style="font-size: 0.75rem;"><?= htmlspecialchars($notif['created_at']) ?></small>
+                                            </div>
                                         </div>
-                                        <div class="flex-grow-1 ms-3">
-                                            <p class="mb-0"><?= htmlspecialchars($notif['message']) ?></p>
-                                            <small class="text-muted"><?= htmlspecialchars($notif['created_at']) ?></small>
-                                        </div>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="py-3 text-center">
-                                <p><?= _('Aucune nouvelle notification') ?></p>
-                            </div>
-                        <?php endif; ?>
-                        <div class="text-center py-2">
+                                    </a>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="py-3 text-center">
+                                    <p class="text-muted mb-0"><?= _('Aucune nouvelle notification') ?></p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="text-center py-2 border-top">
                             <a href="/notifications/all" class="link-primary"><?= _('Voir toutes les notifications') ?></a>
                         </div>
                     </div>

@@ -87,8 +87,11 @@ $router->register('/settings/change-year', 'SettingsController', 'changeYear');
 
 // Notifications
 $router->register('/notifications/all', 'NotificationController', 'index');
+$router->register('/notifications/unread', 'NotificationController', 'unread');
 $router->register('/notifications/mark-as-read', 'NotificationController', 'markAsRead');
+$router->register('/notifications/mark-as-read-ajax', 'NotificationController', 'ajaxMarkAsRead');
 $router->register('/notifications/mark-all-as-read', 'NotificationController', 'markAllAsRead');
+$router->register('/notifications/mark-all-as-read-ajax', 'NotificationController', 'ajaxMarkAllAsRead');
 
 // Lycees CRUD
 $router->register('/lycees', 'LyceeController', 'index');
