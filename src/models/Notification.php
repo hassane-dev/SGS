@@ -44,13 +44,14 @@ class Notification {
     }
 
     /**
-     * Notify all accountants of a lycee.
+     * Notify all accountants and chief accountants of a lycee.
      * @param int $lycee_id
      * @param string $message
      * @param string $link
      */
     public static function notifyAccountants($lycee_id, $message, $link) {
         self::notifyRole('comptable', $lycee_id, $message, $link);
+        self::notifyRole('chef_comptable', $lycee_id, $message, $link);
     }
 
     /**
