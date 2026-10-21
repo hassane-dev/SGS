@@ -11,7 +11,10 @@ class Classe {
      * @param int|null $lycee_id The ID of the lycee to filter by.
      * @return array An array of classe objects.
      */
-    public static function findAll($lycee_id = null) {
+    public static function findAll($lycee_id = null, ?array $allowedClassIds = null) {
+        if ($allowedClassIds === []) {
+            return [];
+        }
         try {
             $db = Database::getInstance();
             $sql = "SELECT c.*, cy.nom_cycle, l.nom_lycee
@@ -19,18 +22,27 @@ class Classe {
                     JOIN cycles cy ON c.cycle_id = cy.id_cycle
                     JOIN param_lycee l ON c.lycee_id = l.id";
 
+            $where = [];
+            $params = [];
+
             if ($lycee_id !== null) {
-                $sql .= " WHERE c.lycee_id = :lycee_id";
+                $where[] = "c.lycee_id = :lycee_id";
+                $params['lycee_id'] = $lycee_id;
+            }
+
+            if ($allowedClassIds !== null) {
+                $inClause = implode(',', array_map('intval', $allowedClassIds));
+                $where[] = "c.id_classe IN ($inClause)";
+            }
+
+            if (!empty($where)) {
+                $sql .= " WHERE " . implode(' AND ', $where);
             }
 
             $sql .= " ORDER BY l.nom_lycee, cy.nom_cycle, c.niveau ASC, c.serie ASC, c.numero ASC";
 
             $stmt = $db->prepare($sql);
-            if ($lycee_id !== null) {
-                $stmt->execute(['lycee_id' => $lycee_id]);
-            } else {
-                $stmt->execute();
-            }
+            $stmt->execute($params);
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
@@ -157,14 +169,29 @@ class Classe {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public static function findDistinctNiveauxByCycle($cycle_id, $lycee_id) {
+    public static function findDistinctNiveauxByCycle($cycle_id, $lycee_id, ?array $allowedClassIds = null) {
+        if ($allowedClassIds === []) {
+            return [];
+        }
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT DISTINCT niveau FROM classes WHERE cycle_id = :cycle_id AND lycee_id = :lycee_id ORDER BY niveau ASC");
-        $stmt->execute(['cycle_id' => $cycle_id, 'lycee_id' => $lycee_id]);
+        $sql = "SELECT DISTINCT niveau FROM classes WHERE cycle_id = :cycle_id AND lycee_id = :lycee_id";
+        $params = ['cycle_id' => $cycle_id, 'lycee_id' => $lycee_id];
+
+        if ($allowedClassIds !== null) {
+            $inClause = implode(',', array_map('intval', $allowedClassIds));
+            $sql .= " AND id_classe IN ($inClause)";
+        }
+
+        $sql .= " ORDER BY niveau ASC";
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    public static function findDistinctSeriesByNiveau($niveau, $lycee_id, ?int $cycle_id = null) {
+    public static function findDistinctSeriesByNiveau($niveau, $lycee_id, ?int $cycle_id = null, ?array $allowedClassIds = null) {
+        if ($allowedClassIds === []) {
+            return [];
+        }
         $db = Database::getInstance();
         $sql = "SELECT DISTINCT serie FROM classes WHERE niveau = :niveau AND lycee_id = :lycee_id AND serie IS NOT NULL AND serie != ''";
         $params = ['niveau' => $niveau, 'lycee_id' => $lycee_id];
@@ -174,13 +201,21 @@ class Classe {
             $params['cycle_id'] = $cycle_id;
         }
 
+        if ($allowedClassIds !== null) {
+            $inClause = implode(',', array_map('intval', $allowedClassIds));
+            $sql .= " AND id_classe IN ($inClause)";
+        }
+
         $sql .= " ORDER BY serie ASC";
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    public static function findAvailableNumeros($niveau, $serie, $lycee_id, ?int $cycle_id = null) {
+    public static function findAvailableNumeros($niveau, $serie, $lycee_id, ?int $cycle_id = null, ?array $allowedClassIds = null) {
+        if ($allowedClassIds === []) {
+            return [];
+        }
         $db = Database::getInstance();
         $sql = "SELECT DISTINCT numero FROM classes WHERE niveau = :niveau AND lycee_id = :lycee_id";
         $params = ['niveau' => $niveau, 'lycee_id' => $lycee_id];
@@ -197,13 +232,21 @@ class Classe {
             $params['serie'] = $serie;
         }
 
+        if ($allowedClassIds !== null) {
+            $inClause = implode(',', array_map('intval', $allowedClassIds));
+            $sql .= " AND id_classe IN ($inClause)";
+        }
+
         $sql .= " ORDER BY numero ASC";
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    public static function findIdByDetails($lycee_id, $niveau, $serie, $numero, ?int $cycle_id = null) {
+    public static function findIdByDetails($lycee_id, $niveau, $serie, $numero, ?int $cycle_id = null, ?array $allowedClassIds = null) {
+        if ($allowedClassIds === []) {
+            return null;
+        }
         $db = Database::getInstance();
         $sql = "SELECT id_classe FROM classes WHERE lycee_id = :lycee_id AND niveau = :niveau AND numero = :numero";
         $params = ['lycee_id' => $lycee_id, 'niveau' => $niveau, 'numero' => $numero];
@@ -218,6 +261,11 @@ class Classe {
         } elseif (!empty($serie)) {
             $sql .= " AND serie = :serie";
             $params['serie'] = $serie;
+        }
+
+        if ($allowedClassIds !== null) {
+            $inClause = implode(',', array_map('intval', $allowedClassIds));
+            $sql .= " AND id_classe IN ($inClause)";
         }
 
         $stmt = $db->prepare($sql);
@@ -310,10 +358,21 @@ class Classe {
         return null;
     }
 
-    public static function getDistinctNiveaux($lycee_id) {
+    public static function getDistinctNiveaux($lycee_id, ?array $allowedClassIds = null) {
+        if ($allowedClassIds === []) {
+            return [];
+        }
         $db = Database::getInstance();
-        $stmt = $db->prepare("SELECT DISTINCT niveau FROM classes WHERE lycee_id = :lycee_id");
-        $stmt->execute(['lycee_id' => $lycee_id]);
+        $sql = "SELECT DISTINCT niveau FROM classes WHERE lycee_id = :lycee_id";
+        $params = ['lycee_id' => $lycee_id];
+
+        if ($allowedClassIds !== null) {
+            $inClause = implode(',', array_map('intval', $allowedClassIds));
+            $sql .= " AND id_classe IN ($inClause)";
+        }
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
         $niveaux = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
         $orderMap = self::getLevelOrderMap();

@@ -128,79 +128,108 @@ class AuthorizationScopeService {
         } catch (Throwable $e) {}
 
         // 4c. New surveillant_affectations table
+        $has_active_new_affectations = false;
         try {
             $stmtYear = $db->prepare("SELECT id FROM annees_academiques WHERE est_active = 1 LIMIT 1");
             $stmtYear->execute();
             $annee_id = (int)$stmtYear->fetchColumn();
 
             if ($annee_id > 0) {
-                // Direct class or group
-                $stmtAff = $db->prepare("
-                    SELECT DISTINCT c.cycle_id
-                    FROM surveillant_affectations sa
-                    LEFT JOIN classes c ON sa.classe_id = c.id_classe
-                    LEFT JOIN surveillant_groupe_classes sgc ON sa.groupe_id = sgc.groupe_id
-                    LEFT JOIN classes gc ON sgc.classe_id = gc.id_classe
-                    WHERE sa.surveillant_id = :uid
-                      AND sa.annee_academique_id = :aid
-                      AND sa.statut = 'actif'
-                ");
-                $stmtAff->execute(['uid' => $user_id, 'aid' => $annee_id]);
-                $raw_cycle_ids = array_merge($raw_cycle_ids, $stmtAff->fetchAll(PDO::FETCH_COLUMN));
+                $stmtCount = $db->prepare("SELECT COUNT(*) FROM surveillant_affectations WHERE surveillant_id = :uid AND annee_academique_id = :aid AND statut = 'actif'");
+                $stmtCount->execute(['uid' => $user_id, 'aid' => $annee_id]);
+                $has_active_new_affectations = ((int)$stmtCount->fetchColumn() > 0);
 
-                // Cycle portee
-                $stmtCycAff = $db->prepare("
-                    SELECT sa.cycle_id
-                    FROM surveillant_affectations sa
-                    WHERE sa.surveillant_id = :uid
-                      AND sa.annee_academique_id = :aid
-                      AND sa.statut = 'actif'
-                      AND sa.portee_type = 'cycle'
-                      AND sa.cycle_id IS NOT NULL
-                ");
-                $stmtCycAff->execute(['uid' => $user_id, 'aid' => $annee_id]);
-                $raw_cycle_ids = array_merge($raw_cycle_ids, $stmtCycAff->fetchAll(PDO::FETCH_COLUMN));
+                if ($has_active_new_affectations) {
+                    // Direct class or group
+                    $stmtAff = $db->prepare("
+                        SELECT DISTINCT c.cycle_id
+                        FROM surveillant_affectations sa
+                        LEFT JOIN classes c ON sa.classe_id = c.id_classe
+                        LEFT JOIN surveillant_groupe_classes sgc ON sa.groupe_id = sgc.groupe_id
+                        LEFT JOIN classes gc ON sgc.classe_id = gc.id_classe
+                        WHERE sa.surveillant_id = :uid
+                          AND sa.annee_academique_id = :aid
+                          AND sa.statut = 'actif'
+                    ");
+                    $stmtAff->execute(['uid' => $user_id, 'aid' => $annee_id]);
+                    $raw_cycle_ids = array_merge($raw_cycle_ids, $stmtAff->fetchAll(PDO::FETCH_COLUMN));
+
+                    // Level portee
+                    $stmtNivAff = $db->prepare("
+                        SELECT DISTINCT c.cycle_id
+                        FROM surveillant_affectations sa
+                        JOIN classes c ON sa.niveau_code = c.niveau AND (c.lycee_id = sa.lycee_id OR sa.lycee_id IS NULL)
+                        WHERE sa.surveillant_id = :uid
+                          AND sa.annee_academique_id = :aid
+                          AND sa.statut = 'actif'
+                          AND sa.portee_type = 'niveau'
+                    ");
+                    $stmtNivAff->execute(['uid' => $user_id, 'aid' => $annee_id]);
+                    $raw_cycle_ids = array_merge($raw_cycle_ids, $stmtNivAff->fetchAll(PDO::FETCH_COLUMN));
+
+                    // Cycle portee
+                    $stmtCycAff = $db->prepare("
+                        SELECT sa.cycle_id
+                        FROM surveillant_affectations sa
+                        WHERE sa.surveillant_id = :uid
+                          AND sa.annee_academique_id = :aid
+                          AND sa.statut = 'actif'
+                          AND sa.portee_type = 'cycle'
+                          AND sa.cycle_id IS NOT NULL
+                    ");
+                    $stmtCycAff->execute(['uid' => $user_id, 'aid' => $annee_id]);
+                    $raw_cycle_ids = array_merge($raw_cycle_ids, $stmtCycAff->fetchAll(PDO::FETCH_COLUMN));
+
+                    // Etablissement portee
+                    $stmtEtabAff = $db->prepare("
+                        SELECT cy.id_cycle
+                        FROM surveillant_affectations sa
+                        JOIN cycles cy ON (cy.lycee_id = sa.lycee_id OR sa.lycee_id IS NULL)
+                        WHERE sa.surveillant_id = :uid
+                          AND sa.annee_academique_id = :aid
+                          AND sa.statut = 'actif'
+                          AND sa.portee_type = 'etablissement'
+                    ");
+                    $stmtEtabAff->execute(['uid' => $user_id, 'aid' => $annee_id]);
+                    $raw_cycle_ids = array_merge($raw_cycle_ids, $stmtEtabAff->fetchAll(PDO::FETCH_COLUMN));
+                }
             }
         } catch (Throwable $e) {}
 
-        // 4d. Supervisor class assignments (surveillant_classes)
-        try {
-            $stmt = $db->prepare("
-                SELECT c.cycle_id
-                FROM surveillant_classes sc
-                JOIN classes c ON sc.classe_id = c.id_classe
-                WHERE sc.surveillant_id = :surveillant_id
-                  AND c.cycle_id IS NOT NULL
-            ");
-            $stmt->execute(['surveillant_id' => $user_id]);
-            $raw_cycle_ids = array_merge($raw_cycle_ids, $stmt->fetchAll(PDO::FETCH_COLUMN));
-        } catch (Throwable $e) {}
+        // 4d. Legacy fallback tables ONLY if no active surveillant_affectations exist for user
+        if (!$has_active_new_affectations) {
+            try {
+                $stmt = $db->prepare("
+                    SELECT c.cycle_id
+                    FROM surveillant_classes sc
+                    JOIN classes c ON sc.classe_id = c.id_classe
+                    WHERE sc.surveillant_id = :surveillant_id
+                      AND c.cycle_id IS NOT NULL
+                ");
+                $stmt->execute(['surveillant_id' => $user_id]);
+                $raw_cycle_ids = array_merge($raw_cycle_ids, $stmt->fetchAll(PDO::FETCH_COLUMN));
 
-        // 4d. Supervisor level assignments (surveillant_niveaux)
-        try {
-            $stmt = $db->prepare("
-                SELECT DISTINCT c.cycle_id
-                FROM surveillant_niveaux sn
-                JOIN classes c ON sn.niveau = c.niveau AND (c.lycee_id = sn.lycee_id OR sn.lycee_id IS NULL)
-                WHERE sn.surveillant_id = :surveillant_id
-                  AND c.cycle_id IS NOT NULL
-            ");
-            $stmt->execute(['surveillant_id' => $user_id]);
-            $raw_cycle_ids = array_merge($raw_cycle_ids, $stmt->fetchAll(PDO::FETCH_COLUMN));
-        } catch (Throwable $e) {}
+                $stmt = $db->prepare("
+                    SELECT DISTINCT c.cycle_id
+                    FROM surveillant_niveaux sn
+                    JOIN classes c ON sn.niveau = c.niveau AND (c.lycee_id = sn.lycee_id OR sn.lycee_id IS NULL)
+                    WHERE sn.surveillant_id = :surveillant_id
+                      AND c.cycle_id IS NOT NULL
+                ");
+                $stmt->execute(['surveillant_id' => $user_id]);
+                $raw_cycle_ids = array_merge($raw_cycle_ids, $stmt->fetchAll(PDO::FETCH_COLUMN));
 
-        // 4e. Supervisor general assignments (surveillant_general)
-        try {
-            $stmt = $db->prepare("
-                SELECT c.id_cycle
-                FROM surveillant_general sg
-                JOIN cycles c ON (c.lycee_id = sg.lycee_id OR c.lycee_id IS NULL)
-                WHERE sg.surveillant_id = :surveillant_id
-                  AND c.id_cycle IS NOT NULL
-            ");
-            $stmt->execute(['surveillant_id' => $user_id]);
-            $raw_cycle_ids = array_merge($raw_cycle_ids, $stmt->fetchAll(PDO::FETCH_COLUMN));
-        } catch (Throwable $e) {}
+                $stmt = $db->prepare("
+                    SELECT c.id_cycle
+                    FROM surveillant_general sg
+                    JOIN classes c ON (c.lycee_id = sg.lycee_id OR c.lycee_id IS NULL)
+                    WHERE sg.surveillant_id = :surveillant_id
+                      AND c.id_cycle IS NOT NULL
+                ");
+                $stmt->execute(['surveillant_id' => $user_id]);
+                $raw_cycle_ids = array_merge($raw_cycle_ids, $stmt->fetchAll(PDO::FETCH_COLUMN));
+            } catch (Throwable $e) {}
+        }
 
         // 4f. Teacher pedagogical assignments (affectations_pedagogiques)
         try {
@@ -294,87 +323,96 @@ class AuthorizationScopeService {
         $raw_class_ids = [];
 
         // 1. New surveillant_affectations table
+        $has_active_new_affectations = false;
         if ($annee_id > 0) {
             try {
-                // Direct class
-                $stmtCls = $db->prepare("
-                    SELECT classe_id FROM surveillant_affectations
-                    WHERE surveillant_id = :uid AND annee_academique_id = :aid
-                      AND statut = 'actif' AND portee_type = 'classe' AND classe_id IS NOT NULL
-                ");
-                $stmtCls->execute(['uid' => $user_id, 'aid' => $annee_id]);
-                $raw_class_ids = array_merge($raw_class_ids, $stmtCls->fetchAll(PDO::FETCH_COLUMN));
+                $stmtCount = $db->prepare("SELECT COUNT(*) FROM surveillant_affectations WHERE surveillant_id = :uid AND annee_academique_id = :aid AND statut = 'actif'");
+                $stmtCount->execute(['uid' => $user_id, 'aid' => $annee_id]);
+                $has_active_new_affectations = ((int)$stmtCount->fetchColumn() > 0);
 
-                // Group
-                $stmtGrp = $db->prepare("
-                    SELECT sgc.classe_id
-                    FROM surveillant_affectations sa
-                    JOIN surveillant_groupe_classes sgc ON sa.groupe_id = sgc.groupe_id
-                    WHERE sa.surveillant_id = :uid AND sa.annee_academique_id = :aid
-                      AND sa.statut = 'actif' AND sa.portee_type = 'groupe_classes'
-                ");
-                $stmtGrp->execute(['uid' => $user_id, 'aid' => $annee_id]);
-                $raw_class_ids = array_merge($raw_class_ids, $stmtGrp->fetchAll(PDO::FETCH_COLUMN));
+                if ($has_active_new_affectations) {
+                    // Direct class
+                    $stmtCls = $db->prepare("
+                        SELECT classe_id FROM surveillant_affectations
+                        WHERE surveillant_id = :uid AND annee_academique_id = :aid
+                          AND statut = 'actif' AND portee_type = 'classe' AND classe_id IS NOT NULL
+                    ");
+                    $stmtCls->execute(['uid' => $user_id, 'aid' => $annee_id]);
+                    $raw_class_ids = array_merge($raw_class_ids, $stmtCls->fetchAll(PDO::FETCH_COLUMN));
 
-                // Level
-                $stmtNiv = $db->prepare("
-                    SELECT c.id_classe
-                    FROM surveillant_affectations sa
-                    JOIN classes c ON sa.niveau_code = c.niveau AND (c.lycee_id = sa.lycee_id OR sa.lycee_id IS NULL)
-                    WHERE sa.surveillant_id = :uid AND sa.annee_academique_id = :aid
-                      AND sa.statut = 'actif' AND sa.portee_type = 'niveau'
-                ");
-                $stmtNiv->execute(['uid' => $user_id, 'aid' => $annee_id]);
-                $raw_class_ids = array_merge($raw_class_ids, $stmtNiv->fetchAll(PDO::FETCH_COLUMN));
+                    // Group
+                    $stmtGrp = $db->prepare("
+                        SELECT sgc.classe_id
+                        FROM surveillant_affectations sa
+                        JOIN surveillant_groupe_classes sgc ON sa.groupe_id = sgc.groupe_id
+                        WHERE sa.surveillant_id = :uid AND sa.annee_academique_id = :aid
+                          AND sa.statut = 'actif' AND sa.portee_type = 'groupe_classes'
+                    ");
+                    $stmtGrp->execute(['uid' => $user_id, 'aid' => $annee_id]);
+                    $raw_class_ids = array_merge($raw_class_ids, $stmtGrp->fetchAll(PDO::FETCH_COLUMN));
 
-                // Cycle
-                $stmtCyc = $db->prepare("
-                    SELECT c.id_classe
-                    FROM surveillant_affectations sa
-                    JOIN classes c ON sa.cycle_id = c.cycle_id
-                    WHERE sa.surveillant_id = :uid AND sa.annee_academique_id = :aid
-                      AND sa.statut = 'actif' AND sa.portee_type = 'cycle'
-                ");
-                $stmtCyc->execute(['uid' => $user_id, 'aid' => $annee_id]);
-                $raw_class_ids = array_merge($raw_class_ids, $stmtCyc->fetchAll(PDO::FETCH_COLUMN));
+                    // Level
+                    $stmtNiv = $db->prepare("
+                        SELECT c.id_classe
+                        FROM surveillant_affectations sa
+                        JOIN classes c ON sa.niveau_code = c.niveau AND (c.lycee_id = sa.lycee_id OR sa.lycee_id IS NULL)
+                        WHERE sa.surveillant_id = :uid AND sa.annee_academique_id = :aid
+                          AND sa.statut = 'actif' AND sa.portee_type = 'niveau'
+                    ");
+                    $stmtNiv->execute(['uid' => $user_id, 'aid' => $annee_id]);
+                    $raw_class_ids = array_merge($raw_class_ids, $stmtNiv->fetchAll(PDO::FETCH_COLUMN));
 
-                // Etablissement
-                $stmtEtab = $db->prepare("
-                    SELECT c.id_classe
-                    FROM surveillant_affectations sa
-                    JOIN classes c ON (c.lycee_id = sa.lycee_id OR sa.lycee_id IS NULL)
-                    WHERE sa.surveillant_id = :uid AND sa.annee_academique_id = :aid
-                      AND sa.statut = 'actif' AND sa.portee_type = 'etablissement'
-                ");
-                $stmtEtab->execute(['uid' => $user_id, 'aid' => $annee_id]);
-                $raw_class_ids = array_merge($raw_class_ids, $stmtEtab->fetchAll(PDO::FETCH_COLUMN));
+                    // Cycle
+                    $stmtCyc = $db->prepare("
+                        SELECT c.id_classe
+                        FROM surveillant_affectations sa
+                        JOIN classes c ON sa.cycle_id = c.cycle_id AND (c.lycee_id = sa.lycee_id OR sa.lycee_id IS NULL)
+                        WHERE sa.surveillant_id = :uid AND sa.annee_academique_id = :aid
+                          AND sa.statut = 'actif' AND sa.portee_type = 'cycle'
+                    ");
+                    $stmtCyc->execute(['uid' => $user_id, 'aid' => $annee_id]);
+                    $raw_class_ids = array_merge($raw_class_ids, $stmtCyc->fetchAll(PDO::FETCH_COLUMN));
+
+                    // Etablissement
+                    $stmtEtab = $db->prepare("
+                        SELECT c.id_classe
+                        FROM surveillant_affectations sa
+                        JOIN classes c ON (c.lycee_id = sa.lycee_id OR sa.lycee_id IS NULL)
+                        WHERE sa.surveillant_id = :uid AND sa.annee_academique_id = :aid
+                          AND sa.statut = 'actif' AND sa.portee_type = 'etablissement'
+                    ");
+                    $stmtEtab->execute(['uid' => $user_id, 'aid' => $annee_id]);
+                    $raw_class_ids = array_merge($raw_class_ids, $stmtEtab->fetchAll(PDO::FETCH_COLUMN));
+                }
             } catch (Throwable $e) {}
         }
 
-        // 2. Legacy fallback tables if no active surveillant_affectations exist for user
-        try {
-            $stmtLegacyCls = $db->prepare("
-                SELECT sc.classe_id FROM surveillant_classes sc WHERE sc.surveillant_id = :uid
-            ");
-            $stmtLegacyCls->execute(['uid' => $user_id]);
-            $raw_class_ids = array_merge($raw_class_ids, $stmtLegacyCls->fetchAll(PDO::FETCH_COLUMN));
+        // 2. Legacy fallback tables ONLY if no active surveillant_affectations exist for user
+        if (!$has_active_new_affectations) {
+            try {
+                $stmtLegacyCls = $db->prepare("
+                    SELECT sc.classe_id FROM surveillant_classes sc WHERE sc.surveillant_id = :uid
+                ");
+                $stmtLegacyCls->execute(['uid' => $user_id]);
+                $raw_class_ids = array_merge($raw_class_ids, $stmtLegacyCls->fetchAll(PDO::FETCH_COLUMN));
 
-            $stmtLegacyNiv = $db->prepare("
-                SELECT c.id_classe FROM surveillant_niveaux sn
-                JOIN classes c ON sn.niveau = c.niveau AND (c.lycee_id = sn.lycee_id OR sn.lycee_id IS NULL)
-                WHERE sn.surveillant_id = :uid
-            ");
-            $stmtLegacyNiv->execute(['uid' => $user_id]);
-            $raw_class_ids = array_merge($raw_class_ids, $stmtLegacyNiv->fetchAll(PDO::FETCH_COLUMN));
+                $stmtLegacyNiv = $db->prepare("
+                    SELECT c.id_classe FROM surveillant_niveaux sn
+                    JOIN classes c ON sn.niveau = c.niveau AND (c.lycee_id = sn.lycee_id OR sn.lycee_id IS NULL)
+                    WHERE sn.surveillant_id = :uid
+                ");
+                $stmtLegacyNiv->execute(['uid' => $user_id]);
+                $raw_class_ids = array_merge($raw_class_ids, $stmtLegacyNiv->fetchAll(PDO::FETCH_COLUMN));
 
-            $stmtLegacyGen = $db->prepare("
-                SELECT c.id_classe FROM surveillant_general sg
-                JOIN classes c ON (c.lycee_id = sg.lycee_id OR sg.lycee_id IS NULL)
-                WHERE sg.surveillant_id = :uid
-            ");
-            $stmtLegacyGen->execute(['uid' => $user_id]);
-            $raw_class_ids = array_merge($raw_class_ids, $stmtLegacyGen->fetchAll(PDO::FETCH_COLUMN));
-        } catch (Throwable $e) {}
+                $stmtLegacyGen = $db->prepare("
+                    SELECT c.id_classe FROM surveillant_general sg
+                    JOIN classes c ON (c.lycee_id = sg.lycee_id OR sg.lycee_id IS NULL)
+                    WHERE sg.surveillant_id = :uid
+                ");
+                $stmtLegacyGen->execute(['uid' => $user_id]);
+                $raw_class_ids = array_merge($raw_class_ids, $stmtLegacyGen->fetchAll(PDO::FETCH_COLUMN));
+            } catch (Throwable $e) {}
+        }
 
         // 3. Teacher pedagogical assignments (affectations_pedagogiques)
         $today = date('Y-m-d');
@@ -389,6 +427,31 @@ class AuthorizationScopeService {
             ");
             $stmtAp->execute(['uid' => $user_id, 'today_start' => $today, 'today_end' => $today]);
             $raw_class_ids = array_merge($raw_class_ids, $stmtAp->fetchAll(PDO::FETCH_COLUMN));
+        } catch (Throwable $e) {}
+
+        // 4. Explicit cycle assignments (personnel_cycles_assignments & personnel_assignments cycle)
+        try {
+            $stmtPca = $db->prepare("
+                SELECT c.id_classe
+                FROM personnel_cycles_assignments pca
+                JOIN classes c ON pca.cycle_id = c.cycle_id AND (c.lycee_id = :lid OR :lid IS NULL)
+                WHERE pca.personnel_id = :uid
+                  AND pca.actif = 1
+                  AND (pca.date_debut IS NULL OR pca.date_debut <= :today_start)
+                  AND (pca.date_fin IS NULL OR pca.date_fin = '' OR pca.date_fin = '0000-00-00' OR pca.date_fin >= :today_end)
+            ");
+            $stmtPca->execute(['uid' => $user_id, 'lid' => $lycee_id, 'today_start' => $today, 'today_end' => $today]);
+            $raw_class_ids = array_merge($raw_class_ids, $stmtPca->fetchAll(PDO::FETCH_COLUMN));
+
+            $stmtPaCyc = $db->prepare("
+                SELECT c.id_classe
+                FROM personnel_assignments pa
+                JOIN classes c ON pa.target_id = c.cycle_id AND (c.lycee_id = :lid OR :lid IS NULL)
+                WHERE pa.personnel_id = :uid
+                  AND pa.assignment_type = 'cycle'
+            ");
+            $stmtPaCyc->execute(['uid' => $user_id, 'lid' => $lycee_id]);
+            $raw_class_ids = array_merge($raw_class_ids, $stmtPaCyc->fetchAll(PDO::FETCH_COLUMN));
         } catch (Throwable $e) {}
 
         $class_ids = array_values(array_unique(array_map('intval', array_filter($raw_class_ids, fn($val) => $val !== null && $val !== '' && (int)$val > 0))));

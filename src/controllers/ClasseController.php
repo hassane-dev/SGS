@@ -409,10 +409,16 @@ class ClasseController {
             if (!defined('TEST_MODE')) exit(); return;
         }
 
-        $niveaux = $cycle_id ? Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id) : Classe::getDistinctNiveaux($lycee_id);
+        $authClasses = AuthorizationScopeService::getAuthorizedClassIds($lycee_id);
+        if ($authClasses === []) {
+            echo json_encode([]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
 
-        // Fallback for new cycle without created classes yet: generate default level sequence based on cycle boundary
-        if (empty($niveaux) && $cycle_id) {
+        $niveaux = $cycle_id ? Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id, $authClasses) : Classe::getDistinctNiveaux($lycee_id, $authClasses);
+
+        // Fallback for new cycle without created classes yet (unrestricted users only):
+        if (empty($niveaux) && $cycle_id && $authClasses === null) {
             $cycle = Cycle::findById($cycle_id);
             if ($cycle && !empty($cycle['niveau_debut']) && !empty($cycle['niveau_fin'])) {
                 $start = Classe::resolveLevelOrder($cycle['niveau_debut']);
@@ -455,9 +461,15 @@ class ClasseController {
             }
         }
 
-        $series = Classe::findDistinctSeriesByNiveau($niveau, $lycee_id, $cycle_id);
-        // If no classes exist for this level yet, fallback to all series for the school if cycle utilizes series
-        if (empty($series) && $cycle_id) {
+        $authClasses = AuthorizationScopeService::getAuthorizedClassIds($lycee_id);
+        if ($authClasses === []) {
+            echo json_encode([]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        $series = Classe::findDistinctSeriesByNiveau($niveau, $lycee_id, $cycle_id, $authClasses);
+        // If no classes exist for this level yet, fallback to all series for the school if cycle utilizes series (unrestricted users only)
+        if (empty($series) && $cycle_id && $authClasses === null) {
             $cycle = Cycle::findById($cycle_id);
             if (!$cycle || (int)($cycle['utilise_series'] ?? 1) === 1) {
                 $allSeriesObjects = Serie::findAll($lycee_id);
@@ -482,7 +494,13 @@ class ClasseController {
             if (!defined('TEST_MODE')) exit(); return;
         }
 
-        $numeros = Classe::findAvailableNumeros($niveau, $serie, $lycee_id, $cycle_id);
+        $authClasses = AuthorizationScopeService::getAuthorizedClassIds($lycee_id);
+        if ($authClasses === []) {
+            echo json_encode([]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        $numeros = Classe::findAvailableNumeros($niveau, $serie, $lycee_id, $cycle_id, $authClasses);
         echo json_encode(array_values($numeros));
         if (!defined('TEST_MODE')) exit(); return;
     }
@@ -501,7 +519,13 @@ class ClasseController {
             if (!defined('TEST_MODE')) exit(); return;
         }
 
-        $id = Classe::findIdByDetails($lycee_id, $niveau, $serie, $numero, $cycle_id);
+        $authClasses = AuthorizationScopeService::getAuthorizedClassIds($lycee_id);
+        if ($authClasses === []) {
+            echo json_encode(['id_classe' => null]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        $id = Classe::findIdByDetails($lycee_id, $niveau, $serie, $numero, $cycle_id, $authClasses);
         echo json_encode(['id_classe' => $id]);
         if (!defined('TEST_MODE')) exit(); return;
     }
