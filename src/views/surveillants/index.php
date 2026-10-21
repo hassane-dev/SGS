@@ -5,6 +5,8 @@
 require_once __DIR__ . '/../layouts/header_able.php';
 require_once __DIR__ . '/../layouts/sidebar_able.php';
 
+$canManage = Auth::can('manage_surveillants', 'pedagogy') || Auth::can('view_all_lycees', 'lycee');
+
 $respLabels = [
     'surveillant_classe' => 'Surveillant de classe (Opérationnel)',
     'surveillant_general' => 'Surveillant Général (Supervision)'
@@ -65,6 +67,7 @@ $porteeLabels = [
                         <?= htmlspecialchars($activeYear['libelle'] ?? 'Année active') ?>
                     </span>
                 </div>
+                <?php if ($canManage): ?>
                 <div class="d-flex gap-2">
                     <a href="/surveillants/repartition" class="btn btn-primary">
                         <i class="ph-duotone ph-arrows-merge me-1"></i><?= _("Répartition Automatique") ?>
@@ -76,6 +79,7 @@ $porteeLabels = [
                         <i class="ph-duotone ph-user-plus me-1"></i><?= _("Nouvelle Affectation") ?>
                     </button>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -97,11 +101,13 @@ $porteeLabels = [
                                             <div class="card-body">
                                                 <div class="d-flex justify-content-between align-items-start">
                                                     <h6 class="fw-bold text-primary mb-1"><?= htmlspecialchars($g['nom_groupe']) ?></h6>
+                                                    <?php if ($canManage): ?>
                                                     <form method="POST" action="/surveillants/delete-group" onsubmit="return confirm('Supprimer ce groupe ?');" class="d-inline">
                                                         <?= csrf_field() ?>
                                                         <input type="hidden" name="id" value="<?= $g['id'] ?>">
                                                         <button type="submit" class="btn btn-link text-danger p-0 border-0"><i class="ph-duotone ph-trash fs-5"></i></button>
                                                     </form>
+                                                    <?php endif; ?>
                                                 </div>
                                                 <p class="small text-muted mb-2"><?= htmlspecialchars($g['description'] ?? 'Pas de description') ?></p>
                                                 <span class="badge bg-light-primary text-primary me-1">
@@ -204,7 +210,7 @@ $porteeLabels = [
                                                     <?php endif; ?>
                                                 </td>
                                                 <td class="text-end">
-                                                    <?php if ($aff['statut'] === 'actif'): ?>
+                                                    <?php if ($canManage && $aff['statut'] === 'actif'): ?>
                                                         <form method="POST" action="/surveillants/terminate" onsubmit="return confirm('Clôturer cette affectation ?');" class="d-inline">
                                                             <?= csrf_field() ?>
                                                             <input type="hidden" name="id" value="<?= $aff['id'] ?>">

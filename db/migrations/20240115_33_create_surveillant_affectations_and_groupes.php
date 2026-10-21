@@ -213,12 +213,16 @@ function migrate_33($db) {
     }
     echo "Migration 33: Created table surveillant_affectations.\n";
 
-    // 5. Seed Permissions for Surveillant Assignment Management
+    // 5. Seed Permissions for Surveillant Assignment Management (Resource: pedagogy)
     $insert_ignore = $isSqlite ? "INSERT OR IGNORE" : "INSERT IGNORE";
 
+    // Clean up old 'discipline' scoped surveillant permissions if they exist
+    $db->exec("DELETE FROM role_permissions WHERE permission_id IN (SELECT id_permission FROM permissions WHERE resource = 'discipline' AND action IN ('manage_surveillants', 'view_surveillants'))");
+    $db->exec("DELETE FROM permissions WHERE resource = 'discipline' AND action IN ('manage_surveillants', 'view_surveillants')");
+
     $perms = [
-        ['discipline', 'manage_surveillants', 'Créer, répartir, modifier et clôturer les affectations de surveillants'],
-        ['discipline', 'view_surveillants', 'Consulter le registre des affectations de surveillants']
+        ['pedagogy', 'manage_surveillants', 'Créer, répartir, modifier et clôturer les affectations de surveillants'],
+        ['pedagogy', 'view_surveillants', 'Consulter le registre des affectations de surveillants']
     ];
 
     $stmtPerm = $db->prepare("{$insert_ignore} INTO permissions (resource, action, description) VALUES (:resource, :action, :description)");
@@ -236,7 +240,7 @@ function migrate_33($db) {
         SELECT r.id_role, p.id_permission
         FROM roles r, permissions p
         WHERE (r.id_role IN (1, 2, 3, 4, 5) OR r.nom_role LIKE '%admin%' OR r.nom_role LIKE '%censeur%' OR r.nom_role LIKE '%surveillant%')
-        AND p.resource = 'discipline' AND p.action IN ('manage_surveillants', 'view_surveillants')
+        AND p.resource = 'pedagogy' AND p.action IN ('manage_surveillants', 'view_surveillants')
     ");
 
     echo "Migration 33 completed successfully.\n";
