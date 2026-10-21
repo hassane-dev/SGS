@@ -40,7 +40,7 @@ class Eleve {
                 if (empty($allowed_cycles)) {
                     $sql .= " AND 1 = 0";
                 } else {
-                    $sql .= " AND c.cycle_id IN (" . implode(',', array_map('intval', $allowed_cycles)) . ")";
+                    $sql .= " AND (c.cycle_id IN (" . implode(',', array_map('intval', $allowed_cycles)) . ") OR c.cycle_id IS NULL)";
                 }
             }
         }
