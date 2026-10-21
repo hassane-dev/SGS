@@ -220,6 +220,63 @@ if (in_array(99802, $nivIds) && !in_array(99801, $nivIds)) {
     $failCount++;
 }
 
+// -------------------------------------------------------------
+// SCENARIO 9: View rendering test for classless badge & dropdown actions
+// -------------------------------------------------------------
+echo "\nSCENARIO 9: View rendering test for classless badge & dropdown actions\n";
+mockSession(9981, 1);
+// Ensure permissions exist in permissions table first
+$db->exec("INSERT OR IGNORE INTO permissions (resource, action) VALUES
+    ('eleve', 'inscrire'), ('eleve', 'edit'), ('eleve', 'delete'), ('paiement', 'view'), ('boutique', 'manage')");
+
+// Ensure role 99 permissions are inserted in test DB for RBAC check
+$db->exec("INSERT OR IGNORE INTO role_permissions (role_id, permission_id)
+            SELECT 99, id_permission FROM permissions WHERE (action = 'inscrire' AND resource = 'eleve')
+               OR (action = 'edit' AND resource = 'eleve')
+               OR (action = 'delete' AND resource = 'eleve')
+               OR (action = 'view' AND resource = 'paiement')
+               OR (action = 'manage' AND resource = 'boutique')");
+
+ob_start();
+$eleves = Eleve::findAll(['lycee_id' => 1]);
+$lycees = [];
+$cycles = [];
+$filters = ['lycee_id' => 1, 'cycle_id' => null, 'niveau' => null, 'serie' => null, 'numero' => null];
+require __DIR__ . '/../src/views/eleves/index.php';
+$html = ob_get_clean();
+
+if (strpos($html, 'Classe non attribuée') !== false) {
+    echo "  [PASS] Scenario 9a: HTML view renders 'Classe non attribuée' badge for classless student.\n";
+    $passCount++;
+} else {
+    echo "  [FAIL] Scenario 9a: HTML view missing 'Classe non attribuée' badge!\n";
+    $failCount++;
+}
+
+if (strpos($html, '/eleves/assign-class?eleve_id=99801') !== false && strpos($html, 'Attribuer une classe') !== false) {
+    echo "  [PASS] Scenario 9b: HTML view renders 'Attribuer une classe' link with correct eleve_id in dropdown.\n";
+    $passCount++;
+} else {
+    echo "  [FAIL] Scenario 9b: HTML view missing 'Attribuer une classe' link!\n";
+    $failCount++;
+}
+
+if (strpos($html, '/eleves/assign-class?eleve_id=99802') === false) {
+    echo "  [PASS] Scenario 9c: Assigned student (99802) does NOT present 'Attribuer une classe' link.\n";
+    $passCount++;
+} else {
+    echo "  [FAIL] Scenario 9c: Assigned student presented 'Attribuer une classe' link illegally!\n";
+    $failCount++;
+}
+
+if (strpos($html, 'dropdown-menu') !== false && strpos($html, 'Radier l\'élève') !== false) {
+    echo "  [PASS] Scenario 9d: Dropdown menu structure and radiation form present in HTML view.\n";
+    $passCount++;
+} else {
+    echo "  [FAIL] Scenario 9d: Dropdown menu or radiation form missing from HTML view!\n";
+    $failCount++;
+}
+
 // Cleanup mock records
 $db->exec("DELETE FROM personnel_cycles_assignments WHERE personnel_id IN (9981, 9982, 9983, 9984)");
 $db->exec("DELETE FROM etudes WHERE eleve_id IN (99801, 99802, 99803, 99804, 99805, 99806)");

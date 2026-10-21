@@ -130,30 +130,87 @@
                                                         <?= !empty($eleve['numero']) ? htmlspecialchars($eleve['numero']) : '' ?>
                                                         (<?= htmlspecialchars($eleve['nom_cycle']) ?>)
                                                     <?php else: ?>
-                                                        <span class="badge bg-warning"><?= _('Non assigné') ?></span>
+                                                        <span class="badge bg-light-warning text-warning"><i class="ph-duotone ph-warning-circle me-1"></i><?= _('Classe non attribuée') ?></span>
                                                     <?php endif; ?>
                                                 </td>
                                                 <td class="text-end">
-                                                        <a href="/carte/generer?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-sm btn-light-primary me-2" title="<?= _('Imprimer la carte') ?>" target="_blank">
-                                                            <i class="ph-duotone ph-cardholder"></i>
-                                                        </a>
-                                                    <?php if (Auth::can('manage', 'boutique')): ?>
-                                                        <a href="/boutique/achats?eleve_id=<?= $eleve['id_eleve'] ?>" class="btn btn-sm btn-light-info me-2" title="<?= _('Boutique') ?>">
-                                                            <i class="ph-duotone ph-shopping-cart"></i>
-                                                        </a>
-                                                    <?php endif; ?>
-                                                    <?php if (Auth::can('view', 'paiement')): ?>
-                                                        <a href="/paiements/show/<?= $eleve['id_eleve'] ?>" class="btn btn-success btn-sm" title="<?= _('Gérer les paiements') ?>"><?= _('Payer') ?></a>
-                                                    <?php endif; ?>
-                                                    <a href="/eleves/details?id=<?= $eleve['id_eleve'] ?>" class="btn btn-info btn-sm ms-2" title="<?= _('Dossier complet') ?>"><?= _('Détails') ?></a>
-                                                    <a href="/eleves/parcours-academique?id=<?= $eleve['id_eleve'] ?>" class="btn btn-light-warning btn-sm ms-2" title="<?= _('Suivi & Parcours Scolaire') ?>"><i class="ph-duotone ph-chart-line-up"></i></a>
-                                                    <a href="/eleves/parametres-financiers?id=<?= $eleve['id_eleve'] ?>" class="btn btn-warning btn-sm ms-2" title="<?= _('Paramètres financiers') ?>"><i class="ph-duotone ph-currency-dollar"></i></a>
-                                                    <a href="/eleves/edit?id=<?= $eleve['id_eleve'] ?>" class="btn btn-primary btn-sm ms-2" title="<?= _('Modifier') ?>"><?= _('Modifier') ?></a>
-                                                    <form action="/eleves/destroy" method="POST" class="d-inline ms-2" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir radier cet élève ? Cette action est réversible.') ?>');">
-    <?= csrf_field() ?>
-                                                        <input type="hidden" name="id" value="<?= $eleve['id_eleve'] ?>">
-                                                        <button type="submit" class="btn btn-danger btn-sm" title="<?= _('Radier l\'élève') ?>"><?= _('Radier') ?></button>
-                                                    </form>
+                                                    <div class="dropdown d-inline-block">
+                                                        <button class="btn btn-sm btn-link-secondary dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="<?= _('Actions') ?>">
+                                                            <i class="ph-duotone ph-dots-three-vertical fs-5"></i>
+                                                        </button>
+                                                        <ul class="dropdown-menu dropdown-menu-end">
+                                                            <?php if (empty($eleve['niveau']) && Auth::can('inscrire', 'eleve')): ?>
+                                                                <li>
+                                                                    <a class="dropdown-item text-primary font-weight-bold" href="/eleves/assign-class?eleve_id=<?= $eleve['id_eleve'] ?>">
+                                                                        <i class="ph-duotone ph-user-plus me-2"></i><?= _('Attribuer une classe') ?>
+                                                                    </a>
+                                                                </li>
+                                                                <li><hr class="dropdown-divider"></li>
+                                                            <?php endif; ?>
+
+                                                            <li>
+                                                                <a class="dropdown-item" href="/eleves/details?id=<?= $eleve['id_eleve'] ?>">
+                                                                    <i class="ph-duotone ph-user-focus me-2 text-info"></i><?= _('Fiche détaillée') ?>
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item" href="/eleves/parcours-academique?id=<?= $eleve['id_eleve'] ?>">
+                                                                    <i class="ph-duotone ph-chart-line-up me-2 text-warning"></i><?= _('Suivi & Parcours') ?>
+                                                                </a>
+                                                            </li>
+
+                                                            <?php if (Auth::can('view', 'paiement')): ?>
+                                                                <li>
+                                                                    <a class="dropdown-item text-success" href="/paiements/show/<?= $eleve['id_eleve'] ?>">
+                                                                        <i class="ph-duotone ph-currency-circle-dollar me-2"></i><?= _('Gérer les paiements') ?>
+                                                                    </a>
+                                                                </li>
+                                                            <?php endif; ?>
+
+                                                            <?php if (Auth::can('edit', 'eleve')): ?>
+                                                                <li>
+                                                                    <a class="dropdown-item" href="/eleves/parametres-financiers?id=<?= $eleve['id_eleve'] ?>">
+                                                                        <i class="ph-duotone ph-sliders me-2 text-secondary"></i><?= _('Paramètres financiers') ?>
+                                                                    </a>
+                                                                </li>
+                                                            <?php endif; ?>
+
+                                                            <?php if (Auth::can('manage', 'boutique')): ?>
+                                                                <li>
+                                                                    <a class="dropdown-item" href="/boutique/achats?eleve_id=<?= $eleve['id_eleve'] ?>">
+                                                                        <i class="ph-duotone ph-shopping-cart me-2 text-info"></i><?= _('Boutique') ?>
+                                                                    </a>
+                                                                </li>
+                                                            <?php endif; ?>
+
+                                                            <li>
+                                                                <a class="dropdown-item" href="/carte/generer?eleve_id=<?= $eleve['id_eleve'] ?>" target="_blank">
+                                                                    <i class="ph-duotone ph-cardholder me-2 text-primary"></i><?= _('Imprimer la carte') ?>
+                                                                </a>
+                                                            </li>
+
+                                                            <?php if (Auth::can('edit', 'eleve')): ?>
+                                                                <li>
+                                                                    <a class="dropdown-item" href="/eleves/edit?id=<?= $eleve['id_eleve'] ?>">
+                                                                        <i class="ph-duotone ph-pencil me-2 text-warning"></i><?= _('Modifier') ?>
+                                                                    </a>
+                                                                </li>
+                                                            <?php endif; ?>
+
+                                                            <?php if (Auth::can('delete', 'eleve')): ?>
+                                                                <li><hr class="dropdown-divider"></li>
+                                                                <li>
+                                                                    <form action="/eleves/destroy" method="POST" onsubmit="return confirm('<?= _('Êtes-vous sûr de vouloir radier cet élève ? Cette action est réversible.') ?>');">
+                                                                        <?= csrf_field() ?>
+                                                                        <input type="hidden" name="id" value="<?= $eleve['id_eleve'] ?>">
+                                                                        <button type="submit" class="dropdown-item text-danger">
+                                                                            <i class="ph-duotone ph-user-minus me-2"></i><?= _('Radier l\'élève') ?>
+                                                                        </button>
+                                                                    </form>
+                                                                </li>
+                                                            <?php endif; ?>
+                                                        </ul>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
