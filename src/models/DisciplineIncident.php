@@ -255,6 +255,24 @@ class DisciplineIncident {
                 'description' => "Incident #{$incidentId} signalé (" . count($validatedEleves) . " élève(s) impliqué(s))"
             ]);
 
+            // Notify active class supervisors for each unique student class (supporting co-guarding)
+            try {
+                require_once __DIR__ . '/Notification.php';
+                $uniqueClasses = array_unique(array_column($validatedEleves, 'classe_id'));
+                foreach ($uniqueClasses as $cid) {
+                    if ($cid > 0) {
+                        Notification::notifyClassSupervisors(
+                            (int)$cid,
+                            $lyceeId,
+                            _("Nouvel incident disciplinaire signalé pour votre classe."),
+                            '/discipline/incidents/show?id=' . $incidentId
+                        );
+                    }
+                }
+            } catch (Throwable $e) {
+                error_log("Notification dispatch error in DisciplineIncident::create: " . $e->getMessage());
+            }
+
             $db->commit();
             return $incidentId;
         } catch (Exception $e) {

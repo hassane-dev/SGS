@@ -302,7 +302,16 @@ class User {
             $params['id_user'] = $data['id_user'];
         }
 
-        return $stmt->execute($params);
+        $res = $stmt->execute($params);
+
+        if ($res && !empty($resolvedLyceeId)) {
+            try {
+                require_once __DIR__ . '/../services/SurveillantAssignmentService.php';
+                SurveillantAssignmentService::bumpConfigVersion((int)$resolvedLyceeId);
+            } catch (Throwable $e) {}
+        }
+
+        return $res;
     }
 
     public static function delete($id) {
@@ -311,8 +320,28 @@ class User {
             return false;
         }
         $db = Database::getInstance();
-        $stmt = $db->prepare("DELETE FROM utilisateurs WHERE id_user = :id");
-        return $stmt->execute(['id' => $id]);
+        $inTx = $db->inTransaction();
+        if (!$inTx) {
+            $db->beginTransaction();
+        }
+
+        try {
+            require_once __DIR__ . '/../services/SurveillantAssignmentService.php';
+            SurveillantAssignmentService::archiveUserAssignments((int)$id);
+
+            $stmt = $db->prepare("DELETE FROM utilisateurs WHERE id_user = :id");
+            $res = $stmt->execute(['id' => $id]);
+
+            if (!$inTx) {
+                $db->commit();
+            }
+            return $res;
+        } catch (Throwable $e) {
+            if (!$inTx && $db->inTransaction()) {
+                $db->rollBack();
+            }
+            throw $e;
+        }
     }
 
     // --- Teacher-specific methods ---

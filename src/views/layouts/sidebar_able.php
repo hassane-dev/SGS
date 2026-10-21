@@ -49,6 +49,12 @@ $navItems = [
                 'condition' => Auth::can('view_councils', 'discipline'),
             ],
             [
+                'url' => '/surveillants',
+                'text' => _('Affectation des Surveillants'),
+                'title' => _('Gérer la répartition et les affectations des surveillants par classe et niveau.'),
+                'condition' => Auth::can('view_surveillants', 'discipline') || Auth::can('manage_surveillants', 'discipline') || Auth::can('view_councils', 'discipline'),
+            ],
+            [
                 'url' => '/discipline/search',
                 'text' => _('Recherche & Registres'),
                 'title' => _('Rechercher et exporter les registres d\'incidents et sanctions.'),

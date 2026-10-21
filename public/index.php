@@ -554,6 +554,16 @@ $router->register('/discipline/documents/download', 'DisciplineDocumentControlle
 $router->register('/discipline/documents/delete', 'DisciplineDocumentController', 'delete');
 $router->register('/discipline/notifications/store', 'DisciplineDocumentController', 'storeNotification');
 
+// Surveillants Affectations & Repartition Routes
+$router->register('/surveillants', 'SurveillantAssignmentController', 'index');
+$router->register('/surveillants/repartition', 'SurveillantAssignmentController', 'repartition');
+$router->register('/surveillants/propose', 'SurveillantAssignmentController', 'proposeDistribution');
+$router->register('/surveillants/apply', 'SurveillantAssignmentController', 'applyDistribution');
+$router->register('/surveillants/store-assignment', 'SurveillantAssignmentController', 'storeAssignment');
+$router->register('/surveillants/store-group', 'SurveillantAssignmentController', 'storeGroup');
+$router->register('/surveillants/terminate', 'SurveillantAssignmentController', 'terminateAssignment');
+$router->register('/surveillants/delete-group', 'SurveillantAssignmentController', 'deleteGroup');
+
 // Affectations Pédagogiques Routes
 $router->register('/affectations-pedagogiques', 'AffectationPedagogiqueController', 'index');
 $router->register('/affectations-pedagogiques/create', 'AffectationPedagogiqueController', 'create');
