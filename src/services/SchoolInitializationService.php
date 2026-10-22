@@ -1,6 +1,8 @@
 <?php
 
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../models/Cycle.php';
+require_once __DIR__ . '/../models/Classe.php';
 
 class SchoolInitializationService {
 
@@ -51,10 +53,74 @@ class SchoolInitializationService {
             throw new InvalidArgumentException(_("La date de fin d'année académique doit être strictement postérieure à la date de début."));
         }
 
-        // General Parameters Validation
+        // General Parameters & Cycles Validation
         $sequenceAnnuelle = ucfirst(strtolower(trim($data['sequence_annuelle'] ?? 'Trimestrielle')));
         if (!in_array($sequenceAnnuelle, ['Trimestrielle', 'Semestrielle'], true)) {
             throw new InvalidArgumentException(_("L'organisation académique doit être 'Trimestrielle' ou 'Semestrielle'."));
+        }
+
+        $modeCycle = trim($data['mode_cycle'] ?? 'separe_ceg_lycee');
+        if (!in_array($modeCycle, ['lycee_unique', 'separe_ceg_lycee'], true)) {
+            throw new InvalidArgumentException(_("Le mode de structure des cycles doit être 'separe_ceg_lycee' ou 'lycee_unique'."));
+        }
+
+        $cycles = $data['cycles'] ?? [];
+        if (empty($cycles)) {
+            // Fallback default cycles matching mode_cycle if omitted
+            if ($modeCycle === 'lycee_unique') {
+                $cycles = [
+                    ['nom_cycle' => 'Lycée Unique', 'niveau_debut' => '6e', 'niveau_fin' => 'Terminale', 'utilise_series' => 1]
+                ];
+            } else {
+                $cycles = [
+                    ['nom_cycle' => 'CEG / Collège', 'niveau_debut' => '6e', 'niveau_fin' => '3e', 'utilise_series' => 0],
+                    ['nom_cycle' => 'Lycée', 'niveau_debut' => '2nde', 'niveau_fin' => 'Terminale', 'utilise_series' => 1]
+                ];
+            }
+        }
+
+        $cyclesCount = count($cycles);
+        if ($modeCycle === 'lycee_unique' && $cyclesCount !== 1) {
+            throw new InvalidArgumentException(_("Le mode 'Lycée Unique' exige la configuration d'un seul et unique cycle."));
+        }
+        if ($modeCycle === 'separe_ceg_lycee' && $cyclesCount !== 2) {
+            throw new InvalidArgumentException(_("Le mode 'Séparé (CEG / Collège + Lycée)' exige la configuration de exactement deux cycles."));
+        }
+
+        $validatedCycles = [];
+        foreach ($cycles as $cIdx => $cItem) {
+            $nomCycle = trim($cItem['nom_cycle'] ?? '');
+            if (empty($nomCycle)) {
+                throw new InvalidArgumentException(sprintf(_("Le nom du cycle #%d est obligatoire."), $cIdx + 1));
+            }
+
+            $hasDebut = !empty($cItem['niveau_debut']);
+            $hasFin = !empty($cItem['niveau_fin']);
+
+            if ($hasDebut !== $hasFin) {
+                throw new InvalidArgumentException(sprintf(_("Veuillez renseigner à la fois le niveau de début et le niveau de fin pour le cycle '%s', ou laisser les deux champs vides."), $nomCycle));
+            }
+
+            if ($hasDebut && $hasFin) {
+                $startOrder = Classe::resolveLevelOrder($cItem['niveau_debut']);
+                $endOrder = Classe::resolveLevelOrder($cItem['niveau_fin']);
+
+                if ($startOrder === null || $endOrder === null || $startOrder > $endOrder) {
+                    throw new InvalidArgumentException(sprintf(_("Les bornes de niveau saisies ('%s' à '%s') pour le cycle '%s' ne sont pas valides."), $cItem['niveau_debut'], $cItem['niveau_fin'], $nomCycle));
+                }
+            }
+
+            $utiliseSeries = (isset($cItem['utilise_series']) && $cItem['utilise_series'] !== '') ? (int)$cItem['utilise_series'] : null;
+            if ($utiliseSeries === null || !in_array($utiliseSeries, [0, 1], true)) {
+                throw new InvalidArgumentException(sprintf(_("Le paramètre 'Utilisation des séries' (0 ou 1) est obligatoire pour le cycle '%s'."), $nomCycle));
+            }
+
+            $validatedCycles[] = [
+                'nom_cycle' => $nomCycle,
+                'niveau_debut' => $hasDebut ? trim($cItem['niveau_debut']) : null,
+                'niveau_fin' => $hasFin ? trim($cItem['niveau_fin']) : null,
+                'utilise_series' => $utiliseSeries
+            ];
         }
 
         // Academic Periods Validation (3 for Trimestrielle, 2 for Semestrielle)
@@ -159,8 +225,22 @@ class SchoolInitializationService {
                 'langue_1' => !empty($data['langue_1']) ? trim($data['langue_1']) : 'Francais',
                 'langue_2' => !empty($data['langue_2']) ? trim($data['langue_2']) : null,
                 'sequence_annuelle' => $sequenceAnnuelle,
-                'mode_cycle' => !empty($data['mode_cycle']) ? trim($data['mode_cycle']) : 'separe_ceg_lycee'
+                'mode_cycle' => $modeCycle
             ]);
+
+            // STEP C2: Insert cycles for this lycee (Multi-tenant isolation)
+            $createdCycleIds = [];
+            foreach ($validatedCycles as $cData) {
+                $cDataToSave = [
+                    'nom_cycle' => $cData['nom_cycle'],
+                    'niveau_debut' => $cData['niveau_debut'],
+                    'niveau_fin' => $cData['niveau_fin'],
+                    'utilise_series' => $cData['utilise_series'],
+                    'lycee_id' => $lyceeId // Explicitly set and override any client-provided lycee_id
+                ];
+                Cycle::save($cDataToSave);
+                $createdCycleIds[] = (int)$db->lastInsertId();
+            }
 
             // STEP D: Create Local Admin User (if credentials supplied)
             $userId = null;
@@ -346,7 +426,8 @@ class SchoolInitializationService {
                 'user_id' => $userId,
                 'exercice_id' => $exerciceId,
                 'caisse_id' => $caisseId,
-                'sequence_ids' => $createdSequenceIds
+                'sequence_ids' => $createdSequenceIds,
+                'cycle_ids' => $createdCycleIds
             ];
 
         } catch (Exception $e) {
