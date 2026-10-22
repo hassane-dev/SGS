@@ -146,8 +146,81 @@ assert(count($res2['sequence_ids']) === 2, "Exactly 2 sequence IDs should be cre
 
 echo "  -> Case 2 PASSED.\n";
 
-// --- TEST CASE 3: Transaction Rollback on Exception ---
-echo "  Case 3: Atomic Transaction Rollback on Invalid Input...\n";
+// --- TEST CASE 3: Cycle Validation & Multi-tenant Scoping ---
+echo "  Case 3: Cycle Validation & Multi-tenant Scoping...\n";
+
+// 3A. lycee_unique with exactly 1 cycle (PASS) and tampered lycee_id override
+$uniqueData = [
+    'nom_lycee' => 'Lycée Unique Test',
+    'type_lycee' => 'prive',
+    'admin_email' => 'admin.unique@lte-test.com',
+    'admin_pass' => 'password123',
+    'annee_libelle' => '2025-2026',
+    'annee_date_debut' => '2025-09-01',
+    'annee_date_fin' => '2026-06-30',
+    'sequence_annuelle' => 'Trimestrielle',
+    'mode_cycle' => 'lycee_unique',
+    'cycles' => [
+        ['nom_cycle' => 'Cycle Unique Custom', 'niveau_debut' => '6e', 'niveau_fin' => 'Terminale', 'utilise_series' => 1, 'lycee_id' => 9999] // Tampered lycee_id
+    ],
+    'periods' => [
+        ['nom' => 'Trimestre 1', 'date_debut' => '2025-09-01', 'date_fin' => '2025-11-30'],
+        ['nom' => 'Trimestre 2', 'date_debut' => '2025-12-01', 'date_fin' => '2026-02-28'],
+        ['nom' => 'Trimestre 3', 'date_debut' => '2026-03-01', 'date_fin' => '2026-06-30']
+    ]
+];
+
+$res3 = SchoolInitializationService::initializeSchool($uniqueData);
+assert(count($res3['cycle_ids']) === 1, "Exactly 1 cycle should be created for lycee_unique");
+
+// Verify created cycle in DB
+$stmtC = $db->prepare("SELECT * FROM cycles WHERE id_cycle = :id");
+$stmtC->execute(['id' => $res3['cycle_ids'][0]]);
+$cyRow = $stmtC->fetch(PDO::FETCH_ASSOC);
+assert($cyRow['nom_cycle'] === 'Cycle Unique Custom');
+assert((int)$cyRow['lycee_id'] === (int)$res3['lycee_id'], "Tampered lycee_id must be overridden by created school ID");
+assert((int)$cyRow['utilise_series'] === 1);
+
+// Verify global cycles (lycee_id IS NULL) remain untouched
+$stmtGlobal = $db->query("SELECT COUNT(*) FROM cycles WHERE lycee_id IS NULL");
+$globalCount = (int)$stmtGlobal->fetchColumn();
+assert($globalCount >= 0, "Global cycles check");
+
+// 3B. lycee_unique with 2 cycles (REJECTED server-side)
+$uniqueFailData = $uniqueData;
+$uniqueFailData['nom_lycee'] = 'Lycée Unique Fail';
+$uniqueFailData['cycles'] = [
+    ['nom_cycle' => 'Cycle 1', 'niveau_debut' => '6e', 'niveau_fin' => '3e', 'utilise_series' => 0],
+    ['nom_cycle' => 'Cycle 2', 'niveau_debut' => '2nde', 'niveau_fin' => 'Terminale', 'utilise_series' => 1]
+];
+
+$caughtFail1 = false;
+try {
+    SchoolInitializationService::initializeSchool($uniqueFailData);
+} catch (InvalidArgumentException $e) {
+    $caughtFail1 = true;
+}
+assert($caughtFail1, "Server must reject lycee_unique with 2 cycles");
+
+// 3C. separe_ceg_lycee with 1 cycle (REJECTED server-side)
+$separeFailData = $monoData;
+$separeFailData['nom_lycee'] = 'Lycée Separe Fail';
+$separeFailData['cycles'] = [
+    ['nom_cycle' => 'Seul Cycle', 'niveau_debut' => '6e', 'niveau_fin' => 'Terminale', 'utilise_series' => 1]
+];
+
+$caughtFail2 = false;
+try {
+    SchoolInitializationService::initializeSchool($separeFailData);
+} catch (InvalidArgumentException $e) {
+    $caughtFail2 = true;
+}
+assert($caughtFail2, "Server must reject separe_ceg_lycee with 1 cycle");
+
+echo "  -> Case 3 PASSED.\n";
+
+// --- TEST CASE 4: Transaction Rollback on Exception ---
+echo "  Case 4: Atomic Transaction Rollback on Invalid Input...\n";
 
 $invalidData = [
     'nom_lycee' => 'Lycée Erreur Test',
@@ -179,6 +252,6 @@ $stmtErr = $db->prepare("SELECT COUNT(*) FROM param_lycee WHERE nom_lycee = 'Lyc
 $stmtErr->execute();
 assert((int)$stmtErr->fetchColumn() === 0, "No orphan lycee should remain after rollback");
 
-echo "  -> Case 3 PASSED.\n";
+echo "  -> Case 4 PASSED.\n";
 
 echo "ALL TESTS PASSED SUCCESSFULLY IN SetupAndSchoolInitializationTest.\n";

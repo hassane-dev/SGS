@@ -211,9 +211,9 @@
                         </div>
                         <div class="col-md-6">
                             <label for="mode_cycle" class="form-label fw-semibold"><?= _('Structure des Cycles') ?></label>
-                            <select name="mode_cycle" id="mode_cycle" class="form-select">
-                                <option value="separe_ceg_lycee" selected><?= _('Séparé (CEG / Collège + Lycée)') ?></option>
-                                <option value="lycee_unique"><?= _('Lycée Unique') ?></option>
+                            <select name="mode_cycle" id="mode_cycle" class="form-select" onchange="renderCyclesConfig()">
+                                <option value="separe_ceg_lycee" selected><?= _('Séparé (CEG / Collège + Lycée — 2 Cycles)') ?></option>
+                                <option value="lycee_unique"><?= _('Lycée Unique (1 Cycle)') ?></option>
                             </select>
                         </div>
                         <div class="col-md-6">
@@ -224,6 +224,18 @@
                             </select>
                             <input type="hidden" name="langue_1" value="Francais">
                             <input type="hidden" name="langue_2" value="Anglais">
+                        </div>
+                    </div>
+
+                    <!-- Cycles Configuration Block -->
+                    <div class="mt-4 pt-3 border-top">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="ph-duotone ph-tree-structure text-primary fs-4 me-2"></i>
+                            <h5 class="h6 fw-bold mb-0"><?= _('Configuration des Cycles Académiques') ?></h5>
+                        </div>
+                        <p class="text-muted small mb-3"><?= _('Renseignez les cycles propres à votre établissement. Le nombre de cycles est strictement déterminé par la structure choisie.') ?></p>
+                        <div id="cyclesContainer" class="row g-3">
+                            <!-- Populated dynamically by renderCyclesConfig() -->
                         </div>
                     </div>
 
@@ -384,9 +396,59 @@ function renderPeriodRow(index, defaultNom, defaultStart, defaultEnd) {
     `;
 }
 
+function renderCyclesConfig() {
+    const mode = document.getElementById('mode_cycle').value;
+    const container = document.getElementById('cyclesContainer');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (mode === 'lycee_unique') {
+        // Exactly 1 cycle block
+        container.innerHTML = renderCycleBlock(0, 'Lycée Unique', '6e', 'Terminale', '1');
+    } else {
+        // Exactly 2 cycle blocks (separe_ceg_lycee)
+        container.innerHTML = renderCycleBlock(0, 'CEG / Collège', '6e', '3e', '0') +
+                              renderCycleBlock(1, 'Lycée', '2nde', 'Terminale', '1');
+    }
+}
+
+function renderCycleBlock(index, defaultNom, defaultStart, defaultEnd, defaultSeries) {
+    return `
+        <div class="col-12 p-3 border rounded bg-white shadow-sm mb-2">
+            <div class="d-flex align-items-center mb-2">
+                <span class="badge bg-primary me-2">${index + 1}</span>
+                <span class="fw-bold text-dark small">${defaultNom}</span>
+            </div>
+            <div class="row g-2 align-items-center">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold small mb-1"><?= _('Nom du Cycle') ?> <span class="text-danger">*</span></label>
+                    <input type="text" name="cycles[${index}][nom_cycle]" class="form-control form-control-sm" value="${defaultNom}" required placeholder="Ex: CEG">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold small mb-1"><?= _('Niveau Début') ?></label>
+                    <input type="text" name="cycles[${index}][niveau_debut]" class="form-control form-control-sm" value="${defaultStart}" placeholder="Ex: 6e">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold small mb-1"><?= _('Niveau Fin') ?></label>
+                    <input type="text" name="cycles[${index}][niveau_fin]" class="form-control form-control-sm" value="${defaultEnd}" placeholder="Ex: 3e">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold small mb-1"><?= _('Utilisation des Séries') ?> <span class="text-danger">*</span></label>
+                    <select name="cycles[${index}][utilise_series]" class="form-select form-select-sm" required>
+                        <option value="0" ${defaultSeries === '0' ? 'selected' : ''}><?= _('Non — Pas de séries (ex: Collège)') ?></option>
+                        <option value="1" ${defaultSeries === '1' ? 'selected' : ''}><?= _('Oui — Autorise les séries (ex: Lycée)') ?></option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 // Initial setup
 document.addEventListener('DOMContentLoaded', () => {
     recalculatePeriods();
+    renderCyclesConfig();
 });
 </script>
 

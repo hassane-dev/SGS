@@ -114,6 +114,7 @@ class SetupController {
                 'devise_pays' => $data['devise_pays'] ?? 'FCFA',
                 'monnaie' => $data['monnaie'] ?? 'FCFA',
                 'mode_cycle' => $data['mode_cycle'] ?? 'separe_ceg_lycee',
+                'cycles' => $data['cycles'] ?? [],
                 'nb_langue' => $data['nb_langue'] ?? 1,
                 'langue_1' => $data['langue_1'] ?? 'Francais',
                 'langue_2' => $data['langue_2'] ?? null,
