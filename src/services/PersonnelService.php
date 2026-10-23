@@ -181,8 +181,7 @@ class PersonnelService {
 
         try {
             // Save core user identity via User::save
-            User::save($data);
-            $personnel_id = $isUpdate ? (int)$data['id_user'] : (int)$db->lastInsertId();
+            $personnel_id = User::save($data);
 
             // Save/Update personnel_details
             $statut_rh = $data['statut_rh'] ?? 'en_activite';

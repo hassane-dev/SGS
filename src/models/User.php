@@ -303,15 +303,20 @@ class User {
         }
 
         $res = $stmt->execute($params);
+        if (!$res) {
+            return false;
+        }
 
-        if ($res && !empty($resolvedLyceeId)) {
+        $newUserId = $isUpdate ? (int)$data['id_user'] : (int)$db->lastInsertId();
+
+        if (!empty($resolvedLyceeId)) {
             try {
                 require_once __DIR__ . '/../services/SurveillantAssignmentService.php';
                 SurveillantAssignmentService::bumpConfigVersion((int)$resolvedLyceeId);
             } catch (Throwable $e) {}
         }
 
-        return $res;
+        return $isUpdate ? (int)$data['id_user'] : $newUserId;
     }
 
     public static function delete($id) {
