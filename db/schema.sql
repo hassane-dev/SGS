@@ -135,6 +135,7 @@ CREATE TABLE `cycles` (
     `nom_cycle` VARCHAR(100) NOT NULL,
     `niveau_debut` VARCHAR(40),
     `niveau_fin` VARCHAR(40),
+    `utilise_series` TINYINT(1) DEFAULT NULL,
     FOREIGN KEY (`lycee_id`) REFERENCES `param_lycee`(`id`) ON DELETE CASCADE
 );
 
@@ -2071,14 +2072,19 @@ CREATE TABLE personnel_historique_mouvements (
 -- Table `paie_entites_juridiques`
 CREATE TABLE paie_entites_juridiques (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    lycee_id INT NOT NULL,
+    lycee_id INT DEFAULT NULL,
+    organisation_id INT DEFAULT NULL,
     raison_sociale VARCHAR(255) NOT NULL,
-    sigle VARCHAR(50) NULL,
-    numero_cnss VARCHAR(100) NULL,
-    numero_nif VARCHAR(100) NULL,
-    adresse TEXT NULL,
+    sigle VARCHAR(50) DEFAULT NULL,
+    immatriculation_fiscale VARCHAR(100) DEFAULT NULL,
+    numero_nif VARCHAR(100) DEFAULT NULL,
+    numero_cnss_employeur VARCHAR(100) DEFAULT NULL,
+    numero_cnss VARCHAR(100) DEFAULT NULL,
+    adresse_siege TEXT DEFAULT NULL,
+    adresse TEXT DEFAULT NULL,
+    juridiction_id INT DEFAULT NULL,
     actif TINYINT(1) NOT NULL DEFAULT 1,
-    created_at DATETIME NOT NULL,
+    created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
     UNIQUE KEY uk_paie_entite_lycee (lycee_id, raison_sociale)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
