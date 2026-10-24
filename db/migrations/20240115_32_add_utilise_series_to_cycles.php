@@ -9,21 +9,27 @@ function migrate_32($db) {
 
     // 1. Add utilise_series column if not exists (nullable DEFAULT NULL)
     $columnExists = false;
-    if ($isSqlite) {
-        $stmt = $db->prepare("PRAGMA table_info(`cycles`)");
-        $stmt->execute();
-        $cols = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        foreach ($cols as $col) {
-            if ($col['name'] === 'utilise_series') {
+    try {
+        if ($isSqlite) {
+            $stmt = $db->query("PRAGMA table_info(`cycles`)");
+            if ($stmt) {
+                while ($col = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    if (strtolower($col['name'] ?? '') === 'utilise_series') {
+                        $columnExists = true;
+                        break;
+                    }
+                }
+                $stmt->closeCursor();
+            }
+        } else {
+            $stmt = $db->query("SHOW COLUMNS FROM `cycles` LIKE 'utilise_series'");
+            if ($stmt && $stmt->fetch()) {
                 $columnExists = true;
-                break;
+                $stmt->closeCursor();
             }
         }
-    } else {
-        $stmt = $db->query("SHOW COLUMNS FROM `cycles` LIKE 'utilise_series'");
-        if ($stmt && $stmt->fetch()) {
-            $columnExists = true;
-        }
+    } catch (Exception $e) {
+        $columnExists = false;
     }
 
     if (!$columnExists) {

@@ -29,17 +29,41 @@ function migrate_12($db) {
     // 1. paie_entites_juridiques
     $sql_entites = "CREATE TABLE IF NOT EXISTS paie_entites_juridiques (
         id $pk,
+        lycee_id INT DEFAULT NULL,
         organisation_id INT DEFAULT NULL,
         raison_sociale VARCHAR(255) NOT NULL,
         sigle VARCHAR(50) DEFAULT NULL,
         immatriculation_fiscale VARCHAR(100) DEFAULT NULL,
+        numero_nif VARCHAR(100) DEFAULT NULL,
         numero_cnss_employeur VARCHAR(100) DEFAULT NULL,
+        numero_cnss VARCHAR(100) DEFAULT NULL,
         adresse_siege TEXT DEFAULT NULL,
+        adresse TEXT DEFAULT NULL,
         juridiction_id INT DEFAULT NULL,
         actif TINYINT(1) DEFAULT 1,
         cree_le TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) $fk_ref;";
     $db->exec($sql_entites);
+
+    // Idempotent column additions for pre-existing paie_entites_juridiques tables
+    $entite_columns = [
+        'lycee_id' => 'INT DEFAULT NULL',
+        'organisation_id' => 'INT DEFAULT NULL',
+        'sigle' => 'VARCHAR(50) DEFAULT NULL',
+        'immatriculation_fiscale' => 'VARCHAR(100) DEFAULT NULL',
+        'numero_nif' => 'VARCHAR(100) DEFAULT NULL',
+        'numero_cnss_employeur' => 'VARCHAR(100) DEFAULT NULL',
+        'numero_cnss' => 'VARCHAR(100) DEFAULT NULL',
+        'adresse_siege' => 'TEXT DEFAULT NULL',
+        'adresse' => 'TEXT DEFAULT NULL',
+        'juridiction_id' => 'INT DEFAULT NULL'
+    ];
+
+    foreach ($entite_columns as $col => $definition) {
+        if (!$hasColumn('paie_entites_juridiques', $col)) {
+            $db->exec("ALTER TABLE paie_entites_juridiques ADD COLUMN $col $definition;");
+        }
+    }
 
     // Seed default Legal Entity if empty
     $stmt_check_e = $db->query("SELECT COUNT(*) FROM paie_entites_juridiques");
