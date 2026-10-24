@@ -1059,6 +1059,311 @@ CREATE TABLE regularisations_ecarts (
             CONSTRAINT chk_montant_ecart CHECK (montant > 0.00)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Table `depense_categories`
+CREATE TABLE depense_categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lycee_id INT NOT NULL,
+    nom_categorie VARCHAR(150) NOT NULL,
+    modifiable TINYINT(1) DEFAULT 1,
+    statut VARCHAR(50) DEFAULT 'actif',
+    description TEXT DEFAULT NULL,
+    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `depense_centres_couts`
+CREATE TABLE depense_centres_couts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lycee_id INT NOT NULL,
+    nom_centre VARCHAR(150) NOT NULL,
+    statut VARCHAR(50) DEFAULT 'actif',
+    description TEXT DEFAULT NULL,
+    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `depense_beneficiaires`
+CREATE TABLE depense_beneficiaires (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lycee_id INT NOT NULL,
+    nom_beneficiaire VARCHAR(150) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    beneficiaire_utilisateur_id INT DEFAULT NULL,
+    statut VARCHAR(50) DEFAULT 'actif',
+    telephone VARCHAR(30) DEFAULT NULL,
+    email VARCHAR(150) DEFAULT NULL,
+    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+    FOREIGN KEY (beneficiaire_utilisateur_id) REFERENCES utilisateurs(id_user) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `depenses`
+CREATE TABLE depenses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lycee_id INT NOT NULL,
+    numero_piece VARCHAR(100) NOT NULL,
+    categorie_id INT NOT NULL,
+    centre_cout_id INT DEFAULT NULL,
+    beneficiaire_id INT NOT NULL,
+    montant DECIMAL(15, 2) NOT NULL,
+    motif TEXT NOT NULL,
+    statut VARCHAR(50) NOT NULL DEFAULT 'brouillon',
+    compte_id INT DEFAULT NULL,
+    mouvement_tresorerie_id INT DEFAULT NULL,
+    cree_par INT NOT NULL,
+    exercice_financier_id INT NOT NULL,
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    date_modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+    FOREIGN KEY (categorie_id) REFERENCES depense_categories(id) ON DELETE RESTRICT,
+    FOREIGN KEY (centre_cout_id) REFERENCES depense_centres_couts(id) ON DELETE SET NULL,
+    FOREIGN KEY (beneficiaire_id) REFERENCES depense_beneficiaires(id) ON DELETE RESTRICT,
+    FOREIGN KEY (compte_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (mouvement_tresorerie_id) REFERENCES mouvements_tresorerie(id) ON DELETE SET NULL,
+    FOREIGN KEY (cree_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+    FOREIGN KEY (exercice_financier_id) REFERENCES exercices_financiers(id) ON DELETE RESTRICT,
+    UNIQUE (lycee_id, numero_piece),
+    CONSTRAINT chk_depense_montant CHECK (montant > 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `depenses_pieces`
+CREATE TABLE depenses_pieces (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    depense_id INT NOT NULL,
+    nom_fichier VARCHAR(255) NOT NULL,
+    chemin_fichier VARCHAR(255) NOT NULL,
+    type_mime VARCHAR(100) NOT NULL,
+    taille_octets INT NOT NULL,
+    sha256_hash VARCHAR(64) NOT NULL,
+    date_televersement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (depense_id) REFERENCES depenses(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `depenses_historique`
+CREATE TABLE depenses_historique (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    depense_id INT NOT NULL,
+    statut_precedent VARCHAR(50) DEFAULT NULL,
+    statut_nouveau VARCHAR(50) NOT NULL,
+    modifie_par INT NOT NULL,
+    motif_transition TEXT,
+    date_historique TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (depense_id) REFERENCES depenses(id) ON DELETE CASCADE,
+    FOREIGN KEY (modifie_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `depenses_evenements_log`
+CREATE TABLE depenses_evenements_log (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    depense_id INT DEFAULT NULL,
+    evenement_type VARCHAR(100) NOT NULL,
+    user_id INT NOT NULL,
+    permission_utilisee VARCHAR(100) DEFAULT NULL,
+    adresse_ip VARCHAR(45) NOT NULL,
+    correlation_id VARCHAR(100) NOT NULL,
+    session_id VARCHAR(100) NOT NULL,
+    details TEXT,
+    date_evenement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (depense_id) REFERENCES depenses(id) ON DELETE SET NULL,
+    FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `budgets`
+CREATE TABLE budgets (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lycee_id INT NOT NULL,
+    exercice_financier_id INT NOT NULL,
+    libelle VARCHAR(150) NOT NULL,
+    statut VARCHAR(50) NOT NULL DEFAULT 'brouillon',
+    cree_par INT NOT NULL,
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+    FOREIGN KEY (exercice_financier_id) REFERENCES exercices_financiers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (cree_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+    UNIQUE (lycee_id, exercice_financier_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `budget_lignes`
+CREATE TABLE budget_lignes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    budget_id INT NOT NULL,
+    categorie_id INT NOT NULL,
+    centre_cout_id INT DEFAULT NULL,
+    allocation_initiale DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    montant_ajustements DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    montant_engage DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    montant_consomme DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    FOREIGN KEY (budget_id) REFERENCES budgets(id) ON DELETE CASCADE,
+    FOREIGN KEY (categorie_id) REFERENCES depense_categories(id) ON DELETE RESTRICT,
+    FOREIGN KEY (centre_cout_id) REFERENCES depense_centres_couts(id) ON DELETE SET NULL,
+    UNIQUE (budget_id, categorie_id, centre_cout_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `budget_ajustements`
+CREATE TABLE budget_ajustements (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lycee_id INT NOT NULL,
+    type_ajustement VARCHAR(50) NOT NULL,
+    ligne_source_id INT DEFAULT NULL,
+    ligne_destination_id INT NOT NULL,
+    montant DECIMAL(15, 2) NOT NULL,
+    motif TEXT NOT NULL,
+    execute_par INT NOT NULL,
+    date_ajustement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+    FOREIGN KEY (ligne_source_id) REFERENCES budget_lignes(id) ON DELETE SET NULL,
+    FOREIGN KEY (ligne_destination_id) REFERENCES budget_lignes(id) ON DELETE RESTRICT,
+    FOREIGN KEY (execute_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `budget_engagements`
+CREATE TABLE budget_engagements (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    depense_id INT NOT NULL,
+    budget_ligne_id INT NOT NULL,
+    montant DECIMAL(15, 2) NOT NULL,
+    statut VARCHAR(50) NOT NULL DEFAULT 'reserve',
+    date_engagement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (depense_id) REFERENCES depenses(id) ON DELETE CASCADE,
+    FOREIGN KEY (budget_ligne_id) REFERENCES budget_lignes(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `budget_historique`
+CREATE TABLE budget_historique (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lycee_id INT NOT NULL,
+    evenement VARCHAR(100) NOT NULL,
+    details TEXT NOT NULL,
+    execute_par INT NOT NULL,
+    date_evenement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+    FOREIGN KEY (execute_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `devises`
+CREATE TABLE devises (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(3) NOT NULL UNIQUE,
+    nom VARCHAR(100) NOT NULL,
+    taux_reference DECIMAL(15,6) NOT NULL DEFAULT 1.000000,
+    date_taux TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `comptes_comptables`
+CREATE TABLE comptes_comptables (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    numero VARCHAR(20) NOT NULL UNIQUE,
+    libelle VARCHAR(150) NOT NULL,
+    classe INT NOT NULL,
+    nature VARCHAR(50) NOT NULL,
+    compte_parent_id INT DEFAULT NULL,
+    autoriser_ecriture TINYINT(1) DEFAULT 1,
+    est_systeme TINYINT(1) DEFAULT 0,
+    actif TINYINT(1) DEFAULT 1,
+    FOREIGN KEY (compte_parent_id) REFERENCES comptes_comptables(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `journaux_comptables`
+CREATE TABLE journaux_comptables (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lycee_id INT NOT NULL,
+    code VARCHAR(10) NOT NULL,
+    libelle VARCHAR(100) NOT NULL,
+    type_journal VARCHAR(50) NOT NULL,
+    ordre_affichage INT DEFAULT 0,
+    actif TINYINT(1) DEFAULT 1,
+    exercice_comptable_id INT DEFAULT NULL,
+    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+    FOREIGN KEY (exercice_comptable_id) REFERENCES exercices_financiers(id) ON DELETE RESTRICT,
+    UNIQUE (lycee_id, code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `pieces_comptables_sequences`
+CREATE TABLE pieces_comptables_sequences (
+    journal_id INT NOT NULL,
+    annee INT NOT NULL,
+    dernier_chrono INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (journal_id, annee)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `pieces_comptables`
+CREATE TABLE pieces_comptables (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lycee_id INT NOT NULL,
+    exercice_financier_id INT NOT NULL,
+    journal_id INT NOT NULL,
+    numero_piece VARCHAR(50) NOT NULL UNIQUE,
+    libelle_piece VARCHAR(255) NOT NULL,
+    date_piece DATE NOT NULL,
+    source_table VARCHAR(100) DEFAULT NULL,
+    source_id INT DEFAULT NULL,
+    devise VARCHAR(3) NOT NULL DEFAULT 'XOF',
+    taux_change DECIMAL(15,6) NOT NULL DEFAULT 1.000000,
+    cree_par INT NOT NULL,
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    statut VARCHAR(50) NOT NULL DEFAULT 'valide',
+    piece_originale_id INT DEFAULT NULL,
+    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+    FOREIGN KEY (exercice_financier_id) REFERENCES exercices_financiers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (journal_id) REFERENCES journaux_comptables(id) ON DELETE RESTRICT,
+    FOREIGN KEY (cree_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+    FOREIGN KEY (piece_originale_id) REFERENCES pieces_comptables(id) ON DELETE SET NULL,
+    UNIQUE (source_table, source_id, statut),
+    INDEX idx_pieces_date (date_piece),
+    INDEX idx_pieces_journal (journal_id),
+    INDEX idx_pieces_lycee (lycee_id),
+    INDEX idx_pieces_source (source_table, source_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `ecritures_comptables`
+CREATE TABLE ecritures_comptables (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    piece_comptable_id INT NOT NULL,
+    exercice_comptable_id INT NOT NULL,
+    compte_comptable_id INT NOT NULL,
+    debit DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    credit DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    libelle_ligne VARCHAR(255) NOT NULL,
+    budget_ligne_id INT DEFAULT NULL,
+    centre_cout_id INT DEFAULT NULL,
+    activite_id INT DEFAULT NULL,
+    verrouille TINYINT(1) DEFAULT 0,
+    devise_id INT DEFAULT NULL,
+    montant_devise DECIMAL(15,2) DEFAULT NULL,
+    taux_conversion DECIMAL(15,6) DEFAULT NULL,
+    montant_fcfa DECIMAL(15,2) DEFAULT NULL,
+    FOREIGN KEY (piece_comptable_id) REFERENCES pieces_comptables(id) ON DELETE CASCADE,
+    FOREIGN KEY (exercice_comptable_id) REFERENCES exercices_financiers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (compte_comptable_id) REFERENCES comptes_comptables(id) ON DELETE RESTRICT,
+    FOREIGN KEY (budget_ligne_id) REFERENCES budget_lignes(id) ON DELETE SET NULL,
+    FOREIGN KEY (centre_cout_id) REFERENCES depense_centres_couts(id) ON DELETE SET NULL,
+    FOREIGN KEY (devise_id) REFERENCES devises(id) ON DELETE RESTRICT,
+    INDEX idx_ecritures_compte (compte_comptable_id),
+    INDEX idx_ecritures_exercice (exercice_comptable_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `comptabilite_periodes`
+CREATE TABLE comptabilite_periodes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lycee_id INT NOT NULL,
+    exercice_financier_id INT NOT NULL,
+    date_debut DATE NOT NULL,
+    date_fin DATE NOT NULL,
+    est_cloturee TINYINT(1) DEFAULT 0,
+    cloturee_le TIMESTAMP NULL DEFAULT NULL,
+    cloturee_par INT DEFAULT NULL,
+    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+    FOREIGN KEY (exercice_financier_id) REFERENCES exercices_financiers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (cloturee_par) REFERENCES utilisateurs(id_user) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `schemas_comptables`
+CREATE TABLE schemas_comptables (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    evenement VARCHAR(100) NOT NULL UNIQUE,
+    compte_debit_numero VARCHAR(20) NOT NULL,
+    compte_credit_numero VARCHAR(20) NOT NULL,
+    libelle_modele VARCHAR(255) NOT NULL,
+    journal_code VARCHAR(10) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Table `fournisseurs`
 CREATE TABLE fournisseurs (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -1615,311 +1920,6 @@ CREATE TABLE surveillant_affectations (
 -- Supplemental Module Tables (Synchronized from Migrations 01-33)
 -- =================================================================
 
--- Table `depense_categories`
-CREATE TABLE depense_categories (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    lycee_id INT NOT NULL,
-    nom_categorie VARCHAR(150) NOT NULL,
-    modifiable TINYINT(1) DEFAULT 1,
-    statut VARCHAR(50) DEFAULT 'actif',
-    description TEXT DEFAULT NULL,
-    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `depense_centres_couts`
-CREATE TABLE depense_centres_couts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    lycee_id INT NOT NULL,
-    nom_centre VARCHAR(150) NOT NULL,
-    statut VARCHAR(50) DEFAULT 'actif',
-    description TEXT DEFAULT NULL,
-    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `depense_beneficiaires`
-CREATE TABLE depense_beneficiaires (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    lycee_id INT NOT NULL,
-    nom_beneficiaire VARCHAR(150) NOT NULL,
-    type VARCHAR(50) NOT NULL,
-    beneficiaire_utilisateur_id INT DEFAULT NULL,
-    statut VARCHAR(50) DEFAULT 'actif',
-    telephone VARCHAR(30) DEFAULT NULL,
-    email VARCHAR(150) DEFAULT NULL,
-    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
-    FOREIGN KEY (beneficiaire_utilisateur_id) REFERENCES utilisateurs(id_user) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `depenses`
-CREATE TABLE depenses (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    lycee_id INT NOT NULL,
-    numero_piece VARCHAR(100) NOT NULL,
-    categorie_id INT NOT NULL,
-    centre_cout_id INT DEFAULT NULL,
-    beneficiaire_id INT NOT NULL,
-    montant DECIMAL(15, 2) NOT NULL,
-    motif TEXT NOT NULL,
-    statut VARCHAR(50) NOT NULL DEFAULT 'brouillon',
-    compte_id INT DEFAULT NULL,
-    mouvement_tresorerie_id INT DEFAULT NULL,
-    cree_par INT NOT NULL,
-    exercice_financier_id INT NOT NULL,
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    date_modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
-    FOREIGN KEY (categorie_id) REFERENCES depense_categories(id) ON DELETE RESTRICT,
-    FOREIGN KEY (centre_cout_id) REFERENCES depense_centres_couts(id) ON DELETE SET NULL,
-    FOREIGN KEY (beneficiaire_id) REFERENCES depense_beneficiaires(id) ON DELETE RESTRICT,
-    FOREIGN KEY (compte_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
-    FOREIGN KEY (mouvement_tresorerie_id) REFERENCES mouvements_tresorerie(id) ON DELETE SET NULL,
-    FOREIGN KEY (cree_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
-    FOREIGN KEY (exercice_financier_id) REFERENCES exercices_financiers(id) ON DELETE RESTRICT,
-    UNIQUE (lycee_id, numero_piece),
-    CONSTRAINT chk_depense_montant CHECK (montant > 0)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `depenses_pieces`
-CREATE TABLE depenses_pieces (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    depense_id INT NOT NULL,
-    nom_fichier VARCHAR(255) NOT NULL,
-    chemin_fichier VARCHAR(255) NOT NULL,
-    type_mime VARCHAR(100) NOT NULL,
-    taille_octets INT NOT NULL,
-    sha256_hash VARCHAR(64) NOT NULL,
-    date_televersement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (depense_id) REFERENCES depenses(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `depenses_historique`
-CREATE TABLE depenses_historique (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    depense_id INT NOT NULL,
-    statut_precedent VARCHAR(50) DEFAULT NULL,
-    statut_nouveau VARCHAR(50) NOT NULL,
-    modifie_par INT NOT NULL,
-    motif_transition TEXT,
-    date_historique TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (depense_id) REFERENCES depenses(id) ON DELETE CASCADE,
-    FOREIGN KEY (modifie_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `depenses_evenements_log`
-CREATE TABLE depenses_evenements_log (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    depense_id INT DEFAULT NULL,
-    evenement_type VARCHAR(100) NOT NULL,
-    user_id INT NOT NULL,
-    permission_utilisee VARCHAR(100) DEFAULT NULL,
-    adresse_ip VARCHAR(45) NOT NULL,
-    correlation_id VARCHAR(100) NOT NULL,
-    session_id VARCHAR(100) NOT NULL,
-    details TEXT,
-    date_evenement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (depense_id) REFERENCES depenses(id) ON DELETE SET NULL,
-    FOREIGN KEY (user_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `budgets`
-CREATE TABLE budgets (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    lycee_id INT NOT NULL,
-    exercice_financier_id INT NOT NULL,
-    libelle VARCHAR(150) NOT NULL,
-    statut VARCHAR(50) NOT NULL DEFAULT 'brouillon',
-    cree_par INT NOT NULL,
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
-    FOREIGN KEY (exercice_financier_id) REFERENCES exercices_financiers(id) ON DELETE RESTRICT,
-    FOREIGN KEY (cree_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
-    UNIQUE (lycee_id, exercice_financier_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `budget_lignes`
-CREATE TABLE budget_lignes (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    budget_id INT NOT NULL,
-    categorie_id INT NOT NULL,
-    centre_cout_id INT DEFAULT NULL,
-    allocation_initiale DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
-    montant_ajustements DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
-    montant_engage DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
-    montant_consomme DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
-    FOREIGN KEY (budget_id) REFERENCES budgets(id) ON DELETE CASCADE,
-    FOREIGN KEY (categorie_id) REFERENCES depense_categories(id) ON DELETE RESTRICT,
-    FOREIGN KEY (centre_cout_id) REFERENCES depense_centres_couts(id) ON DELETE SET NULL,
-    UNIQUE (budget_id, categorie_id, centre_cout_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `budget_ajustements`
-CREATE TABLE budget_ajustements (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    lycee_id INT NOT NULL,
-    type_ajustement VARCHAR(50) NOT NULL,
-    ligne_source_id INT DEFAULT NULL,
-    ligne_destination_id INT NOT NULL,
-    montant DECIMAL(15, 2) NOT NULL,
-    motif TEXT NOT NULL,
-    execute_par INT NOT NULL,
-    date_ajustement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
-    FOREIGN KEY (ligne_source_id) REFERENCES budget_lignes(id) ON DELETE SET NULL,
-    FOREIGN KEY (ligne_destination_id) REFERENCES budget_lignes(id) ON DELETE RESTRICT,
-    FOREIGN KEY (execute_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `budget_engagements`
-CREATE TABLE budget_engagements (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    depense_id INT NOT NULL,
-    budget_ligne_id INT NOT NULL,
-    montant DECIMAL(15, 2) NOT NULL,
-    statut VARCHAR(50) NOT NULL DEFAULT 'reserve',
-    date_engagement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (depense_id) REFERENCES depenses(id) ON DELETE CASCADE,
-    FOREIGN KEY (budget_ligne_id) REFERENCES budget_lignes(id) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `budget_historique`
-CREATE TABLE budget_historique (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    lycee_id INT NOT NULL,
-    evenement VARCHAR(100) NOT NULL,
-    details TEXT NOT NULL,
-    execute_par INT NOT NULL,
-    date_evenement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
-    FOREIGN KEY (execute_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `devises`
-CREATE TABLE devises (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    code VARCHAR(3) NOT NULL UNIQUE,
-    nom VARCHAR(100) NOT NULL,
-    taux_reference DECIMAL(15,6) NOT NULL DEFAULT 1.000000,
-    date_taux TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `comptes_comptables`
-CREATE TABLE comptes_comptables (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    numero VARCHAR(20) NOT NULL UNIQUE,
-    libelle VARCHAR(150) NOT NULL,
-    classe INT NOT NULL,
-    nature VARCHAR(50) NOT NULL,
-    compte_parent_id INT DEFAULT NULL,
-    autoriser_ecriture TINYINT(1) DEFAULT 1,
-    est_systeme TINYINT(1) DEFAULT 0,
-    actif TINYINT(1) DEFAULT 1,
-    FOREIGN KEY (compte_parent_id) REFERENCES comptes_comptables(id) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `journaux_comptables`
-CREATE TABLE journaux_comptables (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    lycee_id INT NOT NULL,
-    code VARCHAR(10) NOT NULL,
-    libelle VARCHAR(100) NOT NULL,
-    type_journal VARCHAR(50) NOT NULL,
-    ordre_affichage INT DEFAULT 0,
-    actif TINYINT(1) DEFAULT 1,
-    exercice_comptable_id INT DEFAULT NULL,
-    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
-    FOREIGN KEY (exercice_comptable_id) REFERENCES exercices_financiers(id) ON DELETE RESTRICT,
-    UNIQUE (lycee_id, code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `pieces_comptables_sequences`
-CREATE TABLE pieces_comptables_sequences (
-    journal_id INT NOT NULL,
-    annee INT NOT NULL,
-    dernier_chrono INT NOT NULL DEFAULT 0,
-    PRIMARY KEY (journal_id, annee)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `pieces_comptables`
-CREATE TABLE pieces_comptables (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    lycee_id INT NOT NULL,
-    exercice_financier_id INT NOT NULL,
-    journal_id INT NOT NULL,
-    numero_piece VARCHAR(50) NOT NULL UNIQUE,
-    libelle_piece VARCHAR(255) NOT NULL,
-    date_piece DATE NOT NULL,
-    source_table VARCHAR(100) DEFAULT NULL,
-    source_id INT DEFAULT NULL,
-    devise VARCHAR(3) NOT NULL DEFAULT 'XOF',
-    taux_change DECIMAL(15,6) NOT NULL DEFAULT 1.000000,
-    cree_par INT NOT NULL,
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    statut VARCHAR(50) NOT NULL DEFAULT 'valide',
-    piece_originale_id INT DEFAULT NULL,
-    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
-    FOREIGN KEY (exercice_financier_id) REFERENCES exercices_financiers(id) ON DELETE RESTRICT,
-    FOREIGN KEY (journal_id) REFERENCES journaux_comptables(id) ON DELETE RESTRICT,
-    FOREIGN KEY (cree_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
-    FOREIGN KEY (piece_originale_id) REFERENCES pieces_comptables(id) ON DELETE SET NULL,
-    UNIQUE (source_table, source_id, statut),
-    INDEX idx_pieces_date (date_piece),
-    INDEX idx_pieces_journal (journal_id),
-    INDEX idx_pieces_lycee (lycee_id),
-    INDEX idx_pieces_source (source_table, source_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `ecritures_comptables`
-CREATE TABLE ecritures_comptables (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    piece_comptable_id INT NOT NULL,
-    exercice_comptable_id INT NOT NULL,
-    compte_comptable_id INT NOT NULL,
-    debit DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-    credit DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-    libelle_ligne VARCHAR(255) NOT NULL,
-    budget_ligne_id INT DEFAULT NULL,
-    centre_cout_id INT DEFAULT NULL,
-    activite_id INT DEFAULT NULL,
-    verrouille TINYINT(1) DEFAULT 0,
-    devise_id INT DEFAULT NULL,
-    montant_devise DECIMAL(15,2) DEFAULT NULL,
-    taux_conversion DECIMAL(15,6) DEFAULT NULL,
-    montant_fcfa DECIMAL(15,2) DEFAULT NULL,
-    FOREIGN KEY (piece_comptable_id) REFERENCES pieces_comptables(id) ON DELETE CASCADE,
-    FOREIGN KEY (exercice_comptable_id) REFERENCES exercices_financiers(id) ON DELETE RESTRICT,
-    FOREIGN KEY (compte_comptable_id) REFERENCES comptes_comptables(id) ON DELETE RESTRICT,
-    FOREIGN KEY (budget_ligne_id) REFERENCES budget_lignes(id) ON DELETE SET NULL,
-    FOREIGN KEY (centre_cout_id) REFERENCES depense_centres_couts(id) ON DELETE SET NULL,
-    FOREIGN KEY (devise_id) REFERENCES devises(id) ON DELETE RESTRICT,
-    INDEX idx_ecritures_compte (compte_comptable_id),
-    INDEX idx_ecritures_exercice (exercice_comptable_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `comptabilite_periodes`
-CREATE TABLE comptabilite_periodes (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    lycee_id INT NOT NULL,
-    exercice_financier_id INT NOT NULL,
-    date_debut DATE NOT NULL,
-    date_fin DATE NOT NULL,
-    est_cloturee TINYINT(1) DEFAULT 0,
-    cloturee_le TIMESTAMP NULL DEFAULT NULL,
-    cloturee_par INT DEFAULT NULL,
-    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
-    FOREIGN KEY (exercice_financier_id) REFERENCES exercices_financiers(id) ON DELETE RESTRICT,
-    FOREIGN KEY (cloturee_par) REFERENCES utilisateurs(id_user) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table `schemas_comptables`
-CREATE TABLE schemas_comptables (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    evenement VARCHAR(100) NOT NULL UNIQUE,
-    compte_debit_numero VARCHAR(20) NOT NULL,
-    compte_credit_numero VARCHAR(20) NOT NULL,
-    libelle_modele VARCHAR(255) NOT NULL,
-    journal_code VARCHAR(10) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 -- Table `reporting_snapshots`
 CREATE TABLE reporting_snapshots (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -2307,30 +2307,40 @@ CREATE TABLE paie_bulletin_lignes (
 
 -- Table `paie_cahier_texte_validations`
 CREATE TABLE paie_cahier_texte_validations (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    cahier_texte_id INT NOT NULL,
-    periode_id INT NOT NULL,
-    statut VARCHAR(30) NOT NULL DEFAULT 'valide',
-    valide_par INT NOT NULL,
-    date_validation DATETIME NOT NULL,
-    volume_horaire_valide DECIMAL(5,2) NOT NULL,
-    FOREIGN KEY (cahier_texte_id) REFERENCES cahier_texte(id_cahier) ON DELETE RESTRICT,
-    FOREIGN KEY (periode_id) REFERENCES paie_periodes(id) ON DELETE RESTRICT,
-    FOREIGN KEY (valide_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
-    UNIQUE KEY uk_paie_ct_val (cahier_texte_id, periode_id)
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    cahier_id INT NOT NULL,
+    enseignant_id INT NOT NULL,
+    cycle_id INT NULL,
+    classe_id INT NULL,
+    matiere_id INT NULL,
+    duree_heures DECIMAL(5,2) NOT NULL,
+    taux_horaire DECIMAL(15,4) NOT NULL,
+    statut_validation VARCHAR(20) NOT NULL DEFAULT 'en_attente',
+    valide_par INT NULL,
+    valide_le DATETIME NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (cahier_id) REFERENCES cahier_texte(cahier_id) ON DELETE RESTRICT,
+    FOREIGN KEY (enseignant_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+    FOREIGN KEY (cycle_id) REFERENCES cycles(id_cycle) ON DELETE SET NULL,
+    FOREIGN KEY (classe_id) REFERENCES classes(id_classe) ON DELETE SET NULL,
+    FOREIGN KEY (matiere_id) REFERENCES matieres(id_matiere) ON DELETE SET NULL,
+    FOREIGN KEY (valide_par) REFERENCES utilisateurs(id_user) ON DELETE SET NULL,
+    UNIQUE KEY uk_paie_cahier (cahier_id),
+    INDEX idx_paie_cah_ens (enseignant_id, statut_validation)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table `paie_bulletin_heures`
 CREATE TABLE paie_bulletin_heures (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     bulletin_id BIGINT NOT NULL,
-    cahier_texte_validation_id BIGINT NOT NULL,
-    heures_integrees DECIMAL(5,2) NOT NULL,
-    taux_horaire_applique DECIMAL(15,2) NOT NULL,
-    montant_brut DECIMAL(15,2) NOT NULL,
+    cahier_validation_id INT NOT NULL,
+    heures_effectuees DECIMAL(5,2) NOT NULL,
+    taux_horaire DECIMAL(15,4) NOT NULL,
+    montant_total DECIMAL(15,4) NOT NULL,
     FOREIGN KEY (bulletin_id) REFERENCES paie_bulletins(id) ON DELETE CASCADE,
-    FOREIGN KEY (cahier_texte_validation_id) REFERENCES paie_cahier_texte_validations(id) ON DELETE RESTRICT,
-    UNIQUE KEY uk_paie_bh_val (bulletin_id, cahier_texte_validation_id)
+    FOREIGN KEY (cahier_validation_id) REFERENCES paie_cahier_texte_validations(id) ON DELETE RESTRICT,
+    UNIQUE KEY uk_paie_bul_cahier (bulletin_id, cahier_validation_id),
+    INDEX idx_paie_hrs_bul (bulletin_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table `paie_bulletin_contrat_snapshot`
