@@ -2172,12 +2172,15 @@ CREATE TABLE personnel_contrat_financements (
 -- Table `sys_idempotency_keys`
 CREATE TABLE sys_idempotency_keys (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    idempotency_key VARCHAR(100) NOT NULL,
-    scope VARCHAR(100) NOT NULL,
-    request_hash VARCHAR(64) NOT NULL,
-    response_code INT NOT NULL,
+    idempotency_key VARCHAR(128) NOT NULL,
+    scope VARCHAR(100) DEFAULT NULL,
+    request_hash VARCHAR(64) DEFAULT NULL,
+    response_code INT DEFAULT NULL,
     response_body JSON NULL,
-    created_at DATETIME NOT NULL,
+    route VARCHAR(255) DEFAULT NULL,
+    user_id INT DEFAULT NULL,
+    response_payload TEXT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uk_sys_idemp_key (idempotency_key, scope)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
