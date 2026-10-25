@@ -1250,6 +1250,9 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_33_create_surveillant_affectations_and_groupes.php';
     migrate_33($db);
 
+    require_once __DIR__ . '/db/migrations/20240115_34_fix_sys_idempotency_keys_schema.php';
+    migrate_34($db);
+
     echo "Migration successful\n";
 } catch (Exception $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";
