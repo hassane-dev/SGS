@@ -51,55 +51,53 @@ $getColumns = function($tableName) use ($db, $isSqlite) {
 };
 
 // -------------------------------------------------------------------------
-// SCENARIO B: Pre-existing Table with Generic Columns -> Migration 34 adds DRH columns
+// SCENARIO B: Pre-existing Table with Generic Columns -> Migration 34 adds DRH columns & harmonizes created_at & route
 // -------------------------------------------------------------------------
 echo "\n--- SCENARIO B: Pre-existing Schema Upgrade ---\n";
 $db->exec("DROP TABLE IF EXISTS sys_idempotency_keys;");
 
-// Simulate pre-existing schema as defined originally in schema.sql
+// Simulate pre-existing schema as defined in legacy Migration 12 (route NOT NULL, created_at without default)
 if ($isSqlite) {
     $db->exec("CREATE TABLE sys_idempotency_keys (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        idempotency_key VARCHAR(100) NOT NULL,
-        scope VARCHAR(100) NOT NULL,
-        request_hash VARCHAR(64) NOT NULL,
-        response_code INT NOT NULL,
-        response_body TEXT NULL,
+        idempotency_key VARCHAR(128) NOT NULL,
+        route VARCHAR(255) NOT NULL,
+        user_id INT DEFAULT NULL,
+        response_payload TEXT DEFAULT NULL,
         created_at DATETIME NOT NULL
     );");
 } else {
     $db->exec("CREATE TABLE sys_idempotency_keys (
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
-        idempotency_key VARCHAR(100) NOT NULL,
-        scope VARCHAR(100) NOT NULL,
-        request_hash VARCHAR(64) NOT NULL,
-        response_code INT NOT NULL,
-        response_body JSON NULL,
+        idempotency_key VARCHAR(128) NOT NULL,
+        route VARCHAR(255) NOT NULL,
+        user_id INT DEFAULT NULL,
+        response_payload TEXT DEFAULT NULL,
         created_at DATETIME NOT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 }
 
 // Insert existing sample record to verify data preservation
-$db->exec("INSERT INTO sys_idempotency_keys (idempotency_key, scope, request_hash, response_code, created_at)
-           VALUES ('KEY_LEGACY_001', 'global', 'HASH123', 200, '2024-01-01 10:00:00');");
+$db->exec("INSERT INTO sys_idempotency_keys (idempotency_key, route, user_id, response_payload, created_at)
+           VALUES ('KEY_LEGACY_001', '/drh/show', 1, '{\"status\":\"ok\"}', '2024-01-01 10:00:00');");
 
 $colsBefore = $getColumns('sys_idempotency_keys');
-assertTestSys(!in_array('response_payload', $colsBefore), "Table pre-exists WITHOUT response_payload column");
+assertTestSys(!in_array('scope', $colsBefore), "Table pre-exists WITHOUT scope column");
 
 // Run Migration 34
 migrate_34($db);
 
 $colsAfterB = $getColumns('sys_idempotency_keys');
-assertTestSys(in_array('response_payload', $colsAfterB), "Migration 34 added response_payload column");
-assertTestSys(in_array('route', $colsAfterB), "Migration 34 added route column");
-assertTestSys(in_array('user_id', $colsAfterB), "Migration 34 added user_id column");
-assertTestSys(in_array('scope', $colsAfterB), "Migration 34 preserved scope column");
+assertTestSys(in_array('response_payload', $colsAfterB), "Migration 34 preserved response_payload column");
+assertTestSys(in_array('route', $colsAfterB), "Migration 34 preserved route column");
+assertTestSys(in_array('user_id', $colsAfterB), "Migration 34 preserved user_id column");
+assertTestSys(in_array('scope', $colsAfterB), "Migration 34 added missing scope column");
 
 // Verify existing data was preserved
-$stmtCheckLegacy = $db->query("SELECT idempotency_key, request_hash FROM sys_idempotency_keys WHERE idempotency_key = 'KEY_LEGACY_001'");
+$stmtCheckLegacy = $db->query("SELECT idempotency_key, route FROM sys_idempotency_keys WHERE idempotency_key = 'KEY_LEGACY_001'");
 $legacyRecord = $stmtCheckLegacy ? $stmtCheckLegacy->fetch(PDO::FETCH_ASSOC) : null;
 if ($stmtCheckLegacy) $stmtCheckLegacy->closeCursor();
-assertTestSys($legacyRecord && $legacyRecord['request_hash'] === 'HASH123', "Pre-existing data preserved after Migration 34");
+assertTestSys($legacyRecord && $legacyRecord['route'] === '/drh/show', "Pre-existing data preserved after Migration 34");
 
 // -------------------------------------------------------------------------
 // SCENARIO C: Idempotent Re-execution of Migration 34
