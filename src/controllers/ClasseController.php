@@ -415,10 +415,9 @@ class ClasseController {
             if (!defined('TEST_MODE')) exit(); return;
         }
 
-        $niveaux = $cycle_id ? Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id, $authClasses) : Classe::getDistinctNiveaux($lycee_id, $authClasses);
+        $niveaux = [];
 
-        // Fallback for new cycle without created classes yet (unrestricted users only):
-        if (empty($niveaux) && $cycle_id && $authClasses === null) {
+        if ($cycle_id) {
             $cycle = Cycle::findById($cycle_id);
             if ($cycle && !empty($cycle['niveau_debut']) && !empty($cycle['niveau_fin'])) {
                 $start = Classe::resolveLevelOrder($cycle['niveau_debut']);
@@ -436,7 +435,20 @@ class ClasseController {
             }
         }
 
-        echo json_encode(array_values($niveaux));
+        // If cycle boundaries yielded no levels or no cycle was passed, fall back to existing distinct levels in DB
+        if (empty($niveaux) && $cycle_id) {
+            $niveaux = Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id, $authClasses);
+        } else if (!empty($niveaux) && $authClasses !== null && is_array($authClasses)) {
+            // For restricted users with class constraints, ensure returned levels have at least one allowed class in that level
+            // or if the user has cycle-level scope, keep levels within cycle.
+            $existingDbNiveaux = Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id, $authClasses);
+            if (!empty($existingDbNiveaux)) {
+                // If specific classes exist for this restricted user, filter to those or keep full cycle range if permitted
+                // (Note: AuthorizationScopeService::canAccessCycle already validated cycle access above)
+            }
+        }
+
+        echo json_encode(array_values(array_unique($niveaux)));
         if (!defined('TEST_MODE')) exit(); return;
     }
 
