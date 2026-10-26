@@ -44,6 +44,13 @@
                                     </div>
                                 </div>
 
+                                <div class="col-12" id="no_niveaux_cycle_alert" style="display: none;">
+                                    <div class="alert alert-warning py-2 mb-0 d-flex align-items-center">
+                                        <i class="ph-duotone ph-warning me-2 fs-5"></i>
+                                        <span><strong><?= _('Attention :') ?></strong> <?= _('Aucun niveau n\'est configuré pour ce cycle. Veuillez vérifier les bornes (niveau début / niveau fin) dans Administration > Cycles.') ?></span>
+                                    </div>
+                                </div>
+
                                 <!-- Niveau -->
                                 <div class="col-md-6">
                                     <label for="niveau" class="form-label"><?= _('Niveau') ?></label>
@@ -118,16 +125,12 @@
         const categorieSelect = document.getElementById('categorie');
         const categorieContainer = document.getElementById('categorie_container');
 
-        const niveauxParCycle = {
-            'CEG': ['6e', '5e', '4e', '3e'],
-            'Lycée': ['2nd', '1ère', 'Terminale']
-        };
-
         cycleSelect.addEventListener('change', function () {
             const cycleId = this.value;
             const selectedOpt = this.options[this.selectedIndex];
             const utiliseSeriesAttr = selectedOpt ? selectedOpt.getAttribute('data-utilise-series') : '';
             const unconfiguredAlert = document.getElementById('unconfigured_cycle_alert');
+            const noNiveauxAlert = document.getElementById('no_niveaux_cycle_alert');
 
             // Clear previous options
             niveauSelect.innerHTML = '<option value=""><?= _('-- Choisir un niveau --') ?></option>';
@@ -139,6 +142,10 @@
 
             if (unconfiguredAlert) {
                 unconfiguredAlert.style.display = (utiliseSeriesAttr === 'unconfigured') ? 'block' : 'none';
+            }
+
+            if (noNiveauxAlert) {
+                noNiveauxAlert.style.display = 'none';
             }
 
             if (!cycleId || utiliseSeriesAttr === 'unconfigured') return;
@@ -157,7 +164,14 @@
                             option.textContent = niveau;
                             niveauSelect.appendChild(option);
                         });
+                    } else {
+                        if (noNiveauxAlert) {
+                            noNiveauxAlert.style.display = 'block';
+                        }
                     }
+                })
+                .catch(err => {
+                    console.error('Error fetching levels:', err);
                 });
         });
 
