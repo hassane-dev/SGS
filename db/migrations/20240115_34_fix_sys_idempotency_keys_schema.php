@@ -101,14 +101,53 @@ function migrate_34($db) {
         }
     }
 
-    // If scope was defined as NOT NULL in pre-existing MySQL tables, relax it to DEFAULT NULL
-    if (!$isSqlite) {
+    // Helper function to verify if a MySQL column is in a compliant state
+    $isColumnCompliant = function($colName) use ($db) {
         try {
-            $db->exec("ALTER TABLE sys_idempotency_keys MODIFY COLUMN scope VARCHAR(100) DEFAULT NULL;");
-            $db->exec("ALTER TABLE sys_idempotency_keys MODIFY COLUMN request_hash VARCHAR(64) DEFAULT NULL;");
-            $db->exec("ALTER TABLE sys_idempotency_keys MODIFY COLUMN response_code INT DEFAULT NULL;");
+            $stmt = $db->query("SHOW COLUMNS FROM `sys_idempotency_keys` LIKE '$colName'");
+            $info = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
+            if ($stmt) $stmt->closeCursor();
+
+            if (!$info) return false;
+
+            $isNullable = strtoupper($info['Null'] ?? '') === 'YES';
+            $defaultVal = strtoupper((string)($info['Default'] ?? ''));
+
+            if ($colName === 'created_at') {
+                $hasCurrentTimestamp = (strpos($defaultVal, 'CURRENT_TIMESTAMP') !== false);
+                $isNotNull = strtoupper($info['Null'] ?? '') === 'NO';
+                return $isNotNull && $hasCurrentTimestamp;
+            }
+
+            if (in_array($colName, ['scope', 'request_hash', 'response_code', 'route'], true)) {
+                return $isNullable;
+            }
+
+            return true;
         } catch (Exception $e) {
-            // Ignore if column modification is unsupported or already nullable
+            return false;
+        }
+    };
+
+    // Ensure column definitions, nullabilities, and defaults are harmonized individually on pre-existing MySQL tables
+    if (!$isSqlite) {
+        $modifications = [
+            'scope' => 'ALTER TABLE sys_idempotency_keys MODIFY COLUMN scope VARCHAR(100) DEFAULT NULL;',
+            'request_hash' => 'ALTER TABLE sys_idempotency_keys MODIFY COLUMN request_hash VARCHAR(64) DEFAULT NULL;',
+            'response_code' => 'ALTER TABLE sys_idempotency_keys MODIFY COLUMN response_code INT DEFAULT NULL;',
+            'route' => 'ALTER TABLE sys_idempotency_keys MODIFY COLUMN route VARCHAR(255) DEFAULT NULL;',
+            'created_at' => 'ALTER TABLE sys_idempotency_keys MODIFY COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;'
+        ];
+
+        foreach ($modifications as $colName => $sql) {
+            try {
+                $db->exec($sql);
+            } catch (Exception $e) {
+                // If ALTER fails, check if the column is already compliant (e.g. already altered or matching)
+                if (!$isColumnCompliant($colName)) {
+                    throw new RuntimeException("Migration 34: DDL modification failed and column '$colName' is NOT in a compliant state: " . $e->getMessage(), 0, $e);
+                }
+            }
         }
     }
 

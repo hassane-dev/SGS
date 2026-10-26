@@ -48,8 +48,8 @@ class PersonnelContractService {
         if (empty($idempotencyKey)) return;
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            INSERT INTO sys_idempotency_keys (idempotency_key, route, user_id, response_payload)
-            VALUES (:key, :route, :user, :payload)
+            INSERT INTO sys_idempotency_keys (idempotency_key, route, user_id, response_payload, created_at)
+            VALUES (:key, :route, :user, :payload, CURRENT_TIMESTAMP)
         ");
         $stmt->execute([
             'key' => $idempotencyKey,
