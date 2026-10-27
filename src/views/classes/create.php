@@ -37,6 +37,13 @@
                                     </select>
                                 </div>
 
+                                <div class="col-12" id="missing_lycee_alert" style="display: none;">
+                                    <div class="alert alert-info py-2 mb-0 d-flex align-items-center">
+                                        <i class="ph-duotone ph-info me-2 fs-5"></i>
+                                        <span><strong><?= _('Sélection requise :') ?></strong> <?= _('Veuillez d\'abord sélectionner un établissement pour charger les niveaux du cycle.') ?></span>
+                                    </div>
+                                </div>
+
                                 <div class="col-12" id="unconfigured_cycle_alert" style="display: none;">
                                     <div class="alert alert-warning py-2 mb-0 d-flex align-items-center">
                                         <i class="ph-duotone ph-warning me-2 fs-5"></i>
@@ -124,15 +131,12 @@
         const serieContainer = document.getElementById('serie_container');
         const categorieSelect = document.getElementById('categorie');
         const categorieContainer = document.getElementById('categorie_container');
+        const lyceeIdEl = document.getElementById('lycee_id');
 
-        cycleSelect.addEventListener('change', function () {
-            const cycleId = this.value;
-            const selectedOpt = this.options[this.selectedIndex];
-            const utiliseSeriesAttr = selectedOpt ? selectedOpt.getAttribute('data-utilise-series') : '';
-            const unconfiguredAlert = document.getElementById('unconfigured_cycle_alert');
-            const noNiveauxAlert = document.getElementById('no_niveaux_cycle_alert');
+        let currentNiveauxRequestId = 0;
+        let currentSeriesRequestId = 0;
 
-            // Clear previous options
+        function resetNiveauxAndAlerts() {
             niveauSelect.innerHTML = '<option value=""><?= _('-- Choisir un niveau --') ?></option>';
             niveauSelect.disabled = true;
             serieContainer.style.display = 'none';
@@ -140,23 +144,50 @@
             serieSelect.value = '';
             categorieSelect.value = '';
 
-            if (unconfiguredAlert) {
-                unconfiguredAlert.style.display = (utiliseSeriesAttr === 'unconfigured') ? 'block' : 'none';
+            const unconfiguredAlert = document.getElementById('unconfigured_cycle_alert');
+            const noNiveauxAlert = document.getElementById('no_niveaux_cycle_alert');
+            const missingLyceeAlert = document.getElementById('missing_lycee_alert');
+
+            if (unconfiguredAlert) unconfiguredAlert.style.display = 'none';
+            if (noNiveauxAlert) noNiveauxAlert.style.display = 'none';
+            if (missingLyceeAlert) missingLyceeAlert.style.display = 'none';
+        }
+
+        function loadNiveauxForCycle() {
+            resetNiveauxAndAlerts();
+
+            const cycleId = cycleSelect ? cycleSelect.value : '';
+            if (!cycleId) return;
+
+            const selectedOpt = cycleSelect.options[cycleSelect.selectedIndex];
+            const utiliseSeriesAttr = selectedOpt ? selectedOpt.getAttribute('data-utilise-series') : '';
+
+            const unconfiguredAlert = document.getElementById('unconfigured_cycle_alert');
+            const noNiveauxAlert = document.getElementById('no_niveaux_cycle_alert');
+            const missingLyceeAlert = document.getElementById('missing_lycee_alert');
+
+            if (utiliseSeriesAttr === 'unconfigured') {
+                if (unconfiguredAlert) unconfiguredAlert.style.display = 'block';
+                return;
             }
 
-            if (noNiveauxAlert) {
-                noNiveauxAlert.style.display = 'none';
-            }
-
-            if (!cycleId || utiliseSeriesAttr === 'unconfigured') return;
-
-            const lyceeIdEl = document.getElementById('lycee_id');
             const lid = lyceeIdEl ? lyceeIdEl.value : '';
+            if (lyceeIdEl && !lid) {
+                if (missingLyceeAlert) missingLyceeAlert.style.display = 'block';
+                return;
+            }
+
+            const requestId = ++currentNiveauxRequestId;
 
             fetch(`/classes/get-niveaux?cycle_id=${cycleId}&lycee_id=${lid}`)
-                .then(r => r.json())
+                .then(r => {
+                    if (!r.ok) throw new Error('HTTP Error ' + r.status);
+                    return r.json();
+                })
                 .then(niveaux => {
-                    if (niveaux && niveaux.length > 0) {
+                    if (requestId !== currentNiveauxRequestId) return;
+
+                    if (Array.isArray(niveaux) && niveaux.length > 0) {
                         niveauSelect.disabled = false;
                         niveaux.forEach(function (niveau) {
                             const option = document.createElement('option');
@@ -171,14 +202,22 @@
                     }
                 })
                 .catch(err => {
+                    if (requestId !== currentNiveauxRequestId) return;
                     console.error('Error fetching levels:', err);
                 });
-        });
+        }
+
+        if (cycleSelect) {
+            cycleSelect.addEventListener('change', loadNiveauxForCycle);
+        }
+
+        if (lyceeIdEl) {
+            lyceeIdEl.addEventListener('change', loadNiveauxForCycle);
+        }
 
         niveauSelect.addEventListener('change', function () {
             const niveau = this.value;
             const cycleId = cycleSelect.value;
-            const lyceeIdEl = document.getElementById('lycee_id');
             const lid = lyceeIdEl ? lyceeIdEl.value : '';
 
             if (!niveau || !cycleId) {
@@ -187,10 +226,17 @@
                 return;
             }
 
+            const requestId = ++currentSeriesRequestId;
+
             fetch(`/classes/get-series?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}&lycee_id=${lid}`)
-                .then(r => r.json())
+                .then(r => {
+                    if (!r.ok) throw new Error('HTTP Error ' + r.status);
+                    return r.json();
+                })
                 .then(series => {
-                    if (series && series.length > 0) {
+                    if (requestId !== currentSeriesRequestId) return;
+
+                    if (Array.isArray(series) && series.length > 0) {
                         serieContainer.style.display = 'block';
                         categorieContainer.style.display = 'block';
                     } else {
@@ -199,12 +245,18 @@
                         serieSelect.value = '';
                         categorieSelect.value = '';
                     }
+                })
+                .catch(err => {
+                    if (requestId !== currentSeriesRequestId) return;
+                    console.error('Error fetching series:', err);
+                    serieContainer.style.display = 'none';
+                    categorieContainer.style.display = 'none';
                 });
         });
 
         serieSelect.addEventListener('change', function () {
             const selectedOption = this.options[this.selectedIndex];
-            const categorie = selectedOption.getAttribute('data-categorie');
+            const categorie = selectedOption ? selectedOption.getAttribute('data-categorie') : null;
             if (categorie) {
                 categorieSelect.value = categorie;
             }

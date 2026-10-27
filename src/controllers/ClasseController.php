@@ -401,12 +401,53 @@ class ClasseController {
     public function getNiveauxForCycle() {
         if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
         $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
-        $lycee_id = !empty($_GET['lycee_id']) ? (int)$_GET['lycee_id'] : Auth::getLyceeId();
 
         require_once __DIR__ . '/../services/AuthorizationScopeService.php';
-        if (!AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
+
+        $requestedLyceeId = !empty($_GET['lycee_id']) ? (int)$_GET['lycee_id'] : null;
+        $isGlobalAdmin = Auth::can('view_all_lycees', 'lycee');
+        $lycee_id = null;
+
+        if ($requestedLyceeId !== null) {
+            if (!AuthorizationScopeService::canAccessLycee($requestedLyceeId)) {
+                echo json_encode([]);
+                if (!defined('TEST_MODE')) exit(); return;
+            }
+            $lycee_id = $requestedLyceeId;
+        } elseif ($isGlobalAdmin && $cycle_id) {
+            $targetCycle = Cycle::findById($cycle_id);
+            if ($targetCycle && !empty($targetCycle['lycee_id'])) {
+                if (AuthorizationScopeService::canAccessLycee((int)$targetCycle['lycee_id'])) {
+                    $lycee_id = (int)$targetCycle['lycee_id'];
+                }
+            }
+        } else {
+            $lycee_id = Auth::getLyceeId();
+        }
+
+        if (!$lycee_id || !AuthorizationScopeService::canAccessLycee($lycee_id)) {
             echo json_encode([]);
             if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        $cycle = null;
+        if ($cycle_id) {
+            $cycle = Cycle::findById($cycle_id);
+            if (!$cycle) {
+                echo json_encode([]);
+                if (!defined('TEST_MODE')) exit(); return;
+            }
+
+            // Cross-tenant verification: cycle must belong to lycee_id or be global
+            if (!empty($cycle['lycee_id']) && (int)$cycle['lycee_id'] !== $lycee_id) {
+                echo json_encode([]);
+                if (!defined('TEST_MODE')) exit(); return;
+            }
+
+            if (!AuthorizationScopeService::canAccessCycle($cycle_id)) {
+                echo json_encode([]);
+                if (!defined('TEST_MODE')) exit(); return;
+            }
         }
 
         $authClasses = AuthorizationScopeService::getAuthorizedClassIds($lycee_id);
@@ -417,9 +458,8 @@ class ClasseController {
 
         $niveaux = [];
 
-        if ($cycle_id) {
-            $cycle = Cycle::findById($cycle_id);
-            if ($cycle && !empty($cycle['niveau_debut']) && !empty($cycle['niveau_fin'])) {
+        if ($cycle) {
+            if (!empty($cycle['niveau_debut']) && !empty($cycle['niveau_fin'])) {
                 $start = Classe::resolveLevelOrder($cycle['niveau_debut']);
                 $end = Classe::resolveLevelOrder($cycle['niveau_fin']);
 
@@ -438,14 +478,6 @@ class ClasseController {
         // If cycle boundaries yielded no levels or no cycle was passed, fall back to existing distinct levels in DB
         if (empty($niveaux) && $cycle_id) {
             $niveaux = Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id, $authClasses);
-        } else if (!empty($niveaux) && $authClasses !== null && is_array($authClasses)) {
-            // For restricted users with class constraints, ensure returned levels have at least one allowed class in that level
-            // or if the user has cycle-level scope, keep levels within cycle.
-            $existingDbNiveaux = Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id, $authClasses);
-            if (!empty($existingDbNiveaux)) {
-                // If specific classes exist for this restricted user, filter to those or keep full cycle range if permitted
-                // (Note: AuthorizationScopeService::canAccessCycle already validated cycle access above)
-            }
         }
 
         echo json_encode(array_values(array_unique($niveaux)));
@@ -456,10 +488,31 @@ class ClasseController {
         if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
         $niveau = $_GET['niveau'] ?? null;
         $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
-        $lycee_id = !empty($_GET['lycee_id']) ? (int)$_GET['lycee_id'] : Auth::getLyceeId();
 
         require_once __DIR__ . '/../services/AuthorizationScopeService.php';
-        if (!AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
+
+        $requestedLyceeId = !empty($_GET['lycee_id']) ? (int)$_GET['lycee_id'] : null;
+        $isGlobalAdmin = Auth::can('view_all_lycees', 'lycee');
+        $lycee_id = null;
+
+        if ($requestedLyceeId !== null) {
+            if (!AuthorizationScopeService::canAccessLycee($requestedLyceeId)) {
+                echo json_encode([]);
+                if (!defined('TEST_MODE')) exit(); return;
+            }
+            $lycee_id = $requestedLyceeId;
+        } elseif ($isGlobalAdmin && $cycle_id) {
+            $targetCycle = Cycle::findById($cycle_id);
+            if ($targetCycle && !empty($targetCycle['lycee_id'])) {
+                if (AuthorizationScopeService::canAccessLycee((int)$targetCycle['lycee_id'])) {
+                    $lycee_id = (int)$targetCycle['lycee_id'];
+                }
+            }
+        } else {
+            $lycee_id = Auth::getLyceeId();
+        }
+
+        if (!$lycee_id || !AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
             echo json_encode([]);
             if (!defined('TEST_MODE')) exit(); return;
         }
@@ -467,7 +520,11 @@ class ClasseController {
         // If a cycle is specified, verify if it uses series according to its configuration
         if ($cycle_id) {
             $cycle = Cycle::findById($cycle_id);
-            if ($cycle && ($cycle['utilise_series'] === null || $cycle['utilise_series'] === '' || (int)$cycle['utilise_series'] === 0)) {
+            if (!$cycle || ($cycle['utilise_series'] === null || $cycle['utilise_series'] === '' || (int)$cycle['utilise_series'] === 0)) {
+                echo json_encode([]);
+                if (!defined('TEST_MODE')) exit(); return;
+            }
+            if (!empty($cycle['lycee_id']) && (int)$cycle['lycee_id'] !== $lycee_id) {
                 echo json_encode([]);
                 if (!defined('TEST_MODE')) exit(); return;
             }
@@ -498,12 +555,41 @@ class ClasseController {
         $niveau = $_GET['niveau'] ?? null;
         $serie = $_GET['serie'] ?? null;
         $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
-        $lycee_id = !empty($_GET['lycee_id']) ? (int)$_GET['lycee_id'] : Auth::getLyceeId();
 
         require_once __DIR__ . '/../services/AuthorizationScopeService.php';
-        if (!AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
+
+        $requestedLyceeId = !empty($_GET['lycee_id']) ? (int)$_GET['lycee_id'] : null;
+        $isGlobalAdmin = Auth::can('view_all_lycees', 'lycee');
+        $lycee_id = null;
+
+        if ($requestedLyceeId !== null) {
+            if (!AuthorizationScopeService::canAccessLycee($requestedLyceeId)) {
+                echo json_encode([]);
+                if (!defined('TEST_MODE')) exit(); return;
+            }
+            $lycee_id = $requestedLyceeId;
+        } elseif ($isGlobalAdmin && $cycle_id) {
+            $targetCycle = Cycle::findById($cycle_id);
+            if ($targetCycle && !empty($targetCycle['lycee_id'])) {
+                if (AuthorizationScopeService::canAccessLycee((int)$targetCycle['lycee_id'])) {
+                    $lycee_id = (int)$targetCycle['lycee_id'];
+                }
+            }
+        } else {
+            $lycee_id = Auth::getLyceeId();
+        }
+
+        if (!$lycee_id || !AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
             echo json_encode([]);
             if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        if ($cycle_id) {
+            $cycle = Cycle::findById($cycle_id);
+            if (!$cycle || (!empty($cycle['lycee_id']) && (int)$cycle['lycee_id'] !== $lycee_id)) {
+                echo json_encode([]);
+                if (!defined('TEST_MODE')) exit(); return;
+            }
         }
 
         $authClasses = AuthorizationScopeService::getAuthorizedClassIds($lycee_id);
@@ -519,16 +605,45 @@ class ClasseController {
 
     public function findClassId() {
         if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
-        $lycee_id = !empty($_GET['lycee_id']) ? (int)$_GET['lycee_id'] : Auth::getLyceeId();
         $niveau = $_GET['niveau'] ?? null;
         $serie = $_GET['serie'] ?? null;
         $numero = $_GET['numero'] ?? null;
         $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
 
         require_once __DIR__ . '/../services/AuthorizationScopeService.php';
-        if (!AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
+
+        $requestedLyceeId = !empty($_GET['lycee_id']) ? (int)$_GET['lycee_id'] : null;
+        $isGlobalAdmin = Auth::can('view_all_lycees', 'lycee');
+        $lycee_id = null;
+
+        if ($requestedLyceeId !== null) {
+            if (!AuthorizationScopeService::canAccessLycee($requestedLyceeId)) {
+                echo json_encode(['id_classe' => null]);
+                if (!defined('TEST_MODE')) exit(); return;
+            }
+            $lycee_id = $requestedLyceeId;
+        } elseif ($isGlobalAdmin && $cycle_id) {
+            $targetCycle = Cycle::findById($cycle_id);
+            if ($targetCycle && !empty($targetCycle['lycee_id'])) {
+                if (AuthorizationScopeService::canAccessLycee((int)$targetCycle['lycee_id'])) {
+                    $lycee_id = (int)$targetCycle['lycee_id'];
+                }
+            }
+        } else {
+            $lycee_id = Auth::getLyceeId();
+        }
+
+        if (!$lycee_id || !AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
             echo json_encode(['id_classe' => null]);
             if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        if ($cycle_id) {
+            $cycle = Cycle::findById($cycle_id);
+            if (!$cycle || (!empty($cycle['lycee_id']) && (int)$cycle['lycee_id'] !== $lycee_id)) {
+                echo json_encode(['id_classe' => null]);
+                if (!defined('TEST_MODE')) exit(); return;
+            }
         }
 
         $authClasses = AuthorizationScopeService::getAuthorizedClassIds($lycee_id);
