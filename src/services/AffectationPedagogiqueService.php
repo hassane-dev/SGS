@@ -181,6 +181,8 @@ class AffectationPedagogiqueService {
                 $db->commit();
             }
 
+            AuthorizationScopeService::invalidateUserCache($enseignant_id);
+
             return $assignment_id;
 
         } catch (Exception $e) {
@@ -220,12 +222,18 @@ class AffectationPedagogiqueService {
         $effective_date_fin = $date_fin ?: ($new_statut === 'termine' || $new_statut === 'annule' ? date('Y-m-d') : $assignment['date_fin']);
 
         $stmt = $db->prepare($sql);
-        return $stmt->execute([
+        $res = $stmt->execute([
             'statut' => $new_statut,
             'motif' => $motif ?: $assignment['motif_changement'],
             'date_fin' => $effective_date_fin,
             'id' => $assignment_id
         ]);
+
+        if ($res && !empty($assignment['enseignant_id'])) {
+            AuthorizationScopeService::invalidateUserCache((int)$assignment['enseignant_id']);
+        }
+
+        return $res;
     }
 
 
@@ -291,6 +299,7 @@ class AffectationPedagogiqueService {
             ]);
 
             $db->commit();
+            AuthorizationScopeService::invalidateUserCache((int)$assignment['enseignant_id']);
             return true;
 
         } catch (Exception $e) {
@@ -446,6 +455,7 @@ class AffectationPedagogiqueService {
                 if (!$in_existing_transaction) {
                     $db->commit();
                 }
+                AuthorizationScopeService::invalidateUserCache((int)$new_enseignant_id);
                 return $assignment_id;
             }
 

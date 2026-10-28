@@ -105,10 +105,17 @@ class ClasseController {
 
     public function create() {
         $this->checkAccess('class:create');
-        $cycles = Cycle::findAll();
-        $lycees = Auth::can('view_all_lycees', 'lycee') ? Lycee::findAll() : [];
+        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
 
         $lycee_id = Auth::getLyceeId();
+        $isGlobalAdmin = Auth::can('view_all_lycees', 'lycee');
+
+        $cycles = AuthorizationScopeService::getPermittedCycles($lycee_id);
+        if (empty($cycles) && $isGlobalAdmin) {
+            $cycles = Cycle::findAll();
+        }
+
+        $lycees = $isGlobalAdmin ? Lycee::findAll() : [];
         $params = ParamGeneral::findByLyceeId($lycee_id);
         $mode_cycle = $params['mode_cycle'] ?? 'separe_ceg_lycee'; // Default value
         $series = Serie::findAll($lycee_id);
@@ -404,6 +411,11 @@ class ClasseController {
 
         require_once __DIR__ . '/../services/AuthorizationScopeService.php';
 
+        if (!$cycle_id) {
+            echo json_encode([]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
         $requestedLyceeId = !empty($_GET['lycee_id']) ? (int)$_GET['lycee_id'] : null;
         $isGlobalAdmin = Auth::can('view_all_lycees', 'lycee');
         $lycee_id = null;
@@ -430,51 +442,51 @@ class ClasseController {
             if (!defined('TEST_MODE')) exit(); return;
         }
 
-        $cycle = null;
-        if ($cycle_id) {
-            $cycle = Cycle::findById($cycle_id);
-            if (!$cycle) {
-                echo json_encode([]);
-                if (!defined('TEST_MODE')) exit(); return;
-            }
+        $cycle = Cycle::findById($cycle_id);
+        if (!$cycle) {
+            echo json_encode([]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
 
-            // Cross-tenant verification: cycle must belong to lycee_id or be global
-            if (!empty($cycle['lycee_id']) && (int)$cycle['lycee_id'] !== $lycee_id) {
-                echo json_encode([]);
-                if (!defined('TEST_MODE')) exit(); return;
-            }
+        // Cross-tenant verification: cycle must belong to lycee_id or be global
+        if (!empty($cycle['lycee_id']) && (int)$cycle['lycee_id'] !== $lycee_id) {
+            echo json_encode([]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
 
-            if (!AuthorizationScopeService::canAccessCycle($cycle_id)) {
-                echo json_encode([]);
-                if (!defined('TEST_MODE')) exit(); return;
-            }
+        if (!AuthorizationScopeService::canAccessCycle($cycle_id)) {
+            echo json_encode([]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        if (empty($cycle['niveau_debut']) || empty($cycle['niveau_fin'])) {
+            http_response_code(400);
+            echo json_encode(['error' => sprintf(_("Aucun niveau n'est configuré pour le cycle '%s'. Veuillez vérifier les bornes (niveau début / niveau fin) dans Administration > Cycles."), $cycle['nom_cycle']), 'code' => 'CYCLE_BOUNDS_MISSING']);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        $start = Classe::resolveLevelOrder($cycle['niveau_debut']);
+        $end = Classe::resolveLevelOrder($cycle['niveau_fin']);
+
+        if ($start === null || $end === null || $start > $end) {
+            http_response_code(400);
+            echo json_encode(['error' => sprintf(_("Les bornes de niveau (%s à %s) définies pour le cycle '%s' ne sont pas valides."), $cycle['niveau_debut'], $cycle['niveau_fin'], $cycle['nom_cycle']), 'code' => 'CYCLE_BOUNDS_INVALID']);
+            if (!defined('TEST_MODE')) exit(); return;
         }
 
         $niveaux = [];
+        $canonicalLevels = Classe::getCanonicalLevelMap();
 
-        if ($cycle) {
-            if (!empty($cycle['niveau_debut']) && !empty($cycle['niveau_fin'])) {
-                $start = Classe::resolveLevelOrder($cycle['niveau_debut']);
-                $end = Classe::resolveLevelOrder($cycle['niveau_fin']);
-
-                if ($start !== null && $end !== null && $start <= $end) {
-                    $canonicalLevels = Classe::getCanonicalLevelMap();
-
-                    for ($i = $start; $i <= $end; $i++) {
-                        if (isset($canonicalLevels[$i])) {
-                            $niveaux[] = $canonicalLevels[$i];
-                        }
-                    }
-                }
+        for ($i = $start; $i <= $end; $i++) {
+            if (isset($canonicalLevels[$i])) {
+                $niveaux[] = $canonicalLevels[$i];
             }
         }
 
-        // If cycle boundaries yielded no levels or no cycle was passed, fall back to existing distinct levels in DB
-        if (empty($niveaux) && $cycle_id) {
-            $authClasses = AuthorizationScopeService::getAuthorizedClassIds($lycee_id);
-            if ($authClasses !== []) {
-                $niveaux = Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id, $authClasses);
-            }
+        if (empty($niveaux)) {
+            http_response_code(400);
+            echo json_encode(['error' => sprintf(_("Impossible de générer la plage de niveaux pour le cycle '%s'."), $cycle['nom_cycle']), 'code' => 'LEVEL_RANGE_EMPTY']);
+            if (!defined('TEST_MODE')) exit(); return;
         }
 
         echo json_encode(array_values(array_unique($niveaux)));

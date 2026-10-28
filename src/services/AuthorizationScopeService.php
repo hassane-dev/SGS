@@ -68,8 +68,9 @@ class AuthorizationScopeService {
             return $_SESSION['user']['authorized_cycles'];
         }
 
-        // 3. Super admin or global cycle bypass
-        if (Auth::can('view_all_lycees', 'lycee') || Auth::can('view_all_cycles', 'cycle') || Auth::can('manage', 'cycle')) {
+        // 3. Super admin, global cycle bypass, or class management authorization for the school
+        if (Auth::can('view_all_lycees', 'lycee') || Auth::can('view_all_cycles', 'cycle') || Auth::can('manage', 'cycle') ||
+            Auth::can('create', 'class') || Auth::can('edit', 'class') || Auth::can('manage', 'class') || Auth::can('view_all', 'class')) {
             // Get all cycles for the active school
             $lycee_id = Auth::getLyceeId();
             if ($lycee_id) {
