@@ -69,7 +69,7 @@ class AuthorizationScopeService {
         }
 
         // 3. Super admin or global cycle bypass
-        if (Auth::can('view_all_lycees', 'lycee') || Auth::can('view_all_cycles', 'cycle')) {
+        if (Auth::can('view_all_lycees', 'lycee') || Auth::can('view_all_cycles', 'cycle') || Auth::can('manage', 'cycle')) {
             // Get all cycles for the active school
             $lycee_id = Auth::getLyceeId();
             if ($lycee_id) {

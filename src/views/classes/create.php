@@ -26,6 +26,21 @@
                         <form action="/classes/store" method="POST">
     <?= csrf_field() ?>
                             <div class="row g-3">
+                                <!-- Lycee selection (Super Admin) or Hidden field (Local Admin) -->
+                                <?php if (Auth::can('view_all_lycees', 'lycee')): ?>
+                                <div class="col-12">
+                                    <label for="lycee_id" class="form-label"><?= _('Lycée') ?></label>
+                                    <select name="lycee_id" id="lycee_id" class="form-select" required>
+                                        <option value=""><?= _('-- Choisir un lycée --') ?></option>
+                                        <?php foreach ($lycees as $lycee): ?>
+                                            <option value="<?= $lycee['id'] ?>"><?= htmlspecialchars($lycee['nom_lycee']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <?php else: ?>
+                                <input type="hidden" name="lycee_id" id="lycee_id" value="<?= (int)Auth::getLyceeId() ?>">
+                                <?php endif; ?>
+
                                 <!-- Cycle -->
                                 <div class="col-md-6">
                                     <label for="cycle_id" class="form-label"><?= _('Cycle') ?></label>
@@ -92,19 +107,6 @@
                                     <label for="numero" class="form-label"><?= _('Numéro') ?></label>
                                     <input type="number" name="numero" id="numero" class="form-control" placeholder="<?= _('Ex: 1') ?>">
                                 </div>
-
-                                <!-- Lycee -->
-                                <?php if (Auth::can('view_all_lycees', 'lycee')): ?>
-                                <div class="col-12">
-                                    <label for="lycee_id" class="form-label"><?= _('Lycée') ?></label>
-                                    <select name="lycee_id" id="lycee_id" class="form-select" required>
-                                        <option value=""><?= _('-- Choisir un lycée --') ?></option>
-                                        <?php foreach ($lycees as $lycee): ?>
-                                            <option value="<?= $lycee['id'] ?>"><?= htmlspecialchars($lycee['nom_lycee']) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <?php endif; ?>
                             </div>
 
                             <div class="mt-4 d-flex justify-content-end">
