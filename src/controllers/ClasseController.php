@@ -450,12 +450,6 @@ class ClasseController {
             }
         }
 
-        $authClasses = AuthorizationScopeService::getAuthorizedClassIds($lycee_id);
-        if ($authClasses === []) {
-            echo json_encode([]);
-            if (!defined('TEST_MODE')) exit(); return;
-        }
-
         $niveaux = [];
 
         if ($cycle) {
@@ -477,7 +471,10 @@ class ClasseController {
 
         // If cycle boundaries yielded no levels or no cycle was passed, fall back to existing distinct levels in DB
         if (empty($niveaux) && $cycle_id) {
-            $niveaux = Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id, $authClasses);
+            $authClasses = AuthorizationScopeService::getAuthorizedClassIds($lycee_id);
+            if ($authClasses !== []) {
+                $niveaux = Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id, $authClasses);
+            }
         }
 
         echo json_encode(array_values(array_unique($niveaux)));

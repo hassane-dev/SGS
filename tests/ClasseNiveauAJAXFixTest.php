@@ -122,6 +122,47 @@ if ($testE === ['6e', '5e', '4e', '3e']) {
     echo "  [FAIL] Test E: Expected ['6e','5e','4e','3e'], got " . json_encode($testE) . "\n";
 }
 
+// TEST F: Administrateur Local (role_id = 3, lycee_id = 8891) créant la PREMIÈRE CLASSE sur un cycle (0 classe préexistante)
+$_SESSION['user'] = [
+    'id_user' => 3301,
+    'role_id' => null,
+    'lycee_id' => 8891,
+    'permissions' => [
+        'class' => ['create', 'view', 'edit', 'manage'],
+        'cycle' => ['manage']
+    ]
+];
+unset($_SESSION['user']['authorized_cycles']);
+$_GET['cycle_id'] = '88901'; // Cycle 88901 belongs to school 8891
+$_GET['lycee_id'] = '8891';   // Or empty string, local admin uses Auth::getLyceeId()
+
+// Ensure 0 classes exist for this school & cycle
+$db->exec("DELETE FROM classes WHERE lycee_id = 8891 AND cycle_id = 88901");
+
+ob_start();
+$controller->getNiveauxForCycle();
+$testF = json_decode(ob_get_clean(), true);
+
+if ($testF === ['6e', '5e', '4e', '3e']) {
+    echo "  [PASS] Test F: Local Admin creating FIRST class (0 pre-existing classes in DB) successfully gets cycle's configured levels ['6e','5e','4e','3e'].\n";
+} else {
+    echo "  [FAIL] Test F: Expected ['6e','5e','4e','3e'], got " . json_encode($testF) . "\n";
+}
+
+// TEST G: Administrateur Local avec lycee_id transmis comme chaîne vide ("") utilise Auth::getLyceeId()
+$_GET['cycle_id'] = '88901';
+$_GET['lycee_id'] = '';
+
+ob_start();
+$controller->getNiveauxForCycle();
+$testG = json_decode(ob_get_clean(), true);
+
+if ($testG === ['6e', '5e', '4e', '3e']) {
+    echo "  [PASS] Test G: Local Admin sending empty lycee_id parameter successfully falls back to session lycee_id (8891) and returns levels.\n";
+} else {
+    echo "  [FAIL] Test G: Expected ['6e','5e','4e','3e'], got " . json_encode($testG) . "\n";
+}
+
 // Clean up test fixture
 $db->exec("DELETE FROM classes WHERE id_classe = 88930");
 $db->exec("DELETE FROM cycles WHERE id_cycle IN (88901, 88902, 88903)");
