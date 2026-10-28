@@ -52,6 +52,9 @@ if (!$cycleCeg || !$cycleLycee) {
 $idCeg = (int)$cycleCeg['id_cycle'];
 $idLycee = (int)$cycleLycee['id_cycle'];
 
+$db->exec("UPDATE cycles SET niveau_debut = '6e', niveau_fin = '3e' WHERE id_cycle = {$idCeg}");
+$db->exec("UPDATE cycles SET niveau_debut = '2nde', niveau_fin = 'Terminale' WHERE id_cycle = {$idLycee}");
+
 // Create test classes
 // CEG class (6e A, Lycee 1)
 $db->exec("INSERT INTO classes (id_classe, lycee_id, cycle_id, niveau, numero) VALUES (88810, 1, {$idCeg}, '6e', 'A')");

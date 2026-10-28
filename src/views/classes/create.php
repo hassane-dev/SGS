@@ -182,9 +182,13 @@
             const requestId = ++currentNiveauxRequestId;
 
             fetch(`/classes/get-niveaux?cycle_id=${cycleId}&lycee_id=${lid}`)
-                .then(r => {
-                    if (!r.ok) throw new Error('HTTP Error ' + r.status);
-                    return r.json();
+                .then(async r => {
+                    const data = await r.json().catch(() => null);
+                    if (!r.ok) {
+                        const errMsg = (data && data.error) ? data.error : ('<?= _("Erreur lors de la récupération des niveaux") ?> (' + r.status + ')');
+                        throw new Error(errMsg);
+                    }
+                    return data;
                 })
                 .then(niveaux => {
                     if (requestId !== currentNiveauxRequestId) return;
@@ -199,6 +203,10 @@
                         });
                     } else {
                         if (noNiveauxAlert) {
+                            const textSpan = noNiveauxAlert.querySelector('span');
+                            if (textSpan) {
+                                textSpan.innerHTML = '<strong>' + '<?= _("Attention :") ?>' + '</strong> ' + '<?= _("Aucun niveau n\'a pu être généré pour ce cycle.") ?>';
+                            }
                             noNiveauxAlert.style.display = 'block';
                         }
                     }
@@ -206,6 +214,13 @@
                 .catch(err => {
                     if (requestId !== currentNiveauxRequestId) return;
                     console.error('Error fetching levels:', err);
+                    if (noNiveauxAlert) {
+                        const textSpan = noNiveauxAlert.querySelector('span');
+                        if (textSpan) {
+                            textSpan.innerHTML = '<strong>' + '<?= _("Attention :") ?>' + '</strong> ' + (err.message || '<?= _("Erreur lors de la récupération des niveaux.") ?>');
+                        }
+                        noNiveauxAlert.style.display = 'block';
+                    }
                 });
         }
 
