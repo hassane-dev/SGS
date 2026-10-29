@@ -232,44 +232,24 @@
             lyceeIdEl.addEventListener('change', loadNiveauxForCycle);
         }
 
-        niveauSelect.addEventListener('change', function () {
-            const niveau = this.value;
-            const cycleId = cycleSelect.value;
-            const lid = lyceeIdEl ? lyceeIdEl.value : '';
+        function updateSerieVisibility() {
+            const niveau = niveauSelect ? niveauSelect.value : '';
+            const cycleId = cycleSelect ? cycleSelect.value : '';
+            const selectedOpt = cycleSelect && cycleSelect.selectedIndex >= 0 ? cycleSelect.options[cycleSelect.selectedIndex] : null;
+            const utiliseSeriesAttr = selectedOpt ? selectedOpt.getAttribute('data-utilise-series') : '';
 
-            if (!niveau || !cycleId) {
+            if (niveau && cycleId && utiliseSeriesAttr === '1') {
+                serieContainer.style.display = 'block';
+                categorieContainer.style.display = 'block';
+            } else {
                 serieContainer.style.display = 'none';
                 categorieContainer.style.display = 'none';
-                return;
+                serieSelect.value = '';
+                categorieSelect.value = '';
             }
+        }
 
-            const requestId = ++currentSeriesRequestId;
-
-            fetch(`/classes/get-series?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}&lycee_id=${lid}`)
-                .then(r => {
-                    if (!r.ok) throw new Error('HTTP Error ' + r.status);
-                    return r.json();
-                })
-                .then(series => {
-                    if (requestId !== currentSeriesRequestId) return;
-
-                    if (Array.isArray(series) && series.length > 0) {
-                        serieContainer.style.display = 'block';
-                        categorieContainer.style.display = 'block';
-                    } else {
-                        serieContainer.style.display = 'none';
-                        categorieContainer.style.display = 'none';
-                        serieSelect.value = '';
-                        categorieSelect.value = '';
-                    }
-                })
-                .catch(err => {
-                    if (requestId !== currentSeriesRequestId) return;
-                    console.error('Error fetching series:', err);
-                    serieContainer.style.display = 'none';
-                    categorieContainer.style.display = 'none';
-                });
-        });
+        niveauSelect.addEventListener('change', updateSerieVisibility);
 
         serieSelect.addEventListener('change', function () {
             const selectedOption = this.options[this.selectedIndex];
