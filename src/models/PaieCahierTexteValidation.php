@@ -34,9 +34,9 @@ class PaieCahierTexteValidation {
         return $res ?: null;
     }
 
-    public static function findValidatedForTeacherAndDates(int $enseignantId, string $dateDebut, string $dateFin): array {
+    public static function findValidatedForTeacherAndDates(int $enseignantId, string $dateDebut, string $dateFin, ?int $cycleId = null): array {
         $db = Database::getInstance();
-        $stmt = $db->prepare("
+        $sql = "
             SELECT v.id, v.cahier_id, v.enseignant_id, v.cycle_id, v.classe_id, v.matiere_id,
                    v.duree_heures, v.taux_horaire, v.statut_validation, v.valide_par, v.valide_le, v.created_at,
                    c.date_cours, c.contenu_cours
@@ -45,18 +45,29 @@ class PaieCahierTexteValidation {
             WHERE v.enseignant_id = :enseignant_id
               AND v.statut_validation = 'valide'
               AND c.date_cours BETWEEN :date_debut AND :date_fin
+        ";
+        $params = [
+            'enseignant_id' => $enseignantId,
+            'date_debut' => $dateDebut,
+            'date_fin' => $dateFin
+        ];
+
+        if ($cycleId !== null) {
+            $sql .= " AND (v.cycle_id = :cycle_id OR v.cycle_id IS NULL)";
+            $params['cycle_id'] = $cycleId;
+        }
+
+        $sql .= "
               AND NOT EXISTS (
                   SELECT 1
                   FROM paie_bulletin_heures bh
                   JOIN paie_bulletins b ON bh.bulletin_id = b.id AND b.est_version_active = 1
                   WHERE bh.cahier_validation_id = v.id
               )
-        ");
-        $stmt->execute([
-            'enseignant_id' => $enseignantId,
-            'date_debut' => $dateDebut,
-            'date_fin' => $dateFin
-        ]);
+        ";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

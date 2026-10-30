@@ -250,6 +250,11 @@ class PersonnelService {
                     'type_contrat_id' => $data['contrat_id'],
                     'date_debut' => $data['date_embauche'] ?? date('Y-m-d'),
                     'salaire_base' => $data['salaire_base'] ?? 0.00,
+                    'mode_calcul_principal' => $data['mode_calcul_principal'] ?? 'forfait_fixe',
+                    'unite_remuneration' => $data['unite_remuneration'] ?? 'mois',
+                    'periodicite_paiement' => $data['periodicite_paiement'] ?? 'mensuel',
+                    'volume_horaire_mensuel' => $data['volume_horaire_mensuel'] ?? null,
+                    'devise' => $data['devise'] ?? null,
                     'statut_contrat' => 'actif'
                 ], $author_id);
             }

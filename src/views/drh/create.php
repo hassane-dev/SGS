@@ -160,7 +160,7 @@
 
                             <div class="col-md-4">
                                 <label class="form-label small fw-semibold text-muted"><?= _('Contrat Initial (Optionnel)') ?></label>
-                                <select name="contrat_id" class="form-select">
+                                <select name="contrat_id" id="create_contrat_id" class="form-select" onchange="toggleCreateSalaryFields()">
                                     <option value=""><?= _('Aucun pour le moment') ?></option>
                                     <?php foreach ($contrats as $tc): ?>
                                         <option value="<?= $tc['id_contrat'] ?>"><?= htmlspecialchars($tc['libelle']) ?></option>
@@ -179,6 +179,87 @@
                             </div>
                         </div>
                     </div>
+
+                    <?php if (Auth::can('manage_salaires', 'drh')): ?>
+                    <div id="create_salary_section" class="mb-4 d-none">
+                        <h6 class="text-primary mb-3 d-flex align-items-center gap-2">
+                            <i class="ph-duotone ph-currency-circle-dollar text-primary fs-5"></i>
+                            <span><?= _('4. Rémunération & Paramètres Salariaux du Contrat Initial') ?></span>
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label required small fw-semibold text-muted"><?= _('Salaire de Base') ?></label>
+                                <input type="number" step="0.01" name="salaire_base" class="form-control" placeholder="0.00">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label required small fw-semibold text-muted"><?= _('Mode de Calcul') ?></label>
+                                <select name="mode_calcul_principal" id="create_mode_calcul" class="form-select" onchange="toggleCreateVolumeHoraire()">
+                                    <option value="forfait_fixe"><?= _('Forfait Fixe') ?></option>
+                                    <option value="taux_horaire"><?= _('Taux Horaire') ?></option>
+                                    <option value="taux_journalier"><?= _('Taux Journalier') ?></option>
+                                    <option value="commission"><?= _('Commission') ?></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label required small fw-semibold text-muted"><?= _('Unité de Rémunération') ?></label>
+                                <select name="unite_remuneration" class="form-select">
+                                    <option value="mois"><?= _('Par Mois') ?></option>
+                                    <option value="heure"><?= _('Par Heure') ?></option>
+                                    <option value="jour"><?= _('Par Jour') ?></option>
+                                    <option value="prestation"><?= _('Par Prestation') ?></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label required small fw-semibold text-muted"><?= _('Périodicité de Paiement') ?></label>
+                                <select name="periodicite_paiement" class="form-select">
+                                    <option value="mensuel"><?= _('Mensuelle') ?></option>
+                                    <option value="bi_mensuel"><?= _('Bimensuelle / Quinzaine') ?></option>
+                                    <option value="hebdomadaire"><?= _('Hebdomadaire') ?></option>
+                                    <option value="a_la_prestation"><?= _('À la prestation') ?></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4" id="create_volume_horaire_container">
+                                <label class="form-label small fw-semibold text-muted"><?= _('Volume Horaire Mensuel (H)') ?></label>
+                                <input type="number" step="0.01" name="volume_horaire_mensuel" class="form-control" placeholder="ex: 173.33">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold text-muted"><?= _('Devise') ?></label>
+                                <input type="text" name="devise" class="form-control" placeholder="FCFA">
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <script>
+                    function toggleCreateSalaryFields() {
+                        const contratSelect = document.getElementById('create_contrat_id');
+                        const salarySec = document.getElementById('create_salary_section');
+                        if (salarySec) {
+                            if (contratSelect && contratSelect.value !== '') {
+                                salarySec.classList.remove('d-none');
+                            } else {
+                                salarySec.classList.add('d-none');
+                            }
+                        }
+                    }
+
+                    function toggleCreateVolumeHoraire() {
+                        const modeSelect = document.getElementById('create_mode_calcul');
+                        const volContainer = document.getElementById('create_volume_horaire_container');
+                        if (volContainer) {
+                            if (modeSelect && modeSelect.value === 'taux_horaire') {
+                                volContainer.classList.remove('d-none');
+                            } else {
+                                volContainer.classList.add('d-none');
+                            }
+                        }
+                    }
+
+                    document.addEventListener('DOMContentLoaded', function() {
+                        toggleCreateSalaryFields();
+                        toggleCreateVolumeHoraire();
+                    });
+                    </script>
 
                     <div class="d-flex justify-content-end gap-2 pt-3 border-top">
                         <a href="/drh" class="btn btn-light-secondary"><?= _('Annuler') ?></a>
