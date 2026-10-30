@@ -19,6 +19,14 @@ $porteeLabels = [
     'cycle' => 'Cycle entier',
     'etablissement' => 'Établissement entier'
 ];
+
+// Pre-fetch active assigned cycle IDs for each supervisor to display warning badges if cycle permission is inactive
+$supervisorActiveCycles = [];
+if (!empty($surveillants)) {
+    foreach ($surveillants as $s) {
+        $supervisorActiveCycles[(int)$s['id_user']] = SurveillantAssignmentService::getSupervisorActiveCycleIds((int)$s['id_user']);
+    }
+}
 ?>
 
 <div class="pc-container">
@@ -208,6 +216,16 @@ $porteeLabels = [
                                                     <?php if (!empty($aff['est_reprise_legacy'])): ?>
                                                         <span class="badge bg-light-secondary text-secondary ms-1" title="<?= _("Reprise historique d'anciennes données") ?>">Legacy</span>
                                                     <?php endif; ?>
+
+                                                    <?php
+                                                    // Check if supervisor's cycle authorization is currently inactive/expired
+                                                    $s_id = (int)($aff['surveillant_id'] ?? 0);
+                                                    if ($s_id > 0 && $aff['statut'] === 'actif' && empty($supervisorActiveCycles[$s_id])):
+                                                    ?>
+                                                        <span class="badge bg-light-warning text-dark ms-1" title="<?= _("L'autorisation de cycle du surveillant est expirée ou inactive") ?>">
+                                                            <i class="ph-duotone ph-warning-circle me-1"></i><?= _("Autorisation Cycle Inactive") ?>
+                                                        </span>
+                                                    <?php endif; ?>
                                                 </td>
                                                 <td class="text-end">
                                                     <?php if ($canManage && $aff['statut'] === 'actif'): ?>
@@ -288,6 +306,17 @@ $porteeLabels = [
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold"><?= _("Filtrer par Cycle (Optionnel)") ?></label>
+                        <select id="sel_modal_cycle_id" class="form-select" onchange="filterModalByCycle(this.value);">
+                            <option value=""><?= _("-- Tous les cycles --") ?></option>
+                            <?php foreach ($cycles as $cy): ?>
+                                <option value="<?= $cy['id_cycle'] ?>"><?= htmlspecialchars($cy['nom_cycle']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <div class="form-text small"><?= _("Sélectionner un cycle pour filtrer les surveillants autorisés et les classes correspondantes.") ?></div>
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label fw-bold"><?= _("Surveillant") ?> *</label>
                         <select name="surveillant_id" class="form-select" required>
@@ -378,6 +407,32 @@ $porteeLabels = [
 </div>
 
 <script>
+function filterModalByCycle(cycleId) {
+    fetch('/surveillants/ajax-filter-by-cycle?cycle_id=' + cycleId)
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success) return;
+
+        // Update Surveillants select
+        const selSurv = document.querySelector('select[name="surveillant_id"]');
+        if (selSurv) {
+            selSurv.innerHTML = '<option value=""><?= _("-- Sélectionner un surveillant --") ?></option>';
+            data.surveillants.forEach(s => {
+                selSurv.innerHTML += `<option value="${s.id_user}">${s.prenom} ${s.nom}</option>`;
+            });
+        }
+
+        // Update Classes select
+        const selClass = document.querySelector('select[name="classe_id"]');
+        if (selClass) {
+            selClass.innerHTML = '<option value=""><?= _("-- Sélectionner une classe --") ?></option>';
+            data.classes.forEach(c => {
+                selClass.innerHTML += `<option value="${c.id_classe}">${c.niveau} ${c.serie || ''} ${c.numero || ''}</option>`;
+            });
+        }
+    });
+}
+
 function togglePorteeTargetFields() {
     const val = document.getElementById('sel_portee_type').value;
     document.querySelectorAll('.portee-target').forEach(el => el.classList.add('d-none'));

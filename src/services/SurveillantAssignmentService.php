@@ -63,6 +63,141 @@ class SurveillantAssignmentService {
                 throw new InvalidArgumentException(_("Incohérence multi-établissement : Le cycle sélectionné n'appartient pas à cet établissement."));
             }
         }
+
+        // Validate cycle compliance against personnel_cycles_assignments
+        self::validateCycleCompliance($data);
+    }
+
+    /**
+     * Returns the array of active cycle IDs assigned to a supervisor in personnel_cycles_assignments.
+     */
+    public static function getSupervisorActiveCycleIds(int $user_id): array {
+        $db = Database::getInstance();
+        $today = date('Y-m-d');
+        $stmt = $db->prepare("
+            SELECT DISTINCT cycle_id
+            FROM personnel_cycles_assignments
+            WHERE personnel_id = :uid
+              AND actif = 1
+              AND (date_debut IS NULL OR date_debut <= :today_start)
+              AND (date_fin IS NULL OR date_fin = '' OR date_fin = '0000-00-00' OR date_fin >= :today_end)
+        ");
+        $stmt->execute([
+            'uid' => $user_id,
+            'today_start' => $today,
+            'today_end' => $today
+        ]);
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+
+    /**
+     * Returns active supervisors for a given school who have an active cycle assignment for $cycle_id.
+     */
+    public static function getSupervisorsByCycle(int $cycle_id, int $lycee_id): array {
+        $db = Database::getInstance();
+        $today = date('Y-m-d');
+        $stmt = $db->prepare("
+            SELECT DISTINCT u.id_user, u.nom, u.prenom, u.identifiant_public
+            FROM utilisateurs u
+            JOIN roles r ON u.role_id = r.id_role
+            JOIN personnel_cycles_assignments pca ON u.id_user = pca.personnel_id
+            WHERE u.lycee_id = :lycee_id
+              AND u.actif = 1
+              AND (r.nom_role LIKE '%surveillant%' OR r.id_role = 5)
+              AND pca.cycle_id = :cycle_id
+              AND pca.actif = 1
+              AND (pca.date_debut IS NULL OR pca.date_debut <= :today_start)
+              AND (pca.date_fin IS NULL OR pca.date_fin = '' OR pca.date_fin = '0000-00-00' OR pca.date_fin >= :today_end)
+            ORDER BY u.nom ASC, u.prenom ASC
+        ");
+        $stmt->execute([
+            'lycee_id' => $lycee_id,
+            'cycle_id' => $cycle_id,
+            'today_start' => $today,
+            'today_end' => $today
+        ]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Validates that the supervisor has an active cycle assignment covering the target class, group, level, cycle or establishment.
+     */
+    public static function validateCycleCompliance(array $data): void {
+        if (empty($data['surveillant_id'])) {
+            return;
+        }
+
+        $surveillant_id = (int)$data['surveillant_id'];
+        $lycee_id = (int)($data['lycee_id'] ?? 0);
+        $active_cycles = self::getSupervisorActiveCycleIds($surveillant_id);
+
+        if (empty($active_cycles)) {
+            throw new InvalidArgumentException(_("Erreur de périmètre : Le surveillant sélectionné n'a aucune affectation de cycle active dans l'établissement."));
+        }
+
+        $db = Database::getInstance();
+
+        // 1. Single class target
+        if (!empty($data['classe_id'])) {
+            $stmt = $db->prepare("SELECT cycle_id FROM classes WHERE id_classe = :cid");
+            $stmt->execute(['cid' => $data['classe_id']]);
+            $c_cycle = (int)$stmt->fetchColumn();
+
+            if (!in_array($c_cycle, $active_cycles, true)) {
+                throw new InvalidArgumentException(_("Erreur de périmètre : Le surveillant n'est pas autorisé sur le cycle de la classe sélectionnée."));
+            }
+        }
+
+        // 2. Direct cycle target
+        if (!empty($data['cycle_id'])) {
+            if (!in_array((int)$data['cycle_id'], $active_cycles, true)) {
+                throw new InvalidArgumentException(_("Erreur de périmètre : Le surveillant n'est pas autorisé sur le cycle sélectionné."));
+            }
+        }
+
+        // 3. Level target
+        if (!empty($data['niveau_code'])) {
+            $stmt = $db->prepare("SELECT DISTINCT cycle_id FROM classes WHERE niveau = :niv AND lycee_id = :lid");
+            $stmt->execute(['niv' => $data['niveau_code'], 'lid' => $lycee_id]);
+            $niv_cycles = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+
+            foreach ($niv_cycles as $n_cyc) {
+                if (!in_array($n_cyc, $active_cycles, true)) {
+                    throw new InvalidArgumentException(_("Erreur de périmètre : Le niveau contient des classes d'un cycle sur lequel le surveillant n'est pas autorisé."));
+                }
+            }
+        }
+
+        // 4. Group target
+        if (!empty($data['groupe_id'])) {
+            $stmt = $db->prepare("
+                SELECT DISTINCT c.cycle_id
+                FROM surveillant_groupe_classes sgc
+                JOIN classes c ON sgc.classe_id = c.id_classe
+                WHERE sgc.groupe_id = :gid
+            ");
+            $stmt->execute(['gid' => $data['groupe_id']]);
+            $grp_cycles = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+
+            foreach ($grp_cycles as $g_cyc) {
+                if (!in_array($g_cyc, $active_cycles, true)) {
+                    throw new InvalidArgumentException(_("Erreur de périmètre : Le groupe de classes contient des classes d'un cycle non autorisé pour ce surveillant."));
+                }
+            }
+        }
+
+        // 5. Whole establishment target
+        if (!empty($data['portee_type']) && $data['portee_type'] === 'etablissement') {
+            $stmt = $db->prepare("SELECT id_cycle FROM cycles WHERE lycee_id = :lid OR lycee_id IS NULL");
+            $stmt->execute(['lid' => $lycee_id]);
+            $all_school_cycles = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+
+            foreach ($all_school_cycles as $s_cyc) {
+                if (!in_array($s_cyc, $active_cycles, true)) {
+                    throw new InvalidArgumentException(_("Erreur de périmètre : Le surveillant n'est pas autorisé sur tous les cycles de l'établissement."));
+                }
+            }
+        }
     }
 
     /**
@@ -127,11 +262,12 @@ class SurveillantAssignmentService {
         array $selected_classe_ids,
         array $selected_surveillant_ids,
         string $mode = 'equitable',
-        ?int $max_per_surveillant = null
+        ?int $max_per_surveillant = null,
+        ?int $cycle_id = null
     ): array {
         $db = Database::getInstance();
 
-        // Filter valid classes belonging to lycee
+        // Filter valid classes belonging to lycee and cycle (if cycle_id is specified)
         if (empty($selected_classe_ids)) {
             throw new InvalidArgumentException(_("Veuillez sélectionner au moins une classe."));
         }
@@ -139,27 +275,48 @@ class SurveillantAssignmentService {
             throw new InvalidArgumentException(_("Veuillez sélectionner au moins un surveillant."));
         }
 
+        $today = date('Y-m-d');
+
+        $cycle_filter_c = "";
+        $paramsC = array_map('intval', $selected_classe_ids);
+        if ($cycle_id !== null && $cycle_id > 0) {
+            $cycle_filter_c = " AND c.cycle_id = ? ";
+            $paramsC[] = $cycle_id;
+        }
+        $paramsC[] = $lycee_id;
+
         $placeholders_c = implode(',', array_fill(0, count($selected_classe_ids), '?'));
         $stmtC = $db->prepare("
             SELECT c.id_classe, c.niveau, c.serie, c.numero, c.cycle_id, cy.nom_cycle
             FROM classes c
             JOIN cycles cy ON c.cycle_id = cy.id_cycle
-            WHERE c.id_classe IN ($placeholders_c) AND c.lycee_id = ?
+            WHERE c.id_classe IN ($placeholders_c) $cycle_filter_c AND c.lycee_id = ?
             ORDER BY c.cycle_id ASC, c.niveau ASC, c.serie ASC, c.numero ASC, c.id_classe ASC
         ");
-        $paramsC = array_merge(array_map('intval', $selected_classe_ids), [$lycee_id]);
         $stmtC->execute($paramsC);
         $classes = $stmtC->fetchAll(PDO::FETCH_ASSOC);
 
-        // Filter valid active supervisors
+        // Filter valid active supervisors having active cycle assignments
+        $cycle_filter_u = "";
+        $paramsU = array_map('intval', $selected_surveillant_ids);
+        if ($cycle_id !== null && $cycle_id > 0) {
+            $cycle_filter_u = " AND u.id_user IN (
+                SELECT DISTINCT personnel_id FROM personnel_cycles_assignments
+                WHERE cycle_id = ? AND actif = 1
+                  AND (date_debut IS NULL OR date_debut <= '$today')
+                  AND (date_fin IS NULL OR date_fin = '' OR date_fin = '0000-00-00' OR date_fin >= '$today')
+            ) ";
+            $paramsU[] = $cycle_id;
+        }
+        $paramsU[] = $lycee_id;
+
         $placeholders_u = implode(',', array_fill(0, count($selected_surveillant_ids), '?'));
         $stmtU = $db->prepare("
             SELECT u.id_user, u.nom, u.prenom
             FROM utilisateurs u
-            WHERE u.id_user IN ($placeholders_u) AND u.lycee_id = ? AND u.actif = 1
+            WHERE u.id_user IN ($placeholders_u) $cycle_filter_u AND u.lycee_id = ? AND u.actif = 1
             ORDER BY u.nom ASC, u.prenom ASC, u.id_user ASC
         ");
-        $paramsU = array_merge(array_map('intval', $selected_surveillant_ids), [$lycee_id]);
         $stmtU->execute($paramsU);
         $surveillants = $stmtU->fetchAll(PDO::FETCH_ASSOC);
 
@@ -305,7 +462,18 @@ class SurveillantAssignmentService {
 
                 $impacted_user_ids[] = $surveillant_id;
 
+                $active_cycles = self::getSupervisorActiveCycleIds($surveillant_id);
+
                 foreach ($classe_ids as $cid) {
+                    // Validate cycle compliance
+                    $stmtCyc = $db->prepare("SELECT cycle_id FROM classes WHERE id_classe = :cid");
+                    $stmtCyc->execute(['cid' => $cid]);
+                    $c_cycle = (int)$stmtCyc->fetchColumn();
+
+                    if (!in_array($c_cycle, $active_cycles, true)) {
+                        throw new InvalidArgumentException(_("Validation de sécurité : Le surveillant sélectionné n'a pas d'affectation active sur le cycle de cette classe."));
+                    }
+
                     // Check if an active assignment already exists
                     $stmtCheck = $db->prepare("
                         SELECT COUNT(*) FROM surveillant_affectations

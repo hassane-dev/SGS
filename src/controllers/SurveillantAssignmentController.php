@@ -5,6 +5,7 @@ require_once __DIR__ . '/../services/SurveillantAssignmentService.php';
 require_once __DIR__ . '/../models/SurveillantAffectation.php';
 require_once __DIR__ . '/../models/SurveillantGroupe.php';
 require_once __DIR__ . '/../models/Classe.php';
+require_once __DIR__ . '/../models/Cycle.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/AnneeAcademique.php';
 require_once __DIR__ . '/../core/Auth.php';
@@ -64,10 +65,12 @@ class SurveillantAssignmentController {
         $activeYear = AnneeAcademique::findActive();
         $annee_id = $activeYear ? (int)$activeYear['id'] : 0;
 
+        $cycles = Cycle::findByLycee($lycee_id);
         $classes = Classe::findAll($lycee_id);
         $surveillants = User::findAllByRoleName('surveillant', $lycee_id);
 
         View::render('surveillants/repartition', [
+            'cycles' => $cycles,
             'classes' => $classes,
             'surveillants' => $surveillants,
             'activeYear' => $activeYear
@@ -85,6 +88,7 @@ class SurveillantAssignmentController {
             $activeYear = AnneeAcademique::findActive();
             $annee_id = $activeYear ? (int)$activeYear['id'] : 0;
 
+            $cycle_id = !empty($_POST['cycle_id']) ? (int)$_POST['cycle_id'] : null;
             $selected_classe_ids = isset($_POST['classe_ids']) ? array_map('intval', $_POST['classe_ids']) : [];
             $selected_surveillant_ids = isset($_POST['surveillant_ids']) ? array_map('intval', $_POST['surveillant_ids']) : [];
             $mode = $data['mode'] ?? 'equitable';
@@ -97,7 +101,8 @@ class SurveillantAssignmentController {
                     $selected_classe_ids,
                     $selected_surveillant_ids,
                     $mode,
-                    $max_per
+                    $max_per,
+                    $cycle_id
                 );
 
                 header('Content-Type: application/json');
@@ -261,6 +266,45 @@ class SurveillantAssignmentController {
             }
 
             header('Location: /surveillants');
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+    }
+
+    public function ajaxFilterByCycle() {
+        if (!$this->checkAccess('view_surveillants')) return;
+
+        $lycee_id = Auth::getLyceeId();
+        $cycle_id = isset($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : 0;
+
+        header('Content-Type: application/json');
+
+        if ($cycle_id <= 0) {
+            $classes = Classe::findAll($lycee_id);
+            $surveillants = User::findAllByRoleName('surveillant', $lycee_id);
+            echo json_encode(['success' => true, 'classes' => $classes, 'surveillants' => $surveillants]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        try {
+            $db = Database::getInstance();
+            // Classes for this cycle
+            $stmtC = $db->prepare("
+                SELECT c.id_classe, c.niveau, c.serie, c.numero, c.cycle_id
+                FROM classes c
+                WHERE c.cycle_id = :cyc_id AND c.lycee_id = :lycee_id
+                ORDER BY c.niveau ASC, c.serie ASC, c.numero ASC
+            ");
+            $stmtC->execute(['cyc_id' => $cycle_id, 'lycee_id' => $lycee_id]);
+            $classes = $stmtC->fetchAll(PDO::FETCH_ASSOC);
+
+            // Supervisors authorized on this cycle
+            $surveillants = SurveillantAssignmentService::getSupervisorsByCycle($cycle_id, $lycee_id);
+
+            echo json_encode(['success' => true, 'classes' => $classes, 'surveillants' => $surveillants]);
+            if (!defined('TEST_MODE')) exit(); return;
+        } catch (Exception $e) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
             if (!defined('TEST_MODE')) exit(); return;
         }
     }
