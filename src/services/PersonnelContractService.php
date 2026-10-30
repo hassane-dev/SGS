@@ -67,11 +67,16 @@ class PersonnelContractService {
         $stmt = $db->prepare("
             SELECT pch.*, tc.libelle AS contrat_libelle, tc.type_paiement, tc.prise_en_charge,
                    pej.raison_sociale AS employeur_nom, pej.sigle AS employeur_sigle,
-                   pah.cycle_id
+                   (
+                       SELECT pca.cycle_id
+                       FROM personnel_cycles_assignments pca
+                       WHERE pca.personnel_id = pch.personnel_id AND pca.actif = 1
+                       ORDER BY pca.date_debut DESC, pca.id DESC
+                       LIMIT 1
+                   ) AS cycle_id
             FROM personnel_contrats_historique pch
             LEFT JOIN type_contrat tc ON pch.type_contrat_id = tc.id_contrat
             LEFT JOIN paie_entites_juridiques pej ON pch.entite_juridique_id = pej.id
-            LEFT JOIN personnel_affectations_historique pah ON (pah.personnel_id = pch.personnel_id AND pah.actif = 1)
             WHERE pch.personnel_id = :personnel_id
             ORDER BY pch.date_debut DESC, pch.id DESC
         ");
@@ -115,7 +120,16 @@ class PersonnelContractService {
 
         $sql = "
             SELECT c.*, u.nom, u.prenom, u.identifiant_public, u.email, tc.libelle AS contrat_libelle,
-                   pah.cycle_id
+                   (
+                       SELECT pca.cycle_id
+                       FROM personnel_cycles_assignments pca
+                       WHERE pca.personnel_id = u.id_user
+                         AND pca.actif = 1
+                         AND pca.date_debut <= p.date_fin
+                         AND (pca.date_fin IS NULL OR pca.date_fin >= p.date_debut)
+                       ORDER BY pca.date_debut DESC, pca.id DESC
+                       LIMIT 1
+                   ) AS cycle_id
             FROM paie_periodes p
             JOIN personnel_contrats_historique c ON (
                 c.statut_contrat = 'actif'
@@ -124,7 +138,6 @@ class PersonnelContractService {
             )
             JOIN utilisateurs u ON c.personnel_id = u.id_user
             LEFT JOIN type_contrat tc ON c.type_contrat_id = tc.id_contrat
-            LEFT JOIN personnel_affectations_historique pah ON (pah.personnel_id = u.id_user AND pah.actif = 1 AND (pah.date_fin IS NULL OR pah.date_fin >= p.date_debut))
             WHERE p.id = :periode_id
               AND u.actif = 1
               /*
