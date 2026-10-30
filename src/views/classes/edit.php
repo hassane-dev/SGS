@@ -28,6 +28,25 @@
                             <input type="hidden" name="id_classe" value="<?= htmlspecialchars($classe['id_classe']) ?>">
                             <div class="row g-3">
 
+                                <div class="col-12" id="unconfigured_cycle_alert" style="display: none;">
+                                    <div class="alert alert-warning py-2 mb-0 d-flex align-items-center">
+                                        <i class="ph-duotone ph-warning me-2 fs-5"></i>
+                                        <span><strong><?= _('Configuration requise :') ?></strong> <?= _('Ce cycle n\'a pas encore été configuré concernant l\'utilisation des séries. Veuillez d\'abord définir cette option dans Administration > Cycles.') ?></span>
+                                    </div>
+                                </div>
+
+                                <?php
+                                $isOrphanedSerie = !empty($classe['serie']) && !in_array($classe['serie'], array_column($series, 'nom_serie'), true);
+                                if ($isOrphanedSerie):
+                                ?>
+                                <div class="col-12" id="orphaned_serie_alert">
+                                    <div class="alert alert-warning py-2 mb-0 d-flex align-items-center">
+                                        <i class="ph-duotone ph-warning me-2 fs-5"></i>
+                                        <span><strong><?= _('Attention :') ?></strong> <?= sprintf(_('La série \'%s\' enregistrée pour cette classe ne figure plus dans le référentiel des séries de l\'établissement.'), htmlspecialchars($classe['serie'])) ?></span>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
+
                                 <!-- Niveau -->
                                 <div class="col-md-6">
                                     <label for="niveau" class="form-label"><?= _('Niveau') ?></label>
@@ -39,6 +58,9 @@
                                     <label for="serie" class="form-label"><?= _('Série') ?></label>
                                     <select name="serie" id="serie" class="form-select">
                                         <option value=""><?= _('-- Choisir une série --') ?></option>
+                                        <?php if ($isOrphanedSerie): ?>
+                                            <option value="<?= htmlspecialchars($classe['serie']) ?>" selected><?= htmlspecialchars($classe['serie']) ?> (<?= _('Non répertoriée') ?>)</option>
+                                        <?php endif; ?>
                                         <?php foreach ($series as $serie): ?>
                                             <option value="<?= htmlspecialchars($serie['nom_serie']) ?>" data-categorie="<?= htmlspecialchars($serie['categorie']) ?>" <?= ($classe['serie'] ?? '') == $serie['nom_serie'] ? 'selected' : '' ?>><?= htmlspecialchars($serie['nom_serie']) ?></option>
                                         <?php endforeach; ?>
@@ -66,7 +88,10 @@
                                     <label for="cycle_id" class="form-label"><?= _('Cycle') ?></label>
                                     <select name="cycle_id" id="cycle_id" class="form-select" required>
                                         <?php foreach ($cycles as $cycle): ?>
-                                            <option value="<?= $cycle['id_cycle'] ?>" data-nom-cycle="<?= htmlspecialchars($cycle['nom_cycle']) ?>" <?= $classe['cycle_id'] == $cycle['id_cycle'] ? 'selected' : '' ?>>
+                                            <option value="<?= $cycle['id_cycle'] ?>"
+                                                    data-nom-cycle="<?= htmlspecialchars($cycle['nom_cycle']) ?>"
+                                                    data-utilise-series="<?= ($cycle['utilise_series'] === null || $cycle['utilise_series'] === '') ? 'unconfigured' : (string)$cycle['utilise_series'] ?>"
+                                                    <?= $classe['cycle_id'] == $cycle['id_cycle'] ? 'selected' : '' ?>>
                                                 <?= htmlspecialchars($cycle['nom_cycle']) ?>
                                             </option>
                                         <?php endforeach; ?>
@@ -113,41 +138,47 @@
         const serieContainer = document.getElementById('serie_container');
         const categorieSelect = document.getElementById('categorie');
         const categorieContainer = document.getElementById('categorie_container');
+        const unconfiguredAlert = document.getElementById('unconfigured_cycle_alert');
 
-        function toggleSerieAndCategorie() {
-            const cycleId = cycleSelect.value;
-            const niveauInput = document.getElementById('niveau');
-            const niveau = niveauInput ? niveauInput.value : '';
+        function updateSerieAndCategorieVisibility(isUserAction) {
+            const selectedOpt = cycleSelect && cycleSelect.selectedIndex >= 0 ? cycleSelect.options[cycleSelect.selectedIndex] : null;
+            const utiliseSeriesAttr = selectedOpt ? selectedOpt.getAttribute('data-utilise-series') : '';
 
-            if (!cycleId || !niveau) return;
+            if (unconfiguredAlert) {
+                unconfiguredAlert.style.display = (utiliseSeriesAttr === 'unconfigured') ? 'block' : 'none';
+            }
 
-            fetch(`/classes/get-series?niveau=${encodeURIComponent(niveau)}&cycle_id=${cycleId}`)
-                .then(r => r.json())
-                .then(series => {
-                    if (series && series.length > 0) {
-                        serieContainer.style.display = 'block';
-                        categorieContainer.style.display = 'block';
-                    } else {
-                        serieContainer.style.display = 'none';
-                        categorieContainer.style.display = 'none';
-                        serieSelect.value = '';
-                        categorieSelect.value = '';
-                    }
-                });
+            if (utiliseSeriesAttr === '1') {
+                serieContainer.style.display = 'block';
+                categorieContainer.style.display = 'block';
+            } else {
+                serieContainer.style.display = 'none';
+                categorieContainer.style.display = 'none';
+                if (isUserAction) {
+                    serieSelect.value = '';
+                    categorieSelect.value = '';
+                }
+            }
         }
 
-        cycleSelect.addEventListener('change', toggleSerieAndCategorie);
+        if (cycleSelect) {
+            cycleSelect.addEventListener('change', function () {
+                updateSerieAndCategorieVisibility(true);
+            });
+        }
 
-        serieSelect.addEventListener('change', function () {
-            const selectedOption = this.options[this.selectedIndex];
-            const categorie = selectedOption ? selectedOption.getAttribute('data-categorie') : '';
-            if (categorie) {
-                categorieSelect.value = categorie;
-            }
-        });
+        if (serieSelect) {
+            serieSelect.addEventListener('change', function () {
+                const selectedOption = this.options[this.selectedIndex];
+                const categorie = selectedOption ? selectedOption.getAttribute('data-categorie') : '';
+                if (categorie) {
+                    categorieSelect.value = categorie;
+                }
+            });
+        }
 
-        // Initialize state on load
-        toggleSerieAndCategorie();
+        // Initialize state on load without wiping values
+        updateSerieAndCategorieVisibility(false);
     });
 </script>
 
