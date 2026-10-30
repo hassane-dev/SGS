@@ -43,6 +43,7 @@ class Auth {
                 'lycee_id' => $user->lycee_id,
                 'permissions' => $permissions,
                 'photo' => $user->photo,
+                'auth_version' => (int)($user->auth_version ?? 1),
             ];
             return true;
         }
@@ -60,13 +61,99 @@ class Auth {
     }
 
     /**
+     * Synchronizes active session state (role_id, role_name, permissions, lycee_id, auth_version)
+     * against the database.
+     * Re-checks user existence, active status (actif = 1), valid role_id, and auth_version.
+     * Fails closed (invalidates session and returns false) on inactive account, invalid role, or DB error.
+     *
+     * @return bool True if session is valid and synchronized; false otherwise.
+     */
+    public static function synchronizeSessionIfNeeded(): bool {
+        self::startSession();
+        $rawUserId = $_SESSION['user']['id'] ?? $_SESSION['user']['id_user'] ?? $_SESSION['user_id'] ?? null;
+        if (!$rawUserId) {
+            return false;
+        }
+
+        $userId = (int)$rawUserId;
+        $_SESSION['user']['id'] = $userId;
+
+        try {
+            $db = Database::getInstance();
+            $stmt = $db->prepare("SELECT id_user, role_id, lycee_id, actif, COALESCE(auth_version, 1) AS auth_version FROM utilisateurs WHERE id_user = :id");
+            $stmt->execute(['id' => $userId]);
+            $dbUser = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Fail closed if user was deleted or explicitly deactivated (actif === 0)
+            if (!$dbUser) {
+                self::revokeSession();
+                return false;
+            }
+
+            $isInactive = ($dbUser['actif'] !== null && (int)$dbUser['actif'] === 0);
+            if ($isInactive) {
+                self::revokeSession();
+                return false;
+            }
+
+            $dbVersion = (int)$dbUser['auth_version'];
+            $sessVersion = $_SESSION['user']['auth_version'] ?? null;
+            $currentRoleId = $_SESSION['user']['role_id'] ?? null;
+            $dbRoleId = !empty($dbUser['role_id']) ? (int)$dbUser['role_id'] : null;
+
+            if ($dbRoleId === null) {
+                self::revokeSession();
+                return false;
+            }
+
+            // Verify that role exists and is active
+            $stmtRole = $db->prepare("SELECT id_role, nom_role FROM roles WHERE id_role = :role_id");
+            $stmtRole->execute(['role_id' => $dbRoleId]);
+            $role = $stmtRole->fetch(PDO::FETCH_ASSOC);
+
+            if (!$role) {
+                // Role deleted or missing -> fail closed
+                self::revokeSession();
+                return false;
+            }
+
+            $permissions = Role::getPermissions($dbRoleId);
+
+            if ($sessVersion !== $dbVersion || $currentRoleId !== $dbRoleId) {
+                // Reset cycle authorization cache for the updated role or version
+                unset($_SESSION['user']['authorized_cycles']);
+            }
+
+            // Always synchronize role, permissions, lycee_id, and auth_version against DB
+            $_SESSION['user']['role_id'] = $dbRoleId;
+            $_SESSION['user']['role_name'] = $role['nom_role'] ?? 'N/A';
+            $_SESSION['user']['lycee_id'] = $dbUser['lycee_id'];
+            $_SESSION['user']['permissions'] = $permissions;
+            $_SESSION['user']['auth_version'] = $dbVersion;
+
+            return true;
+        } catch (Throwable $e) {
+            // DB errors fail closed to prevent stale privilege escalation
+            self::revokeSession();
+            return false;
+        }
+    }
+
+    /**
+     * Clear active user session on revocation or security failure.
+     */
+    private static function revokeSession(): void {
+        unset($_SESSION['user']);
+    }
+
+    /**
      * Check if a user is logged in.
      *
      * @return bool True if logged in, false otherwise.
      */
     public static function check() {
         self::startSession();
-        return isset($_SESSION['user']);
+        return self::synchronizeSessionIfNeeded();
     }
 
     /**
@@ -76,6 +163,9 @@ class Auth {
      */
     public static function user() {
         self::startSession();
+        if (!self::synchronizeSessionIfNeeded()) {
+            return null;
+        }
         return $_SESSION['user'] ?? null;
     }
 
@@ -87,11 +177,10 @@ class Auth {
      */
     public static function get($key) {
         self::startSession();
-        // Support both 'id' and 'id_user' interchangeably as aliases
-        if ($key === 'id_user') {
-            return $_SESSION['user']['id'] ?? null;
+        if (!self::synchronizeSessionIfNeeded()) {
+            return null;
         }
-        if ($key === 'id') {
+        if ($key === 'id_user' || $key === 'id') {
             return $_SESSION['user']['id'] ?? null;
         }
         return $_SESSION['user'][$key] ?? null;
@@ -106,51 +195,41 @@ class Auth {
     public static function can(string $action, string $resource): bool {
         self::startSession();
 
-        // Dynamic permission refreshing to keep sessions in sync with base updates real-time
-        $role_id = self::get('role_id');
-        if ($role_id) {
-            try {
-                $permissions = Role::getPermissions($role_id);
-                $_SESSION['user']['permissions'] = $permissions;
-            } catch (Exception $e) {
-                $permissions = self::get('permissions');
-            }
-        } else {
-            $permissions = self::get('permissions');
+        if (!self::synchronizeSessionIfNeeded()) {
+            self::logDebug($action, $resource, false, "Session synchronization failed", null);
+            return false;
         }
 
+        $permissions = $_SESSION['user']['permissions'] ?? null;
+        $role_id = $_SESSION['user']['role_id'] ?? null;
+
         if (!is_array($permissions)) {
-            $result = false;
-            self::logDebug($action, $resource, $result, "No permissions loaded", $role_id);
+            self::logDebug($action, $resource, false, "No permissions loaded", $role_id);
             return false;
         }
 
         if (isset($permissions[$resource])) {
             // Wildcard '*' resolves all actions on the resource
-            if (in_array('*', $permissions[$resource])) {
-                $result = true;
-                self::logDebug($action, $resource, $result, "Wildcard '*' matched", $role_id);
+            if (in_array('*', $permissions[$resource], true)) {
+                self::logDebug($action, $resource, true, "Wildcard '*' matched", $role_id);
                 return true;
             }
 
             // Direct action match
-            if (in_array($action, $permissions[$resource])) {
-                $result = true;
-                self::logDebug($action, $resource, $result, "Direct action match", $role_id);
+            if (in_array($action, $permissions[$resource], true)) {
+                self::logDebug($action, $resource, true, "Direct action match", $role_id);
                 return true;
             }
 
             // Hierarchy: 'manage' englobes standard CRUD 'view', 'create', 'edit', 'delete'
             $standard_crud = ['view', 'create', 'edit', 'delete', 'view_all', 'view_one'];
-            if (in_array($action, $standard_crud) && in_array('manage', $permissions[$resource])) {
-                $result = true;
-                self::logDebug($action, $resource, $result, "Hierarchy 'manage' matched", $role_id);
+            if (in_array($action, $standard_crud, true) && in_array('manage', $permissions[$resource], true)) {
+                self::logDebug($action, $resource, true, "Hierarchy 'manage' matched", $role_id);
                 return true;
             }
         }
 
-        $result = false;
-        self::logDebug($action, $resource, $result, "No matching permission found", $role_id);
+        self::logDebug($action, $resource, false, "No matching permission found", $role_id);
         return false;
     }
 
@@ -169,11 +248,17 @@ class Auth {
 
     public static function getLyceeId() {
         self::startSession();
+        if (!self::synchronizeSessionIfNeeded()) {
+            return null;
+        }
         return $_SESSION['user']['lycee_id'] ?? null;
     }
 
     public static function getUserId() {
         self::startSession();
+        if (!self::synchronizeSessionIfNeeded()) {
+            return null;
+        }
         return $_SESSION['user']['id'] ?? $_SESSION['user']['id_user'] ?? $_SESSION['user_id'] ?? null;
     }
 

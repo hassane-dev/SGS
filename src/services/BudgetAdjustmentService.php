@@ -15,9 +15,7 @@ class BudgetAdjustmentService {
      */
     public static function transferBudget($sourceLineId, $destLineId, $amount, $userId, $reason) {
         if (!Auth::can('transfer', 'budget')) {
-            if (!isset($_SESSION['user']['permissions']['budget']) || !in_array('transfer', $_SESSION['user']['permissions']['budget'])) {
-                throw new Exception("FORBIDDEN : Action de transfert budgétaire non autorisée.");
-            }
+            throw new Exception("FORBIDDEN : Action de transfert budgétaire non autorisée.");
         }
 
         if (empty($reason)) {
@@ -95,9 +93,7 @@ class BudgetAdjustmentService {
      */
     public static function allocateExtra($ligneId, $amount, $userId, $reason) {
         if (!Auth::can('adjust', 'budget')) {
-            if (!isset($_SESSION['user']['permissions']['budget']) || !in_array('adjust', $_SESSION['user']['permissions']['budget'])) {
-                throw new Exception("FORBIDDEN : Action de dotation budgétaire exceptionnelle non autorisée.");
-            }
+            throw new Exception("FORBIDDEN : Action de dotation budgétaire exceptionnelle non autorisée.");
         }
 
         if (empty($reason)) {

@@ -7,6 +7,7 @@ require_once __DIR__ . '/../models/BudgetLigne.php';
 require_once __DIR__ . '/../models/BudgetEngagement.php';
 require_once __DIR__ . '/../models/BudgetHistorique.php';
 require_once __DIR__ . '/../models/Depense.php';
+require_once __DIR__ . '/../core/Auth.php';
 
 class BudgetService {
 
@@ -29,7 +30,12 @@ class BudgetService {
     /**
      * Reserve a budget amount for a given expense or a polymorphic source
      */
-    public static function reserve($depenseId, $amount, $ligneId, $sourceType = null, $sourceId = null) {
+    public static function reserve($depenseId, $amount, $ligneId, $sourceType = null, $sourceId = null, $userId = null) {
+        $resolvedUserId = $userId !== null ? (int)$userId : (int)Auth::getUserId();
+        if ($resolvedUserId <= 0) {
+            throw new Exception("Opération refusée : aucun utilisateur authentifié valide pour effectuer la réservation budgétaire.");
+        }
+
         $db = Database::getInstance();
         $inTransaction = $db->inTransaction();
         if (!$inTransaction) {
@@ -69,7 +75,7 @@ class BudgetService {
                 $db->query("SELECT lycee_id FROM budgets WHERE id = " . $ligne['budget_id'])->fetchColumn(),
                 'BudgetExceeded', // Just general event or BudgetReserved
                 "Réservation budgétaire de $amount pour $label sur la ligne ID: $ligneId.",
-                $_SESSION['user']['id_user'] ?? 1
+                $resolvedUserId
             );
 
             if (!$inTransaction) {

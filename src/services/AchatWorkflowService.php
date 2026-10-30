@@ -282,7 +282,12 @@ class AchatWorkflowService {
         }
     }
 
-    public static function createFacture($lyceeId, $fournisseurId, $commandeId, $receptionId, $referenceFacture, $dateFacture, $dateEcheance, $items) {
+    public static function createFacture($lyceeId, $fournisseurId, $commandeId, $receptionId, $referenceFacture, $dateFacture, $dateEcheance, $items, $userId = null) {
+        $resolvedUserId = $userId !== null ? (int)$userId : (int)Auth::getUserId();
+        if ($resolvedUserId <= 0) {
+            throw new Exception("Opération refusée : aucun utilisateur authentifié valide pour enregistrer la facture d'achat.");
+        }
+
         $db = Database::getInstance();
         $db->beginTransaction();
 
@@ -412,7 +417,7 @@ class AchatWorkflowService {
                 'libelle_ligne' => $libellePiece
             ];
 
-            $pieceId = ComptabiliteService::enregistrerPiece($journalId, $libellePiece, $dateFacture, 'achat_factures', $factureId, $entries, $_SESSION['user']['id_user'] ?? 1);
+            $pieceId = ComptabiliteService::enregistrerPiece($journalId, $libellePiece, $dateFacture, 'achat_factures', $factureId, $entries, $resolvedUserId);
             AchatFacture::updatePieceComptable($factureId, $pieceId);
 
             $db->commit();
