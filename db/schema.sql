@@ -2229,19 +2229,26 @@ CREATE TABLE paie_grilles_salariales (
 CREATE TABLE paie_periodes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     lycee_id INT NOT NULL,
-    exercice_financier_id INT NOT NULL,
+    periode_comptable_id INT NOT NULL,
     code_periode VARCHAR(30) NOT NULL,
-    libelle VARCHAR(100) NOT NULL,
+    mois TINYINT NOT NULL,
+    annee SMALLINT NOT NULL,
     date_debut DATE NOT NULL,
     date_fin DATE NOT NULL,
-    statut VARCHAR(30) NOT NULL DEFAULT 'ouverte',
-    date_cloture DATETIME NULL,
+    statut VARCHAR(30) NOT NULL DEFAULT 'brouillon',
+    cree_par INT NOT NULL,
+    valide_par INT NULL,
     cloture_par INT NULL,
     created_at DATETIME NOT NULL,
-    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
-    FOREIGN KEY (exercice_financier_id) REFERENCES exercices_financiers(id) ON DELETE RESTRICT,
+    updated_at DATETIME NOT NULL,
+    closed_at DATETIME NULL,
+    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE RESTRICT,
+    FOREIGN KEY (periode_comptable_id) REFERENCES comptabilite_periodes(id) ON DELETE RESTRICT,
+    FOREIGN KEY (cree_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+    FOREIGN KEY (valide_par) REFERENCES utilisateurs(id_user) ON DELETE SET NULL,
     FOREIGN KEY (cloture_par) REFERENCES utilisateurs(id_user) ON DELETE SET NULL,
-    UNIQUE KEY uk_paie_per_code (lycee_id, code_periode)
+    UNIQUE KEY uk_lycee_periode (lycee_id, annee, mois),
+    INDEX idx_paie_per_statut (lycee_id, statut)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table `paie_regles`
