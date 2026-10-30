@@ -31,9 +31,7 @@ class PaieCahierTexteController {
         $limit = isset($_GET['limit']) ? ($_GET['limit'] === 'all' ? null : (int)$_GET['limit']) : null;
 
         // Fetch payroll periods
-        $stmtPer = $db->prepare("SELECT * FROM paie_periodes WHERE lycee_id = :lycee_id ORDER BY annee DESC, mois DESC");
-        $stmtPer->execute(['lycee_id' => $lyceeId]);
-        $periodes = $stmtPer->fetchAll(PDO::FETCH_ASSOC);
+        $periodes = PaiePeriode::findAllForLycee($lyceeId);
 
         $selectedPeriode = null;
         $periodeId = null;

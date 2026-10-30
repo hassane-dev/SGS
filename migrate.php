@@ -1253,6 +1253,9 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_34_fix_sys_idempotency_keys_schema.php';
     migrate_34($db);
 
+    require_once __DIR__ . '/db/migrations/20240115_35_fix_paie_periodes_schema.php';
+    migrate_35($db);
+
     echo "Migration successful\n";
 } catch (Exception $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";
