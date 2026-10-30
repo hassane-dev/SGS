@@ -22,6 +22,7 @@ class User {
     public $actif;
     public $photo;
     public $identifiant_public;
+    public $auth_version;
 
     public function __construct($data = []) {
         if (!empty($data)) {
@@ -43,6 +44,7 @@ class User {
             $this->actif = $data['actif'] ?? true;
             $this->photo = $data['photo'] ?? null;
             $this->identifiant_public = $data['identifiant_public'] ?? null;
+            $this->auth_version = $data['auth_version'] ?? 1;
         }
     }
 
@@ -309,6 +311,13 @@ class User {
 
         $newUserId = $isUpdate ? (int)$data['id_user'] : (int)$db->lastInsertId();
 
+        if ($isUpdate) {
+            try {
+                require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+                AuthorizationScopeService::invalidateUserCache($newUserId);
+            } catch (Throwable $e) {}
+        }
+
         if (!empty($resolvedLyceeId)) {
             try {
                 require_once __DIR__ . '/../services/SurveillantAssignmentService.php';
@@ -333,6 +342,9 @@ class User {
         try {
             require_once __DIR__ . '/../services/SurveillantAssignmentService.php';
             SurveillantAssignmentService::archiveUserAssignments((int)$id);
+
+            require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+            AuthorizationScopeService::invalidateUserCache((int)$id);
 
             $stmt = $db->prepare("DELETE FROM utilisateurs WHERE id_user = :id");
             $res = $stmt->execute(['id' => $id]);

@@ -55,11 +55,13 @@ class AuthorizationScopeService {
         $stmt_ver->execute(['id' => $user_id]);
         $db_version = (int)$stmt_ver->fetchColumn() ?: 1;
 
+        $sess_user_id = $_SESSION['user']['authorized_cycles_user_id'] ?? null;
         $sess_version = $_SESSION['user']['auth_version'] ?? null;
 
-        // Invalidate cache if there's a version mismatch
-        if ($sess_version !== $db_version) {
+        // Invalidate cache if there's a user mismatch or version mismatch
+        if ($sess_user_id !== $user_id || $sess_version !== $db_version) {
             unset($_SESSION['user']['authorized_cycles']);
+            $_SESSION['user']['authorized_cycles_user_id'] = $user_id;
             $_SESSION['user']['auth_version'] = $db_version;
         }
 
@@ -572,18 +574,32 @@ class AuthorizationScopeService {
      * Invalidates a user's authorization cache by incrementing their auth_version in the DB.
      */
     public static function invalidateUserCache($user_id) {
+        if (!$user_id) return;
         $db = Database::getInstance();
         $stmt = $db->prepare("UPDATE utilisateurs SET auth_version = auth_version + 1 WHERE id_user = :id");
         $stmt->execute(['id' => $user_id]);
 
-        // If it's the current user, unset their session cache immediately
+        // If it's the current user, force session re-synchronization immediately
         self::startSession();
         if (Auth::check() && Auth::getUserId() == $user_id) {
             unset($_SESSION['user']['authorized_cycles']);
-            // Refresh version in session
-            $stmt_ver = $db->prepare("SELECT auth_version FROM utilisateurs WHERE id_user = :id");
-            $stmt_ver->execute(['id' => $user_id]);
-            $_SESSION['user']['auth_version'] = (int)$stmt_ver->fetchColumn() ?: 1;
+            Auth::synchronizeSessionIfNeeded();
+        }
+    }
+
+    /**
+     * Invalidates authorization cache for all users assigned to a specific role_id.
+     */
+    public static function invalidateRoleCache($role_id) {
+        if (!$role_id) return;
+        $db = Database::getInstance();
+        $stmt = $db->prepare("UPDATE utilisateurs SET auth_version = auth_version + 1 WHERE role_id = :role_id");
+        $stmt->execute(['role_id' => $role_id]);
+
+        self::startSession();
+        if (Auth::check() && Auth::get('role_id') == $role_id) {
+            unset($_SESSION['user']['authorized_cycles']);
+            Auth::synchronizeSessionIfNeeded();
         }
     }
 

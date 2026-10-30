@@ -88,7 +88,7 @@ class BudgetControlService {
         }
 
         // If insufficient, check for budget override permission
-        if (Auth::can('override', 'budget') || (isset($_SESSION['user']['permissions']['budget']) && in_array('override', $_SESSION['user']['permissions']['budget']))) {
+        if (Auth::can('override', 'budget')) {
             // Log the exceptional override
             BudgetHistorique::log(
                 $lyceeId,

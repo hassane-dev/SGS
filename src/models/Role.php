@@ -68,6 +68,8 @@ class Role {
 
     public static function delete($id) {
         $db = Database::getInstance();
+        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+        AuthorizationScopeService::invalidateRoleCache($id);
         $stmt = $db->prepare("DELETE FROM roles WHERE id_role = :id");
         return $stmt->execute(['id' => $id]);
     }
@@ -119,6 +121,10 @@ class Role {
                 $stmt_insert->execute(['role_id' => $role_id, 'permission_id' => $permission_id]);
             }
         }
+
+        // Invalidate cache for all users assigned to this role
+        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+        AuthorizationScopeService::invalidateRoleCache($role_id);
     }
 }
 ?>

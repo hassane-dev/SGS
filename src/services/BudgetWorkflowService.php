@@ -112,9 +112,6 @@ class BudgetWorkflowService {
 
     private static function checkPermission($action, $resource) {
         if (!Auth::can($action, $resource)) {
-            if (isset($_SESSION['user']['permissions'][$resource]) && in_array($action, $_SESSION['user']['permissions'][$resource])) {
-                return true;
-            }
             throw new Exception("FORBIDDEN : Action non autorisée pour votre profil utilisateur.");
         }
     }
