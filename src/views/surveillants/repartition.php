@@ -38,6 +38,19 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
                             <?= csrf_field() ?>
 
                             <div class="mb-3">
+                                <label class="form-label fw-bold"><?= _("Cycle Cible") ?></label>
+                                <select name="cycle_id" id="sel_repartition_cycle_id" class="form-select" onchange="filterRepartitionByCycle(this.value);">
+                                    <option value=""><?= _("-- Tous les cycles --") ?></option>
+                                    <?php if (!empty($cycles)): ?>
+                                        <?php foreach ($cycles as $cy): ?>
+                                            <option value="<?= $cy['id_cycle'] ?>"><?= htmlspecialchars($cy['nom_cycle']) ?></option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                                <div class="form-text small"><?= _("Sélectionner un cycle pour filtrer automatiquement les classes et les surveillants autorisés.") ?></div>
+                            </div>
+
+                            <div class="mb-3">
                                 <label class="form-label fw-bold"><?= _("Mode de Répartition") ?> *</label>
                                 <select name="mode" id="sel_mode" class="form-select" onchange="toggleModeParams();">
                                     <option value="equitable"><?= _("Équitable (Nombre égal de classes par surveillant)") ?></option>
@@ -137,6 +150,56 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
 
 <script>
 let currentProposal = null;
+
+function filterRepartitionByCycle(cycleId) {
+    fetch('/surveillants/ajax-filter-by-cycle?cycle_id=' + cycleId)
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success) return;
+
+        // Update classes checkboxes
+        const containerClasses = document.querySelector('#formProposeDistribution .border[style*="max-height: 200px"]');
+        if (containerClasses) {
+            if (data.classes.length === 0) {
+                containerClasses.innerHTML = '<p class="text-muted small mb-0 p-2">Aucune classe disponible pour ce cycle.</p>';
+            } else {
+                let htmlC = '';
+                data.classes.forEach(c => {
+                    htmlC += `
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="classe_ids[]" value="${c.id_classe}" id="chk_c_${c.id_classe}" checked>
+                            <label class="form-check-label" for="chk_c_${c.id_classe}">
+                                ${c.niveau} ${c.serie || ''} ${c.numero || ''}
+                            </label>
+                        </div>
+                    `;
+                });
+                containerClasses.innerHTML = htmlC;
+            }
+        }
+
+        // Update surveillants checkboxes
+        const containerSurv = document.querySelector('#formProposeDistribution .border[style*="max-height: 150px"]');
+        if (containerSurv) {
+            if (data.surveillants.length === 0) {
+                containerSurv.innerHTML = '<p class="text-muted small mb-0 p-2">Aucun surveillant autorisé sur ce cycle.</p>';
+            } else {
+                let htmlS = '';
+                data.surveillants.forEach(s => {
+                    htmlS += `
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="surveillant_ids[]" value="${s.id_user}" id="chk_s_${s.id_user}" checked>
+                            <label class="form-check-label" for="chk_s_${s.id_user}">
+                                ${s.prenom} ${s.nom}
+                            </label>
+                        </div>
+                    `;
+                });
+                containerSurv.innerHTML = htmlS;
+            }
+        }
+    });
+}
 
 function toggleModeParams() {
     const val = document.getElementById('sel_mode').value;

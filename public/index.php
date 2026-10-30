@@ -566,6 +566,7 @@ $router->register('/surveillants/store-assignment', 'SurveillantAssignmentContro
 $router->register('/surveillants/store-group', 'SurveillantAssignmentController', 'storeGroup');
 $router->register('/surveillants/terminate', 'SurveillantAssignmentController', 'terminateAssignment');
 $router->register('/surveillants/delete-group', 'SurveillantAssignmentController', 'deleteGroup');
+$router->register('/surveillants/ajax-filter-by-cycle', 'SurveillantAssignmentController', 'ajaxFilterByCycle');
 
 // Affectations Pédagogiques Routes
 $router->register('/affectations-pedagogiques', 'AffectationPedagogiqueController', 'index');
