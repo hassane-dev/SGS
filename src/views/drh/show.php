@@ -804,7 +804,7 @@
                         </div>
                     </div>
 
-                    <?php if ($can_view_sensitive): ?>
+                    <?php if (Auth::can('manage_salaires', 'drh')): ?>
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
                             <label class="form-label"><?= _('Salaire de Base Contractuel') ?></label>
@@ -812,7 +812,7 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label"><?= _('Mode de Calcul') ?></label>
-                            <select name="mode_calcul_principal" class="form-select">
+                            <select name="mode_calcul_principal" id="modal_mode_calcul" class="form-select" onchange="toggleModalVolumeHoraire()">
                                 <option value="forfait_fixe"><?= _('Forfait Fixe') ?></option>
                                 <option value="taux_horaire"><?= _('Taux Horaire') ?></option>
                                 <option value="taux_journalier"><?= _('Taux Journalier') ?></option>
@@ -820,13 +820,30 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label"><?= _('Périodicité') ?></label>
+                            <label class="form-label"><?= _('Unité de Rémunération') ?></label>
+                            <select name="unite_remuneration" class="form-select">
+                                <option value="mois"><?= _('Par Mois') ?></option>
+                                <option value="heure"><?= _('Par Heure') ?></option>
+                                <option value="jour"><?= _('Par Jour') ?></option>
+                                <option value="prestation"><?= _('Par Prestation') ?></option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label"><?= _('Périodicité de Paiement') ?></label>
                             <select name="periodicite_paiement" class="form-select">
                                 <option value="mensuel"><?= _('Mensuel') ?></option>
                                 <option value="bi_mensuel"><?= _('Bi-mensuel / Quinzaine') ?></option>
                                 <option value="hebdomadaire"><?= _('Hebdomadaire') ?></option>
                                 <option value="a_la_prestation"><?= _('À la prestation') ?></option>
                             </select>
+                        </div>
+                        <div class="col-md-4 d-none" id="modal_volume_horaire_container">
+                            <label class="form-label"><?= _('Volume Horaire Mensuel (H)') ?></label>
+                            <input type="number" step="0.01" name="volume_horaire_mensuel" class="form-control" placeholder="ex: 173.33">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label"><?= _('Devise') ?></label>
+                            <input type="text" name="devise" class="form-control" placeholder="FCFA">
                         </div>
                     </div>
                     <?php endif; ?>
@@ -1057,12 +1074,25 @@
 </div>
 
 <script>
+function toggleModalVolumeHoraire() {
+    const modeSelect = document.getElementById('modal_mode_calcul');
+    const volContainer = document.getElementById('modal_volume_horaire_container');
+    if (volContainer) {
+        if (modeSelect && modeSelect.value === 'taux_horaire') {
+            volContainer.classList.remove('d-none');
+        } else {
+            volContainer.classList.add('d-none');
+        }
+    }
+}
+
 function openNewContractModal() {
     const modalEl = document.getElementById('newContractModal');
     const form = modalEl.querySelector('form');
     form.reset();
     form.querySelector('input[name="id"]')?.remove();
     modalEl.querySelector('.modal-title span').textContent = '<?= _('Nouveau Contrat / Avenant Administratif') ?>';
+    toggleModalVolumeHoraire();
     const bsModal = new bootstrap.Modal(modalEl);
     bsModal.show();
 }
@@ -1091,14 +1121,24 @@ function prepareAmendment(contractData) {
     if (form.querySelector('select[name="mode_calcul_principal"]')) {
         form.querySelector('select[name="mode_calcul_principal"]').value = contractData.mode_calcul_principal || 'forfait_fixe';
     }
+    if (form.querySelector('select[name="unite_remuneration"]')) {
+        form.querySelector('select[name="unite_remuneration"]').value = contractData.unite_remuneration || 'mois';
+    }
     if (form.querySelector('select[name="periodicite_paiement"]')) {
         form.querySelector('select[name="periodicite_paiement"]').value = contractData.periodicite_paiement || 'mensuel';
+    }
+    if (form.querySelector('input[name="volume_horaire_mensuel"]')) {
+        form.querySelector('input[name="volume_horaire_mensuel"]').value = contractData.volume_horaire_mensuel || '';
+    }
+    if (form.querySelector('input[name="devise"]')) {
+        form.querySelector('input[name="devise"]').value = contractData.devise || '';
     }
     if (form.querySelector('select[name="type_avenant"]')) {
         form.querySelector('select[name="type_avenant"]').value = 'revalorisation_salariale';
     }
 
     modalEl.querySelector('.modal-title span').textContent = '<?= _('Créer un Avenant au Contrat') ?> v' + (contractData.version_num || 1);
+    toggleModalVolumeHoraire();
     const bsModal = new bootstrap.Modal(modalEl);
     bsModal.show();
 }

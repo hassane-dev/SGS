@@ -39,9 +39,9 @@ class PersonnelHistoryService {
     public static function getHistoryForPersonnel(int $personnel_id): array {
         $db = Database::getInstance();
         $stmt = $db->prepare("
-            SELECT m.*, CONCAT(u.prenom, ' ', u.nom) AS auteur_nom, c.nom_cycle
+            SELECT m.*, COALESCE(CONCAT(u.prenom, ' ', u.nom), 'Système') AS auteur_nom, c.nom_cycle
             FROM personnel_historique_mouvements m
-            JOIN utilisateurs u ON m.auteur_id = u.id_user
+            LEFT JOIN utilisateurs u ON m.auteur_id = u.id_user
             LEFT JOIN cycles c ON m.cycle_id = c.id_cycle
             WHERE m.personnel_id = :personnel_id
             ORDER BY m.date_mouvement DESC, m.id DESC

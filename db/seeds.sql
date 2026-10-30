@@ -194,6 +194,7 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (184, 'drh', 'create_amendments', 'Créer un avenant à un contrat existant'),
 (185, 'drh', 'view_contract_history', 'Consulter l''historique des versions et avenants de contrat'),
 (186, 'drh', 'view_contract_documents', 'Consulter les pièces jointes contractuelles'),
+(187, 'drh', 'manage_salaires', 'Créer et modifier les rémunérations et paramètres salariaux'),
 
 -- Exercices Financiers et Périodes Comptables
 (190, 'comptabilite', 'view', 'Consulter les exercices financiers et périodes comptables'),
@@ -340,7 +341,7 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 -- Exercices & Périodes Comptables
 (9, 190), (9, 191), (9, 192), (9, 193), (9, 194),
 -- Module DRH
-(9, 170), (9, 171), (9, 176), (9, 179), (9, 181),
+(9, 170), (9, 171), (9, 176), (9, 179), (9, 181), (9, 187),
 -- Module Paie (Complet)
 (9, 200), (9, 201), (9, 211), (9, 202), (9, 203), (9, 204), (9, 205), (9, 206), (9, 207), (9, 208), (9, 209), (9, 210), (9, 212);
 

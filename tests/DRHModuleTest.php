@@ -86,7 +86,7 @@ try {
     $_SESSION['user'] = [
         'id' => 1,
         'lycee_id' => $lycee_a_id,
-        'role_id' => 1, // Super Admin
+        'role_id' => null, // Mocked session
         'permissions' => [
             'lycee' => ['view_all_lycees'],
             'cycle' => ['view_all_cycles'],
@@ -189,7 +189,7 @@ try {
     $_SESSION['user'] = [
         'id' => 1,
         'lycee_id' => $lycee_a_id,
-        'role_id' => 1,
+        'role_id' => null,
         'permissions' => [
             'lycee' => ['view_all_lycees'],
             'cycle' => ['view_all_cycles'],

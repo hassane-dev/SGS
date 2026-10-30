@@ -86,8 +86,9 @@ class PaieWorkflowService {
             // 1. Check existing active bulletin
             $existingB = PaieBulletin::findActiveForContractAndPeriod($personnelId, $entiteJuridiqueId, $contratId, $periodePaieId);
 
-            // 2. Fetch validated hours
-            $validatedSessions = PaieCahierTexteValidation::findValidatedForTeacherAndDates($personnelId, $periode['date_debut'], $periode['date_fin']);
+            // 2. Fetch validated hours scoped to contract cycle if available
+            $cycleId = !empty($c['cycle_id']) ? (int)$c['cycle_id'] : null;
+            $validatedSessions = PaieCahierTexteValidation::findValidatedForTeacherAndDates($personnelId, $periode['date_debut'], $periode['date_fin'], $cycleId);
             $heuresValideesCount = count($validatedSessions);
             $totalHeuresValidees = 0.0;
             $totalMontantHeuresValidees = 0.0;
@@ -207,8 +208,45 @@ class PaieWorkflowService {
             return (int)$existing['id'];
         }
 
-        // 3. Fetch validated teacher hours for the period
-        $cahierValidations = PaieCahierTexteValidation::findValidatedForTeacherAndDates($personnelId, $periode['date_debut'], $periode['date_fin']);
+        // 3. Server-side validation for hourly rate contracts
+        $cycleId = !empty($c['cycle_id']) ? (int)$c['cycle_id'] : null;
+        $modeCalcul = strtolower($c['mode_calcul_principal'] ?? ($c['type_paiement'] ?? 'forfait_fixe'));
+        if ($modeCalcul === 'taux_horaire' || $modeCalcul === 'horaire' || $modeCalcul === 'a_l_heure') {
+            $contractRate = (float)($c['salaire_base'] ?? 0.00);
+            if ($contractRate <= 0) {
+                $stmtCompTh = $db->prepare("
+                    SELECT valeur_numerique FROM personnel_contrat_composants
+                    WHERE contrat_id = :cid
+                      AND (code_composant = 'TAUX_HORAIRE' OR nature_composant = 'taux_horaire')
+                      AND valeur_numerique > 0
+                    LIMIT 1
+                ");
+                $stmtCompTh->execute(['cid' => $contratId]);
+                $contractRate = (float)($stmtCompTh->fetchColumn() ?: 0.00);
+            }
+
+            // Fetch validated teacher hours for the period (scoped to contract cycle)
+            $cahierValidations = PaieCahierTexteValidation::findValidatedForTeacherAndDates($personnelId, $periode['date_debut'], $periode['date_fin'], $cycleId);
+
+            $hasSessionRate = false;
+            foreach ($cahierValidations as $v) {
+                if ((float)($v['taux_horaire'] ?? 0) > 0) {
+                    $hasSessionRate = true;
+                    break;
+                }
+            }
+
+            if ($contractRate <= 0 && !$hasSessionRate) {
+                throw new InvalidArgumentException(_("Impossible de générer le bulletin : le contrat à taux horaire est incomplet (aucun taux horaire configuré sur le contrat ou les séances)."));
+            }
+
+            if (empty($cahierValidations)) {
+                throw new LogicException(_("Impossible de générer le bulletin : aucune séance d'enseignement validée pour ce contrat horaire sur la période."));
+            }
+        } else {
+            // Fetch validated teacher hours for the period
+            $cahierValidations = PaieCahierTexteValidation::findValidatedForTeacherAndDates($personnelId, $periode['date_debut'], $periode['date_fin'], $cycleId);
+        }
 
         // 4. Fetch contract components / allowances
         $stmtComp = $db->prepare("SELECT * FROM personnel_contrat_composants WHERE contrat_id = :id");
@@ -332,8 +370,9 @@ class PaieWorkflowService {
             $personnelId = (int)$c['personnel_id'];
             $contratId = (int)$c['id'];
 
-            // Fetch validated hours for period
-            $cahierValidations = PaieCahierTexteValidation::findValidatedForTeacherAndDates($personnelId, $periode['date_debut'], $periode['date_fin']);
+            // Fetch validated hours for period (scoped to contract cycle)
+            $cycleId = !empty($c['cycle_id']) ? (int)$c['cycle_id'] : null;
+            $cahierValidations = PaieCahierTexteValidation::findValidatedForTeacherAndDates($personnelId, $periode['date_debut'], $periode['date_fin'], $cycleId);
 
             // Fetch components
             $components = PersonnelContractService::getComponentsForContract($contratId);

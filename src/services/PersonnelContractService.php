@@ -66,10 +66,12 @@ class PersonnelContractService {
         $db = Database::getInstance();
         $stmt = $db->prepare("
             SELECT pch.*, tc.libelle AS contrat_libelle, tc.type_paiement, tc.prise_en_charge,
-                   pej.raison_sociale AS employeur_nom, pej.sigle AS employeur_sigle
+                   pej.raison_sociale AS employeur_nom, pej.sigle AS employeur_sigle,
+                   pah.cycle_id
             FROM personnel_contrats_historique pch
             LEFT JOIN type_contrat tc ON pch.type_contrat_id = tc.id_contrat
             LEFT JOIN paie_entites_juridiques pej ON pch.entite_juridique_id = pej.id
+            LEFT JOIN personnel_affectations_historique pah ON (pah.personnel_id = pch.personnel_id AND pah.actif = 1)
             WHERE pch.personnel_id = :personnel_id
             ORDER BY pch.date_debut DESC, pch.id DESC
         ");
@@ -112,7 +114,8 @@ class PersonnelContractService {
         $db = Database::getInstance();
 
         $sql = "
-            SELECT c.*, u.nom, u.prenom, u.identifiant_public, u.email, tc.libelle AS contrat_libelle
+            SELECT c.*, u.nom, u.prenom, u.identifiant_public, u.email, tc.libelle AS contrat_libelle,
+                   pah.cycle_id
             FROM paie_periodes p
             JOIN personnel_contrats_historique c ON (
                 c.statut_contrat = 'actif'
@@ -121,8 +124,27 @@ class PersonnelContractService {
             )
             JOIN utilisateurs u ON c.personnel_id = u.id_user
             LEFT JOIN type_contrat tc ON c.type_contrat_id = tc.id_contrat
+            LEFT JOIN personnel_affectations_historique pah ON (pah.personnel_id = u.id_user AND pah.actif = 1 AND (pah.date_fin IS NULL OR pah.date_fin >= p.date_debut))
             WHERE p.id = :periode_id
               AND u.actif = 1
+              /*
+               * Payroll Eligibility Rules across the 4 calculation modes:
+               * - forfait_fixe & taux_journalier: eligible if base rate/salary > 0 or has active salary components.
+               *   Incomplete contracts (salaire_base = 0 and no components) are strictly excluded.
+               * - taux_horaire: eligible for teaching session validation lookup in PaieWorkflowService.
+               * - commission: eligible for variable commission calculation.
+               */
+              AND (
+                  c.salaire_base > 0
+                  OR c.mode_calcul_principal = 'taux_horaire'
+                  OR c.mode_calcul_principal = 'commission'
+                  OR (
+                      EXISTS (
+                          SELECT 1 FROM personnel_contrat_composants pcc
+                          WHERE pcc.contrat_id = c.id AND pcc.valeur_numerique > 0
+                      )
+                  )
+              )
         ";
         $params = ['periode_id' => $periodePaieId];
 
@@ -231,26 +253,79 @@ class PersonnelContractService {
             if ($cached) return true;
         }
 
+        $db = Database::getInstance();
+
         $personnel_id = (int)$data['personnel_id'];
         $type_contrat_id = (int)$data['type_contrat_id'];
         $entite_juridique_id = !empty($data['entite_juridique_id']) ? (int)$data['entite_juridique_id'] : null;
         $date_debut = $data['date_debut'];
         $date_fin = !empty($data['date_fin']) ? $data['date_fin'] : null;
-        $salaire_base = (float)($data['salaire_base'] ?? 0.00);
-        $volume_horaire = !empty($data['volume_horaire_mensuel']) ? (float)$data['volume_horaire_mensuel'] : null;
         $statut_contrat = $data['statut_contrat'] ?? 'actif';
         $commentaire = $data['commentaire'] ?? null;
-        $mode_calcul = $data['mode_calcul_principal'] ?? 'forfait_fixe';
-        $unite_rem = $data['unite_remuneration'] ?? 'mois';
-        $periodicite = $data['periodicite_paiement'] ?? 'mensuel';
         $periode_essai = (int)($data['periode_essai_jours'] ?? 0);
         $statut_essai = $data['statut_essai'] ?? ($periode_essai > 0 ? 'en_cours' : 'non_applicable');
         $type_avenant = $data['type_avenant'] ?? null;
         $avenant_numero = $data['avenant_numero'] ?? null;
         $id = !empty($data['id']) ? (int)$data['id'] : null;
 
-        // Fetch user lycee_id for currency resolution
-        $db = Database::getInstance();
+        // Financial write access is EXCLUSIVELY granted by 'drh:manage_salaires'.
+        // 'drh:view_sensitive' is strictly for read consultation and MUST NEVER grant financial write access.
+        $hasFinancialAccess = Auth::can('manage_salaires', 'drh');
+
+        // Look up previous active contract if creating an avenant or updating
+        $existingContract = null;
+        if ($id) {
+            $stmt_old_f = $db->prepare("SELECT * FROM personnel_contrats_historique WHERE id = :id");
+            $stmt_old_f->execute(['id' => $id]);
+            $existingContract = $stmt_old_f->fetch(PDO::FETCH_ASSOC);
+        } else {
+            $existingContract = self::getActiveContract($personnel_id);
+        }
+
+        if ($hasFinancialAccess) {
+            // Authorized user providing salary data
+            $salaire_base = array_key_exists('salaire_base', $data) && $data['salaire_base'] !== '' && $data['salaire_base'] !== null
+                ? (float)$data['salaire_base']
+                : ($existingContract ? (float)$existingContract['salaire_base'] : 0.00);
+
+            $mode_calcul = !empty($data['mode_calcul_principal'])
+                ? $data['mode_calcul_principal']
+                : ($existingContract ? $existingContract['mode_calcul_principal'] : 'forfait_fixe');
+
+            $unite_rem = !empty($data['unite_remuneration'])
+                ? $data['unite_remuneration']
+                : ($existingContract ? $existingContract['unite_remuneration'] : 'mois');
+
+            $periodicite = !empty($data['periodicite_paiement'])
+                ? $data['periodicite_paiement']
+                : ($existingContract ? $existingContract['periodicite_paiement'] : 'mensuel');
+
+            $volume_horaire = array_key_exists('volume_horaire_mensuel', $data) && $data['volume_horaire_mensuel'] !== '' && $data['volume_horaire_mensuel'] !== null
+                ? (float)$data['volume_horaire_mensuel']
+                : ($existingContract && isset($existingContract['volume_horaire_mensuel']) ? (float)$existingContract['volume_horaire_mensuel'] : null);
+        } else {
+            // Unauthorized user for financial fields:
+            // MUST preserve existing contract salary parameters if available
+            if ($existingContract) {
+                $salaire_base = (float)$existingContract['salaire_base'];
+                $mode_calcul = $existingContract['mode_calcul_principal'] ?? 'forfait_fixe';
+                $unite_rem = $existingContract['unite_remuneration'] ?? 'mois';
+                $periodicite = $existingContract['periodicite_paiement'] ?? 'mensuel';
+                $volume_horaire = isset($existingContract['volume_horaire_mensuel']) ? (float)$existingContract['volume_horaire_mensuel'] : null;
+            } else {
+                // If brand new contract by non-financial user without prior contract, set incomplete state
+                $salaire_base = 0.00;
+                $mode_calcul = !empty($data['mode_calcul_principal']) ? $data['mode_calcul_principal'] : 'forfait_fixe';
+                $unite_rem = !empty($data['unite_remuneration']) ? $data['unite_remuneration'] : 'mois';
+                $periodicite = !empty($data['periodicite_paiement']) ? $data['periodicite_paiement'] : 'mensuel';
+                $volume_horaire = !empty($data['volume_horaire_mensuel']) ? (float)$data['volume_horaire_mensuel'] : null;
+            }
+        }
+
+        // Mandatory validation: hourly rate requires volume horaire if needed for monthly salary calculation
+        if ($mode_calcul === 'taux_horaire' && $volume_horaire !== null && $volume_horaire < 0) {
+            throw new InvalidArgumentException(_("Le volume horaire mensuel ne peut pas être négatif."));
+        }
         $stmt_u_lycee = $db->prepare("SELECT lycee_id FROM utilisateurs WHERE id_user = :uid");
         $stmt_u_lycee->execute(['uid' => $personnel_id]);
         $lycee_id = $stmt_u_lycee->fetchColumn() ?: null;

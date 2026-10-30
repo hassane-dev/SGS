@@ -76,6 +76,15 @@ $db->exec("INSERT INTO classes (id_classe, niveau, serie, numero, lycee_id) VALU
 $periodeIdLyceeA = PaieWorkflowService::createPeriod(1, 1, 'PAIE-LYC-A-2024-12', 12, 2024, '2024-12-01', '2024-12-31', 1);
 $periodeIdLyceeB = PaieWorkflowService::createPeriod(2, 2, 'PAIE-LYC-B-2024-12', 12, 2024, '2024-12-01', '2024-12-31', 1);
 
+$_SESSION['user'] = [
+    'id_user' => 1,
+    'nom' => 'Admin',
+    'prenom' => 'Super',
+    'role_id' => null,
+    'lycee_id' => 1,
+    'permissions' => ['drh' => ['view_sensitive', 'manage_salaires', 'manage_contrats', 'create', 'edit']]
+];
+
 // --- SCÉNARIO 1: Création d'un nouveau personnel DRH sans erreur HY093 ---
 $test_counter++;
 echo "\n--- SCÉNARIO 1: Création d'un nouveau personnel DRH sans erreur HY093 ---\n";
@@ -89,6 +98,9 @@ $pFixeId = PersonnelService::savePersonnel([
     'contrat_id' => 1,
     'date_embauche' => '2024-01-01',
     'salaire_base' => 200000.00,
+    'mode_calcul_principal' => 'forfait_fixe',
+    'unite_remuneration' => 'mois',
+    'periodicite_paiement' => 'mensuel',
     'statut_rh' => 'en_activite'
 ], 1);
 assert_test($pFixeId > 0, "Création du personnel DRH Mamadou Diallo réussie sans déclencher SQLSTATE[HY093]");
@@ -106,6 +118,9 @@ $pHoraireId = PersonnelService::savePersonnel([
     'contrat_id' => 1,
     'date_embauche' => '2024-01-01',
     'salaire_base' => 5000.00,
+    'mode_calcul_principal' => 'taux_horaire',
+    'unite_remuneration' => 'heure',
+    'periodicite_paiement' => 'mensuel',
     'statut_rh' => 'en_activite'
 ], 1);
 
@@ -136,9 +151,9 @@ foreach ($prepListLyceeA as $item) {
 assert_test($ousmanePrep !== null, "Ousmane Traore est présent dans la liste de préparation des bulletins");
 assert_test((float)$ousmanePrep['total_heures_validees'] == 5.0, "5.0 heures validées affichées exactement");
 
-// --- SCÉNARIO 3: Contrat horaire + Aucune séance -> 0h et 0 FCFA brut ---
+// --- SCÉNARIO 3: Contrat horaire + Aucune séance -> Génération bloquée (pas de bulletin à 0 FCFA) ---
 $test_counter++;
-echo "\n--- SCÉNARIO 3: Contrat horaire + Aucune séance -> 0h et 0 FCFA brut ---\n";
+echo "\n--- SCÉNARIO 3: Contrat horaire + Aucune séance -> Génération bloquée ---\n";
 $pHoraireSansServiceId = PersonnelService::savePersonnel([
     'nom' => 'Sow',
     'prenom' => 'Ibrahima',
@@ -164,16 +179,17 @@ PersonnelContractService::saveContract([
     'statut_contrat' => 'actif'
 ], 1);
 
-$bHoraireSansServiceId = PaieWorkflowService::generateBulletinForEmployee($periodeIdLyceeA, $pHoraireSansServiceId, (int)$cHoraireSansService['id'], 1);
-$bHoraireSansService = PaieBulletin::findById($bHoraireSansServiceId);
-$heuresSansService = PaieBulletinHeure::findByBulletinId($bHoraireSansServiceId);
+$s3Blocked = false;
+try {
+    PaieWorkflowService::generateBulletinForEmployee($periodeIdLyceeA, $pHoraireSansServiceId, (int)$cHoraireSansService['id'], 1);
+} catch (LogicException $e) {
+    $s3Blocked = true;
+}
+assert_test($s3Blocked, "Contrat horaire sans service fait -> Génération directe bloquée par LogicException");
 
-assert_test(count($heuresSansService) === 0, "Contrat horaire sans service fait -> 0 ligne d'heures générée");
-assert_test((float)$bHoraireSansService['total_brut'] == 0.00, "Contrat horaire sans service fait -> Salaire brut de 0.00 FCFA");
-
-// --- SCÉNARIO 4: Contrat horaire + Séances NON validées -> 0h et 0 FCFA brut ---
+// --- SCÉNARIO 4: Contrat horaire + Séances NON validées -> Génération bloquée ---
 $test_counter++;
-echo "\n--- SCÉNARIO 4: Contrat horaire + Séances NON validées -> 0h et 0 FCFA brut ---\n";
+echo "\n--- SCÉNARIO 4: Contrat horaire + Séances NON validées -> Génération bloquée ---\n";
 $pNonValideId = PersonnelService::savePersonnel([
     'nom' => 'Koffi',
     'prenom' => 'Ablan',
@@ -201,12 +217,13 @@ PersonnelContractService::saveContract([
 
 $db->exec("INSERT INTO cahier_texte (cahier_id, lycee_id, personnel_id, classe_id, matiere_id, date_cours, heure_debut, heure_fin, contenu_cours) VALUES (8050, 1, {$pNonValideId}, 1, 1, '2024-12-14', '08:00', '11:00', 'Séance non validée')");
 
-$bNonValideId = PaieWorkflowService::generateBulletinForEmployee($periodeIdLyceeA, $pNonValideId, (int)$cNonValide['id'], 1);
-$bNonValide = PaieBulletin::findById($bNonValideId);
-$heuresNonValide = PaieBulletinHeure::findByBulletinId($bNonValideId);
-
-assert_test(count($heuresNonValide) === 0, "Séance non validée dans le cahier de texte -> 0 heure de paie");
-assert_test((float)$bNonValide['total_brut'] == 0.00, "Rémunération horaire brute = 0.00 FCFA pour séance non validée");
+$s4Blocked = false;
+try {
+    PaieWorkflowService::generateBulletinForEmployee($periodeIdLyceeA, $pNonValideId, (int)$cNonValide['id'], 1);
+} catch (LogicException $e) {
+    $s4Blocked = true;
+}
+assert_test($s4Blocked, "Séances non validées -> Génération directe bloquée par LogicException (pas de bulletin à 0 FCFA)");
 
 // --- SCÉNARIO 5: Contrat Forfait Fixe -> Salaire fixe contractuel sans heures fictives ---
 $test_counter++;
