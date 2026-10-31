@@ -11,7 +11,7 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- Drop all tables if they exist to ensure a clean slate on fresh initialization
-DROP TABLE IF EXISTS `paiement_ventilations`, `modes_paiement`, `affectations_caisses`, `bulletin_details`, `paie_audit_logs`, `paie_reglements`, `paie_regularisation_integrations`, `paie_regularisation_lignes`, `paie_regularisations`, `paie_bulletin_regle_tranches_snapshot`, `paie_bulletin_regles_snapshot`, `paie_bulletin_financements`, `paie_bulletin_contrat_snapshot`, `paie_bulletin_heures`, `paie_cahier_texte_validations`, `paie_bulletin_lignes`, `paie_bulletins`, `paie_regles`, `paie_periodes`, `paie_grilles_salariales`, `paie_baremes_tranches`, `paie_baremes`, `sys_idempotency_keys`, `personnel_contrat_financements`, `personnel_contrat_composants`, `personnel_affectations_historique`, `personnel_postes`, `personnel_unites_organisationnelles`, `paie_entites_juridiques`, `personnel_historique_mouvements`, `personnel_documents`, `personnel_contrats_historique`, `personnel_fonctions`, `personnel_details`, `personnel_cycles_assignments`, `reporting_audit_logs`, `reporting_previsions_config`, `reporting_kpi_seuils`, `reporting_snapshots`, `schemas_comptables`, `comptabilite_periodes`, `ecritures_comptables`, `pieces_comptables`, `pieces_comptables_sequences`, `journaux_comptables`, `comptes_comptables`, `devises`, `budget_historique`, `budget_engagements`, `budget_ajustements`, `budget_lignes`, `budgets`, `depenses_evenements_log`, `depenses_historique`, `depenses_pieces`, `depenses`, `depense_beneficiaires`, `depense_centres_couts`, `depense_categories`, `surveillant_affectations`, `surveillant_groupe_classes`, `surveillant_groupes`, `discipline_conseil_incidents`, `discipline_conseil_eleves`, `discipline_conseil_membres`, `discipline_conseils`, `discipline_notifications`, `discipline_documents`, `discipline_historique`, `discipline_sanctions`, `discipline_incident_eleves`, `discipline_incidents`, `discipline_types_sanctions`, `discipline_types_incidents`, `achat_avoir_fournisseur_lignes`, `achat_avoirs_fournisseurs`, `achat_facture_reglements`, `achat_facture_lignes`, `achat_factures`, `achat_reception_lignes`, `achat_receptions`, `achat_commande_lignes`, `achat_commandes`, `achat_demande_lignes`, `achat_demandes`, `achat_articles`, `achat_categories`, `fournisseurs`, `regularisations_ecarts`, `mouvements_tresorerie`, `transferts_financiers`, `sessions_caisse`, `comptes_financiers`, `exercices_financiers`, `parametres_utilisateurs`, `etats_financiers_eleves`, `parametres_financiers_historique`, `parametres_financiers_eleves`, `politiques_financieres`, `evaluations`, `deblocages_notes`, `parametres_evaluations`, `param_type_evaluation`, `presences`, `emploi_du_temps`, `bulletins`, `notifications`, `modele_bulletin`, `carte_objects`, `carte_templates`, `salaires`, `surveillant_general`, `surveillant_niveaux`, `surveillant_classes`, `personnel_assignments`, `cahier_texte`, `horaire_enseignant`, `type_contrat`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_ventes`, `boutique_articles`, `frais`, `journal_comptable`, `mensualite_details`, `mensualites`, `inscriptions`, `tests_entree`, `etudes`, `eleves`, `param_composition`, `param_devoir`, `sequences`, `affectations_pedagogiques`, `classe_matieres`, `matieres`, `classe_parametres`, `classes`, `series`, `cycles`, `salles`, `utilisateurs`, `role_permissions`, `permissions`, `roles`, `param_general`, `param_lycee`, `annees_academiques`;
+DROP TABLE IF EXISTS `paiement_ventilations`, `modes_paiement`, `affectations_caisses`, `bulletin_details`, `paie_audit_logs`, `paie_reglements`, `paie_regularisation_integrations`, `paie_regularisation_lignes`, `paie_regularisations`, `paie_bulletin_regle_tranches_snapshot`, `paie_bulletin_regles_snapshot`, `paie_bulletin_financements`, `paie_bulletin_contrat_snapshot`, `paie_bulletin_heures`, `paie_cahier_texte_validations`, `paie_bulletin_lignes`, `paie_bulletins`, `paie_baremes_tranches`, `paie_regles_calcul`, `paie_regles`, `paie_periodes`, `paie_grilles_salariales`, `paie_baremes`, `sys_idempotency_keys`, `personnel_contrat_financements`, `personnel_contrat_composants`, `personnel_affectations_historique`, `personnel_postes`, `personnel_unites_organisationnelles`, `paie_entites_juridiques`, `personnel_historique_mouvements`, `personnel_documents`, `personnel_contrats_historique`, `personnel_fonctions`, `personnel_details`, `personnel_cycles_assignments`, `reporting_audit_logs`, `reporting_previsions_config`, `reporting_kpi_seuils`, `reporting_snapshots`, `schemas_comptables`, `comptabilite_periodes`, `ecritures_comptables`, `pieces_comptables`, `pieces_comptables_sequences`, `journaux_comptables`, `comptes_comptables`, `devises`, `budget_historique`, `budget_engagements`, `budget_ajustements`, `budget_lignes`, `budgets`, `depenses_evenements_log`, `depenses_historique`, `depenses_pieces`, `depenses`, `depense_beneficiaires`, `depense_centres_couts`, `depense_categories`, `surveillant_affectations`, `surveillant_groupe_classes`, `surveillant_groupes`, `discipline_conseil_incidents`, `discipline_conseil_eleves`, `discipline_conseil_membres`, `discipline_conseils`, `discipline_notifications`, `discipline_documents`, `discipline_historique`, `discipline_sanctions`, `discipline_incident_eleves`, `discipline_incidents`, `discipline_types_sanctions`, `discipline_types_incidents`, `achat_avoir_fournisseur_lignes`, `achat_avoirs_fournisseurs`, `achat_facture_reglements`, `achat_facture_lignes`, `achat_factures`, `achat_reception_lignes`, `achat_receptions`, `achat_commande_lignes`, `achat_commandes`, `achat_demande_lignes`, `achat_demandes`, `achat_articles`, `achat_categories`, `fournisseurs`, `regularisations_ecarts`, `mouvements_tresorerie`, `transferts_financiers`, `sessions_caisse`, `comptes_financiers`, `exercices_financiers`, `parametres_utilisateurs`, `etats_financiers_eleves`, `parametres_financiers_historique`, `parametres_financiers_eleves`, `politiques_financieres`, `evaluations`, `deblocages_notes`, `parametres_evaluations`, `param_type_evaluation`, `presences`, `emploi_du_temps`, `bulletins`, `notifications`, `modele_bulletin`, `carte_objects`, `carte_templates`, `salaires`, `surveillant_general`, `surveillant_niveaux`, `surveillant_classes`, `personnel_assignments`, `cahier_texte`, `horaire_enseignant`, `type_contrat`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_ventes`, `boutique_articles`, `frais`, `journal_comptable`, `mensualite_details`, `mensualites`, `inscriptions`, `tests_entree`, `etudes`, `eleves`, `param_composition`, `param_devoir`, `sequences`, `affectations_pedagogiques`, `classe_matieres`, `matieres`, `classe_parametres`, `classes`, `series`, `cycles`, `salles`, `utilisateurs`, `role_permissions`, `permissions`, `roles`, `param_general`, `param_lycee`, `annees_academiques`;
 
 CREATE TABLE `annees_academiques` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -2200,17 +2200,6 @@ CREATE TABLE paie_baremes (
     INDEX idx_paie_bar_type (type_bareme, lycee_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table `paie_baremes_tranches`
-CREATE TABLE paie_baremes_tranches (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    bareme_id INT NOT NULL,
-    tranche_min DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-    tranche_max DECIMAL(15,2) NULL,
-    taux DECIMAL(5,2) NOT NULL DEFAULT 0.00,
-    montant_forfaitaire DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-    FOREIGN KEY (bareme_id) REFERENCES paie_baremes(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 -- Table `paie_grilles_salariales`
 CREATE TABLE paie_grilles_salariales (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -2273,51 +2262,108 @@ CREATE TABLE paie_regles (
     UNIQUE KEY uk_paie_regle_code (lycee_id, code_rubrique)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Table `paie_regles_calcul`
+CREATE TABLE paie_regles_calcul (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    juridiction_code VARCHAR(20) NOT NULL DEFAULT 'DEFAULT',
+    pays_code VARCHAR(10) NOT NULL DEFAULT 'RCA',
+    code_regle VARCHAR(50) NOT NULL,
+    libelle VARCHAR(150) NOT NULL,
+    categorie VARCHAR(50) NOT NULL,
+    mode_calcul VARCHAR(50) NOT NULL,
+    base_calcul_type VARCHAR(50) NOT NULL DEFAULT 'brut_total',
+    taux_par_defaut DECIMAL(10,4) NOT NULL DEFAULT 0.0000,
+    montant_fixe_salarial DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
+    taux_patronal DECIMAL(10,4) NOT NULL DEFAULT 0.0000,
+    montant_fixe_patronal DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
+    seuil_minimum DECIMAL(15,4) NULL,
+    plafond_maximum DECIMAL(15,4) NULL,
+    abattement_forfaitaire DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
+    abattement_pourcentage DECIMAL(10,4) NOT NULL DEFAULT 0.0000,
+    ordre_application INT NOT NULL DEFAULT 100,
+    type_contrat_id INT NULL,
+    formule VARCHAR(255) NULL,
+    est_systeme TINYINT(1) NOT NULL DEFAULT 1,
+    actif TINYINT(1) NOT NULL DEFAULT 1,
+    date_debut_validite DATE NOT NULL,
+    date_fin_validite DATE NULL,
+    created_at DATETIME NOT NULL,
+    UNIQUE KEY uk_paie_regle_jur (juridiction_code, code_regle, date_debut_validite),
+    INDEX idx_paie_reg_jur_act (juridiction_code, pays_code, actif)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table `paie_baremes_tranches`
+CREATE TABLE paie_baremes_tranches (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    regle_id INT NOT NULL,
+    tranche_numero INT NOT NULL,
+    limite_inferieure DECIMAL(15,4) NOT NULL,
+    limite_superieure DECIMAL(15,4) NULL,
+    taux DECIMAL(10,4) NOT NULL,
+    montant_fixe DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
+    FOREIGN KEY (regle_id) REFERENCES paie_regles_calcul(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_paie_bar_tranche (regle_id, tranche_numero)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Table `paie_bulletins`
 CREATE TABLE paie_bulletins (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     periode_id INT NOT NULL,
     personnel_id INT NOT NULL,
     contrat_id INT NOT NULL,
-    version INT NOT NULL DEFAULT 1,
-    bulletin_parent_id BIGINT NULL,
-    brut_total DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-    charges_salariales DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-    impots_retenus DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-    charges_patronales DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-    net_a_payer DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-    statut VARCHAR(30) NOT NULL DEFAULT 'calcule',
-    date_calcul DATETIME NOT NULL,
-    cree_par INT NOT NULL,
-    valide_par INT NULL,
-    date_validation DATETIME NULL,
-    comptabilise_le DATETIME NULL,
-    piece_comptable_id INT NULL,
+    version_num INT NOT NULL DEFAULT 1,
+    est_version_active TINYINT(1) NOT NULL DEFAULT 1,
+    entite_juridique_id INT NOT NULL,
+    cycle_id INT NULL,
+    salaire_base DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
+    total_brut DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
+    total_cotisations_salariales DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
+    total_impots DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
+    total_retenues DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
+    net_imposable DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
+    net_a_payer DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
+    total_cotisations_patronales DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
+    cout_total_employeur DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
+    devise VARCHAR(10) NOT NULL,
+    taux_change DECIMAL(12,6) NOT NULL DEFAULT 1.000000,
+    statut_bulletin VARCHAR(20) NOT NULL DEFAULT 'brouillon',
+    statut_comptabilisation VARCHAR(20) NOT NULL DEFAULT 'non_comptabilise',
+    statut_reglement VARCHAR(20) NOT NULL DEFAULT 'non_paye',
+    statut_cloture VARCHAR(20) NOT NULL DEFAULT 'ouvert',
+    est_reprise_legacy TINYINT(1) NOT NULL DEFAULT 0,
+    idempotency_key VARCHAR(100) NULL,
+    content_hash VARCHAR(64) NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    active_scope_key VARCHAR(255) GENERATED ALWAYS AS (
+        CASE WHEN est_version_active = 1 THEN CONCAT(personnel_id, ':', entite_juridique_id, ':', contrat_id, ':', periode_id) ELSE NULL END
+    ) STORED,
     FOREIGN KEY (periode_id) REFERENCES paie_periodes(id) ON DELETE RESTRICT,
     FOREIGN KEY (personnel_id) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
     FOREIGN KEY (contrat_id) REFERENCES personnel_contrats_historique(id) ON DELETE RESTRICT,
-    FOREIGN KEY (bulletin_parent_id) REFERENCES paie_bulletins(id) ON DELETE SET NULL,
-    FOREIGN KEY (cree_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
-    FOREIGN KEY (valide_par) REFERENCES utilisateurs(id_user) ON DELETE SET NULL,
-    FOREIGN KEY (piece_comptable_id) REFERENCES pieces_comptables(id) ON DELETE SET NULL,
-    UNIQUE KEY uk_paie_bull_per_ver (periode_id, personnel_id, version)
+    FOREIGN KEY (entite_juridique_id) REFERENCES paie_entites_juridiques(id) ON DELETE RESTRICT,
+    FOREIGN KEY (cycle_id) REFERENCES cycles(id_cycle) ON DELETE SET NULL,
+    UNIQUE KEY uk_bulletin_version (personnel_id, entite_juridique_id, contrat_id, periode_id, version_num),
+    UNIQUE KEY uk_bulletin_active_scope (active_scope_key),
+    UNIQUE KEY uk_bulletin_tenant_idempotency (periode_id, idempotency_key),
+    INDEX idx_paie_bul_search (personnel_id, periode_id, statut_bulletin)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table `paie_bulletin_lignes`
 CREATE TABLE paie_bulletin_lignes (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     bulletin_id BIGINT NOT NULL,
-    regle_id INT NULL,
     code_rubrique VARCHAR(50) NOT NULL,
     libelle VARCHAR(150) NOT NULL,
+    categorie VARCHAR(50) NOT NULL,
     base_calcul DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
-    taux_salarial DECIMAL(7,4) NOT NULL DEFAULT 0.0000,
-    montant_salarial DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-    taux_patronal DECIMAL(7,4) NOT NULL DEFAULT 0.0000,
-    montant_patronal DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-    ordre_affichage INT NOT NULL DEFAULT 100,
+    taux DECIMAL(10,4) NOT NULL DEFAULT 0.0000,
+    montant_salarial DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
+    montant_patronal DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
+    ordre_affichage INT NOT NULL DEFAULT 0,
+    est_imposable TINYINT(1) NOT NULL DEFAULT 1,
+    est_cotisable TINYINT(1) NOT NULL DEFAULT 1,
     FOREIGN KEY (bulletin_id) REFERENCES paie_bulletins(id) ON DELETE CASCADE,
-    FOREIGN KEY (regle_id) REFERENCES paie_regles(id) ON DELETE SET NULL,
     INDEX idx_paie_ligne_bull (bulletin_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -2362,41 +2408,57 @@ CREATE TABLE paie_bulletin_heures (
 -- Table `paie_bulletin_contrat_snapshot`
 CREATE TABLE paie_bulletin_contrat_snapshot (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    bulletin_id BIGINT NOT NULL UNIQUE,
+    bulletin_id BIGINT NOT NULL,
     contrat_id INT NOT NULL,
-    salaire_base DECIMAL(15,2) NOT NULL,
-    statut_contrat VARCHAR(50) NOT NULL,
-    FOREIGN KEY (bulletin_id) REFERENCES paie_bulletins(id) ON DELETE CASCADE
+    version_num INT NOT NULL,
+    type_contrat VARCHAR(50) NOT NULL,
+    mode_calcul_principal VARCHAR(50) NOT NULL,
+    devise VARCHAR(10) NOT NULL,
+    raw_json_snapshot JSON NOT NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (bulletin_id) REFERENCES paie_bulletins(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_bulletin_contrat_snap (bulletin_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table `paie_bulletin_financements`
 CREATE TABLE paie_bulletin_financements (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     bulletin_id BIGINT NOT NULL,
-    centre_cout_id INT NULL,
-    source_financement VARCHAR(50) NOT NULL,
-    pourcentage_imputation DECIMAL(5,2) NOT NULL,
-    FOREIGN KEY (bulletin_id) REFERENCES paie_bulletins(id) ON DELETE CASCADE
+    financeur_nom VARCHAR(150) NOT NULL,
+    type_financeur VARCHAR(50) NOT NULL,
+    pourcentage_prise_en_charge DECIMAL(5,2) NOT NULL,
+    montant_prise_en_charge DECIMAL(15,4) NOT NULL,
+    FOREIGN KEY (bulletin_id) REFERENCES paie_bulletins(id) ON DELETE CASCADE,
+    INDEX idx_paie_fin_bul (bulletin_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table `paie_bulletin_regles_snapshot`
 CREATE TABLE paie_bulletin_regles_snapshot (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     bulletin_id BIGINT NOT NULL,
-    code_rubrique VARCHAR(50) NOT NULL,
+    regle_id INT NOT NULL,
+    code_regle VARCHAR(50) NOT NULL,
     libelle VARCHAR(150) NOT NULL,
-    type_rubrique VARCHAR(30) NOT NULL,
-    FOREIGN KEY (bulletin_id) REFERENCES paie_bulletins(id) ON DELETE CASCADE
+    categorie VARCHAR(50) NOT NULL,
+    mode_calcul VARCHAR(50) NOT NULL,
+    taux_applique DECIMAL(10,4) NOT NULL,
+    raw_json_snapshot JSON NOT NULL,
+    FOREIGN KEY (bulletin_id) REFERENCES paie_bulletins(id) ON DELETE CASCADE,
+    INDEX idx_paie_reg_snap_bul (bulletin_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table `paie_bulletin_regle_tranches_snapshot`
 CREATE TABLE paie_bulletin_regle_tranches_snapshot (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    bulletin_regle_snapshot_id BIGINT NOT NULL,
-    tranche_min DECIMAL(15,2) NOT NULL,
-    tranche_max DECIMAL(15,2) NULL,
-    taux DECIMAL(5,2) NOT NULL,
-    FOREIGN KEY (bulletin_regle_snapshot_id) REFERENCES paie_bulletin_regles_snapshot(id) ON DELETE CASCADE
+    regle_snapshot_id BIGINT NOT NULL,
+    tranche_numero INT NOT NULL,
+    limite_inferieure DECIMAL(15,4) NOT NULL,
+    limite_superieure DECIMAL(15,4) NULL,
+    taux DECIMAL(10,4) NOT NULL,
+    base_imposable_tranche DECIMAL(15,4) NOT NULL,
+    montant_calcule DECIMAL(15,4) NOT NULL,
+    FOREIGN KEY (regle_snapshot_id) REFERENCES paie_bulletin_regles_snapshot(id) ON DELETE CASCADE,
+    INDEX idx_paie_tra_snap (regle_snapshot_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table `paie_regularisations`
@@ -2441,37 +2503,34 @@ CREATE TABLE paie_regularisation_lignes (
 CREATE TABLE paie_regularisation_integrations (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     regularisation_id BIGINT NOT NULL,
-    bulletin_destination_id BIGINT NOT NULL,
+    bulletin_id BIGINT NOT NULL,
     montant_brut_integre DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
     montant_net_integre DECIMAL(15,4) NOT NULL DEFAULT 0.0000,
-    statut VARCHAR(20) NOT NULL DEFAULT 'integre',
-    integre_par INT NOT NULL,
-    integre_le DATETIME NOT NULL,
+    created_at DATETIME NOT NULL,
     FOREIGN KEY (regularisation_id) REFERENCES paie_regularisations(id) ON DELETE RESTRICT,
-    FOREIGN KEY (bulletin_destination_id) REFERENCES paie_bulletins(id) ON DELETE RESTRICT,
-    FOREIGN KEY (integre_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
-    UNIQUE KEY uk_paie_regu_integ (regularisation_id, bulletin_destination_id)
+    FOREIGN KEY (bulletin_id) REFERENCES paie_bulletins(id) ON DELETE CASCADE,
+    INDEX idx_paie_regu_int_bul (bulletin_id),
+    INDEX idx_paie_regu_int_reg (regularisation_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table `paie_reglements`
 CREATE TABLE paie_reglements (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     bulletin_id BIGINT NOT NULL,
-    compte_id INT NOT NULL,
-    session_caisse_id INT NULL,
+    compte_financier_id INT NOT NULL,
     mouvement_tresorerie_id INT NULL,
-    montant DECIMAL(15,2) NOT NULL,
-    mode_paiement VARCHAR(30) NOT NULL,
-    reference_paiement VARCHAR(100) NULL,
-    date_reglement DATETIME NOT NULL,
-    execute_par INT NOT NULL,
-    statut VARCHAR(30) NOT NULL DEFAULT 'valide',
+    mode_reglement VARCHAR(50) NOT NULL,
+    montant DECIMAL(15,4) NOT NULL,
+    reference_transaction VARCHAR(100) NULL,
+    date_reglement DATE NOT NULL,
+    statut VARCHAR(20) NOT NULL DEFAULT 'valide',
+    cree_par INT NOT NULL,
+    created_at DATETIME NOT NULL,
     FOREIGN KEY (bulletin_id) REFERENCES paie_bulletins(id) ON DELETE RESTRICT,
-    FOREIGN KEY (compte_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
-    FOREIGN KEY (session_caisse_id) REFERENCES sessions_caisse(id) ON DELETE SET NULL,
-    FOREIGN KEY (mouvement_tresorerie_id) REFERENCES mouvements_tresorerie(id) ON DELETE SET NULL,
-    FOREIGN KEY (execute_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
-    INDEX idx_paie_regl_bull (bulletin_id)
+    FOREIGN KEY (compte_financier_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (mouvement_tresorerie_id) REFERENCES mouvements_tresorerie(id) ON DELETE RESTRICT,
+    FOREIGN KEY (cree_par) REFERENCES utilisateurs(id_user) ON DELETE RESTRICT,
+    INDEX idx_paie_reg_bul (bulletin_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table `paie_audit_logs`

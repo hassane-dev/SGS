@@ -1256,6 +1256,9 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_35_fix_paie_periodes_schema.php';
     migrate_35($db);
 
+    require_once __DIR__ . '/db/migrations/20240115_36_harmonize_paie_lot2_schema.php';
+    migrate_36($db);
+
     echo "Migration successful\n";
 } catch (Exception $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";
