@@ -47,6 +47,7 @@ if (!$activeYear) {
     $activeYear = AnneeAcademique::findActive();
 }
 $annee_id = (int)$activeYear['id'];
+$db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (991001, 991, $annee_id, 'T1', 'trimestrielle', '2024-09-01', '2024-11-30', 'ouverte')");
 
 // Setup mock cycles
 $db->exec("INSERT INTO cycles (id_cycle, nom_cycle, lycee_id) VALUES (9910, 'Collège Lycée 1', 991)");
@@ -266,6 +267,7 @@ $db->exec("DELETE FROM surveillant_groupes WHERE lycee_id IN (991, 992)");
 $db->exec("DELETE FROM classes WHERE id_classe IN (99101, 99102, 99103, 99201)");
 $db->exec("DELETE FROM cycles WHERE id_cycle IN (9910, 9920)");
 $db->exec("DELETE FROM utilisateurs WHERE id_user IN (9911, 9912, 9921)");
+$db->exec("DELETE FROM sequences WHERE lycee_id IN (991, 992)");
 $db->exec("DELETE FROM param_lycee WHERE id IN (991, 992)");
 
 echo "\n========================================================\n";

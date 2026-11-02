@@ -26,6 +26,15 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
             </div>
         </div>
 
+        <?php if (empty($activeYear)): ?>
+        <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+            <i class="ph-duotone ph-warning-circle fs-3 me-2"></i>
+            <div>
+                <strong><?= _("Attention :") ?></strong> <?= _("Aucune année académique active n'est configurée pour cet établissement. La répartition automatique ne peut pas être lancée.") ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <div class="row">
             <!-- Formulaire de Configuration -->
             <div class="col-lg-5 col-md-12">
@@ -152,7 +161,8 @@ require_once __DIR__ . '/../layouts/sidebar_able.php';
 let currentProposal = null;
 
 function filterRepartitionByCycle(cycleId) {
-    fetch('/surveillants/ajax-filter-by-cycle?cycle_id=' + cycleId)
+    const anneeParam = '<?= !empty($activeYear['id']) ? "&annee_id=" . (int)$activeYear['id'] : "" ?>';
+    fetch('/surveillants/ajax-filter-by-cycle?cycle_id=' + cycleId + anneeParam)
     .then(r => r.json())
     .then(data => {
         if (!data.success) return;

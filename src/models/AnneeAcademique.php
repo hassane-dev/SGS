@@ -17,10 +17,41 @@ class AnneeAcademique {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public static function findActive() {
+    public static function findActive(?int $lycee_id = null): ?array {
         $db = Database::getInstance();
-        $stmt = $db->query("SELECT * FROM annees_academiques WHERE est_active = 1 LIMIT 1");
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // If an explicit establishment ID is passed, it must be strictly positive
+        if ($lycee_id !== null) {
+            if ($lycee_id <= 0) {
+                throw new InvalidArgumentException(sprintf(_("Identifiant d'établissement invalide : #%d."), $lycee_id));
+            }
+
+            // Canonical linkage of active academic year to school is strictly established via sequences table
+            $stmt = $db->prepare("
+                SELECT DISTINCT aa.*
+                FROM annees_academiques aa
+                JOIN sequences s ON s.annee_academique_id = aa.id
+                WHERE s.lycee_id = :lid AND aa.est_active = 1
+            ");
+            $stmt->execute(['lid' => $lycee_id]);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (count($rows) > 1) {
+                throw new RuntimeException(sprintf(_("Incohérence temporelle détectée : Plusieurs années académiques sont marquées actives pour l'établissement #%d."), $lycee_id));
+            }
+            if (count($rows) === 1) {
+                return $rows[0];
+            }
+
+            // An explicit lycee_id was requested but has no active academic year linked to it.
+            // Never silently fall back to an active year belonging to another establishment.
+            return null;
+        }
+
+        // Global context (when lycee_id is strictly null)
+        $stmt = $db->query("SELECT * FROM annees_academiques WHERE est_active = 1 ORDER BY id ASC LIMIT 1");
+        $res = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $res ?: null;
     }
 
     public static function save($data) {

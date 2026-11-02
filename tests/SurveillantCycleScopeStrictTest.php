@@ -49,6 +49,7 @@ $db->exec("DELETE FROM annees_academiques WHERE id = 881");
 // Seed test establishment & year
 $db->exec("INSERT INTO param_lycee (id, nom_lycee, type_lycee, surveillant_config_version, surveillant_migration_status) VALUES ($lyceeId, 'Lycée Test Scope Strict', 'public', 1, 'migre_valide')");
 $db->exec("INSERT INTO annees_academiques (id, libelle, date_debut, date_fin, est_active) VALUES (881, '2025-2026', '2025-09-01', '2026-06-30', 1)");
+$db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut) VALUES (881001, $lyceeId, 881, 'T1', 'trimestrielle', '2025-09-01', '2025-11-30', 'ouverte')");
 
 // Seed Cycles: CEG (88101) & Lycée (88102)
 $db->exec("INSERT INTO cycles (id_cycle, lycee_id, nom_cycle, utilise_series) VALUES (88101, $lyceeId, 'CEG', 0)");
@@ -70,20 +71,20 @@ $db->exec("INSERT INTO utilisateurs (id_user, lycee_id, role_id, nom, prenom, em
 // User 8814: Surveillant Expired Cycle
 $db->exec("INSERT INTO utilisateurs (id_user, lycee_id, role_id, nom, prenom, email, actif) VALUES (8814, $lyceeId, 5, 'Sow', 'Fatou', 'fatou.expired@test.com', 1)");
 
-// Seed personnel_cycles_assignments
-$today = date('Y-m-d');
-$past_start = date('Y-m-d', strtotime('-30 days'));
-$past_end = date('Y-m-d', strtotime('-1 day'));
+// Seed personnel_cycles_assignments coherent with academic year 2025-2026 (2025-09-01 to 2026-06-30)
+$active_start = '2025-09-01';
+$expired_start = '2024-09-01';
+$expired_end = '2025-06-30'; // Expired before 2025-2026 academic year
 
 // User 8811 -> CEG (88101) Active
-$db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, date_fin, actif) VALUES (8811, 88101, '$past_start', NULL, 1)");
+$db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, date_fin, actif) VALUES (8811, 88101, '$active_start', NULL, 1)");
 // User 8812 -> Lycée (88102) Active
-$db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, date_fin, actif) VALUES (8812, 88102, '$past_start', NULL, 1)");
+$db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, date_fin, actif) VALUES (8812, 88102, '$active_start', NULL, 1)");
 // User 8813 -> CEG (88101) & Lycée (88102) Active
-$db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, date_fin, actif) VALUES (8813, 88101, '$past_start', NULL, 1)");
-$db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, date_fin, actif) VALUES (8813, 88102, '$past_start', NULL, 1)");
+$db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, date_fin, actif) VALUES (8813, 88101, '$active_start', NULL, 1)");
+$db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, date_fin, actif) VALUES (8813, 88102, '$active_start', NULL, 1)");
 // User 8814 -> CEG (88101) Expired
-$db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, date_fin, actif) VALUES (8814, 88101, '$past_start', '$past_end', 1)");
+$db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, date_fin, actif) VALUES (8814, 88101, '$expired_start', '$expired_end', 1)");
 
 // ========================================================
 // TEST 1: Affectation d'un surveillant CEG à une classe CEG (Succès)
@@ -235,6 +236,7 @@ $db->exec("DELETE FROM personnel_cycles_assignments WHERE personnel_id IN (8811,
 $db->exec("DELETE FROM classes WHERE lycee_id = $lyceeId");
 $db->exec("DELETE FROM cycles WHERE lycee_id = $lyceeId");
 $db->exec("DELETE FROM utilisateurs WHERE id_user IN (8811, 8812, 8813, 8814)");
+$db->exec("DELETE FROM sequences WHERE lycee_id = $lyceeId");
 $db->exec("DELETE FROM param_lycee WHERE id = $lyceeId");
 $db->exec("DELETE FROM annees_academiques WHERE id = 881");
 

@@ -41,18 +41,20 @@ class PersonnelService {
 
         $where = ["u.lycee_id IN (" . implode(',', array_map('intval', $authorized_lycees)) . ")"];
 
-        // Cycle filter
+        // Cycle filter & HR directory scope resolution
         $isGlobalAdmin = Auth::can('view_all_lycees', 'lycee') || Auth::can('view_all_cycles', 'cycle');
+        $hasGlobalHrAccess = Auth::can('view_all', 'drh') || Auth::can('manage', 'user');
 
         if (!empty($filters['cycle_id'])) {
             $cycle_id = (int)$filters['cycle_id'];
-            if (!$isGlobalAdmin && !in_array($cycle_id, $authorized_cycles)) {
+            if (!$isGlobalAdmin && !$hasGlobalHrAccess && !in_array($cycle_id, $authorized_cycles)) {
                 return []; // Requested cycle outside scope
             }
             $where[] = "pca.cycle_id = :filter_cycle_id";
             $params['filter_cycle_id'] = $cycle_id;
         } else {
-            if (!$isGlobalAdmin) {
+            // If the user has global HR view access for their establishment, they can consult all establishment personnel across cycles (or without cycles)
+            if (!$isGlobalAdmin && !$hasGlobalHrAccess) {
                 if (empty($authorized_cycles)) {
                     return []; // Deny by default if user has no authorized cycles
                 }

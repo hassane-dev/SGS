@@ -39,11 +39,11 @@ class SurveillantAssignmentController {
         if (!$this->checkAccess('view_surveillants')) return;
 
         $lycee_id = Auth::getLyceeId();
-        $activeYear = AnneeAcademique::findActive();
+        $activeYear = AnneeAcademique::findActive($lycee_id);
         $annee_id = $activeYear ? (int)$activeYear['id'] : 0;
 
-        $affectations = SurveillantAffectation::findAllByLyceeAndAnnee($lycee_id, $annee_id);
-        $groupes = SurveillantGroupe::findByLyceeAndAnnee($lycee_id, $annee_id);
+        $affectations = $annee_id > 0 ? SurveillantAffectation::findAllByLyceeAndAnnee($lycee_id, $annee_id) : [];
+        $groupes = $annee_id > 0 ? SurveillantGroupe::findByLyceeAndAnnee($lycee_id, $annee_id) : [];
         $classes = Classe::findAll($lycee_id);
         $cycles = Cycle::findByLycee($lycee_id);
         $surveillants = User::findAllByRoleName('surveillant', $lycee_id);
@@ -62,7 +62,7 @@ class SurveillantAssignmentController {
         if (!$this->checkAccess('manage_surveillants')) return;
 
         $lycee_id = Auth::getLyceeId();
-        $activeYear = AnneeAcademique::findActive();
+        $activeYear = AnneeAcademique::findActive($lycee_id);
         $annee_id = $activeYear ? (int)$activeYear['id'] : 0;
 
         $cycles = Cycle::findByLycee($lycee_id);
@@ -85,8 +85,14 @@ class SurveillantAssignmentController {
             $data = Validator::sanitize($_POST);
 
             $lycee_id = Auth::getLyceeId();
-            $activeYear = AnneeAcademique::findActive();
-            $annee_id = $activeYear ? (int)$activeYear['id'] : 0;
+            $activeYear = AnneeAcademique::findActive($lycee_id);
+            if (!$activeYear || empty($activeYear['id'])) {
+                header('Content-Type: application/json');
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => _("Aucune année académique active n'est configurée pour cet établissement.")]);
+                if (!defined('TEST_MODE')) exit(); return;
+            }
+            $annee_id = (int)$activeYear['id'];
 
             $cycle_id = !empty($_POST['cycle_id']) ? (int)$_POST['cycle_id'] : null;
             $selected_classe_ids = isset($_POST['classe_ids']) ? array_map('intval', $_POST['classe_ids']) : [];
@@ -181,8 +187,13 @@ class SurveillantAssignmentController {
             $data = Validator::sanitize($_POST);
 
             $lycee_id = Auth::getLyceeId();
-            $activeYear = AnneeAcademique::findActive();
-            $annee_id = $activeYear ? (int)$activeYear['id'] : 0;
+            $activeYear = AnneeAcademique::findActive($lycee_id);
+            if (!$activeYear || empty($activeYear['id'])) {
+                $_SESSION['error_message'] = _("Impossible d'enregistrer l'affectation : Aucune année académique active n'est configurée pour cet établissement.");
+                header('Location: /surveillants');
+                if (!defined('TEST_MODE')) exit(); return;
+            }
+            $annee_id = (int)$activeYear['id'];
 
             $data['lycee_id'] = $lycee_id;
             $data['annee_academique_id'] = $annee_id;
@@ -214,8 +225,13 @@ class SurveillantAssignmentController {
             $data = Validator::sanitize($_POST);
 
             $lycee_id = Auth::getLyceeId();
-            $activeYear = AnneeAcademique::findActive();
-            $annee_id = $activeYear ? (int)$activeYear['id'] : 0;
+            $activeYear = AnneeAcademique::findActive($lycee_id);
+            if (!$activeYear || empty($activeYear['id'])) {
+                $_SESSION['error_message'] = _("Impossible de créer le groupe : Aucune année académique active n'est configurée pour cet établissement.");
+                header('Location: /surveillants');
+                if (!defined('TEST_MODE')) exit(); return;
+            }
+            $annee_id = (int)$activeYear['id'];
 
             $data['lycee_id'] = $lycee_id;
             $data['annee_academique_id'] = $annee_id;
@@ -298,7 +314,8 @@ class SurveillantAssignmentController {
             $classes = $stmtC->fetchAll(PDO::FETCH_ASSOC);
 
             // Supervisors authorized on this cycle
-            $surveillants = SurveillantAssignmentService::getSupervisorsByCycle($cycle_id, $lycee_id);
+            $annee_id = !empty($_GET['annee_id']) ? (int)$_GET['annee_id'] : null;
+            $surveillants = SurveillantAssignmentService::getSupervisorsByCycle($cycle_id, $lycee_id, $annee_id);
 
             echo json_encode(['success' => true, 'classes' => $classes, 'surveillants' => $surveillants]);
             if (!defined('TEST_MODE')) exit(); return;
