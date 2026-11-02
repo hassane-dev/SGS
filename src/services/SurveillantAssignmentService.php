@@ -6,10 +6,88 @@ require_once __DIR__ . '/../models/SurveillantGroupe.php';
 require_once __DIR__ . '/../models/SurveillantAffectation.php';
 require_once __DIR__ . '/../models/Classe.php';
 require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../models/AnneeAcademique.php';
 
 class ConcurrentModificationException extends Exception {}
 
 class SurveillantAssignmentService {
+
+    /**
+     * Validates that an academic year identifier is strictly a positive integer (int or string composed solely of digits, > 0).
+     * Rejects floats, scientific notation, negative numbers, zero, booleans, arrays, null and empty strings.
+     *
+     * @param mixed $value
+     * @return int
+     * @throws InvalidArgumentException
+     */
+    public static function filterStrictPositiveInteger(mixed $value, string $fieldName = 'annee_academique_id'): int {
+        // Reject null, empty strings, arrays, objects, booleans, resources
+        if ($value === null || $value === '' || is_array($value) || is_object($value) || is_bool($value) || is_resource($value)) {
+            throw new InvalidArgumentException(sprintf(_("Format invalide pour %s : valeur absente, nulle ou de type inattendu."), $fieldName));
+        }
+
+        // Native integer check
+        if (is_int($value)) {
+            if ($value <= 0) {
+                throw new InvalidArgumentException(sprintf(_("Format invalide pour %s : l'entier doit être strictement positif (%d fourni)."), $fieldName, $value));
+            }
+            return $value;
+        }
+
+        // String check: must strictly match digits without leading zero, and be representable without overflow
+        if (is_string($value)) {
+            // Reject any whitespace, negative signs, decimals, scientific notations, or leading zeros
+            if (!preg_match('/^[1-9][0-9]*$/', $value)) {
+                throw new InvalidArgumentException(sprintf(_("Format invalide pour %s : la chaîne '%s' n'est pas un entier strictement positif (décimaux, notations scientifiques et zéros initiaux interdits)."), $fieldName, $value));
+            }
+
+            // Strictly validate that the string is representable as an integer <= PHP_INT_MAX without overflow
+            $filtered = filter_var($value, FILTER_VALIDATE_INT, [
+                'options' => ['min_range' => 1]
+            ]);
+
+            if ($filtered === false) {
+                throw new InvalidArgumentException(sprintf(_("Format invalide pour %s : la valeur '%s' dépasse la capacité maximale d'un entier (%d)."), $fieldName, $value, PHP_INT_MAX));
+            }
+
+            return $filtered;
+        }
+
+        // Reject floats (e.g. 99020.8) or any other non-integer type
+        throw new InvalidArgumentException(sprintf(_("Format invalide pour %s : type ou format non entier interdit."), $fieldName));
+    }
+
+    /**
+     * Resolves the active academic year and its official date boundaries.
+     * Throws an explicit RuntimeException if no properly configured active academic year exists.
+     *
+     * @param ?int $lycee_id
+     * @param mixed $annee_id
+     * @return array
+     */
+    public static function resolveActiveAcademicYear(?int $lycee_id = null, mixed $annee_id = null): array {
+        $activeYear = AnneeAcademique::findActive($lycee_id);
+        if (!$activeYear || empty($activeYear['date_debut']) || empty($activeYear['date_fin'])) {
+            throw new RuntimeException(_("Configuration temporelle invalide : Aucune année académique active correctement configurée n'a été trouvée pour cet établissement."));
+        }
+
+        // If an explicit annee_id is provided, validate strict positive integer format without permissive coercion
+        if ($annee_id !== null) {
+            $annee_id_int = self::filterStrictPositiveInteger($annee_id, 'annee_id');
+            $requestedYear = AnneeAcademique::findById($annee_id_int);
+            if (!$requestedYear || empty($requestedYear['date_debut']) || empty($requestedYear['date_fin'])) {
+                throw new RuntimeException(_("Année académique spécifiée introuvable ou dates non configurées."));
+            }
+            if (empty($requestedYear['est_active'])) {
+                throw new RuntimeException(sprintf(_("L'année académique spécifiée #%d n'est pas active."), $annee_id_int));
+            }
+            if ((int)$requestedYear['id'] !== (int)$activeYear['id']) {
+                throw new RuntimeException(_("L'année académique spécifiée ne correspond pas à l'année académique active de l'établissement."));
+            }
+        }
+
+        return $activeYear;
+    }
 
     /**
      * Increments the surveillant_config_version in param_lycee within a transaction.
@@ -69,52 +147,158 @@ class SurveillantAssignmentService {
     }
 
     /**
-     * Returns the array of active cycle IDs assigned to a supervisor in personnel_cycles_assignments.
+     * Returns the array of active cycle IDs assigned to a supervisor across both
+     * personnel_cycles_assignments and surveillant_affectations for the active academic year.
      */
-    public static function getSupervisorActiveCycleIds(int $user_id): array {
+    public static function getSupervisorActiveCycleIds(int $user_id, ?int $lycee_id = null, ?int $annee_id = null): array {
         $db = Database::getInstance();
-        $today = date('Y-m-d');
-        $stmt = $db->prepare("
-            SELECT DISTINCT cycle_id
-            FROM personnel_cycles_assignments
-            WHERE personnel_id = :uid
-              AND actif = 1
-              AND (date_debut IS NULL OR date_debut <= :today_start)
-              AND (date_fin IS NULL OR date_fin = '' OR date_fin = '0000-00-00' OR date_fin >= :today_end)
+        $activeYear = self::resolveActiveAcademicYear($lycee_id, $annee_id);
+        $annee_debut = $activeYear['date_debut'];
+        $annee_fin = $activeYear['date_fin'];
+        $annee_pk = (int)$activeYear['id'];
+
+        $resolvedLyceeId = $lycee_id ?: (int)($activeYear['lycee_id'] ?? 0);
+        if ($resolvedLyceeId <= 0) {
+            $stmtUserLycee = $db->prepare("SELECT lycee_id FROM utilisateurs WHERE id_user = :uid");
+            $stmtUserLycee->execute(['uid' => $user_id]);
+            $resolvedLyceeId = (int)$stmtUserLycee->fetchColumn();
+        }
+
+        if ($resolvedLyceeId <= 0) {
+            return [];
+        }
+
+        // 1. Explicit cycle assignments (personnel_cycles_assignments) strictly scoped to lycee
+        $stmt1 = $db->prepare("
+            SELECT DISTINCT pca.cycle_id
+            FROM personnel_cycles_assignments pca
+            JOIN cycles cy ON pca.cycle_id = cy.id_cycle
+            WHERE pca.personnel_id = :uid
+              AND cy.lycee_id = :lid
+              AND pca.actif = 1
+              AND (pca.date_debut IS NULL OR pca.date_debut <= :annee_fin)
+              AND (pca.date_fin IS NULL OR pca.date_fin = '' OR pca.date_fin = '0000-00-00' OR pca.date_fin >= :annee_debut)
         ");
-        $stmt->execute([
+        $stmt1->execute([
             'uid' => $user_id,
-            'today_start' => $today,
-            'today_end' => $today
+            'lid' => $resolvedLyceeId,
+            'annee_fin' => $annee_fin,
+            'annee_debut' => $annee_debut
         ]);
-        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+        $cycles1 = $stmt1->fetchAll(PDO::FETCH_COLUMN);
+
+        // 2. Operational supervisor assignments (surveillant_affectations) strictly scoped to lycee
+        $stmt2 = $db->prepare("
+            SELECT sa.portee_type, sa.cycle_id, sa.lycee_id
+            FROM surveillant_affectations sa
+            LEFT JOIN cycles cy ON sa.cycle_id = cy.id_cycle
+            WHERE sa.surveillant_id = :uid
+              AND sa.lycee_id = :lid
+              AND sa.annee_academique_id = :aid
+              AND sa.statut = 'actif'
+              AND (
+                  (sa.portee_type = 'cycle' AND cy.lycee_id = :lid_cyc)
+                  OR
+                  (sa.portee_type = 'etablissement')
+              )
+              AND (sa.date_debut IS NULL OR sa.date_debut <= :annee_fin)
+              AND (sa.date_fin IS NULL OR sa.date_fin = '' OR sa.date_fin = '0000-00-00' OR sa.date_fin >= :annee_debut)
+        ");
+        $stmt2->execute([
+            'uid' => $user_id,
+            'lid' => $resolvedLyceeId,
+            'aid' => $annee_pk,
+            'lid_cyc' => $resolvedLyceeId,
+            'annee_fin' => $annee_fin,
+            'annee_debut' => $annee_debut
+        ]);
+        $affs = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+
+        $cycles2 = [];
+        foreach ($affs as $aff) {
+            if ($aff['portee_type'] === 'cycle' && !empty($aff['cycle_id'])) {
+                $cycles2[] = (int)$aff['cycle_id'];
+            } elseif ($aff['portee_type'] === 'etablissement' && !empty($aff['lycee_id'])) {
+                $stmtCy = $db->prepare("SELECT id_cycle FROM cycles WHERE lycee_id = :lid");
+                $stmtCy->execute(['lid' => (int)$aff['lycee_id']]);
+                $cycles2 = array_merge($cycles2, $stmtCy->fetchAll(PDO::FETCH_COLUMN));
+            }
+        }
+
+        $allCycles = array_merge($cycles1, $cycles2);
+        return array_values(array_unique(array_map('intval', array_filter($allCycles, fn($v) => $v !== null && $v !== ''))));
     }
 
     /**
-     * Returns active supervisors for a given school who have an active cycle assignment for $cycle_id.
+     * Returns active supervisors for a given school who have an active cycle assignment for $cycle_id
+     * covering the active academic year (via personnel_cycles_assignments or surveillant_affectations).
      */
-    public static function getSupervisorsByCycle(int $cycle_id, int $lycee_id): array {
+    public static function getSupervisorsByCycle(int $cycle_id, int $lycee_id, ?int $annee_id = null): array {
         $db = Database::getInstance();
-        $today = date('Y-m-d');
-        $stmt = $db->prepare("
+
+        // Validate that the requested cycle strictly belongs to this lycee
+        $stmtCycCheck = $db->prepare("SELECT id_cycle FROM cycles WHERE id_cycle = :cid AND lycee_id = :lid");
+        $stmtCycCheck->execute(['cid' => $cycle_id, 'lid' => $lycee_id]);
+        if (!$stmtCycCheck->fetchColumn()) {
+            return []; // Requested cycle belongs to another establishment or does not exist
+        }
+
+        $activeYear = self::resolveActiveAcademicYear($lycee_id, $annee_id);
+        $annee_debut = $activeYear['date_debut'];
+        $annee_fin = $activeYear['date_fin'];
+        $annee_pk = (int)$activeYear['id'];
+
+        $sql = "
             SELECT DISTINCT u.id_user, u.nom, u.prenom, u.identifiant_public
             FROM utilisateurs u
             JOIN roles r ON u.role_id = r.id_role
-            JOIN personnel_cycles_assignments pca ON u.id_user = pca.personnel_id
             WHERE u.lycee_id = :lycee_id
-              AND u.actif = 1
+              AND (u.actif = 1 OR u.actif IS NULL)
               AND (r.nom_role LIKE '%surveillant%' OR r.id_role = 5)
-              AND pca.cycle_id = :cycle_id
-              AND pca.actif = 1
-              AND (pca.date_debut IS NULL OR pca.date_debut <= :today_start)
-              AND (pca.date_fin IS NULL OR pca.date_fin = '' OR pca.date_fin = '0000-00-00' OR pca.date_fin >= :today_end)
+              AND (
+                  u.id_user IN (
+                      SELECT pca.personnel_id
+                      FROM personnel_cycles_assignments pca
+                      JOIN cycles cy ON pca.cycle_id = cy.id_cycle
+                      WHERE pca.cycle_id = :cycle_id_pca
+                        AND cy.lycee_id = :lid_pca
+                        AND pca.actif = 1
+                        AND (pca.date_debut IS NULL OR pca.date_debut <= :annee_fin_pca)
+                        AND (pca.date_fin IS NULL OR pca.date_fin = '' OR pca.date_fin = '0000-00-00' OR pca.date_fin >= :annee_debut_pca)
+                  )
+                  OR
+                  u.id_user IN (
+                      SELECT sa.surveillant_id
+                      FROM surveillant_affectations sa
+                      LEFT JOIN cycles cy2 ON sa.cycle_id = cy2.id_cycle
+                      WHERE sa.lycee_id = :lycee_id_sa
+                        AND sa.annee_academique_id = :annee_id_sa
+                        AND sa.statut = 'actif'
+                        AND (
+                            (sa.portee_type = 'cycle' AND sa.cycle_id = :cycle_id_sa AND cy2.lycee_id = :lid_sa_cyc)
+                            OR
+                            (sa.portee_type = 'etablissement')
+                        )
+                        AND (sa.date_debut IS NULL OR sa.date_debut <= :annee_fin_sa)
+                        AND (sa.date_fin IS NULL OR sa.date_fin = '' OR sa.date_fin = '0000-00-00' OR sa.date_fin >= :annee_debut_sa)
+                  )
+              )
             ORDER BY u.nom ASC, u.prenom ASC
-        ");
+        ";
+
+        $stmt = $db->prepare($sql);
         $stmt->execute([
             'lycee_id' => $lycee_id,
-            'cycle_id' => $cycle_id,
-            'today_start' => $today,
-            'today_end' => $today
+            'cycle_id_pca' => $cycle_id,
+            'lid_pca' => $lycee_id,
+            'annee_fin_pca' => $annee_fin,
+            'annee_debut_pca' => $annee_debut,
+            'lycee_id_sa' => $lycee_id,
+            'annee_id_sa' => $annee_pk,
+            'cycle_id_sa' => $cycle_id,
+            'lid_sa_cyc' => $lycee_id,
+            'annee_fin_sa' => $annee_fin,
+            'annee_debut_sa' => $annee_debut,
         ]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -129,7 +313,8 @@ class SurveillantAssignmentService {
 
         $surveillant_id = (int)$data['surveillant_id'];
         $lycee_id = (int)($data['lycee_id'] ?? 0);
-        $active_cycles = self::getSupervisorActiveCycleIds($surveillant_id);
+        $annee_id = !empty($data['annee_academique_id']) ? (int)$data['annee_academique_id'] : null;
+        $active_cycles = self::getSupervisorActiveCycleIds($surveillant_id, $lycee_id, $annee_id);
 
         if (empty($active_cycles)) {
             throw new InvalidArgumentException(_("Erreur de périmètre : Le surveillant sélectionné n'a aucune affectation de cycle active dans l'établissement."));
@@ -297,16 +482,42 @@ class SurveillantAssignmentService {
         $classes = $stmtC->fetchAll(PDO::FETCH_ASSOC);
 
         // Filter valid active supervisors having active cycle assignments
+        $activeYear = self::resolveActiveAcademicYear($lycee_id, $annee_id);
+        $annee_debut = $activeYear['date_debut'];
+        $annee_fin = $activeYear['date_fin'];
+        $annee_pk = (int)$activeYear['id'];
+
         $cycle_filter_u = "";
         $paramsU = array_map('intval', $selected_surveillant_ids);
         if ($cycle_id !== null && $cycle_id > 0) {
-            $cycle_filter_u = " AND u.id_user IN (
-                SELECT DISTINCT personnel_id FROM personnel_cycles_assignments
-                WHERE cycle_id = ? AND actif = 1
-                  AND (date_debut IS NULL OR date_debut <= '$today')
-                  AND (date_fin IS NULL OR date_fin = '' OR date_fin = '0000-00-00' OR date_fin >= '$today')
+            $cycle_filter_u = " AND (
+                u.id_user IN (
+                    SELECT DISTINCT pca.personnel_id FROM personnel_cycles_assignments pca
+                    JOIN cycles cy ON pca.cycle_id = cy.id_cycle
+                    WHERE pca.cycle_id = ? AND cy.lycee_id = ? AND pca.actif = 1
+                      AND (pca.date_debut IS NULL OR pca.date_debut <= ?)
+                      AND (pca.date_fin IS NULL OR pca.date_fin = '' OR pca.date_fin = '0000-00-00' OR pca.date_fin >= ?)
+                )
+                OR
+                u.id_user IN (
+                    SELECT DISTINCT sa.surveillant_id FROM surveillant_affectations sa
+                    LEFT JOIN cycles cy2 ON sa.cycle_id = cy2.id_cycle
+                    WHERE sa.lycee_id = ? AND sa.annee_academique_id = ? AND sa.statut = 'actif'
+                      AND ((sa.portee_type = 'cycle' AND sa.cycle_id = ? AND cy2.lycee_id = ?) OR (sa.portee_type = 'etablissement'))
+                      AND (sa.date_debut IS NULL OR sa.date_debut <= ?)
+                      AND (sa.date_fin IS NULL OR sa.date_fin = '' OR sa.date_fin = '0000-00-00' OR sa.date_fin >= ?)
+                )
             ) ";
             $paramsU[] = $cycle_id;
+            $paramsU[] = $lycee_id;
+            $paramsU[] = $annee_fin;
+            $paramsU[] = $annee_debut;
+            $paramsU[] = $lycee_id;
+            $paramsU[] = $annee_pk;
+            $paramsU[] = $cycle_id;
+            $paramsU[] = $lycee_id;
+            $paramsU[] = $annee_fin;
+            $paramsU[] = $annee_debut;
         }
         $paramsU[] = $lycee_id;
 
@@ -314,7 +525,7 @@ class SurveillantAssignmentService {
         $stmtU = $db->prepare("
             SELECT u.id_user, u.nom, u.prenom
             FROM utilisateurs u
-            WHERE u.id_user IN ($placeholders_u) $cycle_filter_u AND u.lycee_id = ? AND u.actif = 1
+            WHERE u.id_user IN ($placeholders_u) $cycle_filter_u AND u.lycee_id = ? AND (u.actif = 1 OR u.actif IS NULL)
             ORDER BY u.nom ASC, u.prenom ASC, u.id_user ASC
         ");
         $stmtU->execute($paramsU);
@@ -333,7 +544,9 @@ class SurveillantAssignmentService {
         $distribution = [];
         foreach ($surveillants as $s) {
             $distribution[$s['id_user']] = [
+                'surveillant_id' => (int)$s['id_user'],
                 'surveillant' => $s,
+                'classe_ids' => [],
                 'classes' => []
             ];
         }
@@ -349,6 +562,7 @@ class SurveillantAssignmentService {
                 $quota = $base_quota + ($idx < $remainder ? 1 : 0);
                 for ($i = 0; $i < $quota && $class_idx < $num_classes; $i++) {
                     $distribution[$s['id_user']]['classes'][] = $classes[$class_idx];
+                    $distribution[$s['id_user']]['classe_ids'][] = (int)$classes[$class_idx]['id_classe'];
                     $class_idx++;
                 }
             }
@@ -377,6 +591,7 @@ class SurveillantAssignmentService {
                 $target_surveillant = $surveillants[$surv_idx % $num_surveillants];
                 foreach ($level_classes as $lc) {
                     $distribution[$target_surveillant['id_user']]['classes'][] = $lc;
+                    $distribution[$target_surveillant['id_user']]['classe_ids'][] = (int)$lc['id_classe'];
                 }
                 $surv_idx++;
             }
@@ -400,21 +615,47 @@ class SurveillantAssignmentService {
      * Applies a distribution proposal atomically with OCC lock and state hash verification.
      */
     public static function applyDistribution(array $payload, int $current_user_id): bool {
-        if (empty($payload['state_hash']) || empty($payload['lycee_id']) || empty($payload['annee_academique_id'])) {
-            throw new InvalidArgumentException(_("Payload de répartition invalide."));
+        if (!is_array($payload) || empty($payload['state_hash']) || !is_string($payload['state_hash'])) {
+            throw new InvalidArgumentException(_("Payload de répartition invalide : state_hash manquant ou non textuel."));
         }
 
-        $lycee_id = (int)$payload['lycee_id'];
-        $annee_id = (int)$payload['annee_academique_id'];
-        $submitted_hash = $payload['state_hash'];
+        if (!array_key_exists('lycee_id', $payload)) {
+            throw new InvalidArgumentException(_("Payload de répartition invalide : identifiant d'établissement manquant."));
+        }
+        $lycee_id = self::filterStrictPositiveInteger($payload['lycee_id'], 'lycee_id');
+
+        // Validate that annee_academique_id is strictly a positive integer without permissive coercion
+        if (!array_key_exists('annee_academique_id', $payload)) {
+            throw new InvalidArgumentException(_("Identifiant d'année académique manquant dans le payload de répartition."));
+        }
+        $candidate_annee_id = self::filterStrictPositiveInteger($payload['annee_academique_id'], 'annee_academique_id');
+
+        // Validate apply_mode
         $mode_apply = $payload['apply_mode'] ?? 'replace'; // 'replace' or 'append'
-        $distribution = $payload['distribution'] ?? [];
+        if (!in_array($mode_apply, ['replace', 'append'], true)) {
+            throw new InvalidArgumentException(sprintf(_("Mode d'application de répartition invalide : '%s'."), var_export($mode_apply, true)));
+        }
+
+        // Validate distribution structure
+        if (!isset($payload['distribution']) || !is_array($payload['distribution'])) {
+            throw new InvalidArgumentException(_("Structure de distribution invalide dans le payload."));
+        }
+
+        // Strict academic year validation: verify that candidate_annee_id matches the active year for this lycee
+        $activeYear = self::resolveActiveAcademicYear($lycee_id, $candidate_annee_id);
+        $annee_id = (int)$activeYear['id'];
+        $submitted_hash = trim($payload['state_hash']);
+        $distribution = $payload['distribution'];
         $selected_classe_ids = array_map('intval', $payload['selected_classe_ids'] ?? []);
 
         $db = Database::getInstance();
         $inTx = $db->inTransaction();
+        $savepointName = 'sp_apply_distribution_' . uniqid();
+
         if (!$inTx) {
             $db->beginTransaction();
+        } else {
+            $db->exec("SAVEPOINT $savepointName");
         }
 
         try {
@@ -453,23 +694,36 @@ class SurveillantAssignmentService {
             $today = date('Y-m-d');
 
             foreach ($distribution as $item) {
-                $surveillant_id = (int)$item['surveillant_id'];
+                $surveillant_id = (int)($item['surveillant_id'] ?? 0);
                 $classe_ids = array_map('intval', $item['classe_ids'] ?? []);
 
                 if ($surveillant_id <= 0 || empty($classe_ids)) {
                     continue;
                 }
 
+                // Verify supervisor belongs strictly to this lycee and is active
+                $stmtCheckSurv = $db->prepare("SELECT lycee_id, actif FROM utilisateurs WHERE id_user = :uid");
+                $stmtCheckSurv->execute(['uid' => $surveillant_id]);
+                $uData = $stmtCheckSurv->fetch(PDO::FETCH_ASSOC);
+                if (!$uData || (int)$uData['lycee_id'] !== $lycee_id || ($uData['actif'] !== null && (int)$uData['actif'] === 0)) {
+                    throw new InvalidArgumentException(_("Validation de sécurité : Le surveillant sélectionné est invalide ou n'appartient pas à cet établissement."));
+                }
+
                 $impacted_user_ids[] = $surveillant_id;
 
-                $active_cycles = self::getSupervisorActiveCycleIds($surveillant_id);
+                $active_cycles = self::getSupervisorActiveCycleIds($surveillant_id, $lycee_id, $annee_id);
 
                 foreach ($classe_ids as $cid) {
-                    // Validate cycle compliance
-                    $stmtCyc = $db->prepare("SELECT cycle_id FROM classes WHERE id_classe = :cid");
+                    // Validate class belongs to this lycee and cycle compliance
+                    $stmtCyc = $db->prepare("SELECT cycle_id, lycee_id FROM classes WHERE id_classe = :cid");
                     $stmtCyc->execute(['cid' => $cid]);
-                    $c_cycle = (int)$stmtCyc->fetchColumn();
+                    $cRow = $stmtCyc->fetch(PDO::FETCH_ASSOC);
 
+                    if (!$cRow || (int)$cRow['lycee_id'] !== $lycee_id) {
+                        throw new InvalidArgumentException(_("Validation de sécurité : La classe sélectionnée n'appartient pas à cet établissement."));
+                    }
+
+                    $c_cycle = (int)$cRow['cycle_id'];
                     if (!in_array($c_cycle, $active_cycles, true)) {
                         throw new InvalidArgumentException(_("Validation de sécurité : Le surveillant sélectionné n'a pas d'affectation active sur le cycle de cette classe."));
                     }
@@ -516,11 +770,16 @@ class SurveillantAssignmentService {
 
             if (!$inTx) {
                 $db->commit();
+            } else {
+                $db->exec("RELEASE SAVEPOINT $savepointName");
             }
             return true;
         } catch (Throwable $e) {
             if (!$inTx && $db->inTransaction()) {
                 $db->rollBack();
+            } elseif ($inTx) {
+                $db->exec("ROLLBACK TO SAVEPOINT $savepointName");
+                $db->exec("RELEASE SAVEPOINT $savepointName");
             }
             throw $e;
         }

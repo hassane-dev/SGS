@@ -70,10 +70,17 @@ if (!empty($surveillants)) {
         <div class="row mb-4">
             <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div>
+                    <?php if (!empty($activeYear)): ?>
                     <span class="badge bg-primary fs-6">
                         <i class="ph-duotone ph-calendar me-1"></i>
-                        <?= htmlspecialchars($activeYear['libelle'] ?? 'Année active') ?>
+                        <?= htmlspecialchars($activeYear['libelle']) ?>
                     </span>
+                    <?php else: ?>
+                    <span class="badge bg-danger fs-6">
+                        <i class="ph-duotone ph-warning-circle me-1"></i>
+                        <?= _("Aucune année académique active configurée pour cet établissement") ?>
+                    </span>
+                    <?php endif; ?>
                 </div>
                 <?php if ($canManage): ?>
                 <div class="d-flex gap-2">
@@ -408,7 +415,8 @@ if (!empty($surveillants)) {
 
 <script>
 function filterModalByCycle(cycleId) {
-    fetch('/surveillants/ajax-filter-by-cycle?cycle_id=' + cycleId)
+    const anneeParam = '<?= !empty($activeYear['id']) ? "&annee_id=" . (int)$activeYear['id'] : "" ?>';
+    fetch('/surveillants/ajax-filter-by-cycle?cycle_id=' + cycleId + anneeParam)
     .then(r => r.json())
     .then(data => {
         if (!data.success) return;
