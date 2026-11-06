@@ -85,6 +85,12 @@ $router->register('/settings/change-language', 'SettingsController', 'changeLang
 $router->register('/settings/change-lycee', 'SettingsController', 'changeLycee');
 $router->register('/settings/change-year', 'SettingsController', 'changeYear');
 
+// Paramétrage des seuils de promotion
+$router->register('/settings/promotion-thresholds', 'PromotionThresholdController', 'index');
+$router->register('/settings/promotion-thresholds/store', 'PromotionThresholdController', 'store');
+$router->register('/settings/promotion-thresholds/delete', 'PromotionThresholdController', 'delete');
+$router->register('/settings/promotion-thresholds/resolve-preview', 'PromotionThresholdController', 'resolvePreview');
+
 // Notifications
 $router->register('/notifications/all', 'NotificationController', 'index');
 $router->register('/notifications/unread', 'NotificationController', 'unread');
