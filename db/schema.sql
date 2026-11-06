@@ -11,7 +11,7 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- Drop all tables if they exist to ensure a clean slate on fresh initialization
-DROP TABLE IF EXISTS `paiement_ventilations`, `modes_paiement`, `affectations_caisses`, `bulletin_details`, `paie_audit_logs`, `paie_reglements`, `paie_regularisation_integrations`, `paie_regularisation_lignes`, `paie_regularisations`, `paie_bulletin_regle_tranches_snapshot`, `paie_bulletin_regles_snapshot`, `paie_bulletin_financements`, `paie_bulletin_contrat_snapshot`, `paie_bulletin_heures`, `paie_cahier_texte_validations`, `paie_bulletin_lignes`, `paie_bulletins`, `paie_baremes_tranches`, `paie_regles_calcul`, `paie_regles`, `paie_periodes`, `paie_grilles_salariales`, `paie_baremes`, `sys_idempotency_keys`, `personnel_contrat_financements`, `personnel_contrat_composants`, `personnel_affectations_historique`, `personnel_postes`, `personnel_unites_organisationnelles`, `paie_entites_juridiques`, `personnel_historique_mouvements`, `personnel_documents`, `personnel_contrats_historique`, `personnel_fonctions`, `personnel_details`, `personnel_cycles_assignments`, `reporting_audit_logs`, `reporting_previsions_config`, `reporting_kpi_seuils`, `reporting_snapshots`, `schemas_comptables`, `comptabilite_periodes`, `ecritures_comptables`, `pieces_comptables`, `pieces_comptables_sequences`, `journaux_comptables`, `comptes_comptables`, `devises`, `budget_historique`, `budget_engagements`, `budget_ajustements`, `budget_lignes`, `budgets`, `depenses_evenements_log`, `depenses_historique`, `depenses_pieces`, `depenses`, `depense_beneficiaires`, `depense_centres_couts`, `depense_categories`, `surveillant_affectations`, `surveillant_groupe_classes`, `surveillant_groupes`, `discipline_conseil_incidents`, `discipline_conseil_eleves`, `discipline_conseil_membres`, `discipline_conseils`, `discipline_notifications`, `discipline_documents`, `discipline_historique`, `discipline_sanctions`, `discipline_incident_eleves`, `discipline_incidents`, `discipline_types_sanctions`, `discipline_types_incidents`, `achat_avoir_fournisseur_lignes`, `achat_avoirs_fournisseurs`, `achat_facture_reglements`, `achat_facture_lignes`, `achat_factures`, `achat_reception_lignes`, `achat_receptions`, `achat_commande_lignes`, `achat_commandes`, `achat_demande_lignes`, `achat_demandes`, `achat_articles`, `achat_categories`, `fournisseurs`, `regularisations_ecarts`, `mouvements_tresorerie`, `transferts_financiers`, `sessions_caisse`, `comptes_financiers`, `exercices_financiers`, `parametres_utilisateurs`, `etats_financiers_eleves`, `parametres_financiers_historique`, `parametres_financiers_eleves`, `politiques_financieres`, `evaluations`, `deblocages_notes`, `parametres_evaluations`, `param_type_evaluation`, `presences`, `emploi_du_temps`, `bulletins`, `notifications`, `modele_bulletin`, `carte_objects`, `carte_templates`, `salaires`, `surveillant_general`, `surveillant_niveaux`, `surveillant_classes`, `personnel_assignments`, `cahier_texte`, `horaire_enseignant`, `type_contrat`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_ventes`, `boutique_articles`, `frais`, `journal_comptable`, `mensualite_details`, `mensualites`, `inscriptions`, `tests_entree`, `etudes`, `eleves`, `param_composition`, `param_devoir`, `sequences`, `affectations_pedagogiques`, `classe_matieres`, `matieres`, `classe_parametres`, `classes`, `series`, `cycles`, `salles`, `utilisateurs`, `role_permissions`, `permissions`, `roles`, `param_general`, `param_lycee`, `annees_academiques`;
+DROP TABLE IF EXISTS `param_promotion_seuils`, `paiement_ventilations`, `modes_paiement`, `affectations_caisses`, `bulletin_details`, `paie_audit_logs`, `paie_reglements`, `paie_regularisation_integrations`, `paie_regularisation_lignes`, `paie_regularisations`, `paie_bulletin_regle_tranches_snapshot`, `paie_bulletin_regles_snapshot`, `paie_bulletin_financements`, `paie_bulletin_contrat_snapshot`, `paie_bulletin_heures`, `paie_cahier_texte_validations`, `paie_bulletin_lignes`, `paie_bulletins`, `paie_baremes_tranches`, `paie_regles_calcul`, `paie_regles`, `paie_periodes`, `paie_grilles_salariales`, `paie_baremes`, `sys_idempotency_keys`, `personnel_contrat_financements`, `personnel_contrat_composants`, `personnel_affectations_historique`, `personnel_postes`, `personnel_unites_organisationnelles`, `paie_entites_juridiques`, `personnel_historique_mouvements`, `personnel_documents`, `personnel_contrats_historique`, `personnel_fonctions`, `personnel_details`, `personnel_cycles_assignments`, `reporting_audit_logs`, `reporting_previsions_config`, `reporting_kpi_seuils`, `reporting_snapshots`, `schemas_comptables`, `comptabilite_periodes`, `ecritures_comptables`, `pieces_comptables`, `pieces_comptables_sequences`, `journaux_comptables`, `comptes_comptables`, `devises`, `budget_historique`, `budget_engagements`, `budget_ajustements`, `budget_lignes`, `budgets`, `depenses_evenements_log`, `depenses_historique`, `depenses_pieces`, `depenses`, `depense_beneficiaires`, `depense_centres_couts`, `depense_categories`, `surveillant_affectations`, `surveillant_groupe_classes`, `surveillant_groupes`, `discipline_conseil_incidents`, `discipline_conseil_eleves`, `discipline_conseil_membres`, `discipline_conseils`, `discipline_notifications`, `discipline_documents`, `discipline_historique`, `discipline_sanctions`, `discipline_incident_eleves`, `discipline_incidents`, `discipline_types_sanctions`, `discipline_types_incidents`, `achat_avoir_fournisseur_lignes`, `achat_avoirs_fournisseurs`, `achat_facture_reglements`, `achat_facture_lignes`, `achat_factures`, `achat_reception_lignes`, `achat_receptions`, `achat_commande_lignes`, `achat_commandes`, `achat_demande_lignes`, `achat_demandes`, `achat_articles`, `achat_categories`, `fournisseurs`, `regularisations_ecarts`, `mouvements_tresorerie`, `transferts_financiers`, `sessions_caisse`, `comptes_financiers`, `exercices_financiers`, `parametres_utilisateurs`, `etats_financiers_eleves`, `parametres_financiers_historique`, `parametres_financiers_eleves`, `politiques_financieres`, `evaluations`, `deblocages_notes`, `parametres_evaluations`, `param_type_evaluation`, `presences`, `emploi_du_temps`, `bulletins`, `notifications`, `modele_bulletin`, `carte_objects`, `carte_templates`, `salaires`, `surveillant_general`, `surveillant_niveaux`, `surveillant_classes`, `personnel_assignments`, `cahier_texte`, `horaire_enseignant`, `type_contrat`, `traductions`, `licences`, `cartes_scolaires`, `boutique_achats`, `boutique_ventes`, `boutique_articles`, `frais`, `journal_comptable`, `mensualite_details`, `mensualites`, `inscriptions`, `tests_entree`, `etudes`, `eleves`, `param_composition`, `param_devoir`, `sequences`, `affectations_pedagogiques`, `classe_matieres`, `matieres`, `classe_parametres`, `classes`, `series`, `cycles`, `salles`, `utilisateurs`, `role_permissions`, `permissions`, `roles`, `param_general`, `param_lycee`, `annees_academiques`;
 
 CREATE TABLE `annees_academiques` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -2604,5 +2604,43 @@ CREATE TABLE paiement_ventilations (
     INDEX idx_ventilation_target (paiement_type, paiement_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+
+-- Table `param_promotion_seuils` (Hierarchical promotion, deliberation and repeat thresholds)
+CREATE TABLE param_promotion_seuils (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lycee_id INT NOT NULL,
+    cycle_id INT NULL,
+    niveau VARCHAR(50) NULL,
+    serie VARCHAR(50) NULL,
+    portee_type ENUM('etablissement', 'cycle', 'niveau', 'niveau_serie') NOT NULL,
+    target_cycle_id INT GENERATED ALWAYS AS (COALESCE(cycle_id, 0)) STORED,
+    target_niveau VARCHAR(50) GENERATED ALWAYS AS (COALESCE(niveau, '')) STORED,
+    target_serie VARCHAR(50) GENERATED ALWAYS AS (COALESCE(serie, '')) STORED,
+    seuil_admission_directe DECIMAL(4,2) NOT NULL,
+    seuil_deliberation_min DECIMAL(4,2) NOT NULL,
+    seuil_deliberation_max DECIMAL(4,2) NOT NULL,
+    seuil_redoublement_max DECIMAL(4,2) NOT NULL,
+    seuil_exclusion_max DECIMAL(4,2) NULL,
+    cree_par INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+    FOREIGN KEY (cycle_id) REFERENCES cycles(id_cycle) ON DELETE RESTRICT,
+    FOREIGN KEY (cree_par) REFERENCES utilisateurs(id_user) ON DELETE SET NULL,
+    CONSTRAINT chk_prom_portee_coherence CHECK (
+        (portee_type = 'etablissement' AND cycle_id IS NULL     AND niveau IS NULL     AND serie IS NULL) OR
+        (portee_type = 'cycle'         AND cycle_id IS NOT NULL AND niveau IS NULL     AND serie IS NULL) OR
+        (portee_type = 'niveau'        AND cycle_id IS NOT NULL AND niveau IS NOT NULL AND serie IS NULL) OR
+        (portee_type = 'niveau_serie'  AND cycle_id IS NOT NULL AND niveau IS NOT NULL AND serie IS NOT NULL)
+    ),
+    UNIQUE KEY uk_prom_scope_unique (
+        lycee_id,
+        portee_type,
+        target_cycle_id,
+        target_niveau,
+        target_serie
+    ),
+    INDEX idx_prom_lookup (lycee_id, target_cycle_id, target_niveau)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;

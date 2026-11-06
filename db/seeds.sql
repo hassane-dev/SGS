@@ -249,7 +249,11 @@ INSERT INTO `permissions` (`id_permission`, `resource`, `action`, `description`)
 (256, 'discipline', 'manage_sanctions', 'Prononcer, exécuter, lever ou annuler des sanctions disciplinaires'),
 (257, 'discipline', 'view_history', 'Consulter le journal d\'historique et d\'audit disciplinaire'),
 (258, 'discipline', 'manage_documents', 'Téléverser et consulter les pièces jointes disciplinaires'),
-(259, 'discipline', 'manage_notifications', 'Consigner et suivre les notifications disciplinaires aux responsables');
+(259, 'discipline', 'manage_notifications', 'Consigner et suivre les notifications disciplinaires aux responsables'),
+
+-- Promotion Thresholds
+(260, 'promotion_threshold', 'view', 'Consulter les seuils de promotion scolaire'),
+(261, 'promotion_threshold', 'manage', 'Créer, modifier et supprimer les seuils de promotion scolaire');
 
 -- --------------------------------------------------------
 -- Role-Permission Assignments
