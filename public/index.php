@@ -91,6 +91,11 @@ $router->register('/settings/promotion-thresholds/store', 'PromotionThresholdCon
 $router->register('/settings/promotion-thresholds/delete', 'PromotionThresholdController', 'delete');
 $router->register('/settings/promotion-thresholds/resolve-preview', 'PromotionThresholdController', 'resolvePreview');
 
+// Décisions d'admission et de promotion scolaire
+$router->register('/admissions', 'PromotionAdmissionController', 'index');
+$router->register('/admissions/student-detail', 'PromotionAdmissionController', 'studentDetail');
+$router->register('/admissions/ajax-classes', 'PromotionAdmissionController', 'ajaxClasses');
+
 // Notifications
 $router->register('/notifications/all', 'NotificationController', 'index');
 $router->register('/notifications/unread', 'NotificationController', 'unread');

@@ -134,6 +134,12 @@ $navItems = [
                 'title' => _('Accéder au hub central des notes, évaluations, saisie, paramètres et bulletins.'),
                 'condition' => Auth::can('view_all', 'note') || Auth::can('create_own', 'note') || Auth::can('manage_settings', 'evaluation') || Auth::can('generate', 'bulletin') || Auth::can('validate', 'bulletin') || Auth::can('print', 'bulletin') || Auth::can('edit_appreciation_conseil', 'bulletin'),
             ],
+            [
+                'url' => '/admissions',
+                'text' => _("Décisions d'Admission"),
+                'title' => _("Calculer et consulter les décisions d'admission et de délibération des élèves."),
+                'condition' => Auth::can('view', 'promotion_threshold') || Auth::can('validate', 'bulletin') || Auth::can('generate', 'bulletin') || Auth::can('view_all', 'note'),
+            ],
         ],
     ],
     [
