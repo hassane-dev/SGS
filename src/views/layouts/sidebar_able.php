@@ -76,7 +76,7 @@ $navItems = [
                 'url' => '/reinscription',
                 'text' => _('Réinscriptions'),
                 'title' => _('Gérer les réinscriptions des élèves existants.'),
-                'condition' => Auth::can('manage', 'inscription'),
+                'condition' => Auth::can('manage', 'inscription') || Auth::can('reinscrire', 'eleve'),
             ],
             [
                 'url' => '/classes',

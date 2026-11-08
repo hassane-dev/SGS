@@ -47,17 +47,32 @@ class ReinscriptionWorkflowTest {
         $db->exec("INSERT INTO classes (id_classe, lycee_id, cycle_id, niveau, serie, numero) VALUES (9001, $lyceeId, 1, '6eme', 'G', 1)");
         $db->exec("INSERT INTO classes (id_classe, lycee_id, cycle_id, niveau, serie, numero) VALUES (9002, $lyceeId, 1, '5eme', 'G', 1)");
 
-        // Create Academic Years
+        // Create Academic Years (Year 1 and Year 2)
+        $db->exec("INSERT INTO annees_academiques (id, libelle, date_debut, date_fin, est_active) VALUES ($activeYearId, '2024-2025', '2024-09-01', '2025-06-30', 0) ON CONFLICT(id) DO UPDATE SET est_active=0");
         $db->exec("INSERT INTO annees_academiques (id, libelle, date_debut, date_fin, est_active) VALUES ($nextYearId, '2025-2026', '2025-09-01', '2026-06-30', 1) ON CONFLICT(id) DO UPDATE SET est_active=1");
 
         // Create Accountant User
-        $db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, email, role_id, actif) VALUES (9901, $lyceeId, 'COMPTABLE', 'Jean', 'comp9901@sgs.ci', 7, 1)");
+        $db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, email, role_id, actif) VALUES (9901, $lyceeId, 'COMPTABLE', 'Jean', 'comp9901@sgs.ci', 7, 1) ON CONFLICT(id_user) DO UPDATE SET lycee_id=$lyceeId");
 
         // Create Existing Student
         $db->exec("INSERT INTO eleves (id_eleve, lycee_id, nom, prenom, identifiant_public, statut) VALUES (9101, $lyceeId, 'KOUAME', 'Paul', 'MAT-9101', 'actif')");
 
         // Student's former enrollment in Year 1
         $db->exec("INSERT INTO etudes (id_etude, eleve_id, classe_id, lycee_id, annee_academique_id, is_active, status) VALUES (9201, 9101, 9001, $lyceeId, $activeYearId, 0, 'inactive')");
+
+        // 1b. Configurer cycle et seuils pour le lycée de test
+        $db->exec("DELETE FROM param_promotion_seuils WHERE lycee_id = $lyceeId");
+        $db->exec("INSERT INTO cycles (id_cycle, lycee_id, nom_cycle, niveau_debut, niveau_fin, utilise_series) VALUES (1, $lyceeId, 'Collège', '6eme', '3eme', 0) ON CONFLICT(id_cycle) DO NOTHING");
+        $db->exec("INSERT INTO param_general (lycee_id, sequence_annuelle) VALUES ($lyceeId, 'Trimestrielle')");
+        $db->exec("INSERT INTO param_promotion_seuils (lycee_id, portee_type, seuil_admission_directe, seuil_deliberation_min, seuil_deliberation_max, seuil_redoublement_max, seuil_exclusion_max)
+            VALUES ($lyceeId, 'etablissement', 10.00, 8.50, 9.99, 8.49, 5.00)");
+        // Séquences fermées et bulletins validés pour l'élève
+        for ($s = 1; $s <= 3; $s++) {
+            $db->exec("INSERT INTO sequences (id, lycee_id, annee_academique_id, nom, type, date_debut, date_fin, statut)
+                VALUES (9900 + $s, $lyceeId, $activeYearId, 'Trimestre $s', 'trimestrielle', '2024-09-01', '2025-06-30', 'fermee') ON CONFLICT(id) DO NOTHING");
+            $db->exec("INSERT INTO bulletins (eleve_id, sequence_id, annee_academique_id, classe_id, lycee_id, moyenne_generale, statut)
+                VALUES (9101, 9900 + $s, $activeYearId, 9001, $lyceeId, 12.0, 'valide')");
+        }
 
         // 2. Execute Re-enrollment via ReinscriptionController
         $_SESSION['user'] = [
