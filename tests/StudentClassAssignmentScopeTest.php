@@ -84,15 +84,19 @@ if ($stmtRp->fetchColumn() == 0) {
 // User 8881: CEG-only assigned
 $db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, role_id, auth_version) VALUES (8881, 1, 'User', 'CEGOnly', 99, 1)");
 $db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, actif) VALUES (8881, {$idCeg}, '2020-01-01', 1)");
+$db->exec("INSERT INTO personnel_assignments (personnel_id, assignment_type, target_id) VALUES (8881, 'classe', 88810)");
 
 // User 8882: Lycee-only assigned
 $db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, role_id, auth_version) VALUES (8882, 1, 'User', 'LyceeOnly', 99, 1)");
 $db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, actif) VALUES (8882, {$idLycee}, '2020-01-01', 1)");
+$db->exec("INSERT INTO personnel_assignments (personnel_id, assignment_type, target_id) VALUES (8882, 'classe', 88820)");
 
 // User 8883: Multi-cycle assigned (CEG + Lycee)
 $db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, role_id, auth_version) VALUES (8883, 1, 'User', 'MultiCycle', 99, 1)");
 $db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, actif) VALUES (8883, {$idCeg}, '2020-01-01', 1)");
 $db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, actif) VALUES (8883, {$idLycee}, '2020-01-01', 1)");
+$db->exec("INSERT INTO personnel_assignments (personnel_id, assignment_type, target_id) VALUES (8883, 'classe', 88810)");
+$db->exec("INSERT INTO personnel_assignments (personnel_id, assignment_type, target_id) VALUES (8883, 'classe', 88820)");
 
 // User 8884: User with NO cycle assignment
 $db->exec("INSERT INTO utilisateurs (id_user, lycee_id, nom, prenom, role_id, auth_version) VALUES (8884, 1, 'User', 'NoAssignment', 99, 1)");
@@ -137,7 +141,7 @@ if (count($permittedIds) === 1 && in_array($idCeg, $permittedIds)) {
 // 1b. AJAX getNiveauxForCycle CEG vs Lycée
 $_GET = ['cycle_id' => $idCeg, 'lycee_id' => 1];
 ob_start(); $classeCtrl->getNiveauxForCycle(); $cegNiveaux = json_decode(ob_get_clean(), true);
-if (in_array('6e', $cegNiveaux)) {
+if (count($cegNiveaux) > 0 && in_array('6e', $cegNiveaux)) {
     echo "  [PASS] 1b. In-scope CEG cycle levels returned correctly.\n";
 } else {
     echo "  [FAIL] 1b. In-scope CEG cycle levels failed! Got: " . json_encode($cegNiveaux) . "\n";
