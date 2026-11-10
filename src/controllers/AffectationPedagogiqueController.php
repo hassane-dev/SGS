@@ -283,43 +283,124 @@ class AffectationPedagogiqueController {
     // --- AJAX endpoints for dynamic hierarchical selection ---
 
     public function getNiveaux() {
-        header('Content-Type: application/json');
+        if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
+        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+
         $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
         $lycee_id = Auth::getLyceeId();
-        $niveaux = $cycle_id ? Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id) : Classe::getDistinctNiveaux($lycee_id);
+
+        if (!$lycee_id || !AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
+            echo json_encode([]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        $authClasses = AuthorizationScopeService::getAuthorizedClassIds($lycee_id);
+        if ($authClasses === []) {
+            echo json_encode([]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        $niveaux = $cycle_id ? Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id, $authClasses) : Classe::getDistinctNiveaux($lycee_id, $authClasses);
         echo json_encode(array_values($niveaux));
         if (!defined('TEST_MODE')) exit(); return;
     }
 
     public function getSeries() {
-        header('Content-Type: application/json');
+        if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
+        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+
         $niveau = $_GET['niveau'] ?? null;
         $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
         $lycee_id = Auth::getLyceeId();
-        $series = Classe::findDistinctSeriesByNiveau($niveau, $lycee_id, $cycle_id);
+
+        if (!$lycee_id || !AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
+            echo json_encode([]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        // Check utilise_series if cycle_id is specified
+        if ($cycle_id) {
+            $cycle = Cycle::findById($cycle_id);
+            if (!$cycle || ($cycle['utilise_series'] === null || $cycle['utilise_series'] === '' || (int)$cycle['utilise_series'] === 0)) {
+                echo json_encode([]);
+                if (!defined('TEST_MODE')) exit(); return;
+            }
+        }
+
+        $authClasses = AuthorizationScopeService::getAuthorizedClassIds($lycee_id);
+        if ($authClasses === []) {
+            echo json_encode([]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        $series = Classe::findDistinctSeriesByNiveau($niveau, $lycee_id, $cycle_id, $authClasses);
         echo json_encode(array_values($series));
         if (!defined('TEST_MODE')) exit(); return;
     }
 
     public function getNumeros() {
-        header('Content-Type: application/json');
+        if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
+        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+
         $niveau = $_GET['niveau'] ?? null;
         $serie = $_GET['serie'] ?? null;
         $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
         $lycee_id = Auth::getLyceeId();
-        $numeros = Classe::findAvailableNumeros($niveau, $serie, $lycee_id, $cycle_id);
+
+        if (!$lycee_id || !AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
+            echo json_encode([]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        if ($cycle_id) {
+            $cycle = Cycle::findById($cycle_id);
+            if (!$cycle || (!empty($cycle['lycee_id']) && (int)$cycle['lycee_id'] !== (int)$lycee_id)) {
+                echo json_encode([]);
+                if (!defined('TEST_MODE')) exit(); return;
+            }
+        }
+
+        $authClasses = AuthorizationScopeService::getAuthorizedClassIds($lycee_id);
+        if ($authClasses === []) {
+            echo json_encode([]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        $numeros = Classe::findAvailableNumeros($niveau, $serie, $lycee_id, $cycle_id, $authClasses);
         echo json_encode(array_values($numeros));
         if (!defined('TEST_MODE')) exit(); return;
     }
 
     public function getClasseId() {
-        header('Content-Type: application/json');
+        if (!defined('TEST_MODE')) { header('Content-Type: application/json'); }
+        require_once __DIR__ . '/../services/AuthorizationScopeService.php';
+
         $lycee_id = Auth::getLyceeId();
         $niveau = $_GET['niveau'] ?? null;
         $serie = $_GET['serie'] ?? null;
         $numero = $_GET['numero'] ?? null;
         $cycle_id = !empty($_GET['cycle_id']) ? (int)$_GET['cycle_id'] : null;
-        $id = Classe::findIdByDetails($lycee_id, $niveau, $serie, $numero, $cycle_id);
+
+        if (!$lycee_id || !AuthorizationScopeService::canAccessLycee($lycee_id) || ($cycle_id && !AuthorizationScopeService::canAccessCycle($cycle_id))) {
+            echo json_encode(['id_classe' => null]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        if ($cycle_id) {
+            $cycle = Cycle::findById($cycle_id);
+            if (!$cycle || (!empty($cycle['lycee_id']) && (int)$cycle['lycee_id'] !== (int)$lycee_id)) {
+                echo json_encode(['id_classe' => null]);
+                if (!defined('TEST_MODE')) exit(); return;
+            }
+        }
+
+        $authClasses = AuthorizationScopeService::getAuthorizedClassIds($lycee_id);
+        if ($authClasses === []) {
+            echo json_encode(['id_classe' => null]);
+            if (!defined('TEST_MODE')) exit(); return;
+        }
+
+        $id = Classe::findIdByDetails($lycee_id, $niveau, $serie, $numero, $cycle_id, $authClasses);
         echo json_encode(['id_classe' => $id]);
         if (!defined('TEST_MODE')) exit(); return;
     }

@@ -432,29 +432,17 @@ class AuthorizationScopeService {
             $raw_class_ids = array_merge($raw_class_ids, $stmtAp->fetchAll(PDO::FETCH_COLUMN));
         } catch (Throwable $e) {}
 
-        // 4. Explicit cycle assignments (personnel_cycles_assignments & personnel_assignments cycle)
+        // 4. Direct class assignments from personnel_assignments (target_id is id_classe)
         try {
-            $stmtPca = $db->prepare("
-                SELECT c.id_classe
-                FROM personnel_cycles_assignments pca
-                JOIN classes c ON pca.cycle_id = c.cycle_id AND (c.lycee_id = :lid OR :lid IS NULL)
-                WHERE pca.personnel_id = :uid
-                  AND pca.actif = 1
-                  AND (pca.date_debut IS NULL OR pca.date_debut <= :today_start)
-                  AND (pca.date_fin IS NULL OR pca.date_fin = '' OR pca.date_fin = '0000-00-00' OR pca.date_fin >= :today_end)
-            ");
-            $stmtPca->execute(['uid' => $user_id, 'lid' => $lycee_id, 'today_start' => $today, 'today_end' => $today]);
-            $raw_class_ids = array_merge($raw_class_ids, $stmtPca->fetchAll(PDO::FETCH_COLUMN));
-
-            $stmtPaCyc = $db->prepare("
+            $stmtPaCls = $db->prepare("
                 SELECT c.id_classe
                 FROM personnel_assignments pa
-                JOIN classes c ON pa.target_id = c.cycle_id AND (c.lycee_id = :lid OR :lid IS NULL)
+                JOIN classes c ON pa.target_id = c.id_classe AND (c.lycee_id = :lid OR :lid IS NULL)
                 WHERE pa.personnel_id = :uid
-                  AND pa.assignment_type = 'cycle'
+                  AND pa.assignment_type = 'classe'
             ");
-            $stmtPaCyc->execute(['uid' => $user_id, 'lid' => $lycee_id]);
-            $raw_class_ids = array_merge($raw_class_ids, $stmtPaCyc->fetchAll(PDO::FETCH_COLUMN));
+            $stmtPaCls->execute(['uid' => $user_id, 'lid' => $lycee_id]);
+            $raw_class_ids = array_merge($raw_class_ids, $stmtPaCls->fetchAll(PDO::FETCH_COLUMN));
         } catch (Throwable $e) {}
 
         $class_ids = array_values(array_unique(array_map('intval', array_filter($raw_class_ids, fn($val) => $val !== null && $val !== '' && (int)$val > 0))));
@@ -483,8 +471,20 @@ class AuthorizationScopeService {
         if (!$cycle_id) {
             return false;
         }
+        if (Auth::can('view_all_lycees', 'lycee') || Auth::can('view_all_cycles', 'cycle')) {
+            return true;
+        }
         $authorized = self::getAuthorizedCycleIds();
-        return in_array((int)$cycle_id, $authorized);
+        if (in_array((int)$cycle_id, $authorized)) {
+            return true;
+        }
+        if (Auth::can('manage', 'cycle') || Auth::can('create', 'class') || Auth::can('manage', 'class')) {
+            $c = Cycle::findById((int)$cycle_id);
+            if ($c && (empty($c['lycee_id']) || self::canAccessLycee((int)$c['lycee_id']))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

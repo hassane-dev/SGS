@@ -181,7 +181,7 @@
 
             const requestId = ++currentNiveauxRequestId;
 
-            fetch(`/classes/get-niveaux?cycle_id=${cycleId}&lycee_id=${lid}`)
+            fetch(`/classes/get-niveaux?cycle_id=${cycleId}&lycee_id=${lid}&context=creation`)
                 .then(async r => {
                     const data = await r.json().catch(() => null);
                     if (!r.ok) {

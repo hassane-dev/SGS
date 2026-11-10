@@ -28,6 +28,9 @@ $db->exec("INSERT INTO cycles (id_cycle, nom_cycle, lycee_id, utilise_series, ni
 // Create class for school 8892, cycle 88903
 $db->exec("INSERT INTO classes (id_classe, lycee_id, cycle_id, niveau, numero) VALUES (88930, 8892, 88903, '6e', '1')");
 
+$db->exec("INSERT OR IGNORE INTO utilisateurs (id_user, nom, prenom, role_id, lycee_id, actif, auth_version) VALUES (7712, 'Test', 'BetaUser', 5, 8892, 1, 1)");
+$db->exec("INSERT OR IGNORE INTO utilisateurs (id_user, nom, prenom, role_id, lycee_id, actif, auth_version) VALUES (3301, 'Admin', 'LocalAlpha', 3, 8891, 1, 1)");
+
 $controller = new ClasseController();
 
 // TEST A: Super Admin sans lycee_id transmis (avec cycle_id) -> Déduit le lycée du cycle si valide & autorisé
@@ -94,6 +97,8 @@ unset($_SESSION['user']['authorized_cycles']);
 // Add explicit cycle assignment for 88903 so user has active cycle 88903
 $db->exec("DELETE FROM personnel_cycles_assignments WHERE personnel_id = 7712");
 $db->exec("INSERT INTO personnel_cycles_assignments (personnel_id, cycle_id, date_debut, actif) VALUES (7712, 88903, '2020-01-01', 1)");
+$db->exec("DELETE FROM personnel_assignments WHERE personnel_id = 7712");
+$db->exec("INSERT INTO personnel_assignments (personnel_id, assignment_type, target_id) VALUES (7712, 'classe', 88930)");
 
 $_GET['cycle_id'] = '88901'; // Out of scope cycle from school 8891
 $_GET['lycee_id'] = '8891'; // Out of scope school
@@ -116,20 +121,20 @@ ob_start();
 $controller->getNiveauxForCycle();
 $testE = json_decode(ob_get_clean(), true);
 
-if ($testE === ['6e', '5e', '4e', '3e']) {
-    echo "  [PASS] Test E: Restricted user querying in-scope cycle 88903 under school 8892 returns levels.\n";
+if ($testE === ['6e']) {
+    echo "  [PASS] Test E: Restricted user querying in-scope cycle 88903 returns strictly their authorized level ['6e'].\n";
 } else {
-    echo "  [FAIL] Test E: Expected ['6e','5e','4e','3e'], got " . json_encode($testE) . "\n";
+    echo "  [FAIL] Test E: Expected ['6e'], got " . json_encode($testE) . "\n";
 }
 
 // TEST F: Administrateur Local (role_id = 3, lycee_id = 8891) créant la PREMIÈRE CLASSE sur un cycle (0 classe préexistante)
 $_SESSION['user'] = [
     'id_user' => 3301,
-    'role_id' => null,
+    'role_id' => 3,
     'lycee_id' => 8891,
     'permissions' => [
-        'class' => ['create', 'view', 'edit', 'manage'],
-        'cycle' => ['manage']
+        'class' => ['create' => true, 'view' => true, 'edit' => true, 'manage' => true],
+        'cycle' => ['manage' => true]
     ]
 ];
 unset($_SESSION['user']['authorized_cycles']);
@@ -167,5 +172,7 @@ if ($testG === ['6e', '5e', '4e', '3e']) {
 $db->exec("DELETE FROM classes WHERE id_classe = 88930");
 $db->exec("DELETE FROM cycles WHERE id_cycle IN (88901, 88902, 88903)");
 $db->exec("DELETE FROM personnel_cycles_assignments WHERE personnel_id = 7712");
+$db->exec("DELETE FROM personnel_assignments WHERE personnel_id = 7712");
+$db->exec("DELETE FROM utilisateurs WHERE id_user IN (7712, 3301)");
 
 echo "\nALL TESTS PASSED IN ClasseNiveauAJAXFixTest!\n";

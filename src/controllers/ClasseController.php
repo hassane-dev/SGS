@@ -459,6 +459,54 @@ class ClasseController {
             if (!defined('TEST_MODE')) exit(); return;
         }
 
+        $authClasses = AuthorizationScopeService::getAuthorizedClassIds($lycee_id);
+        $canCreateClass = Auth::can('create', 'class') || Auth::can('manage', 'class') || Auth::can('manage_all_classes', 'class');
+        $isGlobalAdmin = Auth::can('view_all_lycees', 'lycee') || Auth::can('view_all_classes', 'class');
+        $isCreationContext = (($_GET['context'] ?? '') === 'creation') && $canCreateClass;
+
+        // If not in explicit creation mode, query existing authorized classes
+        if (!$isCreationContext) {
+            if ($authClasses === []) {
+                // If user has 0 authorized classes, check if this is an admin creating a class on a cycle with 0 classes in DB
+                if ($canCreateClass) {
+                    $existingClasses = Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id, null);
+                    if (empty($existingClasses)) {
+                        // fall through to theoretical bounds for empty cycle class creation
+                    } else {
+                        echo json_encode([]);
+                        if (!defined('TEST_MODE')) exit(); return;
+                    }
+                } else {
+                    echo json_encode([]);
+                    if (!defined('TEST_MODE')) exit(); return;
+                }
+            } else {
+                $niveaux = Classe::findDistinctNiveauxByCycle($cycle_id, $lycee_id, $authClasses);
+                $orderMap = Classe::getLevelOrderMap();
+                usort($niveaux, function ($a, $b) use ($orderMap) {
+                    return ($orderMap[$a] ?? 99) <=> ($orderMap[$b] ?? 99);
+                });
+
+                if (!empty($niveaux)) {
+                    // If user has class creation permission and context is not explicitly a filter, allow theoretical bounds
+                    if ($canCreateClass && ($_GET['context'] ?? '') !== 'filter') {
+                        // fall through to theoretical bounds for class creation
+                    } else {
+                        echo json_encode(array_values(array_unique($niveaux)));
+                        if (!defined('TEST_MODE')) exit(); return;
+                    }
+                } else {
+                    // If 0 classes exist in DB, and user is admin or can create classes, allow theoretical bounds
+                    if ($canCreateClass || $isGlobalAdmin || Auth::can('manage', 'cycle')) {
+                        // fall through to theoretical bounds
+                    } else {
+                        echo json_encode([]);
+                        if (!defined('TEST_MODE')) exit(); return;
+                    }
+                }
+            }
+        }
+
         if (empty($cycle['niveau_debut']) || empty($cycle['niveau_fin'])) {
             http_response_code(400);
             echo json_encode(['error' => sprintf(_("Aucun niveau n'est configuré pour le cycle '%s'. Veuillez vérifier les bornes (niveau début / niveau fin) dans Administration > Cycles."), $cycle['nom_cycle']), 'code' => 'CYCLE_BOUNDS_MISSING']);
