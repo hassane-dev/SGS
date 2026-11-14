@@ -1262,6 +1262,9 @@ try {
     require_once __DIR__ . '/db/migrations/20240115_37_create_param_promotion_seuils.php';
     migrate_37($db);
 
+    require_once __DIR__ . '/db/migrations/20240115_38_upgrade_modes_paiement_schema.php';
+    migrate_38($db);
+
     echo "Migration successful\n";
 } catch (Exception $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";

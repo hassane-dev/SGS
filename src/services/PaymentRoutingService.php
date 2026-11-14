@@ -35,7 +35,11 @@ class PaymentRoutingService {
             }
         }
 
-        if (!$mode || (int)$mode['lycee_id'] !== (int)$lyceeId) {
+        if (!$mode) {
+            throw new Exception("Mode de paiement invalide pour cet établissement.");
+        }
+        $modeLyceeId = $mode['lycee_id'] ?? null;
+        if ($modeLyceeId !== null && (int)$modeLyceeId !== (int)$lyceeId) {
             throw new Exception("Mode de paiement invalide pour cet établissement.");
         }
 
