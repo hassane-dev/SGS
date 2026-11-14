@@ -2581,27 +2581,40 @@ CREATE TABLE affectations_caisses (
 -- Table `modes_paiement`
 CREATE TABLE modes_paiement (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    code VARCHAR(50) NOT NULL UNIQUE,
+    lycee_id INT NOT NULL,
+    code VARCHAR(30) NOT NULL,
     libelle VARCHAR(100) NOT NULL,
-    type_compte_defaut ENUM('caisse', 'banque', 'mobile_money', 'autre') NOT NULL,
-    actif TINYINT(1) DEFAULT 1,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    type_canal ENUM('especes', 'mobile_money', 'banque', 'autre') NOT NULL DEFAULT 'especes',
+    compte_financier_id INT DEFAULT NULL,
+    exige_session_caisse BOOLEAN NOT NULL DEFAULT TRUE,
+    exige_reference_transaction BOOLEAN NOT NULL DEFAULT FALSE,
+    actif BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
+    FOREIGN KEY (compte_financier_id) REFERENCES comptes_financiers(id) ON DELETE SET NULL,
+    UNIQUE KEY uk_lycee_mode_code (lycee_id, code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table `paiement_ventilations`
 CREATE TABLE paiement_ventilations (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    paiement_type ENUM('inscription', 'mensualite') NOT NULL,
-    paiement_id INT NOT NULL,
+    lycee_id INT NOT NULL,
+    source_type VARCHAR(50) NOT NULL,
+    source_id INT NOT NULL,
     mode_paiement_id INT NOT NULL,
-    compte_id INT NOT NULL,
+    compte_financier_id INT NOT NULL,
+    session_caisse_id INT DEFAULT NULL,
     montant DECIMAL(15,2) NOT NULL,
-    reference_externe VARCHAR(100) NULL,
-    mouvement_id INT NULL,
+    reference_transaction VARCHAR(150) DEFAULT NULL,
+    mouvement_tresorerie_id INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (lycee_id) REFERENCES param_lycee(id) ON DELETE CASCADE,
     FOREIGN KEY (mode_paiement_id) REFERENCES modes_paiement(id) ON DELETE RESTRICT,
-    FOREIGN KEY (compte_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
-    INDEX idx_ventilation_target (paiement_type, paiement_id)
+    FOREIGN KEY (compte_financier_id) REFERENCES comptes_financiers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (session_caisse_id) REFERENCES sessions_caisse(id) ON DELETE SET NULL,
+    FOREIGN KEY (mouvement_tresorerie_id) REFERENCES mouvements_tresorerie(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
